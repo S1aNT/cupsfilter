@@ -34,9 +34,11 @@ sub debug {
 	if ($self->{DB_TRACE}->[0] > 7){
   		$self->{DB_TRACE}->[0]=7;
   	}
+	if ((scalar(@{$self->{DB_TRACE}})== 2)&& defined $self->{DBH}){
+  		$self->{DBH}->trace($self->{DB_TRACE}->[0],$self->{DB_TRACE}->[1]);
+  	}	
 	#TODO check file name or not what's the question ?
   }
-  
   return $self->{DB_TRACE};
 }
 
@@ -49,13 +51,11 @@ sub connect{
 	if (scalar(@{$self->{OPTIONS}})== 7){
 		my ($dbname,$username,$password,$dbhost,$dbport,$dboptions,$dbtty)=@{$self->{OPTIONS}};
 		#TODO возможно стоит сделать так - вначале коннект к базе по умолчанию postgres затем попытка смены базы
-		$self->{DBH} = DBI->connect("dbi:PgPP:dbname=$dbname;host=$dbhost;port=$dbport;options=$dboptions;tty=$dbtty","$username","$password",{PrintError => 1,AutoCommit => 0});							
+		$self->{DBH} = DBI->connect("dbi:PgPP:dbname=$dbname;host=$dbhost;port=$dbport;options=$dboptions;tty=$dbtty","$username","$password",{PrintError => 0,AutoCommit => 0});							
 		#Test connection
 		croak("SQLShell.pm::connect Erorr $DBI::errstr\n") unless (defined $self->{DBH});
-		if ((scalar(@{$self->{DB_TRACE}})== 2)&& defined $self->{DBH}){
-  			$self->{DBH}->trace($self->{DB_TRACE}->[0],$self->{DB_TRACE}->[1]);
-  		}	
-		
+  		#чтобы дата была в формате DD.MM.YYYY, а не как по умолчанию в формате ISO где год и месяц идут впереди числа.
+		$self->{DBH}->do("SET DATESTYLE TO GERMAN");
 	}else{
 		croak("SQLShell.pm::connect Can't connect to BD. becouse arument's list not full");
 	}
@@ -66,7 +66,7 @@ sub select {
     #TODO add check $fields,$table,$cond
     if (defined $self->{DBH}){
     	$self->{DBH}->begin_work();
-    	my $q ="SELECT $fields FROM $table WHERE $cond";
+    	my $q=$self->{DBH}->quote("SELECT $fields FROM $table WHERE $cond");
     	my $sth = $self->{DBH}->prepare($q);
         my $rv = $sth->execute();
         $self->{DBH}->commit();
@@ -80,7 +80,7 @@ sub select {
     	croak("SQLShell.pm:: Can't execute sql query. Database not connected \n");
     }
 }
-#TODO need function for packet's data inssert (use ??? and prepare)
+#TODO need function for packet's data insert, update(use ??? and prepare)
 sub _doexec{# Private function !!!
 	my ($self,$query)=@_;
     if (defined $self->{DBH}){
