@@ -23,6 +23,33 @@ sub new {
   return $self;
 }
 
+sub just_do { 
+	my ($self,$func,$param)=@_;
+    if (defined $self->{DBH}){
+     	$self->{DBH}->begin_work();
+     	my $p =undef;
+     	
+     	foreach my $item(@$param){
+     		$item ="\'$item\'";
+     	}
+     	$p= join(",",@$param);
+     	
+    	my $q="SELECT $func($p)";
+    	my $sth = $self->{DBH}->prepare($q);
+        my $rv = $sth->execute();
+        $self->{DBH}->commit();
+         if (!defined $rv) {
+         	my $e="SQLShell.pm:: When execute query $q:".$self->{DBH}->errstr."\n";
+            croak ($e);
+        }else{
+            return $sth->fetchall_arrayref();# Returns pointer to array of result
+        }
+    }else{
+    	croak("SQLShell.pm:: Can't execute sql query. Database not connected \n");
+    }
+	 
+}
+
 sub debug {
  my $self = shift;
   if (@_) { 
@@ -66,7 +93,7 @@ sub select {
     #TODO add check $fields,$table,$cond
     if (defined $self->{DBH}){
     	$self->{DBH}->begin_work();
-    	my $q=$self->{DBH}->quote("SELECT $fields FROM $table WHERE $cond");
+    	my $q="SELECT $fields FROM $table WHERE $cond";
     	my $sth = $self->{DBH}->prepare($q);
         my $rv = $sth->execute();
         $self->{DBH}->commit();

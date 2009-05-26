@@ -29,4 +29,12 @@ sub delete {
 sub disconnect { 
 	croak "I'm pure!" 
 }
+sub _doexec { 
+	croak "I'm pure!" 
+}
+
+sub get_func_res { 
+	croak "I'm pure!" 
+}
+
 1;

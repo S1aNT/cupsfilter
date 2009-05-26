@@ -41,6 +41,8 @@ print $dbh_1->options();
 print $dbh_1->VERSION;
 print "Insert records from PgSQL:\n";
 
+my $test =  $dbh_1->just_do("check_printer_perm","PDF","192.168.11.151","SYSPROG","1");
+
 my $info=$dbh_1->{DBH}->quote(" can't contain IP\n");
 
 $dbh_1->insert("debug_log","info_str",$info);

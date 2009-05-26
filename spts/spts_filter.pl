@@ -8,6 +8,7 @@ use IO::File;
 use File::Temp ();
 use SQLShell;
 use DBI;
+#use encoding 'utf8';
 
 #use File::Temp qw/ :seekable /;
 #require File::Temp;
@@ -35,7 +36,6 @@ if ($DEBUG){
 	$PSSELECT_BIN ="psselect.pl";
 	$SPOOL ="d:\\Temp\\";
 	@argv=(42,"Sla\@nt","«Сборник практических заданий по ТСП для слушателей \\ учебной группы!»",5,"JUID:42","sample.ps");
-	
 }
 
 my ($jobID,$userName,$jobTitle,$copies,$printOptions,$printFile) = @argv;
@@ -77,7 +77,7 @@ $dbh->options(	"CupsLog",	# имя базы данных
 $dbh->connect();		
 if ($DEBUG){
 	$dbh->debug(3,"dbh.log");
-	#save_message2base ("Test messages can't contain quotes !!\n");
+	#save_debug_msg ("Test messages can't contain quotes !!\n");
 }		
 
 #analising device _uri :)
@@ -86,7 +86,8 @@ if (defined $1){
 	$TAGS_DATA{"printer_ip"} = $1;
 	$TAGS_DATA{"printer_ip"} =~ s/:.*//;  # Pull off port number if present
 }else{
-	save_message2base ("Device URI = ".$TAGS_DATA{"device_uri"}." can't contain IP\n");
+	save_debug_msg ("Device URI = ".$TAGS_DATA{"device_uri"}." can't contain IP\n");
+	cancel_print_job($TAGS_DATA{"jobID"},$TAGS_DATA{"printer"});
 	exit 1;
 }
 
@@ -94,7 +95,8 @@ if (defined $1){
 if ($result[0]){
 	$TAGS_DATA{"MANDAT"}=$result[1];
 }else{
-	save_message2base ($result[1]);# TODO must be -> "Printers with IP = ".$TAGS_DATA{"printer_ip"}.",name =".$TAGS_DATA{"printer"}." has not Mandat !\n";
+	save_debug_msg ($result[1]);# TODO must be -> "Printers with IP = ".$TAGS_DATA{"printer_ip"}.",name =".$TAGS_DATA{"printer"}." has not Mandat !\n";
+	cancel_print_job($TAGS_DATA{"jobID"},$TAGS_DATA{"printer"});
 	exit 1;
 }
 # Safe create temp file
@@ -105,8 +107,16 @@ $FH_TEMP = File::Temp->new( TEMPLATE => 'cups_jobXXXXX',
 $TAGS_DATA{"TMP_FILENAME"} = $FH_TEMP->filename();
                             
 @result =parse_file($TAGS_DATA{"printFile"},$FH_TEMP);
-if ($result[0] && check_permission($TAGS_DATA{"MANDAT"},$TAGS_DATA{"key_protect"})){#check permission to print
-	send2stdout();
+if ($result[0]){#check permission to print
+    my @tmp=($TAGS_DATA{"printer_ip"},$TAGS_DATA{"MANDAT"},$TAGS_DATA{"protect"});
+	my $perm = $dbh->just_do($TAGS_DATA{"printer"},\@tmp);
+	if ($perm->[0][0]){
+		send2stdout();
+	}else{
+		save_debug_msg ("Can't determine the rights assigned to printer ".$TAGS_DATA{"printer"}."with ".$TAGS_DATA{"printer_ip"}." and ".$TAGS_DATA{"MANDAT"}.", document level ".$TAGS_DATA{"key_protect"});
+		cancel_print_job($TAGS_DATA{"jobID"},$TAGS_DATA{"printer"});
+		exit 1;
+	}
 }else{
 	cancel_print_job($TAGS_DATA{"jobID"},$TAGS_DATA{"printer"});
 }
@@ -115,13 +125,15 @@ if ($result[0] && check_permission($TAGS_DATA{"MANDAT"},$TAGS_DATA{"key_protect"
 if ($result[0]){
 	$TAGS_DATA{"FP_PDF_NAME"}=$result[1];
 }else{
-	save_message2base ($result[1]);
+	save_debug_msg ($result[1]);
+	cancel_print_job($TAGS_DATA{"jobID"},$TAGS_DATA{"printer"});
 	exit 1;
 }
 
-@result =save2base($TAGS_DATA{"PRINT_OR_CANCEl_JOB"});
+@result =save2base();# Запишем в базу собранные данные. Пишем в базу независимо от настроения фильтра и услови завершения работы
 unless ($result[0]){
-	save_message2base ($result[1]);
+	save_debug_msg ($result[1]);
+	cancel_print_job($TAGS_DATA{"jobID"},$TAGS_DATA{"printer"});
 	exit 1;
 }
 exit 0;
@@ -130,7 +142,12 @@ END{
 	$dbh->disconnect();
 }
 #----------------------------ENTANGLED sub's :) ----------------------------------------------------------------------
-sub save_message2base{
+sub save2base{
+	#Ags: nothing
+	#Returns array containing code operation,info string;
+	return; 
+}
+sub save_debug_msg{
 	#Ags: Info string
 	#Returns: bothing
 	my ($info_str)=@_;
@@ -142,15 +159,7 @@ sub save_message2base{
 	}
 }
 
-sub check_permission{
-	#Arg: printer_state,document_state
-	#Returns: 1/0 can or cancel print
-	my($printer_state,$doc_state)=@_;
-	if (defined $printer_state && defined $doc_state){
-		
-	} 
-	return 0;
-}
+
 sub get_printers_mandat{
 	#Ags printer_ip,printer_name;
 	#Returns array containing code operation,info string;
@@ -250,14 +259,18 @@ sub cancelPrintJob{
 	# Args: jobid, queuename
     # Returns: nothing, deletes job and re-enables queue
     my ($jobid,$queue) = @_;
+    #TODO add check defined $jobid,$queue !!!
+    
     sleep 1;
-    unless ($DEBUG){
-    	system("/usr/bin/lprm","$$jobid");
-    	sleep 1;
-    	system("$ENABLE","$$queue");
-    }
-	return 1;
+    if (defined $jobid && defined $queue){
+    	unless ($DEBUG){
+    		system("/usr/bin/lprm","$jobid");
+    		sleep 1;
+    		system("$ENABLE","$queue");
+    	}
+    }	
 }
+
 sub cleaner{
 	#Arg: Dirty string
 	#Returns clear string or nothing
