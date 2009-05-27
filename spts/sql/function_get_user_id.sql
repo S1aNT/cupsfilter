@@ -1,13 +1,10 @@
-drop function get_user_id(IN last_n character varying, 
-			    IN firts_n character varying, 
-			    IN middle_n character varying, 
-			    IN tlp character varying);
-			    
-CREATE FUNCTION get_user_id(IN last_n character varying, 
-			    IN firts_n character varying, 
-			    IN middle_n character varying, 
-			    IN tlp character varying) 
-RETURNS INTEGER AS'
+-- Function: get_user_id(character varying, character varying, character varying, character varying)
+
+-- DROP FUNCTION get_user_id(character varying, character varying, character varying, character varying);
+
+CREATE OR REPLACE FUNCTION get_user_id(last_n character varying, firts_n character varying, middle_n character varying, tlp character varying)
+  RETURNS integer AS
+$BODY$
     DECLARE
         user_id INTEGER;
     BEGIN
@@ -20,7 +17,7 @@ RETURNS INTEGER AS'
     END IF;
     RETURN user_id;
     
-   END;' 
-   LANGUAGE 'plpgsql';
-
-ALTER FUNCTION check_printer_perm(IN character varying, IN inet,IN character varying,IN character varying) OWNER TO postgres;
+   END;$BODY$
+  LANGUAGE 'plpgsql' VOLATILE
+  COST 100;
+ALTER FUNCTION get_user_id(character varying, character varying, character varying, character varying) OWNER TO postgres;
