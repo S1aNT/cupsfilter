@@ -9,7 +9,6 @@ use File::Temp ();
 use SQLShell;
 use DBI;
 #use encoding 'utf8';
-
 #use File::Temp qw/ :seekable /;
 #require File::Temp;
 
@@ -19,7 +18,7 @@ my $DEBUG=1;							# For debuging and troubleshooting. Nice hunt !
 my @argv = @ARGV;			#keep hands off the argument array
 my $SPOOL = "/tmp";			#where are my speedy memory drive?
 my $DEBUG_FILE = "/var/log/cups/tech_filter_debug.log";
-my $FPAGEDIR   ="/var/log/cups/firstpages"; #каталог в котором храняться первые страницы документа
+my $FPAGEDIR   ="/var/log/cups/firstpages"; #каталог в котором хранятся первые страницы документа
 my $DATE_BIN = "/bin/date";				#path to date
 my $PDF_BIN="/usr/bin/ps2pdf";			#path to ps2pdf binary
 my $PSSELECT_BIN ="/usr/bin/psselect"; 	#path to psselect binary
@@ -56,7 +55,7 @@ $TAGS_DATA{"printOptions"}=$printOptions;
 # If no arguments, device discovery mode
 if (!$argv[0]){
         print ("direct tech_filter \"Unknown\" \"TechnoServ Filter \"\n");
-        exit 1;
+        exit 0;
 }
 # If too many arguments, send error
 if (scalar(@argv) < 5 || scalar(@argv) > 6){
@@ -108,8 +107,8 @@ $TAGS_DATA{"TMP_FILENAME"} = $FH_TEMP->filename();
                             
 @result =parse_file($TAGS_DATA{"printFile"},$FH_TEMP);
 if ($result[0]){#check permission to print
-    my @tmp=($TAGS_DATA{"printer_ip"},$TAGS_DATA{"MANDAT"},$TAGS_DATA{"protect"});
-	my $perm = $dbh->just_do($TAGS_DATA{"printer"},\@tmp);
+    my @tmp=($TAGS_DATA{"printer"},$TAGS_DATA{"printer_ip"},$TAGS_DATA{"MANDAT"},$TAGS_DATA{"protect"});
+	my $perm = $dbh->just_do("check_printer_perm",\@tmp);
 	if ($perm->[0][0]){
 		send2stdout();
 	}else{
@@ -203,6 +202,7 @@ sub parse_file{
 				}else {
 					#print STDERR $_,"=",$1,"-",$2,"-",$3,"\n";
 					$err_str="\nError TAGS_DATA - [key->$1, value->$2] is dublicat!";
+					save_debug_msg ($err_str);
 					$TAGS_DATA{"parse_error"}.=$err_str;
 				}
 			}
@@ -224,7 +224,7 @@ sub get_fp_pdfname_and_make_pdf{
 	#Returns: array containing code operation,info string;
 	my ($jobID,$user,$jobTitle,$tmp_filename)=@_;
 	
-	$jobTitle = substr($jobTitle,0,12); # 
+	$jobTitle = substr($jobTitle,0,25); # 
     # Put the pieces together to create a usable filename
     $TAGS_DATA{"fp_pdf_filename"}= join('-',$jobID,$user,$jobTitle);
     
