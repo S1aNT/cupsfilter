@@ -6,7 +6,6 @@ CREATE TABLE document_level
 (
   id serial NOT NULL,
   marker character varying(3) NOT NULL,
-  sec_level integer NOT NULL,
   ds character varying(25) NOT NULL,
   CONSTRAINT document_level_pkey PRIMARY KEY (id)
 )

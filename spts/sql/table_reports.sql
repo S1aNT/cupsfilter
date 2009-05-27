@@ -1,6 +1,6 @@
 -- Table: reports
 
--- DROP TABLE reports;
+DROP TABLE reports;
 
 CREATE TABLE reports
 (
@@ -8,6 +8,10 @@ CREATE TABLE reports
   printer_id integer NOT NULL,
   firstpages_id integer NOT NULL,
   user_id integer NOT NULL,
+  list_senders_id integer NOT NULL,
+  copy_number integer NOT NULL,
+  document_level integer NOT NULL,
+  additional_info_id integer NOT NULL,
   doc_name character varying(255) NOT NULL,
   date_created date NOT NULL DEFAULT now(),
   mb_number character varying(15) NOT NULL,
@@ -15,7 +19,7 @@ CREATE TABLE reports
   page_count integer NOT NULL,
   page_copy integer NOT NULL,
   descr text,
-
+ 
   CONSTRAINT reports_pkey PRIMARY KEY (id),
   CONSTRAINT "FK_firstpages" FOREIGN KEY (firstpages_id)
       REFERENCES firstpages (id) MATCH SIMPLE
@@ -56,3 +60,4 @@ CREATE INDEX "FKI_users"
   ON reports
   USING btree
   (user_id);
+
