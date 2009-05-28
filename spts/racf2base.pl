@@ -31,6 +31,7 @@ my @result = save_mandat2base($printer_ip,$printer_name);
 print "Output $result[1] with code $result[0]";
 
 #TODO Написать общую функцию записи в лог
+#TODO need use SQLShell.pm !!!
 ##----------------------------------------------------------------------
 
 sub save_mandat2base{
