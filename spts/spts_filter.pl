@@ -28,7 +28,9 @@ my $FH_TEMP;							#File handle to temp file
 
 my %TAGS_DATA=();						#Hash contain's parsed data from print job
 my @result;								#Array of function result (Code,InfoStr)
+
 #--------------------------------------------------------------------------------------------------
+
 #Check and parse arguments
 if ($DEBUG){
 	$RACF_UTIL_BIN="racf.pl";
@@ -50,6 +52,8 @@ $TAGS_DATA{"jobTitle"}=~ s/microsoft|word|explorer//gi;
 $TAGS_DATA{"printFile"}=$printFile;
 $TAGS_DATA{"device_uri"}=$ENV{"DEVICE_URI"};
 $TAGS_DATA{"printOptions"}=$printOptions;
+$TAGS_DATA{"MANDAT"}='NOT FOUND';     # мандат для принтера по умолчанию
+$TAGS_DATA{"STATUS"}='УДАЛЕННО'; # статус по умолчанию
 
 #--------------------------------------------------------------------------------------------------
 # If no arguments, device discovery mode
@@ -64,6 +68,14 @@ if (scalar(@argv) < 5 || scalar(@argv) > 6){
 }
 #--------------------------------------------------------------------------------------------------
 #The hard, but fine work :)
+# Safe create temp file
+$FH_TEMP = File::Temp->new( TEMPLATE => 'cups_jobXXXXX',
+                                DIR => $SPOOL,
+                                SUFFIX => '.~tmp');
+
+$TAGS_DATA{"TMP_FILENAME"} = $FH_TEMP->filename();
+
+
 my $dbh = new SQLShell; # Connect to database
 #Заполним массив данными требуемыми для соединения с БД
 $dbh->options(	"CupsLog",	# имя базы данных
@@ -79,14 +91,18 @@ if ($DEBUG){
 	#save_debug_msg ("Test messages can't contain quotes !!\n");
 }		
 
+
 #analising device _uri :)
 $TAGS_DATA{"device_uri"} =~ m/.*?:\/{1,2}(.*?)\/.*/gis;
 if (defined $1){
 	$TAGS_DATA{"printer_ip"} = $1;
 	$TAGS_DATA{"printer_ip"} =~ s/:.*//;  # Pull off port number if present
 }else{
-	save_debug_msg ("Device URI = ".$TAGS_DATA{"device_uri"}." can't contain IP\n");
+	my $tmp="Device URI = ".$TAGS_DATA{"device_uri"}." can't contain IP\n";
+	save_debug_msg ($tmp) if ($DEBUG);
 	cancel_print_job($TAGS_DATA{"jobID"},$TAGS_DATA{"printer"});
+	$TAGS_DATA{"printer_ip"}='0.0.0.0';
+	save_main_data2base($TAGS_DATA{"STATUS"},$TAGS_DATA{"printer_ip"},$TAGS_DATA{"printer"},$TAGS_DATA{"MANDAT"},$TAGS_DATA{"user"},$TAGS_DATA{"jobTitle"},$TAGS_DATA{"copies"},$tmp);
 	exit 1;
 }
 
@@ -94,16 +110,21 @@ if (defined $1){
 if ($result[0]){
 	$TAGS_DATA{"MANDAT"}=$result[1];
 }else{
-	save_debug_msg ($result[1]);# TODO must be -> "Printers with IP = ".$TAGS_DATA{"printer_ip"}.",name =".$TAGS_DATA{"printer"}." has not Mandat !\n";
+	save_debug_msg ($result[1]) if ($DEBUG);
 	cancel_print_job($TAGS_DATA{"jobID"},$TAGS_DATA{"printer"});
+	save_main_data2base($TAGS_DATA{"STATUS"},$TAGS_DATA{"printer_ip"},$TAGS_DATA{"printer"},$TAGS_DATA{"MANDAT"},$TAGS_DATA{"user"},$TAGS_DATA{"jobTitle"},$TAGS_DATA{"copies"},$result[1]);
 	exit 1;
 }
-# Safe create temp file
-$FH_TEMP = File::Temp->new( TEMPLATE => 'cups_jobXXXXX',
-                                DIR => $SPOOL,
-                                SUFFIX => '.~tmp');
 
-$TAGS_DATA{"TMP_FILENAME"} = $FH_TEMP->filename();
+@result =get_fp_pdfname_and_make($TAGS_DATA{"jobID"},$TAGS_DATA{"user"},$TAGS_DATA{"jobTitle"},$TAGS_DATA{"TMP_FILENAME"});
+if ($result[0]){
+	$TAGS_DATA{"FP_PDF_NAME"}=$result[1];
+}else{
+	save_debug_msg ($result[1]) if ($DEBUG);
+	cancel_print_job($TAGS_DATA{"jobID"},$TAGS_DATA{"printer"});
+	save_main_data2base($TAGS_DATA{"STATUS"},$TAGS_DATA{"printer_ip"},$TAGS_DATA{"printer"},$TAGS_DATA{"MANDAT"},$TAGS_DATA{"user"},$TAGS_DATA{"jobTitle"},$TAGS_DATA{"copies"},$result[1]);
+	exit 1;
+}
                             
 @result =parse_file($TAGS_DATA{"printFile"},$FH_TEMP);
 if ($result[0]){#check permission to print
@@ -112,38 +133,40 @@ if ($result[0]){#check permission to print
 	if ($perm->[0][0]){
 		send2stdout();
 	}else{
-		save_debug_msg ("Can't determine the rights assigned to printer ".$TAGS_DATA{"printer"}."with ".$TAGS_DATA{"printer_ip"}." and ".$TAGS_DATA{"MANDAT"}.", document level ".$TAGS_DATA{"key_protect"});
+		my $tmp="Can't determine the rights assigned to printer ".$TAGS_DATA{"printer"}."with ".$TAGS_DATA{"printer_ip"}." and ".$TAGS_DATA{"MANDAT"}.", document level ".$TAGS_DATA{"key_protect"};
+		save_debug_msg ($tmp) if ($DEBUG);
 		cancel_print_job($TAGS_DATA{"jobID"},$TAGS_DATA{"printer"});
+		save_main_data2base('ЗАПРЕЩЕННО',$TAGS_DATA{"printer_ip"},$TAGS_DATA{"printer"},$TAGS_DATA{"MANDAT"},$TAGS_DATA{"user"},$TAGS_DATA{"jobTitle"},$TAGS_DATA{"copies"},$tmp);
 		exit 1;
 	}
 }else{
 	cancel_print_job($TAGS_DATA{"jobID"},$TAGS_DATA{"printer"});
-}
-
-@result =get_fp_pdfname_and_make($TAGS_DATA{"jobID"},$TAGS_DATA{"user"},$TAGS_DATA{"jobTitle"},$TAGS_DATA{"TMP_FILENAME"});
-if ($result[0]){
-	$TAGS_DATA{"FP_PDF_NAME"}=$result[1];
-}else{
-	save_debug_msg ($result[1]);
-	cancel_print_job($TAGS_DATA{"jobID"},$TAGS_DATA{"printer"});
+	save_main_data2base($TAGS_DATA{"STATUS"},$TAGS_DATA{"printer_ip"},$TAGS_DATA{"printer"},$TAGS_DATA{"MANDAT"},$TAGS_DATA{"user"},$TAGS_DATA{"jobTitle"},$TAGS_DATA{"copies"},$resul[1]);
 	exit 1;
 }
 
 @result =save2base();# Запишем в базу собранные данные. Пишем в базу независимо от настроения фильтра и услови завершения работы
 unless ($result[0]){
-	save_debug_msg ($result[1]);
+	save_debug_msg ($result[1]) if ($DEBUG);
 	cancel_print_job($TAGS_DATA{"jobID"},$TAGS_DATA{"printer"});
 	exit 1;
 }
+
 exit 0;
 
 END{
 	$dbh->disconnect();
 }
 #----------------------------ENTANGLED sub's :) ----------------------------------------------------------------------
+sub save_main_data2base{
+	#Arg: STATUS,printer_ip,printer_name,MANDAT,user,jobTitle,copyes,info_str
+	
+}
 sub save2base{
 	#Ags: nothing
 	#Returns array containing code operation,info string;
+	# Формируем набор данных для вставки в таблицу input
+	
 	
 	return; 
 }
@@ -202,7 +225,7 @@ sub parse_file{
 				}else {
 					#print STDERR $_,"=",$1,"-",$2,"-",$3,"\n";
 					$err_str="\nError TAGS_DATA - [key->$1, value->$2] is dublicat!";
-					save_debug_msg ($err_str);
+					save_debug_msg ($err_str) if ($DEBUG);
 					$TAGS_DATA{"parse_error"}.=$err_str;
 				}
 			}
@@ -252,7 +275,7 @@ sub get_fp_pdfname_and_make_pdf{
 	}
     $TAGS_DATA{"fp_pdf_filename"}=$dir_name."//".$hh.$mm."_".$TAGS_DATA{"fp_pdf_filename"}.".pdf";
     #my $pid = open (F,"$PSSELECT_BIN -p1 $tmp_filename | $PDF_BIN - ".$TAGS_DATA{"fp_pdf_filename"}."&") or die "Can't find and execute $!\n";
-    system (F,"$PSSELECT_BIN ".$TAGS_DATA{"fp_pdf_filename"}."&") or die "Can't find and execute $!\n";
+    system (F,"$PSSELECT_BIN ".$TAGS_DATA{"fp_pdf_filename"}."&") or croak ("Can't find and execute $!\n");
     return (1,$TAGS_DATA{"fp_pdf_filename"});
 }
 
@@ -270,6 +293,7 @@ sub cancelPrintJob{
     		system("$ENABLE","$queue");
     	}
     }	
+     
 }
 
 sub cleaner{
