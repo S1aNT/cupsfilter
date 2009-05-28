@@ -9,17 +9,15 @@ $BODY$
         notfound_id INTEGER;
     BEGIN
     /*
-	Получить id мандата если такого не существует,
-		то провериить существование мандата "НЕ ОПРЕДЕЛЕН"
-			если его нет т
-				вставить в таблицу, записать сообщение в таблицу лога 
-		вернуть  id найденного мандата    
+	Получить id мандата если такого не существует, то по умолчанию выбирается мандат "PUBLIC"
+	 если его нет то вставить такой мандат в таблицу, записать сообщение в таблицу лога вернуть  id найденного мандата    
     */
-	notfound_id := (select id from printers_mandat where printers_mandat.mandat='NOT FOUND'); 
+	notfound_id := (select id from printers_mandat where printers_mandat.mandat='PUBLIC'); 
 	IF notfound_id ISNULL THEN
 		-- вставим в таблицу данные
-		INSERT INTO printers_mandat (mandat) VALUES ('NOT FOUND');
-		notfound_id := (select id from printers_mandat where printers_mandat.mandat='NOT FOUND'); 
+		INSERT INTO debug_log(info_str) values ('Автоматическое добавление мандата PUBLIC');
+		INSERT INTO printers_mandat (mandat) VALUES ('PUBLIC');
+		notfound_id := (select id from printers_mandat where printers_mandat.mandat='PUBLIC'); 
 	END IF;
 	mandat_id := (select id from printers_mandat where printers_mandat.mandat=$1); 
         IF mandat_id ISNULL THEN

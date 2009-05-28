@@ -141,7 +141,7 @@ if ($result[0]){#check permission to print
 	}
 }else{
 	cancel_print_job($TAGS_DATA{"jobID"},$TAGS_DATA{"printer"});
-	save_main_data2base($TAGS_DATA{"STATUS"},$TAGS_DATA{"printer_ip"},$TAGS_DATA{"printer"},$TAGS_DATA{"MANDAT"},$TAGS_DATA{"user"},$TAGS_DATA{"jobTitle"},$TAGS_DATA{"copies"},$resul[1]);
+	save_main_data2base($TAGS_DATA{"STATUS"},$TAGS_DATA{"printer_ip"},$TAGS_DATA{"printer"},$TAGS_DATA{"MANDAT"},$TAGS_DATA{"user"},$TAGS_DATA{"jobTitle"},$TAGS_DATA{"copies"},$result[1]);
 	exit 1;
 }
 
