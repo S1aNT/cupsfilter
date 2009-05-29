@@ -1,8 +1,8 @@
 -- Function: check_printer_perm(character varying, inet, character varying, character varying)
--- DROP FUNCTION check_printer_perm(character varying, inet, character varying, character varying);
+DROP FUNCTION check_printer_perm(character varying, inet, character varying, character varying);
 
 CREATE OR REPLACE FUNCTION check_printer_perm(character varying, inet, character varying, character varying)
-  RETURNS boolean AS
+  RETURNS integer AS
 $BODY$
     DECLARE
         printer_id INTEGER;

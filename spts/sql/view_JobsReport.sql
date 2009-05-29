@@ -1,12 +1,8 @@
--- View: "JobsReport"
-
--- DROP VIEW "JobsReport";
-
+DROP VIEW "JobsReport";
 CREATE OR REPLACE VIEW "JobsReport" AS 
- SELECT reports.id, reports.date_created, reports.mb_number AS mb_numder, reports.doc_name, reports.tag, reports.page_count, reports.page_copy, reports.user_fio, printers.printer_name, reports.descr
+ SELECT reports.id, reports.dt as Date, reports.mb_number, reports.doc_name, reports.page_count, reports.page_copy, 
+		reports.cups_user, printers.printer_name, reports.info_str,executors.last_name,executors.first_name,executors.middle_name,document_level.marker
    FROM reports
-   JOIN printers ON reports.printer_id = printers.id;
-
-ALTER TABLE "JobsReport" OWNER TO postgres;
-GRANT ALL ON TABLE "JobsReport" TO postgres;
-GRANT ALL ON TABLE "JobsReport" TO public;
+   INNER JOIN printers ON reports.printer_id = printers.id
+   INNER JOIN document_level ON reports.doc_level_id = document_level.id
+   INNER JOIN executors ON reports.executor_id = executors.id;

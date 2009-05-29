@@ -58,7 +58,7 @@ $TAGS_DATA{"STATUS"}='УДАЛЕННО'; # статус по умолчанию
 #--------------------------------------------------------------------------------------------------
 # If no arguments, device discovery mode
 if (!$argv[0]){
-        print ("direct tech_filter \"Unknown\" \"TechnoServ Filter \"\n");
+        print STDERR ("direct tech_filter \"Unknown\" \"TechnoServ Filter \"\n");
         exit 0;
 }
 # If too many arguments, send error
@@ -75,7 +75,6 @@ $FH_TEMP = File::Temp->new( TEMPLATE => 'cups_jobXXXXX',
 
 $TAGS_DATA{"TMP_FILENAME"} = $FH_TEMP->filename();
 
-
 my $dbh = new SQLShell; # Connect to database
 #Заполним массив данными требуемыми для соединения с БД
 $dbh->options(	"CupsLog",	# имя базы данных
@@ -91,7 +90,6 @@ if ($DEBUG){
 	#save_debug_msg ("Test messages can't contain quotes !!\n");
 }		
 
-
 #analising device _uri :)
 $TAGS_DATA{"device_uri"} =~ m/.*?:\/{1,2}(.*?)\/.*/gis;
 if (defined $1){
@@ -102,7 +100,7 @@ if (defined $1){
 	save_debug_msg ($tmp) if ($DEBUG);
 	cancel_print_job($TAGS_DATA{"jobID"},$TAGS_DATA{"printer"});
 	$TAGS_DATA{"printer_ip"}='0.0.0.0';
-	save_main_data2base($TAGS_DATA{"STATUS"},$TAGS_DATA{"printer_ip"},$TAGS_DATA{"printer"},$TAGS_DATA{"MANDAT"},$TAGS_DATA{"user"},$TAGS_DATA{"jobTitle"},$TAGS_DATA{"copies"},$tmp);
+	save_main_data2base($TAGS_DATA{"printer_ip"},$TAGS_DATA{"printer"},$TAGS_DATA{"MANDAT"},$TAGS_DATA{"user"},$TAGS_DATA{"jobTitle"},$TAGS_DATA{"copies"},$TAGS_DATA{"STATUS"},$tmp);
 	exit 1;
 }
 
@@ -112,7 +110,7 @@ if ($result[0]){
 }else{
 	save_debug_msg ($result[1]) if ($DEBUG);
 	cancel_print_job($TAGS_DATA{"jobID"},$TAGS_DATA{"printer"});
-	save_main_data2base($TAGS_DATA{"STATUS"},$TAGS_DATA{"printer_ip"},$TAGS_DATA{"printer"},$TAGS_DATA{"MANDAT"},$TAGS_DATA{"user"},$TAGS_DATA{"jobTitle"},$TAGS_DATA{"copies"},$result[1]);
+	save_main_data2base($TAGS_DATA{"printer_ip"},$TAGS_DATA{"printer"},$TAGS_DATA{"MANDAT"},$TAGS_DATA{"user"},$TAGS_DATA{"jobTitle"},$TAGS_DATA{"copies"},$TAGS_DATA{"STATUS"},$result[1]);
 	exit 1;
 }
 
@@ -122,7 +120,7 @@ if ($result[0]){
 }else{
 	save_debug_msg ($result[1]) if ($DEBUG);
 	cancel_print_job($TAGS_DATA{"jobID"},$TAGS_DATA{"printer"});
-	save_main_data2base($TAGS_DATA{"STATUS"},$TAGS_DATA{"printer_ip"},$TAGS_DATA{"printer"},$TAGS_DATA{"MANDAT"},$TAGS_DATA{"user"},$TAGS_DATA{"jobTitle"},$TAGS_DATA{"copies"},$result[1]);
+	save_main_data2base($TAGS_DATA{"printer_ip"},$TAGS_DATA{"printer"},$TAGS_DATA{"MANDAT"},$TAGS_DATA{"user"},$TAGS_DATA{"jobTitle"},$TAGS_DATA{"copies"},$TAGS_DATA{"STATUS"},$result[1]);
 	exit 1;
 }
                             
@@ -136,12 +134,12 @@ if ($result[0]){#check permission to print
 		my $tmp="Can't determine the rights assigned to printer ".$TAGS_DATA{"printer"}."with ".$TAGS_DATA{"printer_ip"}." and ".$TAGS_DATA{"MANDAT"}.", document level ".$TAGS_DATA{"key_protect"};
 		save_debug_msg ($tmp) if ($DEBUG);
 		cancel_print_job($TAGS_DATA{"jobID"},$TAGS_DATA{"printer"});
-		save_main_data2base('ЗАПРЕЩЕННО',$TAGS_DATA{"printer_ip"},$TAGS_DATA{"printer"},$TAGS_DATA{"MANDAT"},$TAGS_DATA{"user"},$TAGS_DATA{"jobTitle"},$TAGS_DATA{"copies"},$tmp);
+		save_main_data2base($TAGS_DATA{"printer_ip"},$TAGS_DATA{"printer"},$TAGS_DATA{"MANDAT"},$TAGS_DATA{"user"},$TAGS_DATA{"jobTitle"},$TAGS_DATA{"copies"},'ЗАПРЕЩЕННО',$tmp);
 		exit 1;
 	}
 }else{
 	cancel_print_job($TAGS_DATA{"jobID"},$TAGS_DATA{"printer"});
-	save_main_data2base($TAGS_DATA{"STATUS"},$TAGS_DATA{"printer_ip"},$TAGS_DATA{"printer"},$TAGS_DATA{"MANDAT"},$TAGS_DATA{"user"},$TAGS_DATA{"jobTitle"},$TAGS_DATA{"copies"},$result[1]);
+	save_main_data2base($TAGS_DATA{"printer_ip"},$TAGS_DATA{"printer"},$TAGS_DATA{"MANDAT"},$TAGS_DATA{"user"},$TAGS_DATA{"jobTitle"},$TAGS_DATA{"copies"},$TAGS_DATA{"STATUS"},$result[1]);
 	exit 1;
 }
 
@@ -159,8 +157,18 @@ END{
 }
 #----------------------------ENTANGLED sub's :) ----------------------------------------------------------------------
 sub save_main_data2base{
-	#Arg: STATUS,printer_ip,printer_name,MANDAT,user,jobTitle,copyes,info_str
+	#Arg: printer_ip,printer_name,MANDAT,user,jobTitle,copyes,STATUS,info_str
+	my (@tmp) =@_;
+#1 printer_ip 	
+#2 printer_name 	
+#3 mandat		
+#4 cups_user	
+#5 jobTitle	
+#6 page_copy 	
+#7 status		
+#8 info_str	
 	
+	$dbh->justdo("set_report_short_info",\@tmp);
 }
 sub save2base{
 	#Ags: nothing
@@ -242,14 +250,14 @@ sub parse_file{
 	}
 }
 
-sub get_fp_pdfname_and_make_pdf{
+sub get_fp_pdfname_and_make{
 	#Arg: jobID,user,jobTitle,tmp_filename;
 	#Returns: array containing code operation,info string;
 	my ($jobID,$user,$jobTitle,$tmp_filename)=@_;
 	
 	$jobTitle = substr($jobTitle,0,25); # 
     # Put the pieces together to create a usable filename
-    $TAGS_DATA{"fp_pdf_filename"}= join('-',$jobID,$user,$jobTitle);
+    my $fp_pdf_filename= join('-',$jobID,$user,$jobTitle);
     
     my $tm = localtime();
     my ($day,$month,$year,$hh,$mm) = ($tm->mday,$tm->mon,$tm->year,$tm->hour,$tm->min);
@@ -273,13 +281,13 @@ sub get_fp_pdfname_and_make_pdf{
 	unless(-d $dir_name) {
 		mkpath($dir_name);
 	}
-    $TAGS_DATA{"fp_pdf_filename"}=$dir_name."//".$hh.$mm."_".$TAGS_DATA{"fp_pdf_filename"}.".pdf";
-    #my $pid = open (F,"$PSSELECT_BIN -p1 $tmp_filename | $PDF_BIN - ".$TAGS_DATA{"fp_pdf_filename"}."&") or die "Can't find and execute $!\n";
-    system (F,"$PSSELECT_BIN ".$TAGS_DATA{"fp_pdf_filename"}."&") or croak ("Can't find and execute $!\n");
-    return (1,$TAGS_DATA{"fp_pdf_filename"});
+    $fp_pdf_filename=$dir_name."//".$hh.$mm."_".$TAGS_DATA{"fp_pdf_filename"}.".pdf";
+    #my $pid = open (F,"$PSSELECT_BIN -p1 $tmp_filename | $PDF_BIN - $fp_pdf_filename &") or die "Can't find and execute $!\n";
+    system (F,"$PSSELECT_BIN $fp_pdf_filename &") or croak ("Can't find and execute $PSSELECT_BIN \n");
+    return (1,$fp_pdf_filename);
 }
 
-sub cancelPrintJob{
+sub cancel_print_job{
 	# Args: jobid, queuename
     # Returns: nothing, deletes job and re-enables queue
     my ($jobid,$queue) = @_;

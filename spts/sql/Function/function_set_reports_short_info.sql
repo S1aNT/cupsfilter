@@ -1,5 +1,4 @@
 DROP FUNCTION set_reports_short_info(
-	-- begin standart CUPS data
 		inet, 		   -- printer_ip 	1
 		character varying, -- printer_name 	2
 		character varying, -- mandat		3

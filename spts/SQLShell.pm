@@ -40,7 +40,10 @@ sub just_do {
         $self->{DBH}->commit();
          if (!defined $rv) {
          	my $e="SQLShell.pm:: When execute query $q:".$self->{DBH}->errstr."\n";
-            croak ($e);
+         	#$self->{DBH}->begin_work();
+         	#$self->insert("debug_log","info_str",$self->{DBH}->quote($e));
+         	#$self->{DBH}->commint();
+            return ;
         }else{
             return $sth->fetchall_arrayref();# Returns pointer to array of result
         }
@@ -141,7 +144,7 @@ sub update{
 sub insert {
     my($self, $table, $fields,$values) = @_;
     #TODO add check $table, $fields,$values
-    my $q="INSERT INTO $table ($fields) VALUES ($values)";
+    my $q="INSERT INTO $table ($fields) VALUES (E$values)";
     return $self->_doexec($q);
 }
 
