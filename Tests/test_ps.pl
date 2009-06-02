@@ -1,19 +1,22 @@
 #!/usr/bin/perl  -w
 use strict;
 use locale;
+use Encode;
+use Encode 'from_to';
+#use Unicode::String qw(utf8 latin1 utf16be);
 
-open (my $source, "< sample.ps") or die "CUPS_FILTER. ERROR: Can't open sample.ps: $!\n";
-open (my $out, "> sample.ps1") or die "CUPS_FILTER. ERROR: Can't open sample.ps: $!\n";
-
-my @block;
-
-while(<$source>){
-	if (/<start_data>/i.../<\/start_data>/i){
-		if (m/^\%{2}<key_(.*?)>(.*?)<\/key_(.*?)>$/gi){
-			#print $1,"-",$2,"-",$3,"\n";
-		}
-	}
-	print $out $_;
+sub from_digit2utf{
+	#Arg: digit_str example 1069;;1090;;1086;;32;;1084;;1086;;1081;;32;;1076;;1086;;1082;;1091;;1084;;1077;;1085;;1090;;44;;32;;1089;;1090;;1088;;46;;321
+	#Returns: wide char string
+	my ($str)=@_;
+	return pack("U*",split (';;',$str));
+	 
 }
-close $source;
-close $out;
+
+my $str ="1069;;1090;;1086;;32;;1084;;1086;;1081;;32;;1076;;1086;;1082;;1091;;1084;;1077;;1085;;1090;;44;;32;;1089;;1090;;1088;;46;;321";
+
+print from_digit2utf($str);
+
+
+
+ 

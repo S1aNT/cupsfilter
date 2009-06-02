@@ -1,6 +1,65 @@
-- Требуется написать внешнюю программу (веб морду), которая при добавлении нового принтера, сразу прописывает набор 
-	разрешенных уровней документа.
-	Пример : Мандат SYSPROG -> можно печатать документы с уровнем СЕКРЕТНО, НЕ СЕКРЕТНО
+Паша, я сейчас заполняю поля такой функцией:                  
+PsCommandtofooter ( _
+"<log_data>" & _
+"<key_document_level>" & cbGrif.ListIndex & "</key_document_level>" & _
+"<key_copy_number>" & cbNomerEx.Text & "</key_copy_number>" & _
+"<key_punkt>" & Ru2CharCode(tPunkt.Text) & "</key_punkt>" & _
+"<key_mb_number>" & Ru2CharCode(tME.Text) & "</key_mb_number>" & _
+"<key_executor_fio>" & Ru2CharCode(tIspFIO.Text) & "</key_executor_fio>" & _
+"<key_printed_fio>" & Ru2CharCode(tPrintFIO.Text) & "</key_printed_fio>" & _
+"<key_executor_telephone>" & tPhone.Text & "</key_executor_telephone>" & _
+"<key_inv_number>" & tInvNum.Text & "</key_inv_number>" & _
+"<key_recivers_1>" & Ru2CharCode(tAddr1.Text) & "</key_recivers_1>" & _
+"<key_recivers_2>" & Ru2CharCode(tAddr2.Text) & "</key_recivers_2>" & _
+"<key_recivers_3>" & Ru2CharCode(tAddr3.Text) & "</key_recivers_3>" & _
+"<key_recivers_4>" & Ru2CharCode(tAddr4.Text) & "</key_recivers_4>" & _
+"<key_recivers_5>" & Ru2CharCode(tAddr5.Text) & "</key_recivers_5>" & _
+"<key_add_info_1>" & "" & "</key_add_info_1>" & _
+"</log_data>")
+
+
+
+Этот список полей вроде уже окончательный.
+
+Добавил поля "ФИО отпечатавшего", "Пункт", "Инвентарный номер". Убрал
+раздельные ФИО - Манин сказал будет одним полем, может просто инициалы
+вбивать будут. Поле "Пункт" я точно не помню что такое, на всякий случай
+поставил преобразование :)
+
+
+
+Функция PsCommandtofooter вызывается при нажатии кнопки "Напечатать" и
+берет значения из формы. У меня сейчас виртуалка не запущена, так что
+реальную печать на CUPS я не пробовал.
+
+
+
+Функция Ru2CharCode использует AscW. The AscW function returns the Unicode
+character code. В васике обратная ей функция ChrW. После каждого символа я
+ставлю разделитель ;; Последний разделитель я убираю (в принципе могу
+оставить).
+
+
+Private Function Ru2CharCode(StringToConvert) As String
+    Dim i As Integer
+    Dim s As String
+    
+    s = ""
+    For i = 1 To Len(StringToConvert)
+        s = s & AscW(Mid(StringToConvert, i, 1)) ' Посимвольное преобразование
+        s = s & ";;"                             ' После символа ставлю ;;
+    Next i
+    If s <> "" Then   ' Если строка не пустая (было преобразование в коды), то убираю последний разделитель (за ним не будет больше символов)
+        s = Mid(s, 1, Len(s) - 2)
+    End If
+    Ru2CharCode = s
+End Function
+
+
+Я ей преобразую все поля где могут быть русские символы, т.е. ФИО
+исполнителя и отпечатавшего, МБ (там бывает буква), и адреса. Блокнотом я
+проверил - записывается нормально в файл. Дальше уже ты смотри в своём
+фильтре. Если будут у меня обновления, то я тебе ближе к вечеру пришлю.
 
 
 

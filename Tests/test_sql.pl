@@ -41,6 +41,8 @@ print $dbh_1->options();
 print $dbh_1->VERSION;
 print "Insert records from PgSQL:\n";
 
+my @tmp =('PDF','slant1','сборник практических заданий по тсп для слушателей учебной группы','5','SAVE_CUPS_DATA','','42');
+my $t = $dbh_1->just_do("set_cups_log",\@tmp);
 my $test =  $dbh_1->just_do("check_printer_perm","PDF","192.168.11.151","SYSPROG","1");
 
 my $info=$dbh_1->{DBH}->quote(" can't contain IP\n");

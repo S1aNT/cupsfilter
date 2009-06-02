@@ -26,31 +26,22 @@ sub new {
 sub just_do { 
 	my ($self,$func,$param)=@_;
     if (defined $self->{DBH}){
-     	$self->{DBH}->begin_work();
-     	my $p =undef;
-     	
-     	foreach my $item(@$param){
-     		$item ="\'$item\'";
+    	my $p =undef;
+    	foreach my $item(@$param){
+     		#$item ="\'$item\'";
+     		$item =$self->{DBH}->quote($item);     		
      	}
      	$p= join(",",@$param);
+     	my $q="SELECT $func($p)";
      	
-    	my $q="SELECT $func($p)";
+     	$self->{DBH}->begin_work();
     	my $sth = $self->{DBH}->prepare($q);
-        my $rv = $sth->execute();
+        $sth->execute() || croak("SQLShell.pm:: Can't execute sql query. Error $self->{DBH}->errstr\n"); 
         $self->{DBH}->commit();
-         if (!defined $rv) {
-         	my $e="SQLShell.pm:: When execute query $q:".$self->{DBH}->errstr."\n";
-         	#$self->{DBH}->begin_work();
-         	#$self->insert("debug_log","info_str",$self->{DBH}->quote($e));
-         	#$self->{DBH}->commint();
-            return ;
-        }else{
-            return $sth->fetchall_arrayref();# Returns pointer to array of result
-        }
+        return $sth->fetchall_arrayref();# Returns pointer to array of result
     }else{
     	croak("SQLShell.pm:: Can't execute sql query. Database not connected \n");
     }
-	 
 }
 
 sub debug {
