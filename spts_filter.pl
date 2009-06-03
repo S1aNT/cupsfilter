@@ -1,14 +1,16 @@
 #!/usr/bin/perl  -w
 use strict;
 use locale;
+use Encode;
 use File::Copy "cp";
 use File::Path;
 use Time::localtime;
 use IO::File;
-use File::Temp ();
+use File::Temp;
 use SQLShell;
 use DBI;
-#use encoding 'utf8';
+use feature "switch";
+
 #use File::Temp qw/ :seekable /;
 #require File::Temp;
 
@@ -17,7 +19,8 @@ my $DEBUG=1;							# For debuging and troubleshooting. Nice hunt !
 
 my @argv = @ARGV;			#keep hands off the argument array
 my $SPOOL = "/tmp";			#where are my speedy memory drive?
-my $DEBUG_FILE = "/var/log/cups/tech_filter_debug.log";
+my $LOG_FILE = "/var/log/cups/spts_filter.log";
+my $DEBUG_DB_FILE = "/var/log/cups/spts_db_filter.log";
 my $FPAGEDIR   ="/var/log/cups/firstpages"; #каталог в котором хранятся первые страницы документа
 my $DATE_BIN = "/bin/date";				#path to date
 my $PDF_BIN="/usr/bin/ps2pdf";			#path to ps2pdf binary
@@ -27,7 +30,12 @@ my $RACF_UTIL_BIN="/usr/bin/racf.pl";	#path to racf script
 my $FH_TEMP;							#File handle to temp file
 
 my %TAGS_DATA=();						#Hash contain's parsed data from print job
+my $REPORT_ID;							# Для любого задания вначале формируется предварительяная запись в таблице отчетов, 
+										# которая потом дополянется сведениями. 
 my @result;								#Array of function result (Code,InfoStr)
+
+
+
 
 #--------------------------------------------------------------------------------------------------
 
@@ -36,7 +44,8 @@ if ($DEBUG){
 	$RACF_UTIL_BIN="racf.pl";
 	$PSSELECT_BIN ="psselect.pl";
 	$SPOOL ="d:\\Temp\\";
-	@argv=(42,"Sla\@nt","«Сборник практических заданий по ТСП для слушателей \\ учебной группы!»",5,"JUID:42","sample.ps");
+	$DEBUG_DB_FILE = "spts_db_filter.log";
+	@argv=(42,"Sla\@nt","<Сборник практических заданий по ТСП для слушателей \\ учебной группы!>",5,"JUID:42","sample.ps");
 }
 
 my ($jobID,$userName,$jobTitle,$copies,$printOptions,$printFile) = @argv;
@@ -84,135 +93,153 @@ $dbh->options(	"CupsLog",	# имя базы данных
 				"5432",		# порт
 				"-e",		# опции
 				"ansi");	# терминал
-$dbh->connect();		
-if ($DEBUG){
-	$dbh->debug(3,"dbh.log");
-	#save_debug_msg ("Test messages can't contain quotes !!\n");
-}		
-
-#analising device _uri :)
-$TAGS_DATA{"device_uri"} =~ m/.*?:\/{1,2}(.*?)\/.*/gis;
-if (defined $1){
-	$TAGS_DATA{"printer_ip"} = $1;
-	$TAGS_DATA{"printer_ip"} =~ s/:.*//;  # Pull off port number if present
-}else{
-	my $tmp="Device URI = ".$TAGS_DATA{"device_uri"}." can't contain IP\n";
-	save_debug_msg ($tmp) if ($DEBUG);
+eval {
+	$dbh->connect();
+	#$dbh->_doexec("SET CLIENT_ENCODING TO 'WIN1251'");
+};
+if ($@){
+	print STDERR $@,"\n";
+	save2log($@);
 	cancel_print_job($TAGS_DATA{"jobID"},$TAGS_DATA{"printer"});
-	$TAGS_DATA{"printer_ip"}='0.0.0.0';
-	save_main_data2base($TAGS_DATA{"printer_ip"},$TAGS_DATA{"printer"},$TAGS_DATA{"MANDAT"},$TAGS_DATA{"user"},$TAGS_DATA{"jobTitle"},$TAGS_DATA{"copies"},$TAGS_DATA{"STATUS"},$tmp);
 	exit 1;
-}
-
-@result =get_printers_mandat($TAGS_DATA{"printer_ip"},$TAGS_DATA{"printer"});
-if ($result[0]){
-	$TAGS_DATA{"MANDAT"}=$result[1];
 }else{
-	save_debug_msg ($result[1]) if ($DEBUG);
-	cancel_print_job($TAGS_DATA{"jobID"},$TAGS_DATA{"printer"});
-	save_main_data2base($TAGS_DATA{"printer_ip"},$TAGS_DATA{"printer"},$TAGS_DATA{"MANDAT"},$TAGS_DATA{"user"},$TAGS_DATA{"jobTitle"},$TAGS_DATA{"copies"},$TAGS_DATA{"STATUS"},$result[1]);
-	exit 1;
-}
-
-@result =get_fp_pdfname_and_make($TAGS_DATA{"jobID"},$TAGS_DATA{"user"},$TAGS_DATA{"jobTitle"},$TAGS_DATA{"TMP_FILENAME"});
-if ($result[0]){
-	$TAGS_DATA{"FP_PDF_NAME"}=$result[1];
-}else{
-	save_debug_msg ($result[1]) if ($DEBUG);
-	cancel_print_job($TAGS_DATA{"jobID"},$TAGS_DATA{"printer"});
-	save_main_data2base($TAGS_DATA{"printer_ip"},$TAGS_DATA{"printer"},$TAGS_DATA{"MANDAT"},$TAGS_DATA{"user"},$TAGS_DATA{"jobTitle"},$TAGS_DATA{"copies"},$TAGS_DATA{"STATUS"},$result[1]);
-	exit 1;
-}
-                            
-@result =parse_file($TAGS_DATA{"printFile"},$FH_TEMP);
-if ($result[0]){#check permission to print
-    my @tmp=($TAGS_DATA{"printer"},$TAGS_DATA{"printer_ip"},$TAGS_DATA{"MANDAT"},$TAGS_DATA{"protect"});
-	my $perm = $dbh->just_do("check_printer_perm",\@tmp);
-	if ($perm->[0][0]){
-		send2stdout();
+	# main working block 
+	$dbh->debug(3,"$DEBUG_DB_FILE") if ($DEBUG);
+	$REPORT_ID = save_cups_data2base($TAGS_DATA{"printer"},$TAGS_DATA{"user"},$TAGS_DATA{"jobTitle"},$TAGS_DATA{"copies"},"SAVE_CUPS_DATA",'',$TAGS_DATA{"jobID"});
+	@result = parse_file($TAGS_DATA{"printFile"},$FH_TEMP);
+	
+	#Отправим дальше на печать 
+	file2stdout($FH_TEMP);
+	
+	if ($result[0]){
+		@result =get_fp_pdfname_and_make($TAGS_DATA{"jobID"},$TAGS_DATA{"user"},$TAGS_DATA{"jobTitle"},$TAGS_DATA{"TMP_FILENAME"});
+		$TAGS_DATA{"FP_PDF_NAME"}=$result[1];
 	}else{
-		my $tmp="Can't determine the rights assigned to printer ".$TAGS_DATA{"printer"}."with ".$TAGS_DATA{"printer_ip"}." and ".$TAGS_DATA{"MANDAT"}.", document level ".$TAGS_DATA{"key_protect"};
-		save_debug_msg ($tmp) if ($DEBUG);
-		cancel_print_job($TAGS_DATA{"jobID"},$TAGS_DATA{"printer"});
-		save_main_data2base($TAGS_DATA{"printer_ip"},$TAGS_DATA{"printer"},$TAGS_DATA{"MANDAT"},$TAGS_DATA{"user"},$TAGS_DATA{"jobTitle"},$TAGS_DATA{"copies"},'ЗАПРЕЩЕННО',$tmp);
-		exit 1;
+		save_debug_msg ($result[1]) if ($DEBUG || !$result[0]);
 	}
-}else{
-	cancel_print_job($TAGS_DATA{"jobID"},$TAGS_DATA{"printer"});
-	save_main_data2base($TAGS_DATA{"printer_ip"},$TAGS_DATA{"printer"},$TAGS_DATA{"MANDAT"},$TAGS_DATA{"user"},$TAGS_DATA{"jobTitle"},$TAGS_DATA{"copies"},$TAGS_DATA{"STATUS"},$result[1]);
-	exit 1;
+	save_data2base($REPORT_ID);
+	
 }
-
-@result =save2base();# Запишем в базу собранные данные. Пишем в базу независимо от настроения фильтра и услови завершения работы
-unless ($result[0]){
-	save_debug_msg ($result[1]) if ($DEBUG);
-	cancel_print_job($TAGS_DATA{"jobID"},$TAGS_DATA{"printer"});
-	exit 1;
-}
-
 exit 0;
 
-END{
-	$dbh->disconnect();
+#--------------------------------------------------------------------------------------------------
+
+sub save_data2base{
+	#Args: REPORT_ID
+	#Returns: nothing;
+	my($rep_id) =@_;
+	my $k;
+   	foreach $k (keys %TAGS_DATA) {
+   		$TAGS_DATA{$k} = digit2utf ($TAGS_DATA{$k}) if ($TAGS_DATA{$k} =~ /(\d{1,4};;)+/);# Переведем в UTF8
+   		my $v = $TAGS_DATA{$k};
+       	given (lc($k)){
+       		when ("document_level") {
+       			$dbh->just_do("set_doc_level",$rep_id,$v);
+			}
+			when ("copy_number"){
+				$dbh->just_do("set_copy_number",$rep_id,$v);
+			}
+			when ("punkt"){
+				$dbh->just_do("set_punkt",$rep_id,$v);
+			}
+			when ("executor_fio"){
+				$dbh->just_do("set_executor_fio",$rep_id,$v);
+			}
+			when ("printed_fio"){
+				$dbh->just_do("set_printed_fio",$rep_id,$v);
+			}
+			when ("inv_number"){
+				$dbh->just_do("set_inv_number",$rep_id,$v);
+			}
+			when (/recivers_\d{1}/){
+				$dbh->just_do("set_recivers",$rep_id,$v);
+			}
+			when (/add_info\d{1}/){
+				$dbh->just_do("set_add_info",$rep_id,$v);
+			}
+   		}
+   	}
 }
-#----------------------------ENTANGLED sub's :) ----------------------------------------------------------------------
-sub save_main_data2base{
-	#Arg: printer_ip,printer_name,MANDAT,user,jobTitle,copyes,STATUS,info_str
+
+
+sub digit2utf{
+	#Arg: digit_str example 1069;;1090;;1086;;32;;1084;;1086;;1081;;32;;1076;;1086;;1082;;1091;;1084;;1077;;1085;;1090;;44;;32;;1089;;1090;;1088;;46;;321
+	#Returns: wide char string
+	my ($str)=@_;
+	return pack("U*",split (';;',$str));
+}
+
+
+sub save_cups_data2base{
+	#Args:printer_name,cups_user,jobTitle,page_copy,status,info_str,jobsID
+	#Returns: record_id
 	my (@tmp) =@_;
-#1 printer_ip 	
-#2 printer_name 	
-#3 mandat		
-#4 cups_user	
-#5 jobTitle	
-#6 page_copy 	
-#7 status		
-#8 info_str	
-	
-	$dbh->justdo("set_report_short_info",\@tmp);
-}
-sub save2base{
-	#Ags: nothing
-	#Returns array containing code operation,info string;
-	# Формируем набор данных для вставки в таблицу input
-	
-	
-	return; 
-}
-sub save_debug_msg{
-	#Ags: Info string
-	#Returns: bothing
-	my ($info_str)=@_;
-	chomp($info_str);
-	unless ($dbh){
-		print STDERR $info_str,"\n";
+	my @res =get_id_firstRowCow( $dbh->just_do("set_cups_log",\@tmp));
+	if ($res[0]){
+		return $res[1];
 	}else{
-		$dbh->insert("debug_log","info_str",$dbh->{DBH}->quote($info_str));
+		return;
 	}
 }
+sub get_id_firstRowCow { 
+    #Arg: $Ptr to array of rows
+    #Returns: array [1/0 succesfull or error,value of First Row Cow]
+    my ($array_ref) =@_;
+    if (defined $array_ref->[0][0]){
+	return (1,$array_ref->[0][0]);
+    }else{
+          return (0,"Cell not found in base");
+     }
+}
 
-
-sub get_printers_mandat{
-	#Ags printer_ip,printer_name;
-	#Returns array containing code operation,info string;
-	my($printer_ip,$printer_name)=@_;
+sub datetime2string{
+	#Arg:nothing
+	#Returns: date time string
+	my @months_names=("JANUARY","FEBRUARY","MARCH","APRIL","MAY","JUNE","JULY","AUGUST","SEPTEMBER","OCTOBER","NOVEMBER","DECEMBER");
 	
-	#TODO add check IP valid
-	if ($printer_ip =~ m/^(\d\d?\d?).(\d\d?\d?).(\d\d?\d?).(\d{1,})$/){
-		unless($1 <= 255 && $2 <= 255 && $3 <= 255 && $4 <= 255){
-        	return (0,"One of the octets is out of range.  All octets must contain a number between 0 and 255 \n");
-    	}	
-	}else{
-    	return (0,"IP Address $printer_ip  -->  NOT IN VALID FORMAT! \n");
-	}
-	
- 	my $pid = open (F,"$RACF_UTIL_BIN $printer_ip $printer_name|") or die "Can't find and execute $!\n";
-    my @res = <F>;
-    close (F);
-    if (defined $res[1]){
-    	return (1,$res[1]);	
+	my $tm = localtime();
+    my ($day,$month,$year,$hh,$mm) = ($tm->mday,$tm->mon,$tm->year,$tm->hour,$tm->min);
+    $year+=1900;
+    if (length($day) == 1){
+        $day='0'.$day;
     }
-    return (0,"Printers with IP = $printer_ip,name =$printer_name has't Mandat !\n"); 	
+    if (length($hh) == 1){
+        $hh='0'.$hh;
+    }
+    if (length($mm) == 1){
+        $mm='0'.$mm;
+    }
+    my $date =join('/',$year,$months_names[$month],$day);
+    my $time =join(':',$hh,$mm);
+    return join ('/',$date,$time); 
 }
+
+sub save2log{
+	#Arg: info_str
+	#Returns: nothing
+	my($info_str)= @_;
+	open (LOG,">> $LOG_FILE") or die "can't open file $LOG_FILE: $!";
+	print LOG "--------------------------Date ", datetime2string()," ---------------------\n";
+	print LOG $info_str,"\n";
+	print LOG "---------------------------------------------------------------------------\n";
+	close (LOG);
+}
+
+sub file2stdout{
+    # Args: pointer to tempFile
+ 	# Returns: nothing, just print file to stdout
+    my($fn)=@_;
+	if (defined $fn){
+		open (PSFILE, "<$fn") || croak( "CUPS_FILTER. ERROR: Can't open $fn: $!\n");
+		while (<PSFILE>){
+		        print $_;
+		}
+		close PSFILE;	
+	}else{
+		croak("CUPS_FILTER. File name not defined !");
+	}
+}
+
 sub parse_file{
 	#Arg: printFile, tmp_filehandle;
 	#Returns: array containing code operation,info string;
@@ -221,15 +248,19 @@ sub parse_file{
 	my $err_str;	
 	#find file source...STDIN, or as argument and open it
 	if (defined $printFile){
-		open ($source, "< $printFile") or die "CUPS_FILTER. ERROR: Can't open printjob $printFile: $!\n";
+		open ($source, "< $printFile") or croak ("CUPS_FILTER. ERROR: Can't open printjob $printFile: $!\n");
 	}
 	while(<$source>){
-		#Read block from <start_data> to </start_data>  
-		if (/<start_data>/i.../<\/start_data>/i){
+		#Read block from <log_data> to </log_data>  
+		if (/<log_data>/i.../<\/log_data>/i){
 			#Find tags and save to hash. Tags special format %%<key_TAG-NAME>TAG-VALUE</key_TAG-NAME>
 			if (m/^\%{2}<key_(.*?)>(.*?)<\/key_(.*?)>$/gi){
 				unless (exists($TAGS_DATA{$1})){
-					$TAGS_DATA{$1}=$2;# заносим в хеш найденный элемент
+					my $tmp =$2;
+					if ($tmp =~/\d{1,4};;/){
+						$tmp =digit2utf($tmp);
+					}
+					$TAGS_DATA{$1}=$tmp;# заносим в хеш найденный элемент
 				}else {
 					#print STDERR $_,"=",$1,"-",$2,"-",$3,"\n";
 					$err_str="\nError TAGS_DATA - [key->$1, value->$2] is dublicat!";
@@ -282,28 +313,22 @@ sub get_fp_pdfname_and_make{
 		mkpath($dir_name);
 	}
     $fp_pdf_filename=$dir_name."//".$hh.$mm."_".$TAGS_DATA{"fp_pdf_filename"}.".pdf";
-    #my $pid = open (F,"$PSSELECT_BIN -p1 $tmp_filename | $PDF_BIN - $fp_pdf_filename &") or die "Can't find and execute $!\n";
-    system (F,"$PSSELECT_BIN $fp_pdf_filename &") or croak ("Can't find and execute $PSSELECT_BIN \n");
+    system (F,"$PSSELECT_BIN -p1 $tmp_filename | $PDF_BIN - $fp_pdf_filename &") or croak ("Can't find and execute $PSSELECT_BIN \n");
     return (1,$fp_pdf_filename);
 }
-
 sub cancel_print_job{
 	# Args: jobid, queuename
     # Returns: nothing, deletes job and re-enables queue
-    my ($jobid,$queue) = @_;
+    my($jobid,$queue) = @_;
     #TODO add check defined $jobid,$queue !!!
     
     sleep 1;
     if (defined $jobid && defined $queue){
-    	unless ($DEBUG){
-    		system("/usr/bin/lprm","$jobid");
-    		sleep 1;
-    		system("$ENABLE","$queue");
-    	}
+    	system("/usr/bin/lprm","$jobid");
+    	sleep 1;
+    	system("$ENABLE","$queue");
     }	
-     
 }
-
 sub cleaner{
 	#Arg: Dirty string
 	#Returns clear string or nothing
@@ -311,17 +336,12 @@ sub cleaner{
 	my($t)=@_;
     
     #Чистим на всякий случай от html тегов
-    $t=~s/\&quot;/ /g;
-    $t=~s/\&gt;/ /g;
-    $t=~s/\&lt;/ /g;
-    $t=~s/\&apos;/ /g;
-    $t=~s/\&shy;//g;
+    $t =~ s/\&([^(amp;|lt;|gt;|nbsp;|&quot;|&apos;)])/ /g; 
     # Убираем все символы кроме алфавитных символов с учетом локали
-   $t =~ s/[^\pL]+//g;      
+    $t =~s /[^\s\d\.\-а-яa-z]+//gsi;     
     # Убираем лишние пробелы
     $t =~ s/\s+/ /g;
     $t =~ s/^\s+//;
     $t =~ s/\s+$//;    
 	return $t;
 }
-#------------------------------------------------------------------------------------------------------------------------
