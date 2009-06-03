@@ -128,7 +128,7 @@ sub delete{
 sub update{
 	my($self,$table,$field,$value,$cond) = @_;
 	#TODO add check $table, $fields,$values,$cond
-	my $q="UPDATE $table SET $field='$value' WHERE $cond";
+	my $q="UPDATE $table SET $field=$self->{DBH}->quote($value) WHERE $cond";
     return $self->_doexec($q);
 }
 
