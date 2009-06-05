@@ -1,4 +1,4 @@
-use SQLShell;
+#use SQLShell;
 
 # Эта функция создает новую запись независимо от драйвера для работы со СУБД.
 sub insert_record {
