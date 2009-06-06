@@ -6,8 +6,8 @@ $BODY$
      find_id INTEGER;
      exec_id INTEGER;
      rep_id     ALIAS for $1;
-     user_type  ALIAS for $2;
-     field_val 	ALIAS for $3;
+     user_fio 	ALIAS for $2;
+     user_type  ALIAS for $3;
      phone	ALIAS for $4;
     BEGIN                                                                                                 
     
@@ -17,10 +17,10 @@ $BODY$
 		RETURN 0;
 	END IF;
 	-- set_executor_fio
-	exec_id = (SELECT id FROM executors WHERE fio = field_val and user_role=user_type and telephone =phone);
+	exec_id = (SELECT id FROM executors WHERE fio = user_fio  and user_role=user_type and telephone =phone);
 	IF (exec_id IS NULL) THEN
-		INSERT INTO executors (fio,user_role,telephone) VALUES (field_val,user_type,phone);
-		exec_id = (SELECT id FROM executors WHERE fio = field_val and user_role=user_type and telephone = phone);
+		INSERT INTO executors (fio,user_role,telephone) VALUES (user_fio,user_type,phone);
+		exec_id = (SELECT id FROM executors WHERE fio = user_fio and user_role=user_type and telephone = phone);
 	END IF;
 	BEGIN
 		IF (user_type='executor') THEN
