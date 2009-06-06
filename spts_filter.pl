@@ -1,7 +1,8 @@
 #!/usr/bin/perl  -w
 use strict;
 use locale;
-use Encode;
+use utf8;
+use Encode 'from_to';
 use File::Copy "cp";
 use File::Path;
 use Time::localtime;
@@ -61,8 +62,7 @@ $TAGS_DATA{"jobTitle"}=~ s/microsoft|word|explorer//gi;
 $TAGS_DATA{"printFile"}=$printFile;
 $TAGS_DATA{"device_uri"}=$ENV{"DEVICE_URI"};
 $TAGS_DATA{"printOptions"}=$printOptions;
-$TAGS_DATA{"MANDAT"}='NOT FOUND';     # мандат для принтера по умолчанию
-$TAGS_DATA{"STATUS"}='УДАЛЕННО'; # статус по умолчанию
+
 
 #--------------------------------------------------------------------------------------------------
 # If no arguments, device discovery mode
@@ -95,7 +95,7 @@ $dbh->options(	"CupsLog",	# имя базы данных
 				"ansi");	# терминал
 eval {
 	$dbh->connect();
-	#$dbh->_doexec("SET CLIENT_ENCODING TO 'WIN1251'");
+	$dbh->_doexec("SET CLIENT_ENCODING TO 'UTF-8'");
 };
 if ($@){
 	print STDERR $@,"\n";
@@ -129,33 +129,51 @@ sub save_data2base{
 	#Returns: nothing;
 	my($rep_id) =@_;
 	my $k;
+	
+	unless (exists $TAGS_DATA{"executor_telephone"}){
+		$TAGS_DATA{"executor_telephone"}='000';
+	};
+	
    	foreach $k (keys %TAGS_DATA) {
-   		$TAGS_DATA{$k} = digit2utf ($TAGS_DATA{$k}) if ($TAGS_DATA{$k} =~ /(\d{1,4};;)+/);# Переведем в UTF8
-   		my $v = $TAGS_DATA{$k};
+   		$TAGS_DATA{$k} = digit2utf ($TAGS_DATA{$k}) if ($TAGS_DATA{$k} =~ /(\d{1,4};;)+/);
+   		my $v =$TAGS_DATA{$k};
+   		
+		#$v =digit2utf($v) if ($v =~/\d{1,4};;/);
+		 
+   		my @tmp  =($rep_id,$v);
+   		print "Key $k: value $v \n" if ($DEBUG);
        	given (lc($k)){
        		when ("document_level") {
-       			$dbh->just_do("set_doc_level",$rep_id,$v);
+       			$dbh->just_do("reports_set_doc_level",\@tmp);
 			}
 			when ("copy_number"){
-				$dbh->just_do("set_copy_number",$rep_id,$v);
+				$dbh->just_do("reports_set_copy_number",\@tmp);
 			}
 			when ("punkt"){
-				$dbh->just_do("set_punkt",$rep_id,$v);
+				$dbh->just_do("reports_set_punkt",\@tmp);
 			}
 			when ("executor_fio"){
-				$dbh->just_do("set_executor_fio",$rep_id,$v);
+				push @tmp,'executor';
+				push @tmp,$TAGS_DATA{"executor_telephone"};
+				$dbh->just_do("reports_set_exec_print_fio",\@tmp);
 			}
 			when ("printed_fio"){
-				$dbh->just_do("set_printed_fio",$rep_id,$v);
+				push @tmp,'pressman';
+				push @tmp,$TAGS_DATA{"executor_telephone"};
+				#$dbh->just_do("reports_set_exec_print_fio",\@tmp);
 			}
 			when ("inv_number"){
-				$dbh->just_do("set_inv_number",$rep_id,$v);
+				$dbh->just_do("reports_set_inv_number",\@tmp);
 			}
+			when ("mb_number"){
+				$dbh->just_do("reports_set_mb_number",\@tmp);
+			}			
 			when (/recivers_\d{1}/){
-				$dbh->just_do("set_recivers",$rep_id,$v);
+				$dbh->just_do("reports_set_recivers",\@tmp);
 			}
 			when (/add_info\d{1}/){
-				$dbh->just_do("set_add_info",$rep_id,$v);
+				push @tmp,$k;
+				$dbh->just_do("reports_set_add_info",\@tmp);
 			}
    		}
    	}
@@ -166,7 +184,9 @@ sub digit2utf{
 	#Arg: digit_str example 1069;;1090;;1086;;32;;1084;;1086;;1081;;32;;1076;;1086;;1082;;1091;;1084;;1077;;1085;;1090;;44;;32;;1089;;1090;;1088;;46;;321
 	#Returns: wide char string
 	my ($str)=@_;
-	return pack("U*",split (';;',$str));
+	my $t = pack("U*",split (';;',$str));
+	from_to($t, "utf-8", "cp1251",Encode::FB_HTMLCREF);
+	return $t;
 }
 
 
@@ -256,13 +276,10 @@ sub parse_file{
 			#Find tags and save to hash. Tags special format %%<key_TAG-NAME>TAG-VALUE</key_TAG-NAME>
 			if (m/^\%{2}<key_(.*?)>(.*?)<\/key_(.*?)>$/gi){
 				unless (exists($TAGS_DATA{$1})){
-					my $tmp =$2;
-					if ($tmp =~/\d{1,4};;/){
-						$tmp =digit2utf($tmp);
-					}
-					$TAGS_DATA{$1}=$tmp;# заносим в хеш найденный элемент
+					
+					$TAGS_DATA{$1}=$2;# заносим в хеш найденный элемент
 				}else {
-					#print STDERR $_,"=",$1,"-",$2,"-",$3,"\n";
+					print STDERR $_,"=",$1,"-",$2,"-",$3,"\n";
 					$err_str="\nError TAGS_DATA - [key->$1, value->$2] is dublicat!";
 					save_debug_msg ($err_str) if ($DEBUG);
 					$TAGS_DATA{"parse_error"}.=$err_str;
@@ -313,7 +330,12 @@ sub get_fp_pdfname_and_make{
 		mkpath($dir_name);
 	}
     $fp_pdf_filename=$dir_name."//".$hh.$mm."_".$TAGS_DATA{"fp_pdf_filename"}.".pdf";
-    system (F,"$PSSELECT_BIN -p1 $tmp_filename | $PDF_BIN - $fp_pdf_filename &") or croak ("Can't find and execute $PSSELECT_BIN \n");
+    if ($DEBUG){
+    	print "$PSSELECT_BIN -p1 $tmp_filename | $PDF_BIN - $fp_pdf_filename &","\n"; 
+    }else{
+    	system ("$PSSELECT_BIN -p1 $tmp_filename | $PDF_BIN - $fp_pdf_filename &") or croak ("Can't find and execute $PSSELECT_BIN \n");
+    }
+    
     return (1,$fp_pdf_filename);
 }
 sub cancel_print_job{
