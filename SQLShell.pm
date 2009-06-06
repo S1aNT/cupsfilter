@@ -3,6 +3,7 @@ use strict;
 use Carp;
 use DBI;
 use base qw[ISQLDriver];
+use utf8;
 
 BEGIN {
 	our $VERSION   = '0.04';
@@ -12,14 +13,14 @@ BEGIN {
 my $Count = 0;
 
 sub new {
-  my $proto = shift;                 # извлекаем имя класса или указатель на объект
-  my $class = ref($proto) || $proto; # если указатель, то взять из него имя класса
-  $Count++;							 # содержащая количество существующих экземпляров класса	
+  my $proto = shift;                 # РёР·РІР»РµРєР°РµРј РёРјСЏ РєР»Р°СЃСЃР° РёР»Рё СѓРєР°Р·Р°С‚РµР»СЊ РЅР° РѕР±СЉРµРєС‚
+  my $class = ref($proto) || $proto; # РµСЃР»Рё СѓРєР°Р·Р°С‚РµР»СЊ, С‚Рѕ РІР·СЏС‚СЊ РёР· РЅРµРіРѕ РёРјСЏ РєР»Р°СЃСЃР°
+  $Count++;							 # СЃРѕРґРµСЂР¶Р°С‰Р°СЏ РєРѕР»РёС‡РµСЃС‚РІРѕ СЃСѓС‰РµСЃС‚РІСѓСЋС‰РёС… СЌРєР·РµРјРїР»СЏСЂРѕРІ РєР»Р°СЃСЃР°	
   my $self  = {};
-  $self->{DB_TRACE} =[];			 # Режим отладки соединения с БД log_level,filename
-  $self->{OPTIONS} = [];			 # ссылка на безымянный пустой массив
+  $self->{DB_TRACE} =[];			 # Р РµР¶РёРј РѕС‚Р»Р°РґРєРё СЃРѕРµРґРёРЅРµРЅРёСЏ СЃ Р‘Р” log_level,filename
+  $self->{OPTIONS} = [];			 # СЃСЃС‹Р»РєР° РЅР° Р±РµР·С‹РјСЏРЅРЅС‹Р№ РїСѓСЃС‚РѕР№ РјР°СЃСЃРёРІ
   $self->{DBH}=undef;				 # Pointer to database handler  	
-  bless($self, $class);              # гибкий вызов функции bless
+  bless($self, $class);              # РіРёР±РєРёР№ РІС‹Р·РѕРІ С„СѓРЅРєС†РёРё bless
   return $self;
 }
 
@@ -71,11 +72,11 @@ sub connect{
 	my $self = shift;
 	if (scalar(@{$self->{OPTIONS}})== 7){
 		my ($dbname,$username,$password,$dbhost,$dbport,$dboptions,$dbtty)=@{$self->{OPTIONS}};
-		#TODO возможно стоит сделать так - вначале коннект к базе по умолчанию postgres затем попытка смены базы
+		#TODO РІРѕР·РјРѕР¶РЅРѕ СЃС‚РѕРёС‚ СЃРґРµР»Р°С‚СЊ С‚Р°Рє - РІРЅР°С‡Р°Р»Рµ РєРѕРЅРЅРµРєС‚ Рє Р±Р°Р·Рµ РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ postgres Р·Р°С‚РµРј РїРѕРїС‹С‚РєР° СЃРјРµРЅС‹ Р±Р°Р·С‹
 		$self->{DBH} = DBI->connect("dbi:PgPP:dbname=$dbname;host=$dbhost;port=$dbport;options=$dboptions;tty=$dbtty","$username","$password",{PrintError => 0,AutoCommit => 0});							
 		#Test connection
 		croak("SQLShell.pm::connect Erorr $DBI::errstr\n") unless (defined $self->{DBH});
-  		#чтобы дата была в формате DD.MM.YYYY, а не как по умолчанию в формате ISO где год и месяц идут впереди числа.
+  		#С‡С‚РѕР±С‹ РґР°С‚Р° Р±С‹Р»Р° РІ С„РѕСЂРјР°С‚Рµ DD.MM.YYYY, Р° РЅРµ РєР°Рє РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ РІ С„РѕСЂРјР°С‚Рµ ISO РіРґРµ РіРѕРґ Рё РјРµСЃСЏС† РёРґСѓС‚ РІРїРµСЂРµРґРё С‡РёСЃР»Р°.
 		$self->{DBH}->do("SET DATESTYLE TO GERMAN");
 	}else{
 		croak("SQLShell.pm::connect Can't connect to BD. becouse arument's list not full");
@@ -156,4 +157,4 @@ END{
 	#Dirty hack, but reliably!!! 
 	SQLShell::disconnect();
 }
-1;  # для функций require или use
+1;  # РґР»СЏ С„СѓРЅРєС†РёР№ require РёР»Рё use
