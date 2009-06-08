@@ -3,6 +3,7 @@ use strict;
 use locale;
 use utf8;
 use Encode 'from_to';
+use Encode;
 use File::Copy "cp";
 use File::Path;
 use Time::localtime;
@@ -22,7 +23,7 @@ my @argv = @ARGV;			#keep hands off the argument array
 my $SPOOL = "/tmp";			#where are my speedy memory drive?
 my $LOG_FILE = "/var/log/cups/spts_filter.log";
 my $DEBUG_DB_FILE = "/var/log/cups/spts_db_filter.log";
-my $FPAGEDIR   ="/var/log/cups/firstpages"; #каталог в котором хранятся первые страницы документа
+my $FPAGEDIR   ="/var/log/cups/firstpages"; #РєР°С‚Р°Р»РѕРі РІ РєРѕС‚РѕСЂРѕРј С…СЂР°РЅСЏС‚СЃСЏ РїРµСЂРІС‹Рµ СЃС‚СЂР°РЅРёС†С‹ РґРѕРєСѓРјРµРЅС‚Р°
 my $DATE_BIN = "/bin/date";				#path to date
 my $PDF_BIN="/usr/bin/ps2pdf";			#path to ps2pdf binary
 my $PSSELECT_BIN ="/usr/bin/psselect"; 	#path to psselect binary
@@ -31,8 +32,8 @@ my $RACF_UTIL_BIN="/usr/bin/racf.pl";	#path to racf script
 my $FH_TEMP;							#File handle to temp file
 
 my %TAGS_DATA=();						#Hash contain's parsed data from print job
-my $REPORT_ID;							# Для любого задания вначале формируется предварительяная запись в таблице отчетов, 
-										# которая потом дополянется сведениями. 
+my $REPORT_ID;							# Р”Р»СЏ Р»СЋР±РѕРіРѕ Р·Р°РґР°РЅРёСЏ РІРЅР°С‡Р°Р»Рµ С„РѕСЂРјРёСЂСѓРµС‚СЃСЏ РїСЂРµРґРІР°СЂРёС‚РµР»СЊСЏРЅР°СЏ Р·Р°РїРёСЃСЊ РІ С‚Р°Р±Р»РёС†Рµ РѕС‚С‡РµС‚РѕРІ, 
+										# РєРѕС‚РѕСЂР°СЏ РїРѕС‚РѕРј РґРѕРїРѕР»СЏРЅРµС‚СЃСЏ СЃРІРµРґРµРЅРёСЏРјРё. 
 my @result;								#Array of function result (Code,InfoStr)
 
 
@@ -46,21 +47,21 @@ if ($DEBUG){
 	$PSSELECT_BIN ="psselect.pl";
 	$SPOOL ="d:\\Temp\\";
 	$DEBUG_DB_FILE = "spts_db_filter.log";
-	@argv=(42,"Sla\@nt","<Сборник практических заданий по ТСП для слушателей \\ учебной группы!>",5,"JUID:42","sample.ps");
+	@argv=(78,'PDF writer \@nt8','РџСЂРёРјРµСЂ РјРѕРґРЅРѕРіРѕ РґРѕРєСѓРјРµРЅС‚Р° СЃ С‡РёСЃР»РѕРј РєРѕРїРёР№ = 8',7,"JUID:2","sample.ps");
 }
 
 my ($jobID,$userName,$jobTitle,$copies,$printOptions,$printFile) = @argv;
 
 $TAGS_DATA{"user"}=lc(cleaner($userName));
 $TAGS_DATA{"jobID"}=$jobID;
-$TAGS_DATA{"class"}=$ENV{"CLASS"};
+$TAGS_DATA{"class"}=$ENV{"CLASS"} if (defined $ENV{"CLASS"});
 $TAGS_DATA{"copies"}=$copies;
-$TAGS_DATA{"printer"}=$ENV{"PRINTER"};
+$TAGS_DATA{"printer"}=$ENV{"PRINTER"} if (defined $ENV{"PRINTER"});
 $TAGS_DATA{"jobTitle"}= lc(cleaner($jobTitle));
 $TAGS_DATA{"jobTitle"}=~ s/smbprn[0-9]*//;
 $TAGS_DATA{"jobTitle"}=~ s/microsoft|word|explorer//gi;
 $TAGS_DATA{"printFile"}=$printFile;
-$TAGS_DATA{"device_uri"}=$ENV{"DEVICE_URI"};
+$TAGS_DATA{"device_uri"}=$ENV{"DEVICE_URI"} if (defined $ENV{"DEVICE_URI"});
 $TAGS_DATA{"printOptions"}=$printOptions;
 
 
@@ -85,14 +86,14 @@ $FH_TEMP = File::Temp->new( TEMPLATE => 'cups_jobXXXXX',
 $TAGS_DATA{"TMP_FILENAME"} = $FH_TEMP->filename();
 
 my $dbh = new SQLShell; # Connect to database
-#Заполним массив данными требуемыми для соединения с БД
-$dbh->options(	"CupsLog",	# имя базы данных
-				"postgres",	# имя пользователя
-				"pg",		# пароль
-				"localhost",# имя или IP адрес сервера
-				"5432",		# порт
-				"-e",		# опции
-				"ansi");	# терминал
+#Р—Р°РїРѕР»РЅРёРј РјР°СЃСЃРёРІ РґР°РЅРЅС‹РјРё С‚СЂРµР±СѓРµРјС‹РјРё РґР»СЏ СЃРѕРµРґРёРЅРµРЅРёСЏ СЃ Р‘Р”
+$dbh->options(	"CupsLog",	# РёРјСЏ Р±Р°Р·С‹ РґР°РЅРЅС‹С…
+				"postgres",	# РёРјСЏ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ
+				"pg",		# РїР°СЂРѕР»СЊ
+				"localhost",# РёРјСЏ РёР»Рё IP Р°РґСЂРµСЃ СЃРµСЂРІРµСЂР°
+				"5432",		# РїРѕСЂС‚
+				"-e",		# РѕРїС†РёРё
+				"ansi");	# С‚РµСЂРјРёРЅР°Р»
 eval {
 	$dbh->connect();
 	$dbh->_doexec("SET CLIENT_ENCODING TO 'UTF-8'");
@@ -105,10 +106,10 @@ if ($@){
 }else{
 	# main working block 
 	$dbh->debug(3,"$DEBUG_DB_FILE") if ($DEBUG);
-	$REPORT_ID = save_cups_data2base($TAGS_DATA{"printer"},$TAGS_DATA{"user"},$TAGS_DATA{"jobTitle"},$TAGS_DATA{"copies"},"SAVE_CUPS_DATA",'',$TAGS_DATA{"jobID"});
+	$REPORT_ID = save_cups_data2base($TAGS_DATA{"printer"},$TAGS_DATA{"user"},$TAGS_DATA{"jobTitle"},$TAGS_DATA{"copies"},'','',$TAGS_DATA{"jobID"});
 	@result = parse_file($TAGS_DATA{"printFile"},$FH_TEMP);
 	
-	#Отправим дальше на печать 
+	#РћС‚РїСЂР°РІРёРј РґР°Р»СЊС€Рµ РЅР° РїРµС‡Р°С‚СЊ 
 	file2stdout($FH_TEMP);
 	
 	if ($result[0]){
@@ -143,6 +144,9 @@ sub save_data2base{
    		my @tmp  =($rep_id,$v);
    		print "Key $k: value $v \n" if ($DEBUG);
        	given (lc($k)){
+       		when ("fp_pdf_name") {
+       			$dbh->just_do("reports_set_fp_pdf_name",\@tmp);
+			}
        		when ("document_level") {
        			$dbh->just_do("reports_set_doc_level",\@tmp);
 			}
@@ -152,6 +156,9 @@ sub save_data2base{
 			when ("punkt"){
 				$dbh->just_do("reports_set_punkt",\@tmp);
 			}
+			when ("page_count"){
+				$dbh->just_do("reports_set_page_count",\@tmp);
+			}
 			when ("executor_fio"){
 				push @tmp,'executor';
 				push @tmp,$TAGS_DATA{"executor_telephone"};
@@ -160,7 +167,7 @@ sub save_data2base{
 			when ("printed_fio"){
 				push @tmp,'pressman';
 				push @tmp,$TAGS_DATA{"executor_telephone"};
-				#$dbh->just_do("reports_set_exec_print_fio",\@tmp);
+				$dbh->just_do("reports_set_exec_print_fio",\@tmp);
 			}
 			when ("inv_number"){
 				$dbh->just_do("reports_set_inv_number",\@tmp);
@@ -171,7 +178,7 @@ sub save_data2base{
 			when (/recivers_\d{1}/){
 				$dbh->just_do("reports_set_recivers",\@tmp);
 			}
-			when (/add_info\d{1}/){
+			when (/add_info_\d{1}/){
 				push @tmp,$k;
 				$dbh->just_do("reports_set_add_info",\@tmp);
 			}
@@ -185,7 +192,7 @@ sub digit2utf{
 	#Returns: wide char string
 	my ($str)=@_;
 	my $t = pack("U*",split (';;',$str));
-	from_to($t, "utf-8", "cp1251",Encode::FB_HTMLCREF);
+	#$t= encode( "UTF-8", $t); 
 	return $t;
 }
 
@@ -194,7 +201,7 @@ sub save_cups_data2base{
 	#Args:printer_name,cups_user,jobTitle,page_copy,status,info_str,jobsID
 	#Returns: record_id
 	my (@tmp) =@_;
-	my @res =get_id_firstRowCow( $dbh->just_do("set_cups_log",\@tmp));
+	my @res =get_id_firstRowCow( $dbh->just_do("reports_set_cups_data",\@tmp));
 	if ($res[0]){
 		return $res[1];
 	}else{
@@ -264,7 +271,7 @@ sub parse_file{
 	#Arg: printFile, tmp_filehandle;
 	#Returns: array containing code operation,info string;
 	my ($printFile,$fh_tmp)=@_;
-	my $source=\*STDIN;#Используем в качестве источника стандартный ввод
+	my $source=\*STDIN;#РСЃРїРѕР»СЊР·СѓРµРј РІ РєР°С‡РµСЃС‚РІРµ РёСЃС‚РѕС‡РЅРёРєР° СЃС‚Р°РЅРґР°СЂС‚РЅС‹Р№ РІРІРѕРґ
 	my $err_str;	
 	#find file source...STDIN, or as argument and open it
 	if (defined $printFile){
@@ -277,7 +284,7 @@ sub parse_file{
 			if (m/^\%{2}<key_(.*?)>(.*?)<\/key_(.*?)>$/gi){
 				unless (exists($TAGS_DATA{$1})){
 					
-					$TAGS_DATA{$1}=$2;# заносим в хеш найденный элемент
+					$TAGS_DATA{$1}=$2;# Р·Р°РЅРѕСЃРёРј РІ С…РµС€ РЅР°Р№РґРµРЅРЅС‹Р№ СЌР»РµРјРµРЅС‚
 				}else {
 					print STDERR $_,"=",$1,"-",$2,"-",$3,"\n";
 					$err_str="\nError TAGS_DATA - [key->$1, value->$2] is dublicat!";
@@ -285,6 +292,10 @@ sub parse_file{
 					$TAGS_DATA{"parse_error"}.=$err_str;
 				}
 			}
+		}
+		#TODO РїРѕРёСЃРє С‡РёСЃР»Р° СЃС‚СЂР°РЅРёС† РІ С„Р°Р№Р»Рµ РєРѕРЅСЃС‚СЂСѓРєС†РёСЏ РІРёРґР° %%Pages: 39
+		if (m/^\%{2}Pages\:\s*(\d{1,})\.*$/){
+			$TAGS_DATA{"PAGE_COUNT"}=$1;# Р·Р°РЅРѕСЃРёРј РІ С…РµС€ С‡РёСЃР»Рѕ СЃС‚СЂР°РЅРёС† РІ РґРѕРєСѓРјРµРЅС‚Рµ
 		}
 		print $fh_tmp "$_";
 	}
@@ -323,13 +334,13 @@ sub get_fp_pdfname_and_make{
     if (length($mm) == 1){
         $mm='0'.$mm;
     }
-    # Присоединяем диск
+    # РџСЂРёСЃРѕРµРґРёРЅСЏРµРј РґРёСЃРє
     my $dir_name=join('/',$FPAGEDIR,$year,$month,$day);
-    # Проверяем, есть ли такая директория, если нет -- создаем
+    # РџСЂРѕРІРµСЂСЏРµРј, РµСЃС‚СЊ Р»Рё С‚Р°РєР°СЏ РґРёСЂРµРєС‚РѕСЂРёСЏ, РµСЃР»Рё РЅРµС‚ -- СЃРѕР·РґР°РµРј
 	unless(-d $dir_name) {
 		mkpath($dir_name);
 	}
-    $fp_pdf_filename=$dir_name."//".$hh.$mm."_".$TAGS_DATA{"fp_pdf_filename"}.".pdf";
+    $fp_pdf_filename="$dir_name/$hh.$mm"."_".$fp_pdf_filename.".pdf";
     if ($DEBUG){
     	print "$PSSELECT_BIN -p1 $tmp_filename | $PDF_BIN - $fp_pdf_filename &","\n"; 
     }else{
@@ -357,11 +368,12 @@ sub cleaner{
 	
 	my($t)=@_;
     
-    #Чистим на всякий случай от html тегов
+    #Р§РёСЃС‚РёРј РЅР° РІСЃСЏРєРёР№ СЃР»СѓС‡Р°Р№ РѕС‚ html С‚РµРіРѕРІ
     $t =~ s/\&([^(amp;|lt;|gt;|nbsp;|&quot;|&apos;)])/ /g; 
-    # Убираем все символы кроме алфавитных символов с учетом локали
-    $t =~s /[^\s\d\.\-а-яa-z]+//gsi;     
-    # Убираем лишние пробелы
+    # РЈР±РёСЂР°РµРј РІСЃРµ СЃРёРјРІРѕР»С‹ РєСЂРѕРјРµ Р°Р»С„Р°РІРёС‚РЅС‹С… СЃРёРјРІРѕР»РѕРІ СЃ СѓС‡РµС‚РѕРј Р»РѕРєР°Р»Рё
+    #$t =~s /[^\s\d\.\-Р°-СЏa-z]+//gsi;
+    $t =~s /[^\pL\s\d]+//gsi;     
+    # РЈР±РёСЂР°РµРј Р»РёС€РЅРёРµ РїСЂРѕР±РµР»С‹
     $t =~ s/\s+/ /g;
     $t =~ s/^\s+//;
     $t =~ s/\s+$//;    
