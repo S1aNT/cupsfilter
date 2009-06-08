@@ -8,7 +8,7 @@ $BODY$
      field_val 	ALIAS for $2;
     
     BEGIN
-	find_id = (SELECT id FROM reports WHERE cups_data_log_id = rep_id);
+	find_id = (SELECT id FROM reports WHERE id = rep_id);
 	IF (find_id IS NULL) THEN
 		INSERT INTO debug_log (inf_str) VALUES ('Ошибка вставки записи. В таблице reports не существует записи с указывающие на  таблицу cups_data_log запись N='||rep_id);
 		RETURN 0;

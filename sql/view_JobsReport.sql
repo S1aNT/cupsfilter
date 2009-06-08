@@ -1,8 +1,29 @@
-DROP VIEW "JobsReport";
+--DROP VIEW "JobsReport";
 CREATE OR REPLACE VIEW "JobsReport" AS 
- SELECT reports.id, reports.dt as Date, reports.mb_number, reports.doc_name, reports.page_count, reports.page_copy, 
-		reports.cups_user, printers.printer_name, reports.info_str,executors.last_name,executors.first_name,executors.middle_name,document_level.marker
-   FROM reports
+ SELECT 
+  printer_id,
+  printers.printer_name,
+  firstpages_id,
+  copy_number,
+  doc_level_id,
+  document_level.marker,
+  doc_name,
+  dt,
+  mb_number,
+  page_count,
+  page_copy,
+  status,
+  cups_user,
+  executor_id,
+  executors.fio as Executor_FIO,
+  inv_number,
+  punkt,
+  jobs_id,
+  pressman_id,
+  --executors.fio as Pressman_FIO,
+  info_str
+  FROM reports
    INNER JOIN printers ON reports.printer_id = printers.id
    INNER JOIN document_level ON reports.doc_level_id = document_level.id
    INNER JOIN executors ON reports.executor_id = executors.id;
+   --INNER JOIN executors ON reports.pressman_id = executors.id;
