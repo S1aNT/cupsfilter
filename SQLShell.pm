@@ -2,6 +2,9 @@ package SQLShell;
 use strict;
 use Carp;
 use DBI;
+# For some advanced uses you may need PostgreSQL type values:
+use DBD::Pg qw(:pg_types);
+
 use base qw[ISQLDriver];
 use utf8;
 
@@ -35,10 +38,10 @@ sub just_do {
      	$p= join(",",@$param);
      	my $q="SELECT $func($p)";
      	
-     	$self->{DBH}->begin_work();
+     	#$self->{DBH}->begin_work();
     	my $sth = $self->{DBH}->prepare($q);
         $sth->execute() || croak("SQLShell.pm:: Can't execute sql query. Error $self->{DBH}->errstr\n"); 
-        $self->{DBH}->commit();
+        #$self->{DBH}->commit();
         return $sth->fetchall_arrayref();# Returns pointer to array of result
     }else{
     	croak("SQLShell.pm:: Can't execute sql query. Database not connected \n");
@@ -73,7 +76,8 @@ sub connect{
 	if (scalar(@{$self->{OPTIONS}})== 7){
 		my ($dbname,$username,$password,$dbhost,$dbport,$dboptions,$dbtty)=@{$self->{OPTIONS}};
 		#TODO возможно стоит сделать так - вначале коннект к базе по умолчанию postgres затем попытка смены базы
-		$self->{DBH} = DBI->connect("dbi:PgPP:dbname=$dbname;host=$dbhost;port=$dbport;options=$dboptions;tty=$dbtty","$username","$password",{PrintError => 0,AutoCommit => 0});							
+		$self->{DBH} = DBI->connect("dbi:Pg:dbname=$dbname;host=$dbhost;port=$dbport;options=$dboptions",$username,$password,
+									{PrintError => 0, RaiseError => 1,AutoCommit => 1});
 		#Test connection
 		croak("SQLShell.pm::connect Erorr $DBI::errstr\n") unless (defined $self->{DBH});
   		#чтобы дата была в формате DD.MM.YYYY, а не как по умолчанию в формате ISO где год и месяц идут впереди числа.
@@ -87,11 +91,11 @@ sub select {
     my($self, $fields,$table, $cond) = @_;
     #TODO add check $fields,$table,$cond
     if (defined $self->{DBH}){
-    	$self->{DBH}->begin_work();
+    	#$self->{DBH}->begin_work();
     	my $q="SELECT $fields FROM $table WHERE $cond";
     	my $sth = $self->{DBH}->prepare($q);
         my $rv = $sth->execute();
-        $self->{DBH}->commit();
+        #$self->{DBH}->commit();
          if (!defined $rv) {
          	my $e="SQLShell.pm:: When execute query $q:".$self->{DBH}->errstr."\n";
             croak ($e);
@@ -106,9 +110,9 @@ sub select {
 sub _doexec{# Private function !!!
 	my ($self,$query)=@_;
     if (defined $self->{DBH}){
-    	$self->{DBH}->begin_work();
+    	#$self->{DBH}->begin_work();
     	my $rv = $self->{DBH}->do($query);
-        $self->{DBH}->commit();
+        #$self->{DBH}->commit();
          if (!defined $rv) {
          	my $e="SQLShell.pm:: When execute query $query\n:".$self->{DBH}->errstr."\n";
             croak ($e);
