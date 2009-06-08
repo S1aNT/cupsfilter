@@ -1,10 +1,11 @@
 --DROP FUNCTION reports_set_recivers (integer,character varying);
-CREATE OR REPLACE FUNCTION reports_recivers (integer,character varying)
+CREATE OR REPLACE FUNCTION reports_set_recivers (integer,character varying)
   RETURNS INTEGER AS
 $BODY$
     DECLARE
      find_id INTEGER;
      receve_id INTEGER;	
+     rel_id INTEGER;
      rep_id     ALIAS for $1;
      field_val 	ALIAS for $2;
     
@@ -23,17 +24,15 @@ $BODY$
 		receve_id=(SELECT id FROM list_recivers WHERE adress = field_val);
 	END IF;
 	
-	-- Обновляем таблицу связей
-	UPDATE rel_list_recivers2reports SET list_recivers_id=receve_id WHERE reports_id=find_id;
-	
-	IF (FOUND) THEN 
-		RETURN 1;
-	END IF;
-	BEGIN
+      BEGIN  
+	rel_id = (SELECT list_recivers_id FROM rel_list_recivers2reports WHERE list_recivers_id=receve_id and reports_id=find_id);
+	IF (rel_id IS NULL ) THEN
 		INSERT INTO rel_list_recivers2reports (list_recivers_id,reports_id) VALUES (receve_id,find_id);
-		RETURN 1;
+	END IF;
+		
+	RETURN 1;
 	EXCEPTION WHEN unique_violation THEN	-- do nothing, and loop to try the UPDATE again
-		RETURN 0;
+	 RETURN 0;
 	END;
     END;
 $BODY$

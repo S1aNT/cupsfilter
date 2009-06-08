@@ -27,7 +27,7 @@ $BODY$
 	END IF;
 	
 	-- Обновляем таблицу связей
-	UPDATE rel_add_info2reports SET add_info_id=addinfo_id WHERE reports_id=find_id;
+	UPDATE rel_add_info2reports SET add_info_id=addinfo_id,reports_id=find_id;
  	IF (FOUND) THEN 
 		RETURN 1;
 	END IF;
