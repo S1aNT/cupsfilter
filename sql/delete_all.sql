@@ -1,0 +1,9 @@
+delete from rel_add_info2reports;
+delete from rel_list_recivers2reports;
+delete from add_info;
+delete from list_recivers;
+delete from  debug_log;
+delete from reports;
+delete from executors;
+delete from pressman;
+delete from firstpages;

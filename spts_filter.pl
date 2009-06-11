@@ -18,7 +18,7 @@ use feature "switch";
 
 #----------------------- CONFIG ------------------------------------
 my $DEBUG=1;							# For debuging and troubleshooting. Nice hunt !
-
+my $LOG=1; 								# enable log
 my @argv = @ARGV;			#keep hands off the argument array
 my $SPOOL = "/tmp";			#where are my speedy memory drive?
 my $LOG_FILE = "/var/log/cups/spts_filter.log";
@@ -47,7 +47,7 @@ if ($DEBUG){
 	$PSSELECT_BIN ="psselect.pl";
 	$SPOOL ="d:\\Temp\\";
 	$DEBUG_DB_FILE = "spts_db_filter.log";
-	@argv=(78,'PDF writer \@nt8','Пример модного документа с числом копий = 8',7,"JUID:2","sample.ps");
+	@argv=(255,'Windows writer','Пример модного документа с числом копий = 8',7,"JUID:255","sample.ps");
 }
 
 my ($jobID,$userName,$jobTitle,$copies,$printOptions,$printFile) = @argv;
@@ -56,7 +56,7 @@ $TAGS_DATA{"user"}=lc(cleaner($userName));
 $TAGS_DATA{"jobID"}=$jobID;
 $TAGS_DATA{"class"}=$ENV{"CLASS"} if (defined $ENV{"CLASS"});
 $TAGS_DATA{"copies"}=$copies;
-$TAGS_DATA{"printer"}=$ENV{"PRINTER"} if (defined $ENV{"PRINTER"});
+$TAGS_DATA{"printer"}=(defined $ENV{"PRINTER"}) ? $ENV{"PRINTER"}: 'TEST_PRINTER';
 $TAGS_DATA{"jobTitle"}= lc(cleaner($jobTitle));
 $TAGS_DATA{"jobTitle"}=~ s/smbprn[0-9]*//;
 $TAGS_DATA{"jobTitle"}=~ s/microsoft|word|explorer//gi;
@@ -90,7 +90,7 @@ my $dbh = new SQLShell; # Connect to database
 $dbh->options(	"CupsLog",	# имя базы данных
 				"postgres",	# имя пользователя
 				"pg",		# пароль
-				"localhost",# имя или IP адрес сервера
+				"192.168.11.150",# имя или IP адрес сервера
 				"5432",		# порт
 				"-e",		# опции
 				"ansi");	# терминал
@@ -106,13 +106,14 @@ if ($@){
 }else{
 	# main working block 
 	$dbh->debug(3,"$DEBUG_DB_FILE") if ($DEBUG);
-	$REPORT_ID = save_cups_data2base($TAGS_DATA{"printer"},$TAGS_DATA{"user"},$TAGS_DATA{"jobTitle"},$TAGS_DATA{"copies"},'','',$TAGS_DATA{"jobID"});
+	$REPORT_ID = save_cups_data2base($TAGS_DATA{"printer"},$TAGS_DATA{"user"},$TAGS_DATA{"jobTitle"},$TAGS_DATA{"copies"},'',$TAGS_DATA{"jobID"});
+	save2log(" Reports rec_id = $REPORT_ID Printer name =$TAGS_DATA{'printer'} Cups User =$TAGS_DATA{'user'} Print job Title =$TAGS_DATA{'jobTitle'} Ncopy = $TAGS_DATA{'copies'} JOBID = $TAGS_DATA{'jobID'}\n") if ($LOG);
 	@result = parse_file($TAGS_DATA{"printFile"},$FH_TEMP);
-	
-	#Отправим дальше на печать 
-	file2stdout($FH_TEMP);
-	
 	if ($result[0]){
+		#Отправим дальше на печать
+		save2log("Отправим дальше на печать\n")  if ($LOG); 
+		
+		file2stdout($FH_TEMP);
 		@result =get_fp_pdfname_and_make($TAGS_DATA{"jobID"},$TAGS_DATA{"user"},$TAGS_DATA{"jobTitle"},$TAGS_DATA{"TMP_FILENAME"});
 		$TAGS_DATA{"FP_PDF_NAME"}=$result[1];
 	}else{
@@ -143,9 +144,13 @@ sub save_data2base{
 		 
    		my @tmp  =($rep_id,$v);
    		print "Key $k: value $v \n" if ($DEBUG);
+   		save2log("Key $k: value $v \n")  if ($LOG);
        	given (lc($k)){
        		when ("fp_pdf_name") {
        			$dbh->just_do("reports_set_fp_pdf_name",\@tmp);
+			}
+			when ("status") {
+       			$dbh->just_do("reports_set_status",\@tmp);
 			}
        		when ("document_level") {
        			$dbh->just_do("reports_set_doc_level",\@tmp);
@@ -238,7 +243,7 @@ sub datetime2string{
     }
     my $date =join('/',$year,$months_names[$month],$day);
     my $time =join(':',$hh,$mm);
-    return join ('/',$date,$time); 
+    return join ('_',$date,$time); 
 }
 
 sub save2log{
