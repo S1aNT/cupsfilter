@@ -12,22 +12,24 @@ use File::Temp;
 use SQLShell;
 use DBI;
 use feature "switch";
+use Carp;
+
 
 #use File::Temp qw/ :seekable /;
 #require File::Temp;
 
 #----------------------- CONFIG ------------------------------------
-my $DEBUG=1;							# For debuging and troubleshooting. Nice hunt !
+my $DEBUG=0;							# For debuging and troubleshooting. Nice hunt !
 my $LOG=1; 								# enable log
 my @argv = @ARGV;			#keep hands off the argument array
-my $SPOOL = "/tmp";			#where are my speedy memory drive?
+my $SPOOL = "/var/tmp";			#where are my speedy memory drive?
 my $LOG_FILE = "/var/log/cups/spts_filter.log";
 my $DEBUG_DB_FILE = "/var/log/cups/spts_db_filter.log";
 my $FPAGEDIR   ="/var/log/cups/firstpages"; #каталог в котором хранятся первые страницы документа
 my $DATE_BIN = "/bin/date";				#path to date
 my $PDF_BIN="/usr/bin/ps2pdf";			#path to ps2pdf binary
 my $PSSELECT_BIN ="/usr/bin/psselect"; 	#path to psselect binary
-my $ENABLE ="/usr/bin/cupsenable"; 			#path to enable binary
+my $ENABLE ="/usr/sbin/cupsenable"; 			#path to enable binary
 my $RACF_UTIL_BIN="/usr/bin/racf.pl";	#path to racf script
 my $FH_TEMP;							#File handle to temp file
 
@@ -41,30 +43,8 @@ my @result;								#Array of function result (Code,InfoStr)
 
 #--------------------------------------------------------------------------------------------------
 
-#Check and parse arguments
-if ($DEBUG){
-	$RACF_UTIL_BIN="racf.pl";
-	$PSSELECT_BIN ="psselect.pl";
-	$SPOOL ="d:\\Temp\\";
-	$DEBUG_DB_FILE = "spts_db_filter.log";
-	@argv=(255,'Windows writer','Пример модного документа с числом копий = 8',7,"JUID:255","sample.ps");
-}
-
+#print "Work it \n";
 my ($jobID,$userName,$jobTitle,$copies,$printOptions,$printFile) = @argv;
-
-$TAGS_DATA{"user"}=lc(cleaner($userName));
-$TAGS_DATA{"jobID"}=$jobID;
-$TAGS_DATA{"class"}=$ENV{"CLASS"} if (defined $ENV{"CLASS"});
-$TAGS_DATA{"copies"}=$copies;
-$TAGS_DATA{"printer"}=(defined $ENV{"PRINTER"}) ? $ENV{"PRINTER"}: 'TEST_PRINTER';
-$TAGS_DATA{"jobTitle"}= lc(cleaner($jobTitle));
-$TAGS_DATA{"jobTitle"}=~ s/smbprn[0-9]*//;
-$TAGS_DATA{"jobTitle"}=~ s/microsoft|word|explorer//gi;
-$TAGS_DATA{"printFile"}=$printFile;
-$TAGS_DATA{"device_uri"}=$ENV{"DEVICE_URI"} if (defined $ENV{"DEVICE_URI"});
-$TAGS_DATA{"printOptions"}=$printOptions;
-
-
 #--------------------------------------------------------------------------------------------------
 # If no arguments, device discovery mode
 if (!$argv[0]){
@@ -76,6 +56,25 @@ if (scalar(@argv) < 5 || scalar(@argv) > 6){
         print STDERR ("Usage: tech_filter job-id user title copies options [file]\n");
         exit 1;
 }
+
+save2log(join('_',@argv));
+
+$TAGS_DATA{"user"}=lc(cleaner($userName)) if (defined $userName);
+$TAGS_DATA{"jobID"}=$jobID;
+$TAGS_DATA{"class"}=$ENV{"CLASS"} if (defined $ENV{"CLASS"});
+$TAGS_DATA{"copies"}=$copies;
+$TAGS_DATA{"printer"}=(defined $ENV{"PRINTER"}) ? $ENV{"PRINTER"}: 'TEST_PRINTER';
+if (defined $jobTitle){
+	$TAGS_DATA{"jobTitle"}= lc(cleaner($jobTitle));
+	$TAGS_DATA{"jobTitle"}=~ s/smbprn[0-9]*//;
+	$TAGS_DATA{"jobTitle"}=~ s/microsoft|word|explorer//gi;
+}
+
+$TAGS_DATA{"printFile"}=(defined $printFile) ? $printFile : '-';
+$TAGS_DATA{"device_uri"}=$ENV{"DEVICE_URI"} if (defined $ENV{"DEVICE_URI"});
+$TAGS_DATA{"printOptions"}=$printOptions;
+
+
 #--------------------------------------------------------------------------------------------------
 #The hard, but fine work :)
 # Safe create temp file
@@ -90,7 +89,7 @@ my $dbh = new SQLShell; # Connect to database
 $dbh->options(	"CupsLog",	# имя базы данных
 				"postgres",	# имя пользователя
 				"pg",		# пароль
-				"192.168.11.150",# имя или IP адрес сервера
+				"localhost",# имя или IP адрес сервера
 				"5432",		# порт
 				"-e",		# опции
 				"ansi");	# терминал
@@ -126,6 +125,11 @@ exit 0;
 
 #--------------------------------------------------------------------------------------------------
 
+sub save_debug_msg{
+        my ($info)= @_;
+	$dbh->insert("debug_log","info_str",$info);
+
+}
 sub save_data2base{
 	#Args: REPORT_ID
 	#Returns: nothing;
@@ -279,7 +283,7 @@ sub parse_file{
 	my $source=\*STDIN;#Используем в качестве источника стандартный ввод
 	my $err_str;	
 	#find file source...STDIN, or as argument and open it
-	if (defined $printFile){
+	unless ($printFile eq '-'){
 		open ($source, "< $printFile") or croak ("CUPS_FILTER. ERROR: Can't open printjob $printFile: $!\n");
 	}
 	while(<$source>){
@@ -349,7 +353,11 @@ sub get_fp_pdfname_and_make{
     if ($DEBUG){
     	print "$PSSELECT_BIN -p1 $tmp_filename | $PDF_BIN - $fp_pdf_filename &","\n"; 
     }else{
-    	system ("$PSSELECT_BIN -p1 $tmp_filename | $PDF_BIN - $fp_pdf_filename &") or croak ("Can't find and execute $PSSELECT_BIN \n");
+	save2log ("$PSSELECT_BIN -p1 $tmp_filename | $PDF_BIN - $fp_pdf_filename \n") if  ($LOG);
+    	my $exit_res = system ("$PSSELECT_BIN -p1 $tmp_filename | $PDF_BIN - $fp_pdf_filename &");
+	unless ($exit_res eq 0){
+		return (0,"Can't find and execute $PSSELECT_BIN \n");
+	}
     }
     
     return (1,$fp_pdf_filename);
