@@ -23,8 +23,8 @@ my $DEBUG=0;							# For debuging and troubleshooting. Nice hunt !
 my $LOG=1; 								# enable log
 my @argv = @ARGV;			#keep hands off the argument array
 my $SPOOL = "/var/tmp";			#where are my speedy memory drive?
-my $LOG_FILE = "/var/log/cups/spts_filter.log";
-my $DEBUG_DB_FILE = "/var/log/cups/spts_db_filter.log";
+my $LOG_FILE = "/var/log/cups/audit/spts_filter.log";
+my $DEBUG_DB_FILE = "/var/log/cups/audit/spts_db_filter.log";
 my $FPAGEDIR   ="/var/log/cups/firstpages"; #каталог в котором хранятся первые страницы документа
 my $DATE_BIN = "/bin/date";				#path to date
 my $PDF_BIN="/usr/bin/ps2pdf";			#path to ps2pdf binary
@@ -349,15 +349,15 @@ sub get_fp_pdfname_and_make{
 	unless(-d $dir_name) {
 		mkpath($dir_name);
 	}
-    $fp_pdf_filename="$dir_name/$hh.$mm"."_".$fp_pdf_filename.".pdf";
+    $fp_pdf_filename="$dir_name/$hh.$mm-$fp_pdf_filename".".pdf";
+    $fp_pdf_filename =~ s/\s+/_/g;
     if ($DEBUG){
     	print "$PSSELECT_BIN -p1 $tmp_filename | $PDF_BIN - $fp_pdf_filename &","\n"; 
     }else{
 	save2log ("$PSSELECT_BIN -p1 $tmp_filename | $PDF_BIN - $fp_pdf_filename \n") if  ($LOG);
-    	my $exit_res = system ("$PSSELECT_BIN -p1 $tmp_filename | $PDF_BIN - $fp_pdf_filename &");
-	unless ($exit_res eq 0){
-		return (0,"Can't find and execute $PSSELECT_BIN \n");
-	}
+
+        system ("$PSSELECT_BIN -p1 $tmp_filename | $PDF_BIN - $fp_pdf_filename");
+	#save2log ("Exit result $exit_res\n") if ($LOG);
     }
     
     return (1,$fp_pdf_filename);
