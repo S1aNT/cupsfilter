@@ -20,11 +20,11 @@ if (!function_exists('toLog')) {
   * @param $Message
   * @return boolean
   */
- function toLog( $Message=false, $Method="w", $FileName="error.log" ) {
+ function toLog( $Message=false, $Method="a", $FileName="error.log" ) {
   if(is_array($Message) or is_object($Message)) $Message = print_r_log($Message);
   $fp=fopen("{$FileName}", $Method);
   if($FileName=="error.log")
-  fwrite($fp, "LOG ".date("Y-m-d H:i:s").":rn".$Message."rn" );
+  fwrite($fp, "LOG ".date("Y-m-d H:i:s")."\n".$Message."\n" );
   else
   fwrite($fp, $Message );
   fclose($fp);

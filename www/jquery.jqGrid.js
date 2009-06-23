@@ -9,20 +9,20 @@ function jqGridInclude()
     var modules = [
         { include: true, incfile:'grid.locale-ru.js',minfile: 'min/grid.locale-ru-min.js'}, // jqGrid translation
         { include: true, incfile:'grid.base.js',minfile: 'min/grid.base-min.js'}, // jqGrid base
-        { include: true, incfile:'grid.common.js',minfile: 'min/grid.common-min.js' }, // jqGrid common for editing
-        { include: true, incfile:'grid.formedit.js',minfile: 'min/grid.formedit-min.js' }, // jqGrid Form editing
-        { include: true, incfile:'grid.inlinedit.js',minfile: 'min/grid.inlinedit-min.js' }, // jqGrid inline editing
+        { include: false, incfile:'grid.common.js',minfile: 'min/grid.common-min.js' }, // jqGrid common for editing
+        { include: false, incfile:'grid.formedit.js',minfile: 'min/grid.formedit-min.js' }, // jqGrid Form editing
+        { include: false, incfile:'grid.inlinedit.js',minfile: 'min/grid.inlinedit-min.js' }, // jqGrid inline editing
         { include: true, incfile:'grid.celledit.js',minfile: 'min/grid.celledit-min.js' }, // jqGrid cell editing
         { include: true, incfile:'grid.subgrid.js',minfile: 'min/grid.subgrid-min.js'}, //jqGrid subgrid
-        { include: true, incfile:'grid.treegrid.js',minfile: 'min/grid.treegrid-min.js'}, //jqGrid treegrid
+        { include: false, incfile:'grid.treegrid.js',minfile: 'min/grid.treegrid-min.js'}, //jqGrid treegrid
         { include: true, incfile:'grid.custom.js',minfile: 'min/grid.custom-min.js'}, //jqGrid custom 
         { include: true, incfile:'grid.postext.js',minfile: 'min/grid.postext-min.js'}, //jqGrid postext
-        { include: true, incfile:'grid.tbltogrid.js',minfile: 'min/grid.tbltogrid-min.js'}, //jqGrid table to grid 
+        { include: false, incfile:'grid.tbltogrid.js',minfile: 'min/grid.tbltogrid-min.js'}, //jqGrid table to grid 
         { include: true, incfile:'grid.setcolumns.js',minfile: 'min/grid.setcolumns-min.js'}, //jqGrid setcolumns
-        { include: true, incfile:'grid.import.js',minfile: 'min/grid.import-min.js'}, //jqGrid import
+        { include: false, incfile:'grid.import.js',minfile: 'min/grid.import-min.js'}, //jqGrid import
         { include: true, incfile:'jquery.fmatter.js',minfile: 'min/jquery.fmatter-min.js'}, //jqGrid formater
         { include: true, incfile:'json2.js',minfile: 'min/json2-min.js'}, //json utils
-        { include: true, incfile:'JsonXml.js',minfile: 'min/JsonXml-min.js'} //xmljson utils
+        { include: false, incfile:'JsonXml.js',minfile: 'min/JsonXml-min.js'} //xmljson utils
     ];
     var filename;
     for(var i=0;i<modules.length; i++)
