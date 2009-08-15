@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading ui file 'docview.ui'
 **
-** Created: Sat 15. Aug 12:05:16 2009
+** Created: Sat 15. Aug 12:24:07 2009
 **      by: Qt User Interface Compiler version 4.5.2
 **
 ** WARNING! All changes made in this file will be lost when recompiling ui file!
