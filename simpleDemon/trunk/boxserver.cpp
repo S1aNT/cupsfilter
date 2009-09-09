@@ -70,7 +70,7 @@ void BoxServer::readyRead()
 		qDebug() << "User:" << user<< " Message:" << message;
 		//TODO Обработка запроса клиента
 		// Формат /cmd:код_команды::тело_команды
-		QRegExp rx("^/cmd:(.*)::(.+)$");
+		QRegExp rx("^/cmd:(.*):(.+)$");
 		if(rx.indexIn(line) != -1)
 		{
 		    QString  cmd =rx.cap(1);
