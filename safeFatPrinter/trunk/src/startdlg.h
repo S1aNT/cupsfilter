@@ -12,6 +12,7 @@
 #include <QCloseEvent>
 
 #include "proc_thread.h"
+#include "netAgent.h"
 #include "asktheuser.h"
 
 namespace Ui
@@ -60,7 +61,11 @@ private:
     QString mainPDF;	 // Файл который получился в результате конвертирования исходного
     QString gsBin;	// путь к исполняемому файлу ghostscript
     QString pdftkBin;	// Путь к файлу pdfTK
+    QString serverHostName;
 
+    netAgent n_ag; // сетевой агент
+
+    int serverPort;
     void read_settings();
     void write_settings();
 };

@@ -5,9 +5,9 @@ StartDlg::StartDlg(QWidget *parent)
     : QDialog(parent), ui(new Ui::StartDlg)
 {
     ui->setupUi(this);
-    init();
     makeConnection();
     read_settings();
+    init();
 }
 StartDlg::~StartDlg()
 {
@@ -28,7 +28,9 @@ void StartDlg::read_settings()
 	mainPDF = settings.value("output_fg_PDF","-sOutputFile=D:\\safePrinter\\%1.pdf").toString();
 	pdftkBin = settings.value("pdfTK","D:\\Tools\\pdfTK\\pdftk.exe").toString();
 #endif
-      settings.endGroup();
+	serverHostName = settings.value("server","localhost").toString();
+	serverPort = settings.value("port",17675).toInt();
+	settings.endGroup();
 }
 void StartDlg::closeEvent(QCloseEvent *event)
 {
@@ -43,6 +45,8 @@ void StartDlg::write_settings()
     settings.setValue("gs_bin",gsBin);
     settings.setValue("output_fg_PDF",mainPDF);
     settings.setValue("pdfTK",pdftkBin);
+    settings.value("server",serverHostName);
+    settings.value("port",serverPort);
     settings.endGroup();
 }
 
@@ -52,6 +56,7 @@ void StartDlg::init()
 
     SID=QUuid::createUuid () ;  //generate SID
 
+    n_ag.setSid(SID.toString());
  }
 
 void StartDlg::makeConnection()
@@ -61,6 +66,14 @@ void StartDlg::makeConnection()
 		 this,
 		    SLOT(processDone(int,QString))
 		    );
+/*
+    connect (&n_ag,
+		    SIGNAL(Error(int,QString)),
+		 this,
+		    SLOT(processDone(int,QString))
+		    );
+
+*/
     connect (ui->markPaperBtn,
 		    SIGNAL(clicked()),
 		 this,

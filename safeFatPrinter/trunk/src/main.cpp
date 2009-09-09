@@ -11,6 +11,7 @@
 #include "startdlg.h"
 
 
+
 void myMessageOutput(QtMsgType type, const char *msg)
 {
 
@@ -67,6 +68,7 @@ int main(int argc, char *argv[])
 	qDebug() << QString("Need more command line arguments.Current arguments %1\nExample safe_printer input.file doc_name").arg(aList.size());
 	app.exit(1);
     }else {
+
 	StartDlg w;
 
 	QSettings mandat_set("d:\\safeprinter.ini",QSettings::IniFormat);
