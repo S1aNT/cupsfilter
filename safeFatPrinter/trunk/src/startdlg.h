@@ -6,9 +6,13 @@
 #include <QProcess>
 #include <QtDebug>
 #include <QUuid>
+#include <QPrinterInfo>
+#include <QFile>
+#include <QSettings>
+#include <QCloseEvent>
 
 #include "proc_thread.h"
-
+#include "asktheuser.h"
 
 namespace Ui
 {
@@ -22,26 +26,43 @@ class StartDlg : public QDialog
 public:
     StartDlg(QWidget *parent = 0);
     ~StartDlg();
-    void setDocTitle(QString &doc_title);
-    void convertToPDF(QSring &input_file);
 
+    void convertToPDF(const QString &input_file);
+    void closeEvent(QCloseEvent *event);
+    void makeConnection();
+    void init();
+    void setDocName(const QString &docName);
+    void setMandat(const QString &userName,const QString &mandatName);
 public slots:
-    void processDone(int Code, QProcess::ExitStatus Status);
+    void processDone(int Code, const QString &s_output);
     void mergePDF(QString &main_file,QString &background_file);
+    void markPaper();
+    
 private slots:
 
     /**
      *  ExecuteNextStep  after the convert to PDF process is finished.
      * @param exitCode The exit code of the process.
      */
-    void executeNextStep( const QString &pdf_FileName );
+
+    void displayDebug(const QString &line);
 private:
     Ui::StartDlg *ui;
 
+
     ProcessT proc;
     QString dTitle;
+    QString mandat;
+    QString currentUserName;
     QUuid SID;
-    QString mainPDF;  // Файл который получился в результате конвертирования исходного
+    QStringList args;
+    QString cmd;
+    QString mainPDF;	 // Файл который получился в результате конвертирования исходного
+    QString gsBin;	// путь к исполняемому файлу ghostscript
+    QString pdftkBin;	// Путь к файлу pdfTK
+
+    void read_settings();
+    void write_settings();
 };
 
 #endif // STARTDLG_H

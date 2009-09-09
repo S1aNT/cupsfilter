@@ -12,9 +12,8 @@ ProcessT::ProcessT( QObject *parent ) :
 
 ProcessT::~ProcessT() {
 
-	wait();
-	qDebug() << Q_FUNC_INFO << "Thread destroyed";
-
+    wait();
+    qDebug() << Q_FUNC_INFO << "Thread destroyed";
 }
 
 void ProcessT::run() {
@@ -25,25 +24,23 @@ void ProcessT::run() {
 		return;
 	}
 
-	qDebug() << Q_FUNC_INFO << "Executing command" << m_Command << m_Args << "...";
+	qDebug() << Q_FUNC_INFO << "Executing command" << m_Command << m_Args << "\n";
+
 	QProcess proc;
-	connect(proc,
-			SIGNAL(finished(int, QProcess::ExitStatus)),
-		this,
-			SIGNAL(proc_finished(int, QProcess::ExitStatus))
-	);
 
 	proc.setProcessChannelMode( m_ChanMode );
 	proc.start( m_Command, m_Args );
-	proc.waitForStarted();
-	proc.waitForFinished();
-	proc.closeWriteChannel();
-	
-	m_Output = proc.readAll().trimmed();
+	if (!proc.waitForStarted()) {
+	    qDebug()<< QString("Unable to launch GhostScript application %1").arg(m_Command);
+	}else{
+	    proc.waitForFinished();
+	    proc.closeWriteChannel();
+	    m_Output = proc.readAll().trimmed();
+	    qDebug() << QString("Exit code %1").arg(proc.exitCode());
 
-	emit commandOutput( m_Output );
-	qDebug() << Q_FUNC_INFO << "Command execution finished.\n" <<m_Output;
-
+	    emit commandOutput(proc.exitCode(), m_Output );
+	    qDebug() << Q_FUNC_INFO << "Command execution finished.\n" <<m_Output;
+	}
 }
 
 void ProcessT::setCommand( const QString &name, const QStringList &args, const QProcess::ProcessChannelMode &mode ) {

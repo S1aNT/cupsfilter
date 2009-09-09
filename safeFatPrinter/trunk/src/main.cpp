@@ -5,27 +5,28 @@
 #include <QByteArray>
 #include <QMessageBox>
 #include <QStringList>
-
+#include <QSettings>
 #include <QTextStream>
 #include <QDateTime>
-
 #include "startdlg.h"
 
 
 void myMessageOutput(QtMsgType type, const char *msg)
 {
+
+     QSettings settings(QSettings::IniFormat, QSettings::UserScope,"Техносервъ","Защищенный принтер");
+      settings.setIniCodec("UTF-8");
+      settings.beginGroup( "LOG" );
 #if defined(Q_OS_UNIX)
-    QFile logFile("/var/log/safeprinter/safe_printer.log");
+	QFile logFile(settings.value("printer_log","/var/log/safeprinter/safe_printer.log").toString());
 #elif defined(Q_OS_WIN)
-    QFile logFile("d:\\safe_printer.log");
+	QFile logFile(settings.value("printer_log","d:\\safeprinter\\safe_printer.log").toString());
 #endif
-
-
+      settings.endGroup();
     if (!logFile.open(QFile::Append| QFile::Text)){
 	logFile.open(stderr, QIODevice::WriteOnly);
     }
 
-    //logFile.open(stderr, QIODevice::WriteOnly);
     QTextStream out;
     out.setDevice(&logFile);
     out.setCodec("UTF-8");
@@ -58,18 +59,26 @@ int main(int argc, char *argv[])
    qInstallMsgHandler(myMessageOutput);
 
     QApplication app(argc, argv);
-    QCoreApplication::setOrganizationName( "Защищенный принтер" );
-    QCoreApplication::setApplicationName( "safe_printer" );
-
     QStringList aList=app.arguments();
-    if (aList.size()!=2){
+    if (aList.size()!=4){
 	QMessageBox::critical(0,QObject::trUtf8("Обратитесь к системному администратору"),
 					    QObject::trUtf8("Ошибка запуска приложения, не достаточно параметров"));
-	qDebug() << "Need more command line arguments. example safe_printer input.file doc_name";
+
+	qDebug() << QString("Need more command line arguments.Current arguments %1\nExample safe_printer input.file doc_name").arg(aList.size());
+	app.exit(1);
+    }else {
+	StartDlg w;
+
+	QSettings mandat_set("d:\\safeprinter.ini",QSettings::IniFormat);
+	mandat_set.beginGroup("RULES");
+	w.setMandat (aList.at(3),mandat_set.value("mandat","UNDEF").toString());
+	mandat_set.endGroup();
+
+	w.setDocName(aList.at(2));
+	w.convertToPDF(aList.at(1));
+	w.show();
+	return app.exec();
     }
-    StartDlg w();
-    w.setInputFile(aList.at(1));
-    w.setDocTitle(aList.at(2));
-    w.show();
-    return app.exec();
+
 }
+
