@@ -1,12 +1,18 @@
 #include "startdlg.h"
+#include "tech_global.h"
 #include "ui_startdlg.h"
 
 StartDlg::StartDlg(QWidget *parent)
     : QDialog(parent), ui(new Ui::StartDlg)
 {
     ui->setupUi(this);
-    makeConnection();
+
+    SID=QUuid::createUuid () ;  //generate SID
+    n_ag = new netAgent();
+
     read_settings();
+    makeConnection();
+
     init();
 }
 StartDlg::~StartDlg()
@@ -53,10 +59,8 @@ void StartDlg::write_settings()
 /*								Function				    */
 void StartDlg::init()
 {
-
-    SID=QUuid::createUuid () ;  //generate SID
-
-    n_ag.setSid(SID.toString());
+    n_ag->setSid(SID.toString());
+    n_ag->on_login(serverHostName,serverPort);
  }
 
 void StartDlg::makeConnection()
@@ -66,14 +70,22 @@ void StartDlg::makeConnection()
 		 this,
 		    SLOT(processDone(int,QString))
 		    );
-/*
-    connect (&n_ag,
-		    SIGNAL(Error(int,QString)),
+
+    connect (n_ag,
+		    SIGNAL(error_signal(int ,QString)),
 		 this,
 		    SLOT(processDone(int,QString))
 		    );
-
-*/
+    connect (this,
+		    SIGNAL(sendToServer(commands_t ,QString &)),
+		 n_ag,
+		    SLOT(send2Server(commands_t ,QString &))
+		    );
+    connect (n_ag,
+		    SIGNAL(takeServerResponce(QString &)),
+		 this,
+		    SLOT(parseServerResponce(QString &))
+		    );
     connect (ui->markPaperBtn,
 		    SIGNAL(clicked()),
 		 this,
@@ -91,7 +103,7 @@ void StartDlg::convertToPDF(const QString &input_file)
 	args.append( "-dBATCH" );
 	args.append("-r300");
 	args.append( "-sDEVICE=pdfwrite" );
-	args.append(mainPDF.arg(SID.toString()));
+	args.append(mainPDF.arg(SID.toString().replace("{","").replace("}","")));
 	args.append("-c");
 	args.append(".setpdfwrite");
 	args.append("-f");
@@ -135,12 +147,13 @@ void StartDlg::mergePDF(QString &main_file,QString &background_file)
 	}
 }
 
- void StartDlg::processDone(int Code, const QString &s_output)
+void StartDlg::processDone(int Code, const QString &s_output)
  {
 
     if (Code != QProcess::NormalExit) {
-	QMessageBox::warning(this, QObject::trUtf8("Обратитесь к системному администратору"),
+	QMessageBox::critical(this, QObject::trUtf8("Обратитесь к системному администратору"),
 			     QObject::trUtf8("Ошибка предпечатной подготовки. %1:\nКод %2").arg(s_output,Code));
+	this->close();
     }else{
 	QMessageBox msgBox;
 	msgBox.setText("Исходный файл успешно конвертирован в pdf");
@@ -148,15 +161,30 @@ void StartDlg::mergePDF(QString &main_file,QString &background_file)
     }
  }
 
- void StartDlg::setDocName(const QString &docName)
+void StartDlg::setDocName(const QString &docName)
  {
      dTitle=docName;
  }
 
+void StartDlg::parseServerResponce(QString &message)
+ {
+	QMessageBox msgBox;
+	msgBox.setText(QString ("Сервер ответил %1").arg(message));
+	msgBox.exec();
+
+	QRegExp rx("^Client (.*) register$");
+	if(rx.indexIn(line) != -1)
+	{
+	    QString m=QString("%1~%2").arg(currentUserName,mandat);
+	    emit sendToServer(GET_PRINTER_LIST_CMD,m);
+	    qDebug() << Q_FUNC_INFO << GET_PRINTER_LIST_CMD <<m;
+	}
+ }
 void StartDlg::setMandat(const QString &userName,const QString &mandatName)
 {
     currentUserName=userName;
     mandat=mandatName;
+
 
 /*
     QList<QPrinterInfo> plist;

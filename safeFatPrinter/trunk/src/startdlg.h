@@ -11,6 +11,7 @@
 #include <QSettings>
 #include <QCloseEvent>
 
+#include "tech_global.h"
 #include "proc_thread.h"
 #include "netAgent.h"
 #include "asktheuser.h"
@@ -34,10 +35,15 @@ public:
     void init();
     void setDocName(const QString &docName);
     void setMandat(const QString &userName,const QString &mandatName);
+
+signals:
+    void sendToServer(commands_t cmd,QString &body);
+
 public slots:
     void processDone(int Code, const QString &s_output);
     void mergePDF(QString &main_file,QString &background_file);
     void markPaper();
+    void parseServerResponce(QString &message); // Разбор полученного от сервера ответа
     
 private slots:
 
@@ -63,7 +69,7 @@ private:
     QString pdftkBin;	// Путь к файлу pdfTK
     QString serverHostName;
 
-    netAgent n_ag; // сетевой агент
+    netAgent *n_ag; // сетевой агент
 
     int serverPort;
     void read_settings();
