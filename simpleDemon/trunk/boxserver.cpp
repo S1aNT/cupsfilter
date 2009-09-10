@@ -26,12 +26,19 @@ void BoxServer::doCommand(const QString &user,int command,const QString &body)
 	i.next();
 
 	if (i.value()==user){
-	    qDebug () << i.key() << ": " << i.value() << "\n";
 	    client = i.key();
 	    if (client->isValid()){
+	        qDebug() <<client->isValid()<<command<<body;
 		switch (command) {
-		case BoxServer::getPrinterListCmd:
-		    client->write(QString("Testprinter1,TestPrinter2,TestPrinter3,TestPrinter4").toUtf8());
+		case GET_PRINTER_LIST_CMD:
+		    // разбор тела команды. Формат имя_пользователя:мандат
+		    QRegExp rx("^(.+)~(.+)$");
+		    if (rx.indexIn(body)!=-1)
+		    {
+		      QString message="Testprinter1,TestPrinter2,TestPrinter3,TestPrinter4";
+	              client->write(QString(message+"\n").toUtf8());
+		    }
+		    
 		    break;
 		}
 	    }else {
@@ -57,6 +64,7 @@ void BoxServer::readyRead()
 	    qDebug() << QString("Connected new client with UID: %1 ").arg(cUID) << "\n";
 
 	    clientsUID[client] = cUID;
+	    client->write(QString("/answer:Client " + cUID + " register.\n").toUtf8());
 	    /*
 	    foreach(QTcpSocket *client, clients)
 		client->write(QString("Server:" + user + " has joined.\n").toUtf8());
@@ -69,11 +77,11 @@ void BoxServer::readyRead()
 		QString user = clientsUID[client];
 		qDebug() << "User:" << user<< " Message:" << message;
 		//TODO Обработка запроса клиента
-		// Формат /cmd:код_команды::тело_команды
-		QRegExp rx("^/cmd:(.*):(.+)$");
+		// Формат /cmd:код_команды:тело_команды
+		QRegExp rx("^/cmd:(.+):(.+)$");
 		if(rx.indexIn(line) != -1)
 		{
-		    QString  cmd =rx.cap(1);
+		    QString cmd =rx.cap(1);
 		    QString body = rx.cap(2);
 		    qDebug() <<QString("Recived command %1 with args %2 from client: ").arg(cmd,body) <<client->peerAddress().toString() ;
 		    doCommand(user,cmd.toInt(),body);

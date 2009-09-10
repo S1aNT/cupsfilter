@@ -15,5 +15,5 @@ CONFIG   -= app_bundle
 TEMPLATE = app
 
 
-HEADERS += BoxServer.h
+HEADERS += BoxServer.h tech_global.h
 SOURCES += BoxServer.cpp main.cpp

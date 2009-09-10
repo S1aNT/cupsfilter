@@ -8,21 +8,13 @@
 #include <QMapIterator>
 #include <QSet>
 
-
+#include "tech_global.h"
 
 class BoxServer : public QTcpServer
 {
     Q_OBJECT
-    Q_ENUMS(TypeCmd)
 public:
     BoxServer(QObject *parent=0);
-
-	enum TypeCmd
-	{
-	    getPrinterListCmd,
-	    setDocStateCmd
-	};
-
 private slots:
 	void readyRead();
 	void disconnected();
