@@ -73,11 +73,12 @@ int main(int argc, char *argv[])
 
 	QSettings mandat_set("d:\\safeprinter.ini",QSettings::IniFormat);
 	mandat_set.beginGroup("RULES");
-	w.setMandat (aList.at(3),mandat_set.value("mandat","UNDEF").toString());
+	QString mandat =mandat_set.value("mandat","UNDEF").toString();
 	mandat_set.endGroup();
 
 	w.setDocName(aList.at(2));
 	w.convertToPDF(aList.at(1));
+	w.setMandat (aList.at(3),mandat);
 	w.show();
 	return app.exec();
     }
