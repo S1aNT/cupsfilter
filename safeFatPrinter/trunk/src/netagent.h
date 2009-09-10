@@ -3,31 +3,28 @@
 #include <QDebug>
 #include <QObject>
 #include <QTcpSocket>
+#include <QRegExp>
+#include <QTimer>
+#include "tech_global.h"
 
 class netAgent : public QObject{
       Q_OBJECT
-      Q_ENUMS(errorCode)
 
 public:
     netAgent( QObject *parent = 0 );
-	enum errorCode
-	{
-	    noError ,
-	    hostnameEmpty ,
-	    invalidRangePort ,
-	    HostNotFoundError ,
-	    ConnectionRefusedError
-	};
+
     void setSid(const QString & sid);
+    void on_login(QString &hostname,int Port);
+
 
 public slots:
-	void on_login(QString & hostname,int Port);
-	void send2Server(const QString &cmd,const QString &body);
 	void readyRead();
 	void connected();
-	void prepareError(int socketError, const QString &message);
+	void prepareError(QAbstractSocket::SocketError socketError);
+	void send2Server(commands_t cmd, QString &body);
 signals:
-	void error_signal(netAgent::errorCode Code,const QString &errorStr);
+	void error_signal(int Code,const QString &errorStr);
+	void takeServerResponce(QString &message); // Передает дальше полученный от сервера ответ
 private:
 	// This is the socket that will let us communitate with the server.
 	QTcpSocket *socket;
