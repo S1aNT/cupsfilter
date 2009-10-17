@@ -57,7 +57,7 @@ class ProcessT : public QThread {
 		 * Emitted when a command has finished running. 
 		 * @param output The output of the command which was executed.
 		 */
-		void commandOutput(int Code,QString output );
+		void commandOutput(int Code,QString output);
 
 	private:
 		QString m_Command;

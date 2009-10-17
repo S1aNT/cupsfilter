@@ -4,10 +4,7 @@
 ProcessT::ProcessT( QObject *parent ) :
 	QThread( parent )
 {
-
-
 	m_ChanMode = QProcess::SeparateChannels;
-
 }
 
 ProcessT::~ProcessT() {
@@ -31,9 +28,9 @@ void ProcessT::run() {
 	proc.setProcessChannelMode( m_ChanMode );
 	proc.start( m_Command, m_Args );
 	if (!proc.waitForStarted()) {
-	    qDebug()<< QString("Unable to launch GhostScript application %1").arg(m_Command);
+	    qDebug()<< QString("Unable to launch application %1").arg(m_Command);
 	}else{
-	    proc.waitForFinished();
+	    proc.waitForFinished(-1);
 	    proc.closeWriteChannel();
 	    m_Output = proc.readAll().trimmed();
 	    qDebug() << QString("Exit code %1").arg(proc.exitCode());
@@ -49,11 +46,9 @@ void ProcessT::setCommand( const QString &name, const QStringList &args, const Q
 		qWarning() << Q_FUNC_INFO << "Empty command given, doing nothing";
 		return;
 	}
-
 	m_Command = name;
 	m_Args = args;
 	m_ChanMode = mode;
-
 }
 
 void ProcessT::execute( const QString &name, const QStringList &args, const QProcess::ProcessChannelMode &mode ) {
