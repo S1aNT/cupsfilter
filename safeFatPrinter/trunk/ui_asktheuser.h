@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading ui file 'asktheuser.ui'
 **
-** Created: Thu 10. Sep 00:48:10 2009
+** Created: Sat 17. Oct 20:53:19 2009
 **      by: Qt User Interface Compiler version 4.5.2
 **
 ** WARNING! All changes made in this file will be lost when recompiling ui file!
@@ -53,15 +53,15 @@ public:
     QGroupBox *groupBox;
     QGridLayout *gridLayout;
     QLabel *label;
-    QComboBox *comboBox;
+    QComboBox *secretCBox;
     QLabel *label_2;
-    QSpinBox *spinBox;
+    QSpinBox *copyNumberSpinBox;
     QLabel *label_3;
-    QLineEdit *lineEdit;
+    QLineEdit *punktLineEd;
     QLabel *label_4;
-    QComboBox *comboBox_2;
-    QComboBox *comboBox_3;
+    QComboBox *templatesCbox;
     QToolButton *toolButton;
+    QLineEdit *mbNumberLineEd;
     QGroupBox *groupBox_2;
     QGridLayout *gridLayout_2;
     QLabel *label_5;
@@ -169,6 +169,8 @@ public:
         QIcon icon;
         icon.addFile(QString::fromUtf8(":/images/win/fileprint.png"), QSize(), QIcon::Normal, QIcon::Off);
         previewBtn->setIcon(icon);
+        previewBtn->setAutoDefault(false);
+        previewBtn->setDefault(true);
 
         gridLayout_5->addWidget(previewBtn, 5, 0, 1, 1);
 
@@ -192,10 +194,10 @@ public:
 
         gridLayout->addWidget(label, 0, 0, 1, 1);
 
-        comboBox = new QComboBox(groupBox);
-        comboBox->setObjectName(QString::fromUtf8("comboBox"));
+        secretCBox = new QComboBox(groupBox);
+        secretCBox->setObjectName(QString::fromUtf8("secretCBox"));
 
-        gridLayout->addWidget(comboBox, 0, 1, 1, 2);
+        gridLayout->addWidget(secretCBox, 0, 1, 1, 2);
 
         label_2 = new QLabel(groupBox);
         label_2->setObjectName(QString::fromUtf8("label_2"));
@@ -203,10 +205,10 @@ public:
 
         gridLayout->addWidget(label_2, 1, 0, 1, 1);
 
-        spinBox = new QSpinBox(groupBox);
-        spinBox->setObjectName(QString::fromUtf8("spinBox"));
+        copyNumberSpinBox = new QSpinBox(groupBox);
+        copyNumberSpinBox->setObjectName(QString::fromUtf8("copyNumberSpinBox"));
 
-        gridLayout->addWidget(spinBox, 1, 1, 1, 2);
+        gridLayout->addWidget(copyNumberSpinBox, 1, 1, 1, 2);
 
         label_3 = new QLabel(groupBox);
         label_3->setObjectName(QString::fromUtf8("label_3"));
@@ -214,10 +216,10 @@ public:
 
         gridLayout->addWidget(label_3, 2, 0, 1, 1);
 
-        lineEdit = new QLineEdit(groupBox);
-        lineEdit->setObjectName(QString::fromUtf8("lineEdit"));
+        punktLineEd = new QLineEdit(groupBox);
+        punktLineEd->setObjectName(QString::fromUtf8("punktLineEd"));
 
-        gridLayout->addWidget(lineEdit, 2, 1, 1, 2);
+        gridLayout->addWidget(punktLineEd, 2, 1, 1, 2);
 
         label_4 = new QLabel(groupBox);
         label_4->setObjectName(QString::fromUtf8("label_4"));
@@ -225,20 +227,21 @@ public:
 
         gridLayout->addWidget(label_4, 3, 0, 1, 1);
 
-        comboBox_2 = new QComboBox(groupBox);
-        comboBox_2->setObjectName(QString::fromUtf8("comboBox_2"));
+        templatesCbox = new QComboBox(groupBox);
+        templatesCbox->setObjectName(QString::fromUtf8("templatesCbox"));
 
-        gridLayout->addWidget(comboBox_2, 3, 1, 1, 2);
-
-        comboBox_3 = new QComboBox(groupBox);
-        comboBox_3->setObjectName(QString::fromUtf8("comboBox_3"));
-
-        gridLayout->addWidget(comboBox_3, 4, 0, 1, 2);
+        gridLayout->addWidget(templatesCbox, 4, 0, 1, 2);
 
         toolButton = new QToolButton(groupBox);
         toolButton->setObjectName(QString::fromUtf8("toolButton"));
+        toolButton->setEnabled(false);
 
         gridLayout->addWidget(toolButton, 4, 2, 1, 1);
+
+        mbNumberLineEd = new QLineEdit(groupBox);
+        mbNumberLineEd->setObjectName(QString::fromUtf8("mbNumberLineEd"));
+
+        gridLayout->addWidget(mbNumberLineEd, 3, 1, 1, 2);
 
 
         gridLayout_5->addWidget(groupBox, 2, 0, 1, 2);
@@ -304,6 +307,7 @@ public:
         dateField_dateEd = new QDateEdit(groupBox_2);
         dateField_dateEd->setObjectName(QString::fromUtf8("dateField_dateEd"));
         dateField_dateEd->setEnabled(false);
+        dateField_dateEd->setDateTime(QDateTime(QDate(1752, 9, 14), QTime(0, 0, 0)));
         dateField_dateEd->setCalendarPopup(true);
 
         gridLayout_2->addWidget(dateField_dateEd, 6, 1, 1, 1);
@@ -318,6 +322,7 @@ public:
 
         cancelBtn = new QPushButton(askTheUser);
         cancelBtn->setObjectName(QString::fromUtf8("cancelBtn"));
+        cancelBtn->setAutoDefault(false);
 
         gridLayout_5->addWidget(cancelBtn, 5, 1, 1, 1);
 
@@ -336,6 +341,10 @@ public:
         QObject::connect(reciversList_chBox, SIGNAL(toggled(bool)), reciverFour_lineEd, SLOT(setEnabled(bool)));
         QObject::connect(reciversList_chBox, SIGNAL(toggled(bool)), reciverFive_lineEd, SLOT(setEnabled(bool)));
 
+        secretCBox->setCurrentIndex(-1);
+        templatesCbox->setCurrentIndex(0);
+
+
         QMetaObject::connectSlotsByName(askTheUser);
     } // setupUi
 
@@ -350,16 +359,16 @@ public:
         label_14->setText(QApplication::translate("askTheUser", "\320\255\320\272\320\267\320\265\320\274\320\277\320\273\321\217\321\200 \342\204\2265", 0, QApplication::UnicodeUTF8));
         reciverFour_lineEd->setInputMask(QString());
         reciverFour_lineEd->setText(QString());
-        reciverThree_lineEd->setInputMask(QApplication::translate("askTheUser", "#DDDddddddd; ", 0, QApplication::UnicodeUTF8));
+        reciverThree_lineEd->setInputMask(QString());
         reciversList_chBox->setText(QApplication::translate("askTheUser", "\320\237\320\265\321\207\320\260\321\202\320\260\321\202\321\214 \321\201\320\277\320\270\321\201\320\276\320\272 \321\200\320\260\321\201\321\201\321\213\320\273\320\272\320\270", 0, QApplication::UnicodeUTF8));
         reciverFive_lineEd->setInputMask(QString());
         reciverFive_lineEd->setText(QString());
-        previewBtn->setText(QApplication::translate("askTheUser", "\320\237\321\200\320\265\320\264\320\262\320\260\321\200\320\270\321\202\320\265\320\273\321\214\320\275\321\213\320\271 \320\277\321\200\320\276\321\201\320\274\320\276\321\202\321\200", 0, QApplication::UnicodeUTF8));
+        previewBtn->setText(QApplication::translate("askTheUser", "\320\243\321\207\320\265\321\202 \320\273\320\270\321\201\321\202\320\276\320\262", 0, QApplication::UnicodeUTF8));
         groupBox_4->setTitle(QApplication::translate("askTheUser", "\320\235\320\260\320\267\320\262\320\260\320\275\320\270\320\265 \320\264\320\276\320\272\321\203\320\274\320\265\320\275\321\202\320\260...", 0, QApplication::UnicodeUTF8));
         groupBox->setTitle(QApplication::translate("askTheUser", "\320\236\320\261\321\211\320\270\320\265 \320\260\321\202\321\200\320\270\320\261\321\203\321\202\321\213", 0, QApplication::UnicodeUTF8));
         label->setText(QApplication::translate("askTheUser", "\320\223\321\200\320\270\321\204", 0, QApplication::UnicodeUTF8));
-        comboBox->clear();
-        comboBox->insertItems(0, QStringList()
+        secretCBox->clear();
+        secretCBox->insertItems(0, QStringList()
          << QApplication::translate("askTheUser", "\320\241\320\265\320\272\321\200\320\265\321\202\320\275\320\276", 0, QApplication::UnicodeUTF8)
          << QApplication::translate("askTheUser", "\320\241\320\276\320\262.\321\201\320\265\320\272\321\200\320\265\321\202\320\275\320\276", 0, QApplication::UnicodeUTF8)
          << QApplication::translate("askTheUser", "\320\236\321\201\320\276\320\261\320\276\320\271 \320\262\320\260\320\266\320\275\320\276\321\201\321\202\320\270", 0, QApplication::UnicodeUTF8)
@@ -367,8 +376,12 @@ public:
         label_2->setText(QApplication::translate("askTheUser", "\320\235\320\276\320\274\320\265\321\200 \321\215\320\272\320\267\320\265\320\274\320\277\320\273\321\217\321\200\320\260", 0, QApplication::UnicodeUTF8));
         label_3->setText(QApplication::translate("askTheUser", "\320\237\321\203\320\275\320\272\321\202", 0, QApplication::UnicodeUTF8));
         label_4->setText(QApplication::translate("askTheUser", "\320\235\320\276\320\274\320\265\321\200 \320\234\320\221", 0, QApplication::UnicodeUTF8));
+        templatesCbox->clear();
+        templatesCbox->insertItems(0, QStringList()
+         << QApplication::translate("askTheUser", "\320\241\320\265\320\272\321\200\320\265\321\202\320\275\321\213\320\271 \320\277\321\200\320\270\320\272\320\260\320\267", 0, QApplication::UnicodeUTF8)
+        );
 #ifndef QT_NO_TOOLTIP
-        comboBox_3->setToolTip(QApplication::translate("askTheUser", "\320\222\321\213\320\261\320\265\321\200\320\270\321\202\320\265 \321\210\320\260\320\261\320\273\320\276\320\275,\320\272\320\276\321\202\320\276\321\200\321\213\320\271 \320\261\321\203\320\264\320\265\321\202 \320\277\321\200\320\270\320\274\320\265\320\275 \320\272 \321\202\320\265\320\272\321\203\321\211\320\265\320\274\321\203 \320\264\320\276\320\272\321\203\320\274\320\265\320\275\321\202\321\203", 0, QApplication::UnicodeUTF8));
+        templatesCbox->setToolTip(QApplication::translate("askTheUser", "\320\222\321\213\320\261\320\265\321\200\320\270\321\202\320\265 \321\210\320\260\320\261\320\273\320\276\320\275,\320\272\320\276\321\202\320\276\321\200\321\213\320\271 \320\261\321\203\320\264\320\265\321\202 \320\277\321\200\320\270\320\274\320\265\320\275 \320\272 \321\202\320\265\320\272\321\203\321\211\320\265\320\274\321\203 \320\264\320\276\320\272\321\203\320\274\320\265\320\275\321\202\321\203", 0, QApplication::UnicodeUTF8));
 #endif // QT_NO_TOOLTIP
 #ifndef QT_NO_TOOLTIP
         toolButton->setToolTip(QApplication::translate("askTheUser", "\320\243\320\277\321\200\320\260\320\262\320\273\320\265\320\275\320\270\320\265 \321\210\320\260\320\261\320\273\320\276\320\275\320\260\320\274\320\270 (\320\264\320\276\320\261\320\260\320\262\320\270\321\202\321\214,\321\203\320\264\320\260\320\273\320\270\321\202\321\214,\321\200\320\265\320\264\320\260\320\272\321\202\320\270\321\200\320\276\320\262\320\260\321\202\321\214)", 0, QApplication::UnicodeUTF8));
