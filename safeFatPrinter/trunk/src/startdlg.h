@@ -4,22 +4,17 @@
 #include <QtGui/QDialog>
 #include <QMessageBox>
 #include <QProcess>
-#include <QtDebug>
-#include <QUuid>
+#include <QDateTime>
 #include <QPrinterInfo>
-#include <QFile>
-#include <QSettings>
-#include <QCloseEvent>
-
-#include "tech_global.h"
-#include "proc_thread.h"
-#include "netAgent.h"
 #include "asktheuser.h"
+#include "workreport.h"
+#include "dController.h"
 
 namespace Ui
 {
     class StartDlg;
 }
+
 
 class StartDlg : public QDialog
 {
@@ -28,52 +23,32 @@ class StartDlg : public QDialog
 public:
     StartDlg(QWidget *parent = 0);
     ~StartDlg();
+    void convertToPDF(QString &in_file);
+    void setController(dController *ctrl);
 
-    void convertToPDF(const QString &input_file);
-    void closeEvent(QCloseEvent *event);
-    void makeConnection();
-    void init();
-    void setDocName(const QString &docName);
-    void setMandat(const QString &userName,const QString &mandatName);
-
-signals:
-    void sendToServer(commands_t cmd,QString &body);
 
 public slots:
-    void processDone(int Code, const QString &s_output);
-    void mergePDF(QString &main_file,QString &background_file);
-    void markPaper();
-    void parseServerResponce(QString &message); // Разбор полученного от сервера ответа
-    
+     void error(int ErrorCode,QString ErrorString);
+     void convertDone();
+     void mergeDone();
+     void connectToDemon();
 private slots:
-
-    /**
-     *  ExecuteNextStep  after the convert to PDF process is finished.
-     * @param exitCode The exit code of the process.
-     */
-
-    void displayDebug(const QString &line);
+     void markPaper();
+    void printOnMarkPaper();
 private:
+    void enableGUI();
+    void setPrinterList();
+
+
     Ui::StartDlg *ui;
+    dController *d_ctrl;
 
+    askTheUser askDlg;
 
-    ProcessT proc;
-    QString dTitle;
-    QString mandat;
-    QString currentUserName;
-    QUuid SID;
-    QStringList args;
-    QString cmd;
-    QString mainPDF;	 // Файл который получился в результате конвертирования исходного
-    QString gsBin;	// путь к исполняемому файлу ghostscript
-    QString pdftkBin;	// Путь к файлу pdfTK
-    QString serverHostName;
-
-    netAgent *n_ag; // сетевой агент
-
-    int serverPort;
-    void read_settings();
-    void write_settings();
+    workReport reportDlg;
+    bool cnv;
+    bool merge;
+    bool conn_demon;
 };
 
 #endif // STARTDLG_H
