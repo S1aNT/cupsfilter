@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading ui file 'asktheuser.ui'
 **
-** Created: Sat 17. Oct 20:53:19 2009
+** Created: Sat 17. Oct 23:37:39 2009
 **      by: Qt User Interface Compiler version 4.5.2
 **
 ** WARNING! All changes made in this file will be lost when recompiling ui file!
