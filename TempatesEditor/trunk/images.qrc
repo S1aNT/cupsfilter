@@ -1,0 +1,14 @@
+<!DOCTYPE RCC><RCC version="1.0">
+<qresource>
+    <file>images/zoomin.png</file>
+    <file>images/zoomout.png</file>
+    <file>images/print.png</file>
+    <file>images/addtmpl.png</file>
+    <file>images/deltmpl.png</file>
+    <file>images/savetmpl.png</file>
+    <file>images/face_page.png</file>
+    <file>images/over_face_page.png</file>
+    <file>images/portret.png</file>
+    <file>images/landscape.png</file>
+</qresource>
+</RCC>
