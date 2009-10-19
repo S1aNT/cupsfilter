@@ -222,6 +222,7 @@ void View::drawPage()
     scene->setSceneRect(0, 0, MM_TO_POINT(page_width),MM_TO_POINT(page_height));
     qDebug() << scene->sceneRect();
 
+/*
     QGraphicsRectItem *paper_rect = new QGraphicsRectItem (QRectF(0,0, MM_TO_POINT(page_width),MM_TO_POINT(page_height)));
     qDebug() <<"paper_rect"<<MM_TO_POINT(page_width) << MM_TO_POINT(page_height);
     paper_rect->setPen(QPen(Qt::black));
@@ -229,7 +230,7 @@ void View::drawPage()
     paper_rect->setZValue(-1000.0);
     paper_rect->setData(ObjectName, "Paper");
     scene->addItem(paper_rect);
-
+*/
     QGraphicsRectItem *border_rect = new QGraphicsRectItem (QRectF(margin_left, margin_top, MM_TO_POINT(page_width)-margin_left-margin_right,MM_TO_POINT(page_height)-margin_top-margin_bottom));
     qDebug() <<"margin_rect"<< margin_left << margin_top << margin_left<<margin_right;
     border_rect->setPen(QPen(Qt::black,2,Qt::DotLine));
