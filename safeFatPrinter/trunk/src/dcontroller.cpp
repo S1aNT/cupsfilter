@@ -9,8 +9,64 @@ dController::dController(QObject *parent)
     read_settings();
     conn_state=false;
     connect2Server(serverHostName,serverPort,SID);
+    createDocModel();
+
+    //TODO remove after debug
+    QString msg=QString("Список рассылки=1~Штамп последней стр.=1~Статус документа=Отпечатан~Кол-во листов=55~Название док-та=Длинное имя~Гриф=Секретно~Пункт перечня=Пункт 12~Номер док-та=МБ №12/12~Инв. №=123/23~Номер копии=2~Получатель №1=получатель 1~Получатель №2=получатель 2~Получатель №3=test 3~Получатель №4=получатель 4~Получатель №5=получатель 5~Исполнитель=Исполнитель документа~Отпечатал=Отпечатал~Телефон=127~Дата распечатки=09.0.9.09");
+    QStringList list;
+    list<<msg.split("~");
+    insertDocToModel(list);
+    // end remove
 }
 
+QStandardItemModel *dController::document_model () const
+{
+    return doc_model;
+}
+void dController::createDocModel()
+{
+    doc_model = new QStandardItemModel();
+
+    header <<  QObject::trUtf8("Номер док-та")<<  QObject::trUtf8("Название док-та")<<
+	    QObject::trUtf8("Гриф")<<  QObject::trUtf8("Пункт перечня")<<
+	    QObject::trUtf8("Номер копии")<<  QObject::trUtf8("Кол-во листов")<<
+	    QObject::trUtf8("Исполнитель")<<  QObject::trUtf8("Отпечатал")<<
+	    QObject::trUtf8("Телефон")<< QObject::trUtf8("Инв. №")<<
+	    QObject::trUtf8("Дата распечатки")<<  QObject::trUtf8("Получатель №1")<<
+	    QObject::trUtf8("Получатель №2")<<   QObject::trUtf8("Получатель №3")<<
+	    QObject::trUtf8("Получатель №4")<<   QObject::trUtf8("Получатель №5")<<
+	    QObject::trUtf8("Статус документа")<< QObject::trUtf8("Штамп последней стр.")<<
+	    QObject::trUtf8("Список рассылки");
+    doc_model->setHorizontalHeaderLabels(header);
+}
+
+void dController::insertDocToModel(QStringList &item)
+{
+   // qDebug() << Q_FUNC_INFO  <<doc_model->rowCount();
+     QList<QStandardItem *> cells;
+     int Pos;
+
+     for (int i = 0; i <item.size() ; ++i) {
+	 QStandardItem * cell_item= new QStandardItem();
+	 cells.append(cell_item);
+     }
+
+     for (int i = 0; i <item.size() ; ++i) {
+	 QStringList list_2 = item.at(i).split("=", QString::SkipEmptyParts);
+	 Pos =header.indexOf(list_2.at(0)); // Ищем индекс
+	 QStandardItem *cell_item =cells.at(Pos);
+	 if (list_2.at(0) =="Список рассылки" ||list_2.at(0) =="Штамп последней стр."){
+	    cell_item->setCheckable(true);
+	    cell_item->setCheckState(Qt::Checked);
+	 }else{
+	      //qDebug() << "Element " << list_2.at(0) <<":Value "<<list_2.at(1)<<" Position at header" <<Pos;
+	      cell_item->setData(QVariant(list_2.at(1)),Qt::EditRole);
+	  }
+     }
+
+     //qDebug() << Q_FUNC_INFO  <<doc_model->rowCount();
+     doc_model->appendRow (cells);
+}
 void dController::convert2PDF(QString &in_file)
 {
 	ProcessT *proc = new ProcessT();
@@ -57,7 +113,6 @@ void dController::mergeTwoPDF(QString &fg_file,QString &bg_file,QString &out_fil
 	proc->execute(pdftkBin, args,QProcess::MergedChannels);
 	qDebug() << Q_FUNC_INFO <<"pdftk " << fg_file <<" stamp " <<bg_file <<" output " <<out_file;
 }
-
 
 bool dController::isConnect()
 {
@@ -119,7 +174,7 @@ void dController::printWithTemplate (QString templ)
 
     QPrinter printer;
     QString with_t;
-    with_t.append(spoolDIR).append("compl_teml.pdf");
+    with_t.append(spoolDIR).append("compl_teml2.pdf");
 
      printer.setOutputFormat(QPrinter::PdfFormat);
      printer.setOutputFileName(with_t);

@@ -7,6 +7,7 @@
 #include <QString>
 #include <QStringList>
 #include <QMap>
+#include <QStandardItemModel>
 
 #include <QPrinter>
 #include <QPrintPreviewDialog>
@@ -35,6 +36,7 @@ public:
     bool isConnect();
     void read_settings();
     void write_settings();
+    QStandardItemModel *document_model () const;
 
 public slots:
     // Преобразует выходной файл в pdf
@@ -60,9 +62,12 @@ private:
     QString userName;
     QString userMandat;
     void connect2Server(QString &host,int port,QString &sid);
+    void createDocModel();
+    void insertDocToModel(QStringList &item);
 protected:
     QString SID;
-
+    QStandardItemModel *doc_model;
+    QStringList header;
     QString serverHostName;
     int serverPort;
     bool conn_state;
