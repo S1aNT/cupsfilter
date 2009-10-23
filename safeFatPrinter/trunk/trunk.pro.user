@@ -1,0 +1,237 @@
+<!DOCTYPE QtCreatorProject>
+<qtcreator>
+ <data>
+  <variable>RunConfiguration0-CommandLineArguments</variable>
+  <valuelist type="QVariantList" >
+   <value type="QString" >D:\safeprinter\cups_test_page-a4.ps</value>
+   <value type="QString" >SlaNT</value>
+  </valuelist>
+ </data>
+ <data>
+  <variable>RunConfiguration0-ProFile</variable>
+  <value type="QString" >trunk.pro</value>
+ </data>
+ <data>
+  <variable>RunConfiguration0-RunConfiguration.name</variable>
+  <value type="QString" >safeFatPrinter</value>
+ </data>
+ <data>
+  <variable>RunConfiguration0-UseDyldImageSuffix</variable>
+  <value type="bool" >false</value>
+ </data>
+ <data>
+  <variable>RunConfiguration0-UseTerminal</variable>
+  <value type="bool" >false</value>
+ </data>
+ <data>
+  <variable>RunConfiguration0-UserEnvironmentChanges</variable>
+  <valuelist type="QVariantList" />
+ </data>
+ <data>
+  <variable>RunConfiguration0-UserSetName</variable>
+  <value type="bool" >true</value>
+ </data>
+ <data>
+  <variable>RunConfiguration0-type</variable>
+  <value type="QString" >Qt4ProjectManager.Qt4RunConfiguration</value>
+ </data>
+ <data>
+  <variable>activeRunConfiguration</variable>
+  <value type="int" >0</value>
+ </data>
+ <data>
+  <variable>activebuildconfiguration</variable>
+  <value type="QString" >Debug</value>
+ </data>
+ <data>
+  <variable>buildConfiguration-Debug</variable>
+  <valuemap type="QVariantMap" >
+   <value key="ProjectExplorer.BuildConfiguration.DisplayName" type="QString" >Debug</value>
+   <value key="QtVersionId" type="int" >0</value>
+   <value key="addQDumper" type="" ></value>
+   <value key="buildDirectory" type="QString" >D:\Projects\Techoserv\safeFatPrinter\trunk</value>
+   <value key="useShadowBuild" type="bool" >true</value>
+  </valuemap>
+ </data>
+ <data>
+  <variable>buildConfiguration-Release</variable>
+  <valuemap type="QVariantMap" >
+   <value key="ProjectExplorer.BuildConfiguration.DisplayName" type="QString" >Release</value>
+   <value key="QtVersionId" type="int" >0</value>
+   <value key="addQDumper" type="" ></value>
+  </valuemap>
+ </data>
+ <data>
+  <variable>buildconfiguration-Debug-buildstep0</variable>
+  <valuemap type="QVariantMap" >
+   <value key="ProjectExplorer.BuildConfiguration.DisplayName" type="QString" >Debug</value>
+   <valuelist key="abstractProcess.Environment" type="QVariantList" >
+    <value type="QString" >ALLUSERSPROFILE=C:\Documents and Settings\All Users</value>
+    <value type="QString" >APPDATA=C:\Documents and Settings\SlaNT\Application Data</value>
+    <value type="QString" >CLASSPATH=.;C:\Program Files\Java\jre6\lib\ext\QTJava.zip</value>
+    <value type="QString" >COMMONPROGRAMFILES=C:\Program Files\Common Files</value>
+    <value type="QString" >COMPUTERNAME=IBM-TECHNOSERV</value>
+    <value type="QString" >COMSPEC=C:\WINDOWS\system32\cmd.exe</value>
+    <value type="QString" >FP_NO_HOST_CHECK=NO</value>
+    <value type="QString" >HOMEDRIVE=C:</value>
+    <value type="QString" >HOMEPATH=\Documents and Settings\SlaNT</value>
+    <value type="QString" >LOGONSERVER=\\IBM-TECHNOSERV</value>
+    <value type="QString" >NUMBER_OF_PROCESSORS=1</value>
+    <value type="QString" >OS=Windows_NT</value>
+    <value type="QString" >PATH=C:\Qt\2009.03\mingw\bin;C:\Qt\2009.03\qt\bin;C:\Program Files\PC Connectivity Solution\;C:\Program Files\ThinkPad\Utilities;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\Program Files\Intel\Wireless\Bin\;C:\WINDOWS\Downloaded Program Files;C:\Program Files\TortoiseSVN\bin;C:\Qt\2009.03\bin;C:\Qt\2009.03\mingw\bin;C:\Qt\2009.03\qt\bin\;C:\Program Files\QuickTime\QTSystem\;C:\Program Files\IBM\Personal Communications\;C:\Program Files\IBM\Trace Facility\</value>
+    <value type="QString" >PATHEXT=.COM;.EXE;.BAT;.CMD;.VBS;.VBE;.JS;.JSE;.WSF;.WSH</value>
+    <value type="QString" >PCOMM_ROOT=C:\Program Files\IBM\Personal Communications\</value>
+    <value type="QString" >PROCESSOR_ARCHITECTURE=x86</value>
+    <value type="QString" >PROCESSOR_IDENTIFIER=x86 Family 6 Model 13 Stepping 8, GenuineIntel</value>
+    <value type="QString" >PROCESSOR_LEVEL=6</value>
+    <value type="QString" >PROCESSOR_REVISION=0d08</value>
+    <value type="QString" >PROGRAMFILES=C:\Program Files</value>
+    <value type="QString" >QMAKESPEC=win32-g++</value>
+    <value type="QString" >QTDIR=C:/Qt/2009.03/qt</value>
+    <value type="QString" >QTJAVA=C:\Program Files\Java\jre6\lib\ext\QTJava.zip</value>
+    <value type="QString" >SESSIONNAME=Console</value>
+    <value type="QString" >SYSTEMDRIVE=C:</value>
+    <value type="QString" >SYSTEMROOT=C:\WINDOWS</value>
+    <value type="QString" >TEMP=C:\WINDOWS\Temp</value>
+    <value type="QString" >TMP=C:\WINDOWS\Temp</value>
+    <value type="QString" >USERDOMAIN=IBM-TECHNOSERV</value>
+    <value type="QString" >USERNAME=SlaNT</value>
+    <value type="QString" >USERPROFILE=C:\Documents and Settings\SlaNT</value>
+    <value type="QString" >VBOX_INSTALL_PATH=C:\Program Files\Sun\VirtualBox\</value>
+    <value type="QString" >VISUALSVN_SERVER=C:\Program Files\VisualSVN Server\</value>
+    <value type="QString" >WINDIR=C:\WINDOWS</value>
+   </valuelist>
+   <valuelist key="abstractProcess.arguments" type="QVariantList" >
+    <value type="QString" >D:/Projects/Techoserv/safeFatPrinter/trunk/trunk.pro</value>
+    <value type="QString" >-spec</value>
+    <value type="QString" >win32-g++</value>
+    <value type="QString" >-r</value>
+   </valuelist>
+   <value key="abstractProcess.command" type="QString" >C:/Qt/2009.03/qt/bin/qmake.exe</value>
+   <value key="abstractProcess.enabled" type="bool" >false</value>
+   <value key="abstractProcess.workingDirectory" type="QString" >D:\Projects\Techoserv\safeFatPrinter\trunk</value>
+   <value key="buildConfiguration" type="int" >2</value>
+  </valuemap>
+ </data>
+ <data>
+  <variable>buildconfiguration-Debug-buildstep1</variable>
+  <valuemap type="QVariantMap" >
+   <value key="ProjectExplorer.BuildConfiguration.DisplayName" type="QString" >Debug</value>
+   <valuelist key="abstractProcess.Environment" type="QVariantList" >
+    <value type="QString" >ALLUSERSPROFILE=C:\Documents and Settings\All Users</value>
+    <value type="QString" >APPDATA=C:\Documents and Settings\SlaNT\Application Data</value>
+    <value type="QString" >CLASSPATH=.;C:\Program Files\Java\jre6\lib\ext\QTJava.zip</value>
+    <value type="QString" >COMMONPROGRAMFILES=C:\Program Files\Common Files</value>
+    <value type="QString" >COMPUTERNAME=IBM-TECHNOSERV</value>
+    <value type="QString" >COMSPEC=C:\WINDOWS\system32\cmd.exe</value>
+    <value type="QString" >FP_NO_HOST_CHECK=NO</value>
+    <value type="QString" >HOMEDRIVE=C:</value>
+    <value type="QString" >HOMEPATH=\Documents and Settings\SlaNT</value>
+    <value type="QString" >LOGONSERVER=\\IBM-TECHNOSERV</value>
+    <value type="QString" >NUMBER_OF_PROCESSORS=1</value>
+    <value type="QString" >OS=Windows_NT</value>
+    <value type="QString" >PATH=C:\Qt\2009.03\mingw\bin;C:\Qt\2009.03\qt\bin;C:\Program Files\PC Connectivity Solution\;C:\Program Files\ThinkPad\Utilities;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\Program Files\Intel\Wireless\Bin\;C:\WINDOWS\Downloaded Program Files;C:\Program Files\TortoiseSVN\bin;C:\Qt\2009.03\bin;C:\Qt\2009.03\mingw\bin;C:\Qt\2009.03\qt\bin\;C:\Program Files\QuickTime\QTSystem\;C:\Program Files\IBM\Personal Communications\;C:\Program Files\IBM\Trace Facility\</value>
+    <value type="QString" >PATHEXT=.COM;.EXE;.BAT;.CMD;.VBS;.VBE;.JS;.JSE;.WSF;.WSH</value>
+    <value type="QString" >PCOMM_ROOT=C:\Program Files\IBM\Personal Communications\</value>
+    <value type="QString" >PROCESSOR_ARCHITECTURE=x86</value>
+    <value type="QString" >PROCESSOR_IDENTIFIER=x86 Family 6 Model 13 Stepping 8, GenuineIntel</value>
+    <value type="QString" >PROCESSOR_LEVEL=6</value>
+    <value type="QString" >PROCESSOR_REVISION=0d08</value>
+    <value type="QString" >PROGRAMFILES=C:\Program Files</value>
+    <value type="QString" >QMAKESPEC=win32-g++</value>
+    <value type="QString" >QTDIR=C:/Qt/2009.03/qt</value>
+    <value type="QString" >QTJAVA=C:\Program Files\Java\jre6\lib\ext\QTJava.zip</value>
+    <value type="QString" >SESSIONNAME=Console</value>
+    <value type="QString" >SYSTEMDRIVE=C:</value>
+    <value type="QString" >SYSTEMROOT=C:\WINDOWS</value>
+    <value type="QString" >TEMP=C:\WINDOWS\Temp</value>
+    <value type="QString" >TMP=C:\WINDOWS\Temp</value>
+    <value type="QString" >USERDOMAIN=IBM-TECHNOSERV</value>
+    <value type="QString" >USERNAME=SlaNT</value>
+    <value type="QString" >USERPROFILE=C:\Documents and Settings\SlaNT</value>
+    <value type="QString" >VBOX_INSTALL_PATH=C:\Program Files\Sun\VirtualBox\</value>
+    <value type="QString" >VISUALSVN_SERVER=C:\Program Files\VisualSVN Server\</value>
+    <value type="QString" >WINDIR=C:\WINDOWS</value>
+   </valuelist>
+   <valuelist key="abstractProcess.arguments" type="QVariantList" >
+    <value type="QString" >-w</value>
+   </valuelist>
+   <value key="abstractProcess.command" type="QString" >C:/Qt/2009.03/mingw/bin/mingw32-make.exe</value>
+   <value key="abstractProcess.enabled" type="bool" >true</value>
+   <value key="abstractProcess.workingDirectory" type="QString" >D:\Projects\Techoserv\safeFatPrinter\trunk</value>
+  </valuemap>
+ </data>
+ <data>
+  <variable>buildconfiguration-Debug-cleanstep0</variable>
+  <valuemap type="QVariantMap" >
+   <value key="ProjectExplorer.BuildConfiguration.DisplayName" type="QString" >Debug</value>
+  </valuemap>
+ </data>
+ <data>
+  <variable>buildconfiguration-Release-buildstep0</variable>
+  <valuemap type="QVariantMap" >
+   <value key="ProjectExplorer.BuildConfiguration.DisplayName" type="QString" >Release</value>
+   <value key="buildConfiguration" type="int" >0</value>
+  </valuemap>
+ </data>
+ <data>
+  <variable>buildconfiguration-Release-buildstep1</variable>
+  <valuemap type="QVariantMap" >
+   <value key="ProjectExplorer.BuildConfiguration.DisplayName" type="QString" >Release</value>
+  </valuemap>
+ </data>
+ <data>
+  <variable>buildconfiguration-Release-cleanstep0</variable>
+  <valuemap type="QVariantMap" >
+   <value key="ProjectExplorer.BuildConfiguration.DisplayName" type="QString" >Release</value>
+  </valuemap>
+ </data>
+ <data>
+  <variable>buildconfigurations</variable>
+  <valuelist type="QVariantList" >
+   <value type="QString" >Debug</value>
+   <value type="QString" >Release</value>
+  </valuelist>
+ </data>
+ <data>
+  <variable>buildstep0</variable>
+  <valuemap type="QVariantMap" >
+   <value key="ProjectExplorer.BuildConfiguration.DisplayName" type="QString" ></value>
+   <value key="mkspec" type="QString" ></value>
+  </valuemap>
+ </data>
+ <data>
+  <variable>buildstep1</variable>
+  <valuemap type="QVariantMap" >
+   <value key="ProjectExplorer.BuildConfiguration.DisplayName" type="QString" ></value>
+  </valuemap>
+ </data>
+ <data>
+  <variable>buildsteps</variable>
+  <valuelist type="QVariantList" >
+   <value type="QString" >trolltech.qt4projectmanager.qmake</value>
+   <value type="QString" >trolltech.qt4projectmanager.make</value>
+  </valuelist>
+ </data>
+ <data>
+  <variable>cleanstep0</variable>
+  <valuemap type="QVariantMap" >
+   <value key="ProjectExplorer.BuildConfiguration.DisplayName" type="QString" ></value>
+   <value key="clean" type="bool" >true</value>
+  </valuemap>
+ </data>
+ <data>
+  <variable>cleansteps</variable>
+  <valuelist type="QVariantList" >
+   <value type="QString" >trolltech.qt4projectmanager.make</value>
+  </valuelist>
+ </data>
+ <data>
+  <variable>defaultFileEncoding</variable>
+  <value type="QByteArray" >UTF-8</value>
+ </data>
+ <data>
+  <variable>project</variable>
+  <valuemap type="QVariantMap" />
+ </data>
+</qtcreator>
