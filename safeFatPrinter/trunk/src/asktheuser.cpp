@@ -6,8 +6,6 @@ askTheUser::askTheUser(QWidget *parent) :
 m_ui(new Ui::askTheUser)
 {
     m_ui->setupUi(this);
-
-
     MBcompleter = new QCompleter(this);
     connect (m_ui->docName_plainTextEdit,SIGNAL(textChanged()),this,SLOT(docNameChanged()));
     connect (m_ui->secretCBox,SIGNAL(currentIndexChanged(QString)),this,SLOT(secretStampChanged(QString)));
@@ -129,9 +127,7 @@ void askTheUser::mbNumChanged(QString mb)
 
 void askTheUser::parserDocData(QString doc_data)
 {
-
     if (currentMode==1){
-
 	QMessageBox msgBox;
 	msgBox.setText("В базе уже существует документ с таким МБ");
 	msgBox.setInformativeText("Вы хотите допечать или перепечатать его?");
@@ -148,12 +144,10 @@ void askTheUser::parserDocData(QString doc_data)
 	    m_ui->mbNumberLineEd->clear();
 	}
     }else if (currentMode==2){
-	    m_ui->previewBtn->setEnabled(true);
-	    // Разбор полей и запись в нужные места
-	    save2field(doc_data);
-
+		m_ui->previewBtn->setEnabled(true);
+		// Разбор полей и запись в нужные места
+		save2field(doc_data);
 	    }
-
 }
 
 void  askTheUser::save2field(QString &data)
@@ -179,7 +173,6 @@ void  askTheUser::save2field(QString &data)
 					    }else if (key=="invNumber"){
 						    m_ui->invNumber_lineEd->setText(value);
 						}else if (key=="reciver_1"){
-
 							    m_ui->reciversList_chBox->setChecked(true);
 							    m_ui->reciverOne_lineEd->setText(value);
 							}else if (key=="reciver_2"){
@@ -200,7 +193,7 @@ void  askTheUser::save2field(QString &data)
 													}else if (key=="phoneNumber"){
 														    m_ui->telephone_lineEd->setText(value);
 														}else if (key=="copyNumber"){
-										m_ui->copyNumberSpinBox->setValue(value.toInt());
+															    m_ui->copyNumberSpinBox->setValue(value.toInt());
 															}
 													/*
 													else if (key=="date"){
@@ -249,7 +242,6 @@ void askTheUser::reciverFiveChanged(QString res)
 {
     reciver_5=res;
 }
-
 void askTheUser::copyNumberChanged(int cpNum)
 {
     copyNumber=cpNum;
@@ -258,7 +250,6 @@ void askTheUser::templatesChanged(QString Templates)
 {
     templ=Templates;
 }
-
 void askTheUser::secretStampChanged(QString stamp)
 {
     secretStamp=stamp;
@@ -267,12 +258,10 @@ void askTheUser::punktChanged(QString punktStr)
 {
     punkt =punktStr;
 }
-
 askTheUser::~askTheUser()
 {
     delete m_ui;
 }
-
 void askTheUser::changeEvent(QEvent *e)
 {
     QWidget::changeEvent(e);
