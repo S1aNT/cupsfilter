@@ -11,6 +11,8 @@
 #include "startdlg.h"
 
 
+#include <QTableView>
+
 
 
 int main(int argc, char *argv[])
@@ -46,8 +48,13 @@ int main(int argc, char *argv[])
 	QString in_file =aList.at(1);
 	StartDlg w;
 
+	dController control;
 
-	w.setController(new dController());
+	QTableView tableView;
+	tableView.setModel(control.document_model());
+	tableView.show();
+
+	w.setController(&control);
 	w.convertToPDF(in_file);
 	w.show();
 	return app.exec();
