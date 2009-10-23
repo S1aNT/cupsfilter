@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading ui file 'asktheuser.ui'
 **
-** Created: Sat 17. Oct 23:37:39 2009
+** Created: Fri 23. Oct 14:10:34 2009
 **      by: Qt User Interface Compiler version 4.5.2
 **
 ** WARNING! All changes made in this file will be lost when recompiling ui file!
@@ -350,7 +350,7 @@ public:
 
     void retranslateUi(QDialog *askTheUser)
     {
-        askTheUser->setWindowTitle(QApplication::translate("askTheUser", "Dialog", 0, QApplication::UnicodeUTF8));
+        askTheUser->setWindowTitle(QApplication::translate("askTheUser", "\320\227\320\260\320\277\320\276\320\273\320\275\320\265\320\275\320\270\320\265 \321\203\321\207\320\265\321\202\320\275\320\276\320\271 \320\272\320\260\321\200\321\202\320\276\321\207\320\272\320\270 \320\264\320\276\320\272\321\203\320\274\320\265\320\275\321\202\320\260", 0, QApplication::UnicodeUTF8));
         groupBox_3->setTitle(QApplication::translate("askTheUser", "\320\241\320\277\320\270\321\201\320\276\320\272 \321\200\320\260\321\201\321\201\321\213\320\273\320\272\320\270", 0, QApplication::UnicodeUTF8));
         label_10->setText(QApplication::translate("askTheUser", "\320\255\320\272\320\267\320\265\320\274\320\277\320\273\321\217\321\200 \342\204\2261", 0, QApplication::UnicodeUTF8));
         label_11->setText(QApplication::translate("askTheUser", "\320\255\320\272\320\267\320\265\320\274\320\277\320\273\321\217\321\200 \342\204\2262", 0, QApplication::UnicodeUTF8));
@@ -363,7 +363,7 @@ public:
         reciversList_chBox->setText(QApplication::translate("askTheUser", "\320\237\320\265\321\207\320\260\321\202\320\260\321\202\321\214 \321\201\320\277\320\270\321\201\320\276\320\272 \321\200\320\260\321\201\321\201\321\213\320\273\320\272\320\270", 0, QApplication::UnicodeUTF8));
         reciverFive_lineEd->setInputMask(QString());
         reciverFive_lineEd->setText(QString());
-        previewBtn->setText(QApplication::translate("askTheUser", "\320\243\321\207\320\265\321\202 \320\273\320\270\321\201\321\202\320\276\320\262", 0, QApplication::UnicodeUTF8));
+        previewBtn->setText(QApplication::translate("askTheUser", "\320\237\320\265\321\207\320\260\321\202\321\214 \320\264\320\276\320\272\321\203\320\274\320\265\320\275\321\202\320\260 \321\201 \320\260\320\262\321\202\320\276\320\274\320\260\321\202\320\270\321\207\320\265\321\201\320\272\320\270\320\274 \321\203\321\207\320\265\321\202\320\276\320\274 \320\273\320\270\321\201\321\202\320\276\320\262", 0, QApplication::UnicodeUTF8));
         groupBox_4->setTitle(QApplication::translate("askTheUser", "\320\235\320\260\320\267\320\262\320\260\320\275\320\270\320\265 \320\264\320\276\320\272\321\203\320\274\320\265\320\275\321\202\320\260...", 0, QApplication::UnicodeUTF8));
         groupBox->setTitle(QApplication::translate("askTheUser", "\320\236\320\261\321\211\320\270\320\265 \320\260\321\202\321\200\320\270\320\261\321\203\321\202\321\213", 0, QApplication::UnicodeUTF8));
         label->setText(QApplication::translate("askTheUser", "\320\223\321\200\320\270\321\204", 0, QApplication::UnicodeUTF8));
