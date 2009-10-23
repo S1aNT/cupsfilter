@@ -14,7 +14,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Dialog</string>
+   <string>Заполнение учетной карточки документа</string>
   </property>
   <property name="modal">
    <bool>true</bool>
@@ -167,7 +167,7 @@
       <bool>false</bool>
      </property>
      <property name="text">
-      <string>Учет листов</string>
+      <string>Печать документа с автоматическим учетом листов</string>
      </property>
      <property name="icon">
       <iconset>
