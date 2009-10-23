@@ -103,24 +103,19 @@ workReport::workReport(QWidget *parent)
 void workReport::saveResultToBase()
 {
     //TODO убрать после отладки
+    /*
     QString title;
     QString message;
-    title=QObject::trUtf8("Сообщение успешно сохраннено в базе отчетов");
+    title=QObject::trUtf8("Результат записан в базе отчетов");
     if (!saveResult){
 	message=QObject::trUtf8("Подтверждение документа записано в базе отчетов");
     }else{
-
 	message=QObject::trUtf8("Сообщение об ошибке, записано в базе отчетов");
     }
 
     QMessageBox::StandardButton reply;
      reply = QMessageBox::information(this,title, message);
-     /*
-     if (reply == QMessageBox::Ok)
-	 informationLabel->setText(tr("OK"));
-     else
-	 informationLabel->setText(tr("Escape"));
-    */
+ */
 
     QApplication::exit(0);
 }
