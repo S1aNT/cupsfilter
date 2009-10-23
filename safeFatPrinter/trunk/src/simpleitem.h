@@ -48,7 +48,8 @@ public  slots:
 	void changeFont();
 	void changeColor();
 	void setPrintFrame(bool frm);
-
+	void rotateLeft();
+	void rotateRight();
 protected:
 	void contextMenuEvent(QGraphicsSceneContextMenuEvent *event);
 
@@ -60,5 +61,7 @@ private:
 	QColor currentColor;
 	QAction *changeFontAction;
 	QAction *changeColorAction;
+	QAction *rotateRightAction;
+	QAction *rotateLeftAction;
 };
 #endif
