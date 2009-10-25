@@ -33,7 +33,7 @@ workReport::workReport(QWidget *parent)
     acceptButton->setDefault(true);
 
     moreButton = new QPushButton(tr("Забраковать документ"));
-    moreButton->setToolTip(QObject::trUtf8("Нажмите для ввода допалнительных сведений об ошибке печати..."));
+    moreButton->setToolTip(QObject::trUtf8("Нажмите для ввода дополнительных сведений об ошибке печати..."));
     moreButton->setCheckable(true);
 //! [0]
     moreButton->setAutoDefault(false);
