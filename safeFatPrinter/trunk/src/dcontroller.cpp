@@ -8,38 +8,52 @@ dController::dController(QObject *parent)
     SID=uSID.toString().replace("{","").replace("}","");
     read_settings();
     conn_state=false;
-    connect2Server(serverHostName,serverPort,SID);
-    createDocModel();
 
+    connect2Server(serverHostName,serverPort);
+    createDocModel();
+/*
     //TODO remove after debug
     QString msg=QString("Список рассылки=1~Штамп последней стр.=1~Статус документа=Отпечатан~Кол-во листов=55~Название док-та=Длинное имя~Гриф=Секретно~Пункт перечня=Пункт 12~Номер док-та=МБ №12/12~Инв. №=123/23~Номер копии=2~Получатель №1=получатель 1~Получатель №2=получатель 2~Получатель №3=test 3~Получатель №4=получатель 4~Получатель №5=получатель 5~Исполнитель=Исполнитель документа~Отпечатал=Отпечатал~Телефон=127~Дата распечатки=09.0.9.09");
     QStringList list;
     list<<msg.split("~");
     insertDocToModel(list);
-    // end remove
+   */
 }
-
 QStandardItemModel *dController::document_model () const
 {
     return doc_model;
 }
 void dController::createDocModel()
 {
-    doc_model = new QStandardItemModel();
+  doc_model = new QStandardItemModel();
 
-    header <<  QObject::trUtf8("Номер док-та")<<  QObject::trUtf8("Название док-та")<<
-	    QObject::trUtf8("Гриф")<<  QObject::trUtf8("Пункт перечня")<<
-	    QObject::trUtf8("Номер копии")<<  QObject::trUtf8("Кол-во листов")<<
-	    QObject::trUtf8("Исполнитель")<<  QObject::trUtf8("Отпечатал")<<
-	    QObject::trUtf8("Телефон")<< QObject::trUtf8("Инв. №")<<
-	    QObject::trUtf8("Дата распечатки")<<  QObject::trUtf8("Получатель №1")<<
-	    QObject::trUtf8("Получатель №2")<<   QObject::trUtf8("Получатель №3")<<
-	    QObject::trUtf8("Получатель №4")<<   QObject::trUtf8("Получатель №5")<<
-	    QObject::trUtf8("Статус документа")<< QObject::trUtf8("Штамп последней стр.")<<
-	    QObject::trUtf8("Список рассылки");
-    doc_model->setHorizontalHeaderLabels(header);
+  header << QObject::trUtf8("Номер док-та")
+	  << QObject::trUtf8("Название док-та")
+	  << QObject::trUtf8("Гриф")
+	  << QObject::trUtf8("Пункт перечня")
+	  << QObject::trUtf8("Номер копии")
+	  << QObject::trUtf8("Кол-во листов")
+	  << QObject::trUtf8("Исполнитель")
+	  << QObject::trUtf8("Отпечатал")
+	  << QObject::trUtf8("Телефон")
+	  << QObject::trUtf8("Инв. №")
+	  << QObject::trUtf8("Дата распечатки")
+	  << QObject::trUtf8("Получатель №1")
+	  << QObject::trUtf8("Получатель №2")
+	  << QObject::trUtf8("Получатель №3")
+	  << QObject::trUtf8("Получатель №4")
+	  << QObject::trUtf8("Получатель №5")
+	  << QObject::trUtf8("Статус документа")
+	  << QObject::trUtf8("Штамп последней стр.")
+	  << QObject::trUtf8("Список рассылки");
+  doc_model->setHorizontalHeaderLabels(header);
 }
+void dController::insertDocToModel()
+{
+    // add empty row to model
+    doc_model->insertRow(doc_model->rowCount());
 
+}
 void dController::insertDocToModel(QStringList &item)
 {
    // qDebug() << Q_FUNC_INFO  <<doc_model->rowCount();
@@ -57,7 +71,7 @@ void dController::insertDocToModel(QStringList &item)
 	 QStandardItem *cell_item =cells.at(Pos);
 	 if (list_2.at(0) =="Список рассылки" ||list_2.at(0) =="Штамп последней стр."){
 	    cell_item->setCheckable(true);
-	    cell_item->setCheckState(Qt::Checked);
+	    //cell_item->setCheckState(Qt::Checked);
 	 }else{
 	      //qDebug() << "Element " << list_2.at(0) <<":Value "<<list_2.at(1)<<" Position at header" <<Pos;
 	      cell_item->setData(QVariant(list_2.at(1)),Qt::EditRole);
@@ -66,6 +80,144 @@ void dController::insertDocToModel(QStringList &item)
 
      //qDebug() << Q_FUNC_INFO  <<doc_model->rowCount();
      doc_model->appendRow (cells);
+}
+
+void dController::setPrinter(QString selected_printer)
+ {
+    qDebug() << Q_FUNC_INFO<<selected_printer;
+    curPrinter=selected_printer;
+ }
+void dController::savebase(QString wide_msg)
+{
+     currentDoc = wide_msg.split("~");
+
+}
+
+void dController::checkMB(QString mb)
+{
+    //TODO ask server mb
+
+    // Сервер проверят существует ли в базе документ с таким МБ за год
+    // если есть то он возвращает строку содержащую все его данные
+    QString m=QString("%1~%2").arg(curPrinter,mb);
+    emit sendServerCmd(GET_MB_PRINTS_TODAY_CMD,m);
+/*
+    QString msg;
+    msg=QString("docName=Длинное имя~secretStamp=Секретно~punkt=Пункт 12~mbNumber=%1~templ=Сов. секретный приказ~invNumber=Инв №12~copyNumber=2~reciver_1=получатель 1~reciver_2=получатель 2~reciver_3=test 3~reciver_4=получатель 4~reciver_5=получатель 5~executor=Исполнитель~pressman=Отпечатал~phoneNumber=127~date=09.0.9.09").arg(mb);
+    qDebug() << Q_FUNC_INFO<< msg;
+    emit exchangeData2MB(msg);
+    */
+}
+void dController::connect2Server(QString &host,int port)
+{
+    netClient  = new netAgent();
+    netClient->on_login(host,port,this->SID);
+    connect (netClient,SIGNAL(error_signal(int,QString)),this,SIGNAL(error(int,QString)));
+    connect (netClient,SIGNAL(takeServerResponce(QString &)),this,SLOT(parseNetwork(QString &)));
+    connect (this,SIGNAL(sendServerCmd(commands_t ,QString &)), netClient,SLOT(send2Server(commands_t ,QString &)) );
+}
+
+void dController::parseNetwork(QString &message )
+{
+    qDebug() << Q_FUNC_INFO << message;
+    // формат ответа /answer:тело ответа
+    QRegExp rx("^/answer:(.+):(.+)$");
+    if(rx.indexIn(message) != -1){
+	QString ans =rx.cap(1);
+	QString body =rx.cap(2);
+	qDebug() << ans << body <<"\n";
+	switch (ans.toInt()) {
+	    /*
+	    case PRINTER_LIST_ANS:
+		  emit takePrinterList(body);
+		break;
+		*/
+	    case REGISTER_ANS:
+		    emit connect2Demon();
+		break;
+	}
+    }
+}
+void dController::parseCnvThread(int Code,QString output )
+{
+    QString msg;
+	if (Code != QProcess::NormalExit) {
+	    msg =QObject::trUtf8("Ошибка предпечатной подготовки.\n%1:\nКод %2").arg(output).arg(Code,0,10);
+	    emit error(Code,msg);
+	}else{
+	    emit  inputFileConverted();
+	    qDebug() << QObject::tr("Успешно завершена конвертация исходного файла в pdf.");
+	}
+}
+void dController::parseMergeThread(int Code,QString output )
+{
+    QString msg;
+	if (Code != QProcess::NormalExit) {
+	    msg =QObject::trUtf8("Ошибка предпечатной подготовки.\n%1:\nКод %2").arg(output).arg(Code,0,10);
+	    emit error(Code,msg);
+	}else{
+	    emit  inputFileMerged();
+	    qDebug() << QObject::tr("Успешно завершено добавление шаблона.");
+	}
+}
+void dController::read_settings()
+{
+  // TODO надо добавить возможность выбора диапазона дат за которую запрашивает через ini файл
+  qDebug() << Q_FUNC_INFO;
+	QSettings settings(QSettings::IniFormat, QSettings::UserScope,"Техносервъ","Защищенный принтер");
+	settings.setIniCodec("UTF-8");
+	settings.beginGroup("SERVICE");
+	serverHostName = settings.value("server","127.0.0.1").toString();
+	serverPort = settings.value("port",17675).toInt();
+	timeout_connect =settings.value("timeout_connect",5000).toInt();
+	timeout_read=settings.value("timeout_read",15000).toInt();
+	timeout_write=settings.value("timeout_write",15000).toInt();
+	settings.endGroup();
+#if defined(Q_OS_UNIX)
+	settings.beginGroup("POSTSCRIPT");
+	gsBin = settings.value("gs_bin","/usr/local/bin/gs").toString();
+
+	spoolDIR = settings.value("spool_dir","//var/log/spool/cups/tmp//").toString();
+	settings.endGroup();
+	settings.beginGroup("PDF");
+	pdfTk = settings.value("pdfTK","/usr/local/bin/pdftk").toString();
+	settings.endGroup();
+#elif defined(Q_OS_WIN)
+	settings.beginGroup("POSTSCRIPT");
+	gsBin = settings.value("gs_bin","C:\\Program Files\\gs\\gs8.70\\bin\\gswin32c.exe").toString();
+	spoolDIR = settings.value("spool_dir","c:\\spool\\").toString();
+	settings.endGroup();
+	settings.beginGroup("PDF");
+	pdftkBin = settings.value("pdfTK","c:\\Tools\\pdftk.exe").toString();
+	settings.endGroup();
+#endif
+	mainPDF.append(spoolDIR).append("%1.pdf");
+	outPDF.append(spoolDIR). append("%1_out.pdf");
+}
+void dController::write_settings()
+{
+    QSettings settings(QSettings::IniFormat, QSettings::UserScope,"Техносервъ","Защищенный принтер");
+    settings.setIniCodec("UTF-8");
+
+    settings.beginGroup("SERVICE" );
+    settings.setValue("server",serverHostName);
+    settings.setValue("port",serverPort);
+    settings.setValue("timeout_connect",timeout_connect);
+    settings.setValue("timeout_read",timeout_read);
+    settings.setValue("timeout_write",timeout_write);
+    settings.endGroup();
+
+    settings.beginGroup("POSTSCRIPT" );
+    settings.setValue("gs_bin",gsBin);
+    //settings.setValue("output_fg_PDF",mainPDF);
+    //settings.value("output_PDF",outPDF);
+    settings.setValue("spool_dir",spoolDIR);
+    settings.endGroup();
+
+    settings.beginGroup("PDF");
+    settings.setValue("pdfTK",pdftkBin);
+    settings.endGroup();
+
 }
 void dController::convert2PDF(QString &in_file)
 {
@@ -92,7 +244,6 @@ void dController::convert2PDF(QString &in_file)
 	proc->execute(gsBin, args,QProcess::MergedChannels);
 	qDebug() <<Q_FUNC_INFO << "convert input file to pdf";
 }
-
 void dController::mergeTwoPDF(QString &fg_file,QString &bg_file,QString &out_file)
 {
 	ProcessT *proc = new ProcessT();
@@ -113,20 +264,10 @@ void dController::mergeTwoPDF(QString &fg_file,QString &bg_file,QString &out_fil
 	proc->execute(pdftkBin, args,QProcess::MergedChannels);
 	qDebug() << Q_FUNC_INFO <<"pdftk " << fg_file <<" stamp " <<bg_file <<" output " <<out_file;
 }
-
-bool dController::isConnect()
+dController::~dController()
 {
-    return conn_state;
-}
-
-void dController::setPrinter(QString selected_printer)
- {
-    curPrinter=selected_printer;
- }
-void dController::savebase(QString wide_msg)
-{
-     currentDoc = wide_msg.split("~");
-
+    qDebug() << Q_FUNC_INFO;
+    write_settings();
 }
 void dController::printWithTemplate (QString templ)
 {
@@ -267,108 +408,4 @@ void dController::printOverSide(QString mb)
      QPainter painter(&printer);
      scene->render(&painter);
      emit sayMeGood();
-}
-
-void dController::checkMB(QString mb)
-{
-    //TODO ask server mb
-    // Сервер проверят существует ли в базе документ с таким МБ за год
-    // если есть то он возвращает строку содержащую все его данные
-    QString msg;
-    msg=QString("docName=Длинное имя~secretStamp=Секретно~punkt=Пункт 12~mbNumber=%1~templ=Сов. секретный приказ~invNumber=Инв №12~copyNumber=2~reciver_1=получатель 1~reciver_2=получатель 2~reciver_3=test 3~reciver_4=получатель 4~reciver_5=получатель 5~executor=Исполнитель~pressman=Отпечатал~phoneNumber=127~date=09.0.9.09").arg(mb);
-
-    qDebug() << Q_FUNC_INFO<< msg;
-    emit exchangeData2MB(msg);
-}
-void dController::connect2Server(QString &host,int port,QString &sid)
-{
-    qDebug() <<Q_FUNC_INFO<< host <<port <<sid;
-    //TODO add network module
-   conn_state=true;
-}
-void dController::parseCnvThread(int Code,QString output )
-{
-    QString msg;
-	if (Code != QProcess::NormalExit) {
-	    msg =QObject::trUtf8("Ошибка предпечатной подготовки.\n%1:\nКод %2").arg(output).arg(Code,0,10);
-	    emit error(Code,msg);
-	}else{
-	    emit  inputFileConverted();
-	    qDebug() << QObject::tr("Успешно завершена конвертация исходного файла в pdf.");
-	}
-}
-void dController::parseMergeThread(int Code,QString output )
-{
-    QString msg;
-	if (Code != QProcess::NormalExit) {
-	    msg =QObject::trUtf8("Ошибка предпечатной подготовки.\n%1:\nКод %2").arg(output).arg(Code,0,10);
-	    emit error(Code,msg);
-	}else{
-	    emit  inputFileMerged();
-	    qDebug() << QObject::tr("Успешно завершено добавление шаблона.");
-	}
-}
-
-void dController::read_settings()
-{
-	qDebug() << Q_FUNC_INFO;
-     	QSettings settings(QSettings::IniFormat, QSettings::UserScope,"Техносервъ","Защищенный принтер");
-     	settings.setIniCodec("UTF-8");
-	settings.beginGroup("SERVICE");
-	serverHostName = settings.value("server","127.0.0.1").toString();
-	serverPort = settings.value("port",17675).toInt();
-	timeout_connect =settings.value("timeout_connect",5000).toInt();
-	timeout_read=settings.value("timeout_read",15000).toInt();
-	timeout_write=settings.value("timeout_write",15000).toInt();
-	settings.endGroup();
-#if defined(Q_OS_UNIX)
-	settings.beginGroup("POSTSCRIPT");
-	gsBin = settings.value("gs_bin","/usr/local/bin/gs").toString();
-	mainPDF = settings.value("output_fg_PDF","//var/log/spool/cups/tmp//%1.pdf").toString();
-	outPDF = settings.value("output_PDF","//var/log/spool/cups/tmp//%1_out.pdf").toString();
-	spoolDIR = settings.value("spool_dir","//var/log/spool/cups/tmp//").toString();
-	settings.endGroup();
-	settings.beginGroup("PDF");
-	pdfTk = settings.value("pdfTK","/usr/local/bin/pdftk").toString();
-	settings.endGroup();
-#elif defined(Q_OS_WIN)
-	settings.beginGroup("POSTSCRIPT");
-	gsBin = settings.value("gs_bin","C:\\Program Files\\gs\\gs8.70\\bin\\gswin32c.exe").toString();
-	mainPDF = settings.value("output_fg_PDF","c:\\spool\\%1.pdf").toString();
-	outPDF = settings.value("output_PDF","c:\\spool\\%1_out.pdf").toString();
-	spoolDIR = settings.value("spool_dir","c:\\spool\\").toString();
-	settings.endGroup();
-	settings.beginGroup("PDF");
-	pdftkBin = settings.value("pdfTK","c:\\Tools\\pdftk.exe").toString();
-	settings.endGroup();
-#endif
-}
-
-void dController::write_settings()
-{
-    QSettings settings(QSettings::IniFormat, QSettings::UserScope,"Техносервъ","Защищенный принтер");
-    settings.setIniCodec("UTF-8");
-    settings.beginGroup("SERVICE" );
-    settings.setValue("server",serverHostName);
-    settings.setValue("port",serverPort);
-    settings.setValue("timeout_connect",timeout_connect);
-    settings.setValue("timeout_read",timeout_read);
-    settings.setValue("timeout_write",timeout_write);
-    settings.endGroup();
-    settings.beginGroup("POSTSCRIPT" );
-    settings.setValue("gs_bin",gsBin);
-    settings.setValue("output_fg_PDF",mainPDF);
-    settings.value("output_PDF",outPDF);
-    settings.value("spool_dir",spoolDIR);	
-    settings.endGroup();
-    settings.beginGroup("PDF");
-    settings.setValue("pdfTK",pdftkBin);
-    settings.endGroup();
-
-}
-
-dController::~dController()
-{
-    qDebug() << Q_FUNC_INFO;	
-    write_settings();
 }
