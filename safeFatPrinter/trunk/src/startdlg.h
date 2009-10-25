@@ -26,7 +26,8 @@ public:
     void convertToPDF(QString &in_file);
     void setController(dController *ctrl);
 
-
+signals:
+    void printerSelected (QString ptr);
 public slots:
      void error(int ErrorCode,QString ErrorString);
      void convertDone();
