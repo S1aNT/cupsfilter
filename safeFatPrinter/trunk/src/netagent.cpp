@@ -4,20 +4,15 @@ netAgent::netAgent(QObject *parent )
 {
     socket = new QTcpSocket(this);
 
-    // This is how we tell Qt to call our readyRead() and connected()
-    // functions when the socket has text ready to be read, and is done
-    // connecting to the server (respectively):
     connect(socket, SIGNAL(readyRead()), this, SLOT(readyRead()));
     connect(socket, SIGNAL(connected()), this, SLOT(connected()));
-    connect(socket,
-		    SIGNAL(error(QAbstractSocket::SocketError)),
-		this,
-		    SLOT(prepareError(QAbstractSocket::SocketError))
-		    );
+    connect(socket, SIGNAL(error(QAbstractSocket::SocketError)),
+	    this,   SLOT(prepareError(QAbstractSocket::SocketError)));
 
 }
-void netAgent::on_login(QString & hostname,int Port)
+void netAgent::on_login(QString & hostname,int Port,QString &sid)
 {
+     client_sid=sid;
     if (hostname.isEmpty()){
 	emit error_signal(HOSTNAME_EMPTY_ERR,QObject::trUtf8("Ошибка в файле конфигурации. Имя сервера не может быть пустым."));
 	qDebug() <<Q_FUNC_INFO<<  HOSTNAME_EMPTY_ERR << QObject::trUtf8("Ошибка в файле конфигурации. Имя сервера не может быть пустым.");
@@ -77,18 +72,19 @@ void netAgent::readyRead()
     }
 }
 
+/*
 void netAgent::setSid(const QString & sid)
 {
     client_sid=sid;
-    client_sid.replace("{","").replace("}","");
+    //client_sid.replace("{","").replace("}","");
     qDebug() << client_sid;
 }
+*/
 void netAgent::connected()
 {
     if (!client_sid.isEmpty()){
 	// And send our client sid to the server.
 	qDebug() << "Connect send handshake" <<QString("/me:" +client_sid + "\n").toUtf8();
 	socket->write(QString("/me:" +client_sid + "\n").toUtf8());
-
     }
 }

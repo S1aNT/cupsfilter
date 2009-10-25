@@ -13,8 +13,8 @@ class netAgent : public QObject{
 public:
     netAgent( QObject *parent = 0 );
 
-    void setSid(const QString & sid);
-    void on_login(QString &hostname,int Port);
+    //void setSid(const QString & sid);
+    void on_login(QString &hostname,int Port,QString &sid);
 
 
 public slots:
