@@ -7,7 +7,10 @@
 #include <QStringListModel>
 #include <QMessageBox>
 #include <QRegExp>
-
+#include <QDataWidgetMapper>
+#include <QStandardItemModel>
+#include <QRegExp>
+#include <QValidator>
 
 
 namespace Ui {
@@ -19,60 +22,39 @@ class askTheUser : public QDialog {
 public:
     askTheUser(QWidget *parent = 0);
     ~askTheUser();
-    void setMode (int work_mode);
+    void setViewMode (int work_mode);
+    void setModel (QStandardItemModel * model);
 signals:
     void isMBExist(QString mb);
     void save2base(QString msg);
     void printOverSidePage(QString mb);
     void printWithTemplate(QString templ);
 public slots:
+    //void MBExist(bool state);
     void parserDocData(QString doc_data);
     void setMBCompleter(QStringList &cmp);
+    void selectWorkPage();
+    void selectInfoPage();
 
 private slots:
-    void docNameChanged();
-    void secretStampChanged(QString stamp);
-    void copyNumberChanged(int cpNum);
-    void punktChanged(QString punktStr);
-    void reciverOneChanged(QString res);
-    void reciverTwoChanged(QString res);
-    void reciverThreeChanged(QString res);
-    void reciverFourChanged(QString res);
-    void reciverFiveChanged(QString res);
-    void executorChanged(QString fio);
-    void pressmanChanged(QString fio);
-    void phoneChanged(QString phone);
-    void invNumberChanged(QString iNumber);
-    void dateFiledChanged(QDate DT);
-    void mbNumChanged(QString mb);
-    void templatesChanged(QString Templates);
+    void checkMBdublicat();
 protected:
     void changeEvent(QEvent *e);
-    void save2field(QString &data);
+
+    void createConnections();
+    void enableInputFields(bool state);
+
 protected slots:
   void accept();
   //void reject();
 
 private:
     Ui::askTheUser *m_ui;
+    QDataWidgetMapper *mapper;
     int currentMode;
-    QString docName;
-    QString secretStamp;
-    QString punkt;
-    QString mbNumber;
-    QString templ;
-    QString invNumber;
-    int copyNumber;
-    QString reciver_1;
-    QString reciver_2;
-    QString reciver_3;
-    QString reciver_4;
-    QString reciver_5;
-    QString executor;
-    QString pressman;
-    QString phoneNumber;
-    QDate   date;
+
     QCompleter *MBcompleter;
+    QStandardItemModel * mainModel;
 };
 
 #endif // ASKTHEUSER_H
