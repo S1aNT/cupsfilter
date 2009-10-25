@@ -52,6 +52,7 @@ int main(int argc, char *argv[])
 
 	QTableView tableView;
 	tableView.setModel(control.document_model());
+
 	tableView.show();
 
 	w.setController(&control);
