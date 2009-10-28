@@ -223,8 +223,8 @@
       <widget class="QPushButton" name="cancelBtn">
        <property name="geometry">
         <rect>
-         <x>304</x>
-         <y>451</y>
+         <x>580</x>
+         <y>450</y>
          <width>75</width>
          <height>23</height>
         </rect>
@@ -273,7 +273,7 @@
         <item row="0" column="1">
          <widget class="QLineEdit" name="reciverOne_lineEd">
           <property name="enabled">
-           <bool>true</bool>
+           <bool>false</bool>
           </property>
          </widget>
         </item>
@@ -295,7 +295,7 @@
         <item row="1" column="1">
          <widget class="QLineEdit" name="reciverTwo_lineEd">
           <property name="enabled">
-           <bool>true</bool>
+           <bool>false</bool>
           </property>
          </widget>
         </item>
@@ -347,7 +347,7 @@
         <item row="3" column="1">
          <widget class="QLineEdit" name="reciverFour_lineEd">
           <property name="enabled">
-           <bool>true</bool>
+           <bool>false</bool>
           </property>
           <property name="inputMask">
            <string/>
@@ -360,7 +360,7 @@
         <item row="2" column="1">
          <widget class="QLineEdit" name="reciverThree_lineEd">
           <property name="enabled">
-           <bool>true</bool>
+           <bool>false</bool>
           </property>
           <property name="inputMask">
            <string/>
@@ -370,7 +370,7 @@
         <item row="4" column="1">
          <widget class="QLineEdit" name="reciverFive_lineEd">
           <property name="enabled">
-           <bool>true</bool>
+           <bool>false</bool>
           </property>
           <property name="inputMask">
            <string/>
@@ -388,14 +388,14 @@
        </property>
        <property name="geometry">
         <rect>
-         <x>2</x>
+         <x>260</x>
          <y>450</y>
-         <width>296</width>
+         <width>311</width>
          <height>26</height>
         </rect>
        </property>
        <property name="text">
-        <string>Печать документа с автоматическим учетом листов</string>
+        <string>Печать учетной метки на обратной стороне документа</string>
        </property>
        <property name="icon">
         <iconset>
@@ -582,6 +582,19 @@
         </item>
        </layout>
       </widget>
+      <widget class="QCheckBox" name="checkBox">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>453</y>
+         <width>231</width>
+         <height>18</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Листы учтены в секретном органе</string>
+       </property>
+      </widget>
      </widget>
      <widget class="QWidget" name="infoPage">
       <property name="styleSheet">
@@ -596,7 +609,7 @@
          <x>0</x>
          <y>10</y>
          <width>661</width>
-         <height>411</height>
+         <height>461</height>
         </rect>
        </property>
        <property name="styleSheet">
@@ -614,42 +627,197 @@ p, li { white-space: pre-wrap; }
 &lt;p align=&quot;center&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Информационные сообщения&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
       </widget>
-      <widget class="QPushButton" name="abortInformerButton">
-       <property name="geometry">
-        <rect>
-         <x>250</x>
-         <y>440</y>
-         <width>161</width>
-         <height>23</height>
-        </rect>
-       </property>
-       <property name="styleSheet">
-        <string notr="true">QPushButton {
-	background-color: 
-		qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #f6fcff, stop: 1.0 #a0b0d0);
-	border: 1px solid #a0a0b0;
-	border-radius: 3px;
-}
-
-QPushButton:pressed {
-	background-color: #e0e3ff;
-}</string>
-       </property>
-       <property name="text">
-        <string>Отменить</string>
-       </property>
-       <property name="default">
-        <bool>true</bool>
-       </property>
-       <property name="flat">
-        <bool>true</bool>
-       </property>
-      </widget>
      </widget>
     </widget>
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>docName_plainTextEdit</tabstop>
+  <tabstop>secretCBox</tabstop>
+  <tabstop>copyNumberLineEd</tabstop>
+  <tabstop>punktLineEd</tabstop>
+  <tabstop>mbNumberLineEd</tabstop>
+  <tabstop>pageCountEd</tabstop>
+  <tabstop>toolButton</tabstop>
+  <tabstop>templatesCbox</tabstop>
+  <tabstop>lastPageGroupBoxChecked</tabstop>
+  <tabstop>executor_lineEd</tabstop>
+  <tabstop>pressman_lineEd</tabstop>
+  <tabstop>telephone_lineEd</tabstop>
+  <tabstop>invNumber_lineEd</tabstop>
+  <tabstop>dateField_dateEd</tabstop>
+  <tabstop>reciversListGroupBoxChecked</tabstop>
+  <tabstop>reciverOne_lineEd</tabstop>
+  <tabstop>reciverTwo_lineEd</tabstop>
+  <tabstop>reciverThree_lineEd</tabstop>
+  <tabstop>reciverFour_lineEd</tabstop>
+  <tabstop>reciverFive_lineEd</tabstop>
+  <tabstop>previewBtn</tabstop>
+  <tabstop>cancelBtn</tabstop>
+  <tabstop>informerTextEd</tabstop>
+ </tabstops>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>reciversListGroupBoxChecked</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>reciverOne_lineEd</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>138</x>
+     <y>301</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>154</x>
+     <y>325</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>reciversListGroupBoxChecked</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>reciverTwo_lineEd</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>28</x>
+     <y>299</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>205</x>
+     <y>353</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>reciversListGroupBoxChecked</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>reciverThree_lineEd</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>50</x>
+     <y>300</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>230</x>
+     <y>376</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>reciversListGroupBoxChecked</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>reciverFour_lineEd</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>27</x>
+     <y>303</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>258</x>
+     <y>416</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>reciversListGroupBoxChecked</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>reciverFive_lineEd</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>32</x>
+     <y>302</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>157</x>
+     <y>437</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>lastPageGroupBoxChecked</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>executor_lineEd</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>414</x>
+     <y>82</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>534</x>
+     <y>120</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>lastPageGroupBoxChecked</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>pressman_lineEd</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>414</x>
+     <y>81</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>561</x>
+     <y>153</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>lastPageGroupBoxChecked</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>telephone_lineEd</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>413</x>
+     <y>108</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>605</x>
+     <y>180</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>lastPageGroupBoxChecked</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>invNumber_lineEd</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>413</x>
+     <y>85</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>637</x>
+     <y>214</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>lastPageGroupBoxChecked</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>dateField_dateEd</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>417</x>
+     <y>84</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>621</x>
+     <y>266</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
 </ui>
