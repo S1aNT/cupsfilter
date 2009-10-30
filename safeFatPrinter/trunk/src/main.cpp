@@ -31,7 +31,7 @@ int main(int argc, char *argv[])
 
 
     QStringList aList=app.arguments();
-    if (aList.size()!=3){
+    if (aList.size()!=1){
 	QMessageBox::critical(0,QObject::trUtf8("Обратитесь к системному администратору"),
 					    QObject::trUtf8("Ошибка запуска приложения, не достаточно параметров %1").arg(aList.size()));
 
@@ -43,23 +43,25 @@ int main(int argc, char *argv[])
 	mandat_set.beginGroup("RULES");
 	QString mandat =mandat_set.value("mandat","UNDEF").toString();
 	mandat_set.endGroup();
-*/
 	QString mandat ="SYSPROG";
-	QString in_file =aList.at(1);
-	StartDlg w;
-
-	dController control;
 
 	QTableView tableView;
 	tableView.setModel(control.document_model());
 
 	tableView.show();
 
-	w.setController(&control);
+
+
+*/
+
+	QString in_file =aList.at(1);
+	dController *control = new dController();
+	// Настройка контроллера
+	StartDlg w;
+	w.setController(control);
 	w.convertToPDF(in_file);
 	w.show();
 	return app.exec();
     }
-
 }
 
