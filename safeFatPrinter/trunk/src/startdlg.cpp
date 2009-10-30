@@ -62,7 +62,8 @@ void StartDlg::markPaper()
 
      askDlg.setWindowTitle("Предварительный учет листов");
      askDlg.setViewMode(1); // предварительный учет листов печатаем только заднюю сторону листа
-     d_ctrl->insertDocToModel();
+    // d_ctrl->insertDocToModel();
+
      askDlg.setModel(d_ctrl->document_model());
      if (askDlg.exec()==QDialog::Accepted){
 	 //askDlg->close();
@@ -77,13 +78,16 @@ void StartDlg::setController(dController *ctrl)
     connect (d_ctrl,SIGNAL(inputFileMerged()),this,SLOT(mergeDone()));
     connect (d_ctrl,SIGNAL(connect2Demon()),this,SLOT(connectToDemon()));
     connect (d_ctrl,SIGNAL(sayMeGood()),&reportDlg,SLOT(show()));
+    connect (d_ctrl,SIGNAL(mbNumberExist(int)),&askDlg,SLOT(extenedAnswerMB(int)));
     connect (&askDlg,SIGNAL(isMBExist(QString)),d_ctrl,SLOT(checkMB(QString)));
+    connect (d_ctrl,SIGNAL(mbNumberChecked(QString &)),&askDlg,SLOT(confirmMB(QString &)));
     connect (this,SIGNAL(printerSelected(QString)),d_ctrl,SLOT(setPrinter(QString)));
+    //connect (askDlg,SIGNAL(printOverSidePage(int)),d_ctrl,SLOT(printOverSide(int)));
+    //connect (askDlg,SIGNAL(printWithTemplate(int)),d_ctrl,SLOT(printWithTemplate(int)));
     /*
 
     connect (askDlg,SIGNAL(save2base(QString)),d_ctrl,SLOT(saveBase(QString)));
-    connect (askDlg,SIGNAL(printOverSidePage(QString)),d_ctrl,SLOT(printOverSide(QString)));
-    connect (askDlg,SIGNAL(printWithTemplate(QString)),d_ctrl,SLOT(printWithTemplate(QString)));
+
     connect (d_ctrl,SIGNAL(exchangeData2MB(QString)),askDlg,SLOT(parserDocData(QString)));
     */
 
