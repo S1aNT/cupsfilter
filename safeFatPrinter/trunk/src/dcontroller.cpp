@@ -11,13 +11,6 @@ dController::dController(QObject *parent)
 
     connect2Server(serverHostName,serverPort);
     createDocModel();
-/*
-    //TODO remove after debug
-    QString msg=QString("Список рассылки=1~Штамп последней стр.=1~Статус документа=Отпечатан~Кол-во листов=55~Название док-та=Длинное имя~Гриф=Секретно~Пункт перечня=Пункт 12~Номер док-та=МБ №12/12~Инв. №=123/23~Номер копии=2~Получатель №1=получатель 1~Получатель №2=получатель 2~Получатель №3=test 3~Получатель №4=получатель 4~Получатель №5=получатель 5~Исполнитель=Исполнитель документа~Отпечатал=Отпечатал~Телефон=127~Дата распечатки=09.0.9.09");
-    QStringList list;
-    list<<msg.split("~");
-    insertDocToModel(list);
-   */
 }
 QStandardItemModel *dController::document_model () const
 {
@@ -47,38 +40,32 @@ void dController::createDocModel()
 	  << QObject::trUtf8("Штамп последней стр.")
 	  << QObject::trUtf8("Список рассылки");
   doc_model->setHorizontalHeaderLabels(header);
+  this->insertDocToModel();
 }
 void dController::insertDocToModel()
 {
     // add empty row to model
     doc_model->insertRow(doc_model->rowCount());
-
 }
-void dController::insertDocToModel(QStringList &item)
+
+
+void dController::insertDocToModel(QString &item)
 {
-   // qDebug() << Q_FUNC_INFO  <<doc_model->rowCount();
+     QStringList itemList= item.split("~");
      QList<QStandardItem *> cells;
      int Pos;
 
-     for (int i = 0; i <item.size() ; ++i) {
+     for (int i = 0; i <itemList.size() ; ++i) {
 	 QStandardItem * cell_item= new QStandardItem();
 	 cells.append(cell_item);
      }
 
-     for (int i = 0; i <item.size() ; ++i) {
-	 QStringList list_2 = item.at(i).split("=", QString::SkipEmptyParts);
+     for (int i = 0; i <itemList.size() ; ++i) {
+	 QStringList list_2 = itemList.at(i).split("=", QString::SkipEmptyParts);
 	 Pos =header.indexOf(list_2.at(0)); // Ищем индекс
 	 QStandardItem *cell_item =cells.at(Pos);
-	 if (list_2.at(0) =="Список рассылки" ||list_2.at(0) =="Штамп последней стр."){
-	    cell_item->setCheckable(true);
-	    //cell_item->setCheckState(Qt::Checked);
-	 }else{
-	      //qDebug() << "Element " << list_2.at(0) <<":Value "<<list_2.at(1)<<" Position at header" <<Pos;
-	      cell_item->setData(QVariant(list_2.at(1)),Qt::EditRole);
-	  }
+	 cell_item->setData(QVariant(list_2.at(1)),Qt::EditRole);
      }
-
-     //qDebug() << Q_FUNC_INFO  <<doc_model->rowCount();
      doc_model->appendRow (cells);
 }
 
@@ -90,23 +77,18 @@ void dController::setPrinter(QString selected_printer)
 void dController::savebase(QString wide_msg)
 {
      currentDoc = wide_msg.split("~");
-
 }
 
 void dController::checkMB(QString mb)
 {
     //TODO ask server mb
-
     // Сервер проверят существует ли в базе документ с таким МБ за год
     // если есть то он возвращает строку содержащую все его данные
-    QString m=QString("%1~%2").arg(curPrinter,mb);
-    emit sendServerCmd(GET_MB_PRINTS_TODAY_CMD,m);
-/*
-    QString msg;
-    msg=QString("docName=Длинное имя~secretStamp=Секретно~punkt=Пункт 12~mbNumber=%1~templ=Сов. секретный приказ~invNumber=Инв №12~copyNumber=2~reciver_1=получатель 1~reciver_2=получатель 2~reciver_3=test 3~reciver_4=получатель 4~reciver_5=получатель 5~executor=Исполнитель~pressman=Отпечатал~phoneNumber=127~date=09.0.9.09").arg(mb);
-    qDebug() << Q_FUNC_INFO<< msg;
-    emit exchangeData2MB(msg);
-    */
+    QDate dt_end;
+    dt_end=QDate::currentDate (); // Текущая дата
+    QDate dt_begin (dt_end.year (), 1,1); // Первое января
+    QString m=QString(QObject::trUtf8("%1~%2~%3")).arg(mb).arg(dt_begin.toString(),dt_end.toString());
+    emit sendServerCmd(IS_MB_EXIST,m);
 }
 void dController::connect2Server(QString &host,int port)
 {
@@ -127,11 +109,25 @@ void dController::parseNetwork(QString &message )
 	QString body =rx.cap(2);
 	qDebug() << ans << body <<"\n";
 	switch (ans.toInt()) {
-	    /*
-	    case PRINTER_LIST_ANS:
-		  emit takePrinterList(body);
+
+	    case MB_LIST_ANS:
+		  // добавим в модель
+		  this->insertDocToModel(body);
 		break;
-		*/
+	    case IS_MB_NOT_EXIST_ANS:
+		  // Такого документа нет
+		 emit mbNumberChecked(body);
+		break;
+	    case IS_MB_EXIST_AND_BRAK_ANS:
+		  // Документ есть и он бракованный можно допечатывать
+		//doc_model->clear();// Очистим модель ???
+		this->insertDocToModel(body);
+		 emit mbNumberExist(doc_model->rowCount());
+	       break;
+	       case IS_MB_EXIST_AND_NOT_BRAK_ANS:
+		  // Документ есть и он не бракованный  нельзя допечатывать
+		  emit  mbNumberExist(-1);
+		   break;
 	    case REGISTER_ANS:
 		    emit connect2Demon();
 		break;
@@ -168,7 +164,7 @@ void dController::read_settings()
 	settings.setIniCodec("UTF-8");
 	settings.beginGroup("SERVICE");
 	serverHostName = settings.value("server","127.0.0.1").toString();
-	serverPort = settings.value("port",17675).toInt();
+	serverPort = settings.value("port",4242).toInt();
 	timeout_connect =settings.value("timeout_connect",5000).toInt();
 	timeout_read=settings.value("timeout_read",15000).toInt();
 	timeout_write=settings.value("timeout_write",15000).toInt();
@@ -194,8 +190,15 @@ void dController::read_settings()
 	mainPDF.append(spoolDIR).append("%1.pdf");
 	outPDF.append(spoolDIR). append("%1_out.pdf");
 }
+
+
+
+
+
+
 void dController::write_settings()
 {
+    
     QSettings settings(QSettings::IniFormat, QSettings::UserScope,"Техносервъ","Защищенный принтер");
     settings.setIniCodec("UTF-8");
 
@@ -269,8 +272,9 @@ dController::~dController()
     qDebug() << Q_FUNC_INFO;
     write_settings();
 }
-void dController::printWithTemplate (QString templ)
+void dController::printWithTemplate (int RowId)
 {
+    /*
     qDebug()<<Q_FUNC_INFO;
     //TODO это должно быть в отдельном классе !!!
     scene = new QGraphicsScene();
@@ -364,10 +368,12 @@ void dController::printWithTemplate (QString templ)
      printer2.setPageSize(QPrinter::A4);
      QPainter painter2(&printer2);
      scene->render(&painter2);
+     */
      emit sayMeGood();
 }
-void dController::printOverSide(QString mb)
+void dController::printOverSide(int RowId)
 {
+    /*
     //TODO это должно быть в отдельном классе !!!
     scene = new QGraphicsScene();
 
@@ -407,5 +413,6 @@ void dController::printOverSide(QString mb)
      //printer.setPageSize(QPrinter::A4);
      QPainter painter(&printer);
      scene->render(&painter);
+     */
      emit sayMeGood();
 }
