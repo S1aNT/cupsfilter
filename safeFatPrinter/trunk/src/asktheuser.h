@@ -10,7 +10,13 @@
 #include <QDataWidgetMapper>
 #include <QStandardItemModel>
 #include <QRegExp>
-#include <QValidator>
+#include <QLineEdit>
+#include <QTimer>
+#include <QDateEdit>
+#include <QSignalMapper>
+#include <QPushButton>
+ #include <QTimer>
+
 
 
 namespace Ui {
@@ -27,17 +33,22 @@ public:
 signals:
     void isMBExist(QString mb);
     void save2base(QString msg);
-    void printOverSidePage(QString mb);
-    void printWithTemplate(QString templ);
+    void printOverSidePage(int RowId);
+    void printWithTemplate(int RowId);
 public slots:
     //void MBExist(bool state);
+    void extenedAnswerMB(int RowId);
     void parserDocData(QString doc_data);
+    void confirmMB(QString &mb);
+
     void setMBCompleter(QStringList &cmp);
     void selectWorkPage();
     void selectInfoPage();
-
+    void enablePrintButton();
 private slots:
     void checkMBdublicat();
+    // Проверка что поле не пустое
+    void isFileldNotEmpty(int sender_id);
 protected:
     void changeEvent(QEvent *e);
 
@@ -50,11 +61,15 @@ protected slots:
 
 private:
     Ui::askTheUser *m_ui;
+     QTimer *timer;
     QDataWidgetMapper *mapper;
     int currentMode;
-
+    QString  currentMB;
+    bool isDocChecked; // Статус документа проверялся ли он по базе аудита
+    QLineEdit documentStatus;
     QCompleter *MBcompleter;
     QStandardItemModel * mainModel;
+    QSignalMapper *signalMapper;
 };
 
 #endif // ASKTHEUSER_H
