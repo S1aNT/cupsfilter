@@ -1,0 +1,1 @@
+"C:\Program Files\gs\gs8.70\bin\gswin32c.exe" @c:\gs\pdfwrite.rsp -q -sOutputFile="D:\Temp\{3358c5cb-4be3-48f4-bec8-8bfdf42b0b53}.pdf" -c .setpdfwrite -f -

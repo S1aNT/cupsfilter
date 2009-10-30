@@ -1,0 +1,26 @@
+<RCC>
+    <qresource prefix="/images" >
+        <file>images/backup.png</file>
+        <file>images/blocklist.png</file>
+        <file>images/cancel.png</file>
+        <file>images/editdelete.png</file>
+        <file>images/error.png</file>
+        <file>images/exit.png</file>
+        <file>images/forward.png</file>
+        <file>images/incoming.png</file>
+        <file>images/info.png</file>
+        <file>images/log.png</file>
+        <file>images/mobloquer.png</file>
+        <file>images/ok.png</file>
+        <file>images/outgoing.png</file>
+        <file>images/play.png</file>
+        <file>images/reload.png</file>
+        <file>images/restart.png</file>
+        <file>images/run.png</file>
+        <file>images/save.png</file>
+        <file>images/settings.png</file>
+        <file>images/stop.png</file>
+        <file>images/tray.png</file>
+        <file>images/tray_disabled.png</file>
+    </qresource>
+</RCC>
