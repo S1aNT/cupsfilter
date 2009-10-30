@@ -2,54 +2,36 @@
 #define STARTDLG_H
 
 #include <QtGui/QDialog>
-#include <QMessageBox>
-#include <QProcess>
 #include <QDateTime>
-#include <QPrinterInfo>
-#include "asktheuser.h"
-#include "workreport.h"
-#include "dController.h"
+#include <QSignalMapper>
 
-namespace Ui
-{
+#include <dController.h>
+
+namespace Ui {
     class StartDlg;
 }
 
-
-class StartDlg : public QDialog
-{
+class StartDlg : public QDialog {
     Q_OBJECT
-
 public:
     StartDlg(QWidget *parent = 0);
     ~StartDlg();
-    void convertToPDF(QString &in_file);
-    void setController(dController *ctrl);
-
-signals:
-    void printerSelected (QString ptr);
-public slots:
-     void error(int ErrorCode,QString ErrorString);
-     void convertDone();
-     void mergeDone();
-     void connectToDemon();
+    void convertToPDF(QString &filename);
 private slots:
-     void markPaper();
-    void printOnMarkPaper();
+    void enableGUI(int step,QString &message);
+    void fill_docCard4Print(int Mode);
+protected:
+    void changeEvent(QEvent *e);
+    void createConnection();
+    void printToLog(QString & log_mes);
+    void readPrinterList();
 private:
-    void enableGUI();
-    void setPrinterList();
-
-
     Ui::StartDlg *ui;
-    dController *d_ctrl;
+    dController * control;
 
-    askTheUser askDlg;
-
-    workReport reportDlg;
-    bool cnv;
-    bool merge;
-    bool conn_demon;
+    QSignalMapper *signalMapper;
+    bool connectStep;
+    bool convertStep;
 };
 
 #endif // STARTDLG_H

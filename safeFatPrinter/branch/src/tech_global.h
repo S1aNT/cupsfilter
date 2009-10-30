@@ -1,9 +1,12 @@
 #ifndef TECH_GLOBAL_H
 #define TECH_GLOBAL_H
 
+#define CONN_STEP 0
+#define CONVERT_STEP 1
+
 #define splitter =":;:";
 
-typedef enum{ 
+typedef enum{
    REGISTER_CMD		= 10,
    AUTHOR_USER          = 100,
    GET_MB_PRINTS_TODAY_CMD =200,
@@ -14,11 +17,11 @@ typedef enum{
    GET_PRINTER_LIST_CMD = 400,
 
    IS_MB_EXIST	=500,
-   DISCONNECT		= 5000	
+   DISCONNECT		= 5000
 
 }commands_t;
 
-typedef enum{ 
+typedef enum{
    REGISTER_ANS	    = 1010,
    PRINT_ALLOWED    = 1100, // печать разрешена
    PRINT_DENIED     = 1101, // печать запрещена
@@ -40,4 +43,4 @@ typedef enum {
 	    CONNECTION_REFUSED_ERR
 }error_t;
 
-#endif
+#endif // TECH_GLOBAL_H

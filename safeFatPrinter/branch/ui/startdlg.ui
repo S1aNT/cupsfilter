@@ -70,7 +70,7 @@
   </widget>
   <widget class="QListWidget" name="logList">
    <property name="enabled">
-    <bool>false</bool>
+    <bool>true</bool>
    </property>
    <property name="geometry">
     <rect>
@@ -81,7 +81,7 @@
     </rect>
    </property>
    <property name="horizontalScrollBarPolicy">
-    <enum>Qt::ScrollBarAlwaysOff</enum>
+    <enum>Qt::ScrollBarAsNeeded</enum>
    </property>
   </widget>
  </widget>
