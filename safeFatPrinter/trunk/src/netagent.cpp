@@ -85,6 +85,7 @@ void netAgent::connected()
     if (!client_sid.isEmpty()){
 	// And send our client sid to the server.
 	qDebug() << "Connect send handshake" <<QString("/me:" +client_sid + "\n").toUtf8();
-	socket->write(QString("/me:" +client_sid + "\n").toUtf8());
+	QString message =QString("/cmd:%1:%2").arg(REGISTER_CMD,0,10).arg(client_sid);
+	socket->write(QString(message + "\n").toUtf8());
     }
 }
