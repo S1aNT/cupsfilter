@@ -7,13 +7,18 @@ CONFIG += warn_on \
     console
 TARGET = safeFatPrinter
 TEMPLATE = app
-SOURCES += main.cpp \
-    startdlg.cpp \
-    dcontroller.cpp \
-    asktheuser.cpp
-HEADERS += startdlg.h \
-    dcontroller.h \
-    tech_global.h \
-    asktheuser.h
-FORMS += startdlg.ui \
-    asktheuser.ui
+
+# Input
+HEADERS += src/asktheuser.h \
+    src/dcontroller.h \
+    src/startdlg.h \
+    src/tech_global.h \
+    src/workreport.h
+FORMS += ui/asktheuser.ui \
+    ui/startdlg.ui
+SOURCES += src/asktheuser.cpp \
+    src/dcontroller.cpp \
+    src/main.cpp \
+    src/startdlg.cpp \
+    src/workreport.cpp
+RESOURCES += images.qrc

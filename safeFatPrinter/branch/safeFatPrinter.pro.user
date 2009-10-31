@@ -62,7 +62,7 @@
    <value key="ToolChain" type="int">2</value>
    <value key="addQDumper" type=""></value>
    <value key="buildConfiguration" type="int">2</value>
-   <value key="buildDirectory" type="QString">D:\Projects\Techoserv\safeFatPrinter\branch\safeFatPrinter</value>
+   <value key="buildDirectory" type="QString">D:\Projects\Techoserv\safeFatPrinter\branch</value>
   </valuemap>
  </data>
  <data>
@@ -116,14 +116,14 @@
     <value type="QString">WINDIR=C:\WINDOWS</value>
    </valuelist>
    <valuelist key="abstractProcess.arguments" type="QVariantList">
-    <value type="QString">D:/Projects/Techoserv/safeFatPrinter/branch/safeFatPrinter/safeFatPrinter.pro</value>
+    <value type="QString">D:/Projects/Techoserv/safeFatPrinter/branch/safeFatPrinter.pro</value>
     <value type="QString">-spec</value>
     <value type="QString">win32-g++</value>
     <value type="QString">-r</value>
    </valuelist>
    <value key="abstractProcess.command" type="QString">c:/devtools/qt-4.5.2/bin/qmake.exe</value>
-   <value key="abstractProcess.enabled" type="bool">true</value>
-   <value key="abstractProcess.workingDirectory" type="QString">D:/Projects/Techoserv/safeFatPrinter/branch/safeFatPrinter</value>
+   <value key="abstractProcess.enabled" type="bool">false</value>
+   <value key="abstractProcess.workingDirectory" type="QString">D:/Projects/Techoserv/safeFatPrinter/branch</value>
   </valuemap>
  </data>
  <data>
@@ -172,7 +172,7 @@
    </valuelist>
    <value key="abstractProcess.command" type="QString">C:/DevTools/MinGW/bin//mingw32-make.exe</value>
    <value key="abstractProcess.enabled" type="bool">true</value>
-   <value key="abstractProcess.workingDirectory" type="QString">D:/Projects/Techoserv/safeFatPrinter/branch/safeFatPrinter</value>
+   <value key="abstractProcess.workingDirectory" type="QString">D:/Projects/Techoserv/safeFatPrinter/branch</value>
   </valuemap>
  </data>
  <data>
