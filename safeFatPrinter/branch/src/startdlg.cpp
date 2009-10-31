@@ -6,9 +6,11 @@ StartDlg::StartDlg(QWidget *parent) :
     ui(new Ui::StartDlg)
 {
     ui->setupUi(this);
+    askDlg = new AskTheUser(this);
+    wrkDlg = new workReport(this);
     connectStep=false;
     convertStep=false;
-    control = new dController();
+    control = new dController(this);
     signalMapper = new QSignalMapper(this);
     createConnection();
     control->connect2Demon();
@@ -25,8 +27,6 @@ void StartDlg::createConnection()
      signalMapper->setMapping(ui->printOnMarkPaperBtn,1);
      signalMapper->setMapping(ui->printWithAutoMarkPaperBtn,2 );
      connect(signalMapper, SIGNAL(mapped(int)),  this, SLOT(fill_docCard4Print(int)));
-
-
      connect(control, SIGNAL(init_done(int,QString &)), this, SLOT(enableGUI(int,QString &)));
 }
 
@@ -44,28 +44,45 @@ void StartDlg::printToLog(QString & log_mes)
     ui->logList->update();
 }
 
-void StartDlg::readPrinterList()
+void StartDlg::setPrinterList()
 {
-
+    QList<QPrinterInfo> plist;
+    plist = QPrinterInfo::availablePrinters () ;
+    for (int i = 0; i < plist.size(); ++i) {
+	if (plist.at(i).printerName()!="Защищенный принтер"){
+	    ui->printerCBox->addItem(plist.at(i).printerName());
+	}
+    }
+    ui->printerCBox->setCurrentIndex(-1);
 }
 
 //************************************      SLOTS     *********************************************
 
 void StartDlg::fill_docCard4Print(int Mode)
-{
-    QString title;
-    switch (Mode){
-    case 0:
-	title=QObject::trUtf8("Предварительный учет документа");
+{  // покажем диалог ввода или выбора данных
+    int ret = askDlg->exec();
+    if (ret ==QDialog::Accepted){
+	switch (Mode){
+	    case 0:
+		if (askDlg->isCheckedPAO()){
+		    //emit saveModelToBase(askDlg->getCurrentModelIndex());
 
-	break;
-    case 1:
-	break;
-    case 2:
-	break;
+		}else{
+		    //emit PrintOutSideMark(askDlg->getCurrentModelIndex());
+		}
+		break;
+	    case 1:
+
+		break;
+	    case 2:
+		break;
+	}
+	// Покажем завершающий диалог
+	wrkDlg->exec();
+
+    }else{
+	// clearModel
     }
-    // покажем диалог ввода или выбора данных
-
 }
 void StartDlg::enableGUI(int step,QString &message)
 {
