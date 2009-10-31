@@ -1,8 +1,9 @@
 #include <QDebug>
 #include <QtGui/QApplication>
-#include "startdlg.h"
 #include <QTextCodec>
-#include<QMessageBox>
+#include <QMessageBox>
+
+#include "startdlg.h"
 
 int main(int argc, char *argv[])
 {
