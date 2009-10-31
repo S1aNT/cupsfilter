@@ -1,6 +1,6 @@
 #include "dcontroller.h"
 
-dController::dController()
+dController::dController(QObject * parent)
 {
     // формируем SID
     QUuid uSID=QUuid::createUuid () ;  //generate SID
@@ -30,9 +30,11 @@ void dController::createModel()
 	    << QObject::trUtf8("Получатель №3")
 	    << QObject::trUtf8("Получатель №4")
 	    << QObject::trUtf8("Получатель №5")
-	    << QObject::trUtf8("Статус документа")
 	    << QObject::trUtf8("Штамп последней стр.")
-	    << QObject::trUtf8("Список рассылки");
+	    << QObject::trUtf8("Список рассылки")
+	    << QObject::trUtf8("Статус документа")
+	    << QObject::trUtf8("Брак страниц")
+	    << QObject::trUtf8("Брак документа");
     doc_model->setHorizontalHeaderLabels(header);
     this->insertDocToModel();
 
