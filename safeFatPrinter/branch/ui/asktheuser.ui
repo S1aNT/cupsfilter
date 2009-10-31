@@ -16,6 +16,9 @@
   <property name="windowTitle">
    <string>Dialog</string>
   </property>
+  <property name="modal">
+   <bool>true</bool>
+  </property>
   <layout class="QGridLayout" name="gridLayout_5">
    <item row="0" column="0" colspan="3">
     <widget class="QGroupBox" name="groupBox_4">
@@ -507,14 +510,17 @@
     </widget>
    </item>
    <item row="3" column="2" rowspan="3">
-    <widget class="QPushButton" name="pushButton">
+    <widget class="QPushButton" name="cancelBtn">
      <property name="text">
       <string>Отмена</string>
      </property>
     </widget>
    </item>
    <item row="4" column="0">
-    <widget class="QCheckBox" name="checkBox">
+    <widget class="QCheckBox" name="paperAccountsOutSide">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
      <property name="text">
       <string>Листы учтены в секретном органе</string>
      </property>
@@ -523,7 +529,7 @@
    <item row="4" column="1">
     <widget class="QPushButton" name="previewBtn">
      <property name="enabled">
-      <bool>false</bool>
+      <bool>true</bool>
      </property>
      <property name="text">
       <string>Печать учетной метки на обратной стороне листа</string>
@@ -533,7 +539,7 @@
        <normaloff>:/images/win/fileprint.png</normaloff>:/images/win/fileprint.png</iconset>
      </property>
      <property name="autoDefault">
-      <bool>false</bool>
+      <bool>true</bool>
      </property>
      <property name="default">
       <bool>true</bool>
@@ -717,6 +723,38 @@
     <hint type="destinationlabel">
      <x>395</x>
      <y>443</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>previewBtn</sender>
+   <signal>clicked()</signal>
+   <receiver>AskTheUser</receiver>
+   <slot>accept()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>444</x>
+     <y>487</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>338</x>
+     <y>257</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>cancelBtn</sender>
+   <signal>clicked()</signal>
+   <receiver>AskTheUser</receiver>
+   <slot>reject()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>630</x>
+     <y>487</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>338</x>
+     <y>257</y>
     </hint>
    </hints>
   </connection>
