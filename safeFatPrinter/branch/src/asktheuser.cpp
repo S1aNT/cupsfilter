@@ -24,3 +24,35 @@ void AskTheUser::changeEvent(QEvent *e)
         break;
     }
 }
+
+bool AskTheUser::isEnabledPAO() const
+{
+    return this->ui->paperAccountsOutSide->isEnabled();
+}
+bool AskTheUser::isCheckedPAO() const
+{
+    return this->ui->paperAccountsOutSide->isChecked();
+}
+void AskTheUser::setEnabledPAO(bool flag)
+{
+    this->ui->paperAccountsOutSide->setEnabled(flag);
+}
+void AskTheUser::setWorkMode(int mode)
+{
+    QString title;
+    switch (mode){
+    case 0:
+	title=QObject::trUtf8("Предварительный учет листов");
+	this->setEnabledPAO(true);
+	break;
+    case 1:
+	title=QObject::trUtf8("Печать на предварительно учтеных листах");
+	this->setEnabledPAO(false);
+	break;
+    case 2:
+	title=QObject::trUtf8("Учет листов с последующей печатью документа");
+	this->setEnabledPAO(false);
+	break;
+    }
+     this->setWindowTitle(title);
+}
