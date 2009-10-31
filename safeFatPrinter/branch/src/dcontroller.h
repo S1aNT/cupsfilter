@@ -6,7 +6,7 @@
 #include <QUuid>
 #include <QStandardItemModel>
 
-#include <tech_global.h>
+#include "tech_global.h"
 
 
 class dController : public QObject
@@ -14,7 +14,7 @@ class dController : public QObject
     Q_OBJECT
 
 public:
-    dController();
+    dController(QObject * parent = 0);
     QStandardItemModel *document_model () const;
 
 public slots:
