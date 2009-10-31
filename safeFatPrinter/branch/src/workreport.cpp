@@ -29,7 +29,6 @@ workReport::workReport(QWidget *parent)
 
 //! [1]
     acceptButton = new QPushButton(tr("Подтвердить документ"));
-
     acceptButton->setDefault(true);
 
     moreButton = new QPushButton(tr("Забраковать документ"));
@@ -102,22 +101,8 @@ workReport::workReport(QWidget *parent)
 
 void workReport::saveResultToBase()
 {
-    //TODO убрать после отладки
-    /*
-    QString title;
-    QString message;
-    title=QObject::trUtf8("Результат записан в базе отчетов");
-    if (!saveResult){
-	message=QObject::trUtf8("Подтверждение документа записано в базе отчетов");
-    }else{
-	message=QObject::trUtf8("Сообщение об ошибке, записано в базе отчетов");
-    }
 
-    QMessageBox::StandardButton reply;
-     reply = QMessageBox::information(this,title, message);
- */
-
-    QApplication::exit(0);
+    this->accept();
 }
 void workReport::sendErrorReport(bool state)
 {
