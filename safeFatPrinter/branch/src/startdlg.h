@@ -4,8 +4,11 @@
 #include <QtGui/QDialog>
 #include <QDateTime>
 #include <QSignalMapper>
+#include <QPrinterInfo>
 
-#include <dController.h>
+#include "dController.h"
+#include "askTheUser.h"
+#include "workreport.h"
 
 namespace Ui {
     class StartDlg;
@@ -24,10 +27,12 @@ protected:
     void changeEvent(QEvent *e);
     void createConnection();
     void printToLog(QString & log_mes);
-    void readPrinterList();
+    void setPrinterList();
 private:
-    Ui::StartDlg *ui;
-    dController * control;
+    Ui::StartDlg  *ui;
+    AskTheUser *askDlg;
+    workReport  *wrkDlg;
+    dController  *control;
 
     QSignalMapper *signalMapper;
     bool connectStep;
