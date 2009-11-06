@@ -12,6 +12,7 @@
 #include <QSettings>
 #include <QDate>
 #include <QPrinterInfo>
+#include <QCoreApplication>
 
 #include "tech_global.h"
 #include "proc_thread.h"
@@ -55,7 +56,8 @@ signals:
     void mbNumberNotExist();
      // В базе аудита есть такой документ, RowID -1 документ помечен ка распечатаный
     void mbNumberExist(int RowID);
-
+    // Для пользователя нет ни одного принтера
+    void printerNotFound();
 
 private:
     void read_settings();
@@ -71,6 +73,7 @@ private:
 
     void createModel();
     void getStampName();
+    void getPrinterCount();
     void insertDocToModel();
     void insertDocToModel(QString &item);
 
