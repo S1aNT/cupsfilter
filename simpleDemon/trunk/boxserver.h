@@ -7,6 +7,10 @@
 #include <QMap>
 #include <QMapIterator>
 #include <QSet>
+#include <cstdlib>
+#include <stdlib.h>
+#include <stdio.h>
+
 
 #include "tech_global.h"
 
@@ -25,7 +29,7 @@ protected:
 	void doCommand(const QString &user,int command,const QString &body);
 private:
 	QSet<QTcpSocket*> clients;
-	QMap<QTcpSocket*,QString> clientsUID; //Соединение, SID
+	QMap<QTcpSocket*,QString> clientsUID; //РЎРѕРµРґРёРЅРµРЅРёРµ, SID
 
 };
 
