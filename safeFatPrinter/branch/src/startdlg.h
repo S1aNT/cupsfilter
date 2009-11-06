@@ -27,7 +27,7 @@ public:
 private slots:
     void enableGUI(steps_t step,QString &message);
     void fill_docCard4Print(int Mode);
-
+    void showErrorInfo();
 protected:
     void changeEvent(QEvent *e);
     void createConnection();
