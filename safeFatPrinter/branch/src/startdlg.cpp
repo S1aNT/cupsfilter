@@ -95,6 +95,12 @@ void StartDlg::enableGUI(steps_t step,QString &message)
     }
      this->printToLog(message);
 }
+
+void StartDlg::showErrorInfo()
+{
+    QMessageBox::critical ( this, QObject::trUtf8("Нет ни одного доступного принтера!!"), "!!!" );
+}
+
 StartDlg::~StartDlg()
 {
     delete ui;
@@ -107,6 +113,7 @@ void StartDlg::rabbitHole()
     // Сигналы от контроллера
     // Машина состояний
     connect (control, SIGNAL(init_done(steps_t,QString &)), this, SLOT(enableGUI(steps_t,QString &)));
+    connect (control,SIGNAL(printerNotFound()),this,SLOT(showErrorInfo()));
     connect (control,SIGNAL(mbNumberExist(int)),askDlg,SLOT(do_mbExist(int)));
     connect (control,SIGNAL(mbNumberNotExist()),askDlg,SLOT(do_mbNumberNotExist()));
     // Сигналы от вопросника
