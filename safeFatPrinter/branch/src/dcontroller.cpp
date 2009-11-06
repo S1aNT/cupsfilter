@@ -135,6 +135,7 @@ void dController::readServerResponce(QString &line)
 		 msg= QObject::trUtf8("Успешно соединились с сервером безопастности");
 		emit init_done(CONN_STEP,msg);
 		this->getStampName(); // Получим с сервера название уровней безопастности
+		this->getPrinterCount();
 		break;
 	    case MB_EXIST_AND_BRAK_ANS:
 		this->insertDocToModel(body);
@@ -146,6 +147,9 @@ void dController::readServerResponce(QString &line)
 	    case MB_NOT_EXIST_ANS:
 		emit mbNumberNotExist();
 		break;
+	    case PRINTER_LIST_EMPTY:
+		emit printerNotFound();
+		break;
 	}
     }else{
 	// emit error
@@ -155,7 +159,10 @@ void dController::readServerResponce(QString &line)
 //----------------------------------------  Private functions --------------------------------------------------------------------
 void dController::read_settings()
 { // Читаем файл настроек
-    QSettings settings(QSettings::IniFormat, QSettings::UserScope,"Technoserv","safe_printer");
+    QString ini_path =QString(QObject::trUtf8("%1\\Technoserv\\safe_printer.ini")).arg(QCoreApplication::applicationDirPath());
+    //ini_path.arg(QCoreApplication::applicationDirPath());
+    QSettings settings (ini_path,QSettings::IniFormat);
+ //   QSettings settings(QSettings::IniFormat, QSettings::UserScope,"Technoserv","safe_printer");
 
     settings.setIniCodec("UTF-8");
     settings.beginGroup("SERVICE");
@@ -265,22 +272,36 @@ void dController::insertDocToModel()
 }
 void dController::insertDocToModel(QString &item)
 {
-     QStringList itemList= item.split("~");
-     QList<QStandardItem *> cells;
-     int Pos;
+    qDebug() << Q_FUNC_INFO << item;
+    
+    if (!item.isEmpty() && item.contains(";:;", Qt::CaseInsensitive)){
+        QStringList itemList= item.split(";:;");
+        if (itemList.size()>0){
+            QList<QStandardItem *> cells;
+            int Pos;
 
-     for (int i = 0; i <itemList.size() ; ++i) {
-	 QStandardItem * cell_item= new QStandardItem();
-	 cells.append(cell_item);
-     }
+            for (int i = 0; i <itemList.size() ; ++i) {
+                QStandardItem * cell_item= new QStandardItem();
+                cells.append(cell_item);
+            }
 
-     for (int i = 0; i <itemList.size() ; ++i) {
-	 QStringList list_2 = itemList.at(i).split("=", QString::SkipEmptyParts);
-	 Pos =header.indexOf(list_2.at(0)); // Ищем индекс
-	 QStandardItem *cell_item =cells.at(Pos);
-	 cell_item->setData(QVariant(list_2.at(1)),Qt::EditRole);
-     }
-     doc_model->appendRow (cells);
+            for (int i = 0; i <itemList.size() ; ++i) {
+                QString tmp_str=itemList.at(i);
+                qDebug() << tmp_str;
+                if (!tmp_str.isEmpty() && tmp_str.contains("=")){
+            	    QStringList list_2 = tmp_str.split("=");
+            	        qDebug() << list_2.size();
+            	    	Pos =header.indexOf(list_2.at(0)); // Ищем индекс
+            		QStandardItem *cell_item =cells.at(Pos);
+            		cell_item->setData(QVariant(list_2.at(1)),Qt::EditRole);
+            		qDebug() << "Key" << list_2.at(0) << " Value " << list_2.at(1);
+            	    
+                }
+            }
+            doc_model->appendRow (cells);
+        }
+
+    }
 }
 
 void dController::checkMB(QString  mb)
@@ -302,6 +323,13 @@ void dController::getStampName()
     cmd_body=QObject::trUtf8("%1;:;%2").arg(UserName,Mandat);
     emit sendServerCmd(GET_SEC_LEVEL_CMD,cmd_body);
 }
+void dController::getPrinterCount()
+{
+    QString cmd_body;
+    cmd_body=QObject::trUtf8("%1;:;%2").arg(UserName,Mandat);
+    emit sendServerCmd(GET_PRINTER_LIST_CMD,cmd_body);
+}
+
 void dController::getUserNameMandat()
 {
     // Выполним функции из ldap_auth.dll
