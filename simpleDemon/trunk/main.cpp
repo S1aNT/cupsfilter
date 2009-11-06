@@ -1,12 +1,12 @@
 #include <QDebug>
 #include <QtCore/QCoreApplication>
-#include "BoxServer.h"
+#include "boxserver.h"
 
 int main(int argc, char *argv[])
 {
     QCoreApplication a(argc, argv);
     BoxServer *server = new BoxServer();
-    bool success = server->listen(QHostAddress::Any, 17675);
+    bool success = server->listen(QHostAddress::Any, 4242);
     if(!success)
     {
 	qFatal("Could not listen on port 17675.");
