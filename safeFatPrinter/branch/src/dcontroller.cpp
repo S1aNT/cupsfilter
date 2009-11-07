@@ -148,7 +148,7 @@ void dController::readServerResponce(QString &line)
 		emit mbNumberNotExist();
 		break;
 	    case PRINTER_LIST_EMPTY:
-		emit printerNotFound();
+		emit printersNotFound();
 		break;
 	}
     }else{

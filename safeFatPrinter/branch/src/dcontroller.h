@@ -57,7 +57,7 @@ signals:
      // В базе аудита есть такой документ, RowID -1 документ помечен ка распечатаный
     void mbNumberExist(int RowID);
     // Для пользователя нет ни одного принтера
-    void printerNotFound();
+    void printersNotFound();
 
 private:
     void read_settings();
