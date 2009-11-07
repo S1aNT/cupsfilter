@@ -1,5 +1,5 @@
 <RCC>
-    <qresource prefix="/images" >
+    <qresource prefix="/images">
         <file>images/backup.png</file>
         <file>images/blocklist.png</file>
         <file>images/cancel.png</file>
@@ -22,5 +22,10 @@
         <file>images/stop.png</file>
         <file>images/tray.png</file>
         <file>images/tray_disabled.png</file>
+        <file>images/kontact_journal.png</file>
+        <file>images/edit_add.png</file>
+        <file>images/edit_remove.png</file>
+        <file>images/handbook.png</file>
+        <file>images/user-32.png</file>
     </qresource>
 </RCC>
