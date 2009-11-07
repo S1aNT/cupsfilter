@@ -82,6 +82,7 @@ void StartDlg::fill_docCard4Print(int Mode)
 void StartDlg::enableGUI(steps_t step,QString &message)
 {
     if (step==CONN_STEP){
+
 	connectStep=true;
     }else  if (step==CONVERT_STEP){
 	convertStep=true;
@@ -98,7 +99,20 @@ void StartDlg::enableGUI(steps_t step,QString &message)
 
 void StartDlg::showErrorInfo()
 {
-    QMessageBox::critical ( this, QObject::trUtf8("Нет ни одного доступного принтера!!"), "!!!" );
+
+    QMessageBox msgBox(this);
+     QPushButton *abortButton;
+    msgBox.setObjectName("crit_msg_box");
+    msgBox.setIcon(QMessageBox::Critical);
+
+    QString msg=QObject::trUtf8("Для текущего пользователя нет ни одного доступного принтера. ");
+    msgBox.setInformativeText(QObject::trUtf8("Для решения этой проблемы обратитесь к системному администратору!"));
+    abortButton=msgBox.addButton(QObject::trUtf8("Завершить работу"), QMessageBox::RejectRole);
+    msgBox.setText(msg);
+    msgBox.exec();
+    if (msgBox.clickedButton()==abortButton){
+	QCoreApplication::quit();
+    }
 }
 
 StartDlg::~StartDlg()
@@ -113,7 +127,7 @@ void StartDlg::rabbitHole()
     // Сигналы от контроллера
     // Машина состояний
     connect (control, SIGNAL(init_done(steps_t,QString &)), this, SLOT(enableGUI(steps_t,QString &)));
-    connect (control,SIGNAL(printerNotFound()),this,SLOT(showErrorInfo()));
+    connect (control,SIGNAL(printersNotFound()),this,SLOT(showErrorInfo()));
     connect (control,SIGNAL(mbNumberExist(int)),askDlg,SLOT(do_mbExist(int)));
     connect (control,SIGNAL(mbNumberNotExist()),askDlg,SLOT(do_mbNumberNotExist()));
     // Сигналы от вопросника
