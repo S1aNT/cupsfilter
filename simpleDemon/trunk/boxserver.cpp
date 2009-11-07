@@ -35,8 +35,20 @@ void BoxServer::doCommand(const QString &user,int command,const QString &body)
 		switch (command) {
 
 		    case GET_SEC_LEVEL_CMD:
-
-                            message=QString(QObject::trUtf8("/%1;:;Несекретно;:;Секретно;:;Совершенно секретно\n")).arg(STAMP_LIST_ANS,0,10);
+			     qsrand(QDateTime::currentDateTime().toTime_t());
+			     int i=qrand() % 3; 
+			    switch (i){
+			      case 0: 
+				message=QString(QObject::trUtf8("/%1;:;Несекретно;:;Секретно;:;Совершенно секретно\n")).arg(STAMP_LIST_ANS,0,10);
+				break;
+			      case 1: 
+				message=QString(QObject::trUtf8("/%1;:;Секретно;:;Совершенно секретно\n")).arg(STAMP_LIST_ANS,0,10);
+				break;
+			      case 2: 
+				message=QString(QObject::trUtf8("/%1;:;Несекретно\n")).arg(STAMP_LIST_ANS,0,10);
+				break;
+			    }
+                            
                             client->write(message.toUtf8());
                             qDebug() << message;
                          break;
@@ -91,7 +103,19 @@ void BoxServer::doCommand(const QString &user,int command,const QString &body)
 				QString user =rx.cap(1);
 				QString mandat = rx.cap(2);
 				qDebug() << "User: "<< user <<" Mandat: " <<mandat <<"\n";
-				 message=QString("/%1;:;Testprinter1,TestPrinter2,TestPrinter3,TestPrinter4\n").arg(PRINTER_LIST_ANS,0,10);
+
+			     qsrand(QDateTime::currentDateTime().toTime_t());
+			     int s =qrand() % 2; 
+		             switch (s) {
+            		      case 0: 
+				message=QString("/%1;:;Testprinter1,TestPrinter2,TestPrinter3,TestPrinter4\n").arg(PRINTER_LIST_ANS,0,10);
+            		        break;
+            		      case 1: 
+                                message=QString("/%1;:;NOT_FOUND_PRINTER\n").arg(PRINTER_LIST_EMPTY,0,10);
+				break;
+			      }	
+
+				 
 				client->write(message.toUtf8());
 				qDebug() << "Send to client "<< message <<"\n";
 
