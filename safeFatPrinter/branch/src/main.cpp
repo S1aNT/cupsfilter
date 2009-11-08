@@ -8,6 +8,8 @@
 
 int main(int argc, char *argv[])
 {
+    Q_INIT_RESOURCE(images);
+
     QTextCodec *codec = QTextCodec::codecForName("UTF-8");
     QTextCodec::setCodecForTr(codec);
     //QTextCodec::setCodecForTr( QTextCodec::codecForName( "cp866" ) );
@@ -15,8 +17,10 @@ int main(int argc, char *argv[])
     QTextCodec::setCodecForLocale(codec);
     qInstallMsgHandler(myMessageOutput);
     QApplication app(argc, argv);
-
-
+/*
+View * t= new View();
+t->exec();
+*/
     QStringList aList=app.arguments();
     qDebug() << aList.size();
     if (aList.size()< 1){
