@@ -10,6 +10,10 @@
 #include <QMessageBox>
 #include <QTimer>
 #include <QDialogButtonBox>
+#include <QFileDialog>
+#include <QFileInfoList>
+#include <QDir>
+
 #include "tech_global.h"
 
 
@@ -31,16 +35,19 @@ public:
     void setWorkMode(int mode);
     void setModel (QStandardItemModel * model);
     void setStampModel(QStringListModel *stamp_model);
+    void setTemplatesPath(QString global);
 public slots:
     void do_mbExist(int RowId); // Приходят сообщения если такой документ в базе есть, если RowId =-1 значит они не бракованные
     void do_mbNumberNotExist();
 signals:
     void needCheckMB(QString mb_field);
     void mbNumberNotExist();
+    void showTemplatesEditor();
 private slots:
     void changePAOLabel(bool flag);
     void isFileldNotEmpty(int sender_id);
     void checkMB();
+    void selectLocalTemplatesDir(bool mode);
 protected:
     void changeEvent(QEvent *e);
     void createConnections();
@@ -55,6 +62,9 @@ private:
     QSignalMapper *signalMapper;
     
     int currentRow; // Текущая строка в модеи данных
+
+    QString global_templates_dir;
+
 };
 
 #endif // ASKTHEUSER_H

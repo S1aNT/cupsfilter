@@ -50,10 +50,11 @@ void AskTheUser::createConnections()
     connect(m_ui->dateField_dateEd, SIGNAL(editingFinished()),signalMapper, SLOT (map()));
     connect(m_ui->pageCountEd, SIGNAL(editingFinished()),signalMapper, SLOT (map()));
     // Подключим маппер к валидатору
-    connect(signalMapper, SIGNAL(mapped(int)), this, SLOT(isFileldNotEmpty(int)));
+    //connect(signalMapper, SIGNAL(mapped(int)), this, SLOT(isFileldNotEmpty(int)));
 
     connect(m_ui->mbNumberLineEd,SIGNAL(editingFinished()),this,SLOT(checkMB()));
-
+    connect(m_ui->switch_Local_GlolbalBtn,SIGNAL(toggled(bool)),this,SLOT(selectLocalTemplatesDir(bool)));
+    connect(m_ui->editTemplatesTBtn,SIGNAL(clicked()),this,SIGNAL(showTemplatesEditor()));
 }
 
 
@@ -83,7 +84,7 @@ void AskTheUser::do_mbExist(int RowId)
     // Закроем окошко
    QMessageBox*m_box = this->findChild<QMessageBox *>("info_msg_box");
     if (m_box->isActiveWindow()){
-	QTimer::singleShot(1500,m_box,SLOT(close()));
+	QTimer::singleShot(500,m_box,SLOT(close()));
     }
     QMessageBox msgBox(this);
     QPushButton *contButton;
@@ -92,7 +93,7 @@ void AskTheUser::do_mbExist(int RowId)
     msgBox.setObjectName("info_msg_box");
 
     if (RowId==DOC_PRINTED){
-	msg=QObject::trUtf8("Документ с номером МБ - [%1] был успешно распечатан и не бракован ").arg(m_ui->mbNumberLineEd->text());
+	msg=QObject::trUtf8("Документ с номером МБ - [%1] был успешно распечатан.").arg(m_ui->mbNumberLineEd->text());
     }else{
 	msg=QObject::trUtf8("Документ с номером МБ - [%1] зарегистрирован в базе аудита как бракованный ").arg(m_ui->mbNumberLineEd->text());
 	msgBox.setInformativeText(QObject::trUtf8("Вы хотите продолжить работу с этим документом?"));
@@ -241,19 +242,47 @@ void AskTheUser::enableInputFields(bool state)
   m_ui->copyNumberLineEd->setEnabled(state);
   m_ui->punktLineEd->setEnabled(state);
   m_ui->templatesCbox->setEnabled(state);
-  /*
-  m_ui->reciverOne_lineEd->setEnabled(state);
-  m_ui->reciverTwo_lineEd->setEnabled(state);
-  m_ui->reciverThree_lineEd->setEnabled(state);
-  m_ui->reciverFour_lineEd->setEnabled(state);
-  m_ui->reciverFive_lineEd->setEnabled(state);
-  m_ui->executor_lineEd->setEnabled(state);
-  m_ui->pressman_lineEd->setEnabled(state);
-  m_ui->telephone_lineEd->setEnabled(state);
-  m_ui->invNumber_lineEd->setEnabled(state);
-  m_ui->dateField_dateEd->setEnabled(state);
-  */
+}
 
+void AskTheUser::setTemplatesPath(QString global)
+{
+    global_templates_dir=global;
+}
+
+void AskTheUser::selectLocalTemplatesDir(bool mode)
+{
+    QString title_str;
+    QString find_dir;
+
+    if (mode){
+	m_ui->tmplLabel->setText(QObject::trUtf8("Личные шаблоны"));
+	QFileDialog::Options options = QFileDialog::DontResolveSymlinks | QFileDialog::ShowDirsOnly | QFileDialog::ReadOnly;
+	find_dir = QFileDialog::getExistingDirectory(this,
+							    title_str =QObject::trUtf8("Выберите ранее сохраненные индивидуальные шаблоны"),
+							    ".", options);
+    }
+
+    if (find_dir.isEmpty() ){
+	m_ui->tmplLabel->setText(QObject::trUtf8("Общие шаблоны"));
+	// Читаем шаблоны из папки глобальных шаблонов
+	find_dir=this->global_templates_dir;
+	m_ui->switch_Local_GlolbalBtn->setChecked(false);
+    }
+
+    if (!find_dir.isEmpty()){
+	m_ui->templatesCbox->clear();
+	QStringList filters;
+	filters << "*.tmpl" << "*.TMPL";
+
+	QDir dir(find_dir);
+	dir.setFilter(QDir::Files | QDir::Hidden | QDir::NoSymLinks);
+	dir.setNameFilters(filters);
+	QFileInfoList list = dir.entryInfoList();
+	for (int i = 0; i < list.size(); ++i) {
+	      QFileInfo fileInfo = list.at(i);
+	      m_ui->templatesCbox->addItem(fileInfo.fileName());
+	  }
+    }
 }
 
 void AskTheUser::setStampModel(QStringListModel *stamp_model)
