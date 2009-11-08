@@ -11,6 +11,7 @@
 
 #include "dcontroller.h"
 #include "asktheuser.h"
+#include "view.h"
 #include "workreport.h"
 
 namespace Ui {
@@ -28,6 +29,7 @@ private slots:
     void enableGUI(steps_t step,QString &message);
     void fill_docCard4Print(int Mode);
     void showErrorInfo();
+    void do_showTemplatesEditor();
 protected:
     void changeEvent(QEvent *e);
     void createConnection();
@@ -38,6 +40,7 @@ private:
     Ui::StartDlg  *ui;
     AskTheUser *askDlg;
     workReport  *wrkDlg;
+    View *templViewer;
     dController  *control;
 
 
