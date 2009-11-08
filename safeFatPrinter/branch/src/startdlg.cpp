@@ -9,6 +9,8 @@ StartDlg::StartDlg(QWidget *parent) :
 
     askDlg = new AskTheUser(this);
     wrkDlg = new workReport(this);
+    templViewer = new View(this);
+    //templViewer->hide();
     connectStep=false;
     convertStep=false;
 
@@ -53,16 +55,29 @@ void StartDlg::fill_docCard4Print(int Mode)
     askDlg->setWorkMode(Mode);
     askDlg->setModel(control->document_model());
     askDlg->setStampModel(control->stamp_model());
+    askDlg->setTemplatesPath(control->glob_templates());
 
     int ret = askDlg->exec();
     if (ret ==QDialog::Accepted){
+
+	QString in =control->mainPDF;
+	QString bg_file="d:\\compl_teml2.pdf";
+	QString out_file="d:\\out.pdf";
+	 control->mergeTwoPDF(in,bg_file,out_file);
+
 	switch (Mode){
 	    case 0:
 		if (askDlg->isCheckedPAO()){
+		    control->printWithTemplate(1);
+		    QString in =control->mainPDF;
+		    QString bg_file="d:\\compl_teml2.pdf";
+		    QString out_file="d:\\out.pdf";
+		     control->mergeTwoPDF(in,bg_file,out_file);
 		    //emit saveModelToBase(askDlg->getCurrentModelIndex());
 
 		}else{
 		    //emit PrintOutSideMark(askDlg->getCurrentModelIndex());
+		    control->printOverSide(1);
 		}
 		break;
 	    case 1:
@@ -105,14 +120,21 @@ void StartDlg::showErrorInfo()
     msgBox.setObjectName("crit_msg_box");
     msgBox.setIcon(QMessageBox::Critical);
 
-    QString msg=QObject::trUtf8("Для текущего пользователя нет ни одного доступного принтера. ");
-    msgBox.setInformativeText(QObject::trUtf8("Для решения этой проблемы обратитесь к системному администратору!"));
-    abortButton=msgBox.addButton(QObject::trUtf8("Завершить работу"), QMessageBox::RejectRole);
+    QString msg=QObject::trUtf8("Для пользователя %1 нет доступных принтеров. ").arg("sva");
+    msgBox.setInformativeText(QObject::trUtf8("Для решения этой проблемы обратитесь к администратору безопасности!"));
+    abortButton=msgBox.addButton(QObject::trUtf8("Выход"), QMessageBox::RejectRole);
     msgBox.setText(msg);
     msgBox.exec();
     if (msgBox.clickedButton()==abortButton){
 	QCoreApplication::quit();
     }
+}
+
+void StartDlg::do_showTemplatesEditor()
+{
+
+    askDlg->hide();
+    templViewer->exec();
 }
 
 StartDlg::~StartDlg()
@@ -132,8 +154,10 @@ void StartDlg::rabbitHole()
     connect (control,SIGNAL(mbNumberNotExist()),askDlg,SLOT(do_mbNumberNotExist()));
     // Сигналы от вопросника
     connect (askDlg,SIGNAL(needCheckMB(QString )),control,SLOT(checkMB(QString )));
-
+    connect (askDlg,SIGNAL(showTemplatesEditor()),this,SLOT(do_showTemplatesEditor()));
     // Сигналы от диалога_полследнего слова
+    // Сигналы от редактора шаблонов
+
 }
 
 void StartDlg::printToLog(QString & log_mes)
