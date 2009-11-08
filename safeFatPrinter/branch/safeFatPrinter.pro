@@ -14,10 +14,14 @@ HEADERS += src/asktheuser.h \
     src/startdlg.h \
     src/tech_global.h \
     src/workreport.h \
+<<<<<<< .mine
+    src/template_painter.h\
+=======
     src/proc_thread.h \
     src/net_agent.h \
     src/Spyder.h \
     src/config.h
+>>>>>>> .r214
 FORMS += ui/asktheuser.ui \
     ui/startdlg.ui
 SOURCES += src/asktheuser.cpp \
@@ -25,7 +29,12 @@ SOURCES += src/asktheuser.cpp \
     src/main.cpp \
     src/startdlg.cpp \
     src/workreport.cpp \
+<<<<<<< .mine
+    src/template_painter.cpp\
+
+=======
     src/proc_thread.cpp \
     src/net_agent.cpp \
     src/spyder.cpp
+>>>>>>> .r214
 RESOURCES += images.qrc
