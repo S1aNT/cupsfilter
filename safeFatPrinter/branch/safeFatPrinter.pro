@@ -19,11 +19,15 @@ HEADERS += src/asktheuser.h \
 =======
     src/proc_thread.h \
     src/net_agent.h \
-    src/Spyder.h \
-    src/config.h
+    src/spyder.h \
+    src/view.h \
+    src/simpleitem.h \
+    src/config.h \
+    src/templ_scene.h
 >>>>>>> .r214
 FORMS += ui/asktheuser.ui \
-    ui/startdlg.ui
+    ui/startdlg.ui \
+    ui/view.ui
 SOURCES += src/asktheuser.cpp \
     src/dcontroller.cpp \
     src/main.cpp \
@@ -35,6 +39,9 @@ SOURCES += src/asktheuser.cpp \
 =======
     src/proc_thread.cpp \
     src/net_agent.cpp \
-    src/spyder.cpp
+    src/view.cpp \
+    src/simpleitem.cpp \
+    src/spyder.cpp \
+    src/templ_scene.cpp
 >>>>>>> .r214
 RESOURCES += images.qrc
