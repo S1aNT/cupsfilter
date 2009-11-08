@@ -74,7 +74,7 @@ void dController::mergeTwoPDF(QString &fg_file,QString &bg_file,QString &out_fil
     //pdftk in.pdf background back.pdf output out.pdf
     //pdftk in.pdf stamp back.pdf output out.pdf
     args.append(fg_file);
-    args.append("stamp");
+    args.append("background");
     args.append(bg_file);
     args.append("output");
     args.append(out_file);
@@ -207,7 +207,7 @@ void dController::read_settings()
     settings.endGroup();
     settings.beginGroup("TEMPLATES");
     localTemplates=settings.value("local_templates","%APPDATA%/vprinter/local_templates/").toString();
-    globalTemplates=settings.value("global_templates","%APPDATA%/vprinter/global_templates/").toString();
+    globalTemplates=settings.value("global_templates","./global_templates/").toString();
     ftpTemplatesDir=settings.value("ftp_templates_dir","ftp://127.0.0.1/pub/templates/").toString();
     settings.endGroup();
 #endif
@@ -365,4 +365,152 @@ void dController::getTemplatesFromServer(QString &saveTo)
 
     }
 
+}
+
+void dController::printWithTemplate (int RowId)
+{
+
+    qDebug()<<Q_FUNC_INFO;
+    //TODO это должно быть в отдельном классе !!!
+    QGraphicsScene * scene = new QGraphicsScene();
+
+    bool page_orient= false;
+    int margin_top = MM_TO_POINT(15);
+    int margin_bottom=MM_TO_POINT(15);
+    int margin_left=MM_TO_POINT(35);
+    int margin_right=MM_TO_POINT(15);
+
+    int page_width=210;
+    int page_height=297;
+    scene->clear();
+    scene->setSceneRect(0, 0, MM_TO_POINT(page_width),MM_TO_POINT(page_height));
+
+QGraphicsRectItem *border_rect = new QGraphicsRectItem (QRectF(margin_left, margin_top, MM_TO_POINT(page_width)-margin_left-margin_right,MM_TO_POINT(page_height)-margin_top-margin_bottom));
+    qDebug() <<"margin_rect"<< margin_left << margin_top << margin_left<<margin_right;
+    border_rect->setPen(QPen(Qt::black,2,Qt::DotLine));
+    border_rect->setBrush(QBrush(Qt::white));
+    border_rect->setOpacity(0.5);
+    border_rect->setZValue(0);
+    //border_rect->setData(ObjectName, "Border");
+    scene->addItem(border_rect);
+
+
+	    SimpleItem* Gritem = new SimpleItem;
+	    Gritem->setPos(MM_TO_POINT(180), MM_TO_POINT(0));
+	    Gritem->setPrintFrame(false);
+	    Gritem->setText(QStringList()<<QString("Секретно")<<QString("Пункт 12"));
+
+	    Gritem->setFlag(QGraphicsItem::ItemIsMovable);
+
+	    Gritem->setParentItem(border_rect);
+
+	    SimpleItem* MBitem = new SimpleItem;
+	    MBitem->setPos(MM_TO_POINT(5), MM_TO_POINT(280));
+	    MBitem->setPrintFrame(false);
+	    MBitem->setText(QStringList()<<QString("МБ №-%1"));//.arg(templ));
+	    MBitem->setFlag(QGraphicsItem::ItemIsMovable);
+
+	    scene->addItem(MBitem);//->setParentItem(border_rect);
+
+	scene->update();
+
+    QPrinter printer;
+    QString with_t;
+    with_t.append(spoolDIR).append("compl_teml2.pdf");
+
+     printer.setOutputFormat(QPrinter::PdfFormat);
+     printer.setOutputFileName(with_t);
+     printer.setPageSize(QPrinter::A4);
+     QPainter painter(&printer);
+     scene->render(&painter);
+
+     //QString in_file =mainPDF;
+     //in_file.arg(QString(SID));
+     qDebug() <<Q_FUNC_INFO<< mainPDF << outPDF;
+     this->mergeTwoPDF(mainPDF,with_t,outPDF);
+     // Рисуем последнюю страничку
+     scene->clear();
+    border_rect = new QGraphicsRectItem (QRectF(margin_left, margin_top, MM_TO_POINT(page_width)-margin_left-margin_right,MM_TO_POINT(page_height)-margin_top-margin_bottom));
+    qDebug() <<"margin_rect"<< margin_left << margin_top << margin_left<<margin_right;
+    border_rect->setPen(QPen(Qt::black,2,Qt::DotLine));
+    border_rect->setBrush(QBrush(Qt::white));
+    border_rect->setOpacity(0.5);
+    border_rect->setZValue(0);
+    //border_rect->setData(ObjectName, "Border");
+    scene->addItem(border_rect);
+
+
+	    SimpleItem* Lastitem = new SimpleItem;
+	    Lastitem->setPos(MM_TO_POINT(40), MM_TO_POINT(200));
+	    Lastitem->setPrintFrame(true);
+	    Lastitem->setText(QStringList()<<QString("Секретно")
+							 <<QString("Пункт 12")
+							 <<QString("Исполнитель:ФИО исполнителя")
+							 <<QString("Отпечатал:ФИО кто печатал")
+							 <<QString("Телефон:2-63-15")
+							 <<QString("Инв.№ 12/13")
+							 <<QString("Дата: 09.09.09'")
+							 <<QString("МБ №-%1"));//.arg(templ)
+							//);
+
+	    Lastitem->setFlag(QGraphicsItem::ItemIsMovable);
+
+	    scene->addItem(Lastitem);//->setParentItem(border_rect);
+     QPrinter printer2;
+
+     printer2.setOutputFormat(QPrinter::PdfFormat);
+     QString last_p;
+     last_p.append(spoolDIR).append("last_page.pdf");
+     printer2.setOutputFileName(last_p);
+     printer2.setPageSize(QPrinter::A4);
+     QPainter painter2(&printer2);
+     scene->render(&painter2);
+
+    // emit sayMeGood();
+}
+void dController::printOverSide(int RowId)
+{
+
+    //TODO это должно быть в отдельном классе !!!
+    QGraphicsScene *scene = new QGraphicsScene();
+
+    bool page_orient= false;
+   int  margin_top = MM_TO_POINT(15);
+   int  margin_bottom=MM_TO_POINT(15);
+    int margin_left=MM_TO_POINT(35);
+    int margin_right=MM_TO_POINT(15);
+    int page_width=210;
+    int page_height=297;
+
+    scene->clear();
+    scene->setSceneRect(0, 0, MM_TO_POINT(page_width),MM_TO_POINT(page_height));
+
+    QGraphicsRectItem *border_rect = new QGraphicsRectItem (QRectF(margin_left, margin_top, MM_TO_POINT(page_width)-margin_left-margin_right,MM_TO_POINT(page_height)-margin_top-margin_bottom));
+    qDebug() <<"margin_rect"<< margin_left << margin_top << margin_left<<margin_right;
+    border_rect->setPen(QPen(Qt::black,2,Qt::DotLine));
+    border_rect->setBrush(QBrush(Qt::white));
+    border_rect->setOpacity(0.5);
+    border_rect->setZValue(0);
+    //border_rect->setData(ObjectName, "Border");
+    scene->addItem(border_rect);
+
+	    SimpleItem* MBitem = new SimpleItem;
+	    MBitem->setPos(MM_TO_POINT(5), MM_TO_POINT(280));
+	    MBitem->setPrintFrame(false);
+	    MBitem->setText(QStringList()<<QString("МБ №-%1"));
+	    MBitem->setFlag(QGraphicsItem::ItemIsMovable);
+
+	    MBitem->setParentItem(border_rect);
+	    //scene->addItem(MBtem);
+	scene->update();
+
+    QPrinter printer;
+    printer.setPrinterName(curPrinter); //Печать на реальный принтер
+     //printer.setOutputFormat(QPrinter::PdfFormat);
+     //printer.setOutputFileName("overside.pdf");
+     //printer.setPageSize(QPrinter::A4);
+     QPainter painter(&printer);
+     scene->render(&painter);
+
+     //emit sayMeGood();
 }

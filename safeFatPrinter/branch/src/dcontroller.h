@@ -13,12 +13,14 @@
 #include <QDate>
 #include <QPrinterInfo>
 #include <QCoreApplication>
+#include <QGraphicsScene>
 
+#include "simpleitem.h"
 #include "tech_global.h"
 #include "proc_thread.h"
 #include "net_agent.h"
 #include "spyder.h"
-
+#define MM_TO_POINT(mm) ((mm)*2.83465058)
 
 class dController : public QObject
 {
@@ -30,7 +32,10 @@ public:
     QStringListModel *stamp_model() const{ return stampModel;}
     bool isUser_Mandat() const;
     QStringList printers_list() const {return printerList;}
-
+    QString glob_templates() const {return globalTemplates;};
+    void printWithTemplate (int RowId);
+    void printOverSide(int RowId);
+    QString mainPDF;	 // Файл который получился в результате конвертирования исходного
 public slots:
     void connect2Demon(); // Соединение с настройками по умолчанию
     // Преобразует выходной файл в pdf
@@ -91,7 +96,7 @@ private:
     int timeout_read;
     int timeout_write;
 
-    QString mainPDF;	 // Файл который получился в результате конвертирования исходного
+
     QString gsBin;	// путь к исполняемому файлу ghostscript
     QString pdftkBin;	// Путь к файлу pdfTK (питоновский скрип под линуксом)
     QString outPDF;
