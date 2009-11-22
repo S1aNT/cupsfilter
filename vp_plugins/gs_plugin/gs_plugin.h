@@ -10,6 +10,7 @@
 #include <QFile>
 #include <QDir>
 #include <QProcess>
+#include <QRegExp>
 
 #include "igs_plugin.h"
 
@@ -18,33 +19,43 @@ class gs_plugin :public QObject, Igs_plugin
 {
     Q_OBJECT
     Q_INTERFACES(Igs_plugin)
+    Q_ENUMS(TaskState)
+
 public:
+    enum TaskState {converted,merged,splitted,printed };
+
     gs_plugin(QObject *parent=0){}
-    void init(const QString &gs_bin,const QString &grep_bin,const QString &temp_folder,const QString &sid);
+    bool init(const QString &gs_bin,const QString &pdftk_bin,const QString &temp_folder,const QString &sid);
     QString getFirstPages(){return firstPage_fn;};
     QString getOtherPages(){return otherPages_fn;};
-    void convertPs2Pdf(QString &input_fn);
-    int pageCount(QString &input_fn);
-    QPixmap convertPdf2Png(QString &fn, int beginPage,int lastPage, int Width);
-    void merge2Pdf(QString &input_fn,QString &background_fn);
-    void printPdf(QString &print_fn,QString &printer_name);
+    void convertPs2Pdf(const QString &input_fn);
+    int pageCount(const QString &input_fn);
+    QPixmap convertPdf2Png(const QString &fn, int beginPage,int Width);
+    void merge2Pdf(const QString &input_fn,const QString &background_fn,const QString &output_fn);
+    void printPdf(const QString &print_fn,const QString &printer_name);
+    void addPdfMark(const QString &input_fn,const QStringList mark);
 
 signals:
     void error(const QString &error_message);
-    void StateChanged(State state);
+    void StateChanged(TaskState state);
 
 private:
 
     QString gsBin;
     QString tempPath;
-    QString grepBin;
+    QString pdftkBin;
     QStringList args;
     QString Sid;
     QString firstPage_fn;
     QString otherPages_fn;
+    QString mainPDF;
+
     QPixmap pageSnapShot;
-    int PageCountInDoc; // Число страниц в конвертируемом документе
-    int callGS(const QStringList &gs_args);
+    int pagesCount; // Р§РёСЃР»Рѕ СЃС‚СЂР°РЅРёС† РІ РєРѕРЅРІРµСЂС‚РёСЂСѓРµРјРѕРј РґРѕРєСѓРјРµРЅС‚Рµ
+
+    void splitPdf(const QString &source_fn,const QString &firts_page_fn,const QString &other_page_fn);
+    QString startProc(const QString &bin,const QStringList &proc_args);
+
 };
 
 
