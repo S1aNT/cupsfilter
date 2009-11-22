@@ -20,9 +20,9 @@ class net_plugin :public QObject, Inet_plugin
 
 public:
     net_plugin(QObject *parent=0);
-    void init(QString &host,int port);
+    bool init(QString &host,int port);
     void sendData(const QString &cmd);
-    bool state(){return conn_state;};
+    bool state(){return con_state;};
 
 signals:
     void serverResponse(QString line);
@@ -37,7 +37,7 @@ private:
 private slots:
     void readyRead();
     void onConnected();
-//    void error (QAbstractSocket::SocketError socketError) 
+//    void error (QAbstractSocket::SocketError socketError)
 
 };
 
