@@ -8,10 +8,10 @@ class Inet_plugin{
 
 public:
     virtual ~Inet_plugin() {}
-    virtual void init(QString &host,int port)=0;
+    virtual bool init(QString &host,int port)=0;
     virtual void sendData(const QString &cmd)=0;
     virtual bool state()=0;
-    
+
 };
 
 
