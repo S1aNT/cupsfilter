@@ -3,26 +3,22 @@
 
 #include <QString>
 #include <QPixmap>
+#include <QStringList>
 
-typedef enum{
-    gsPluginLoaded,
-    converted,
-    merged,
-    printed
-}State;
 
 class Igs_plugin{
 
 public:
     virtual ~Igs_plugin() {}
-    virtual void init(const QString &gs_bin,const QString &grep_bin,const QString &temp_folder,const QString &sid)=0;
+    virtual bool init(const QString &gs_bin,const QString &pdftk_bin,const QString &temp_folder,const QString &sid)=0;
     virtual QString getFirstPages()=0;
     virtual QString getOtherPages()=0;
-    virtual void convertPs2Pdf(QString &input_fn)=0;
-    virtual int pageCount(QString &input_fn)=0;
-    virtual QPixmap convertPdf2Png(QString &fn, int beginPage,int lastPage, int Width )=0;
-    virtual void merge2Pdf(QString &input_fn,QString &background_fn)=0;
-    virtual void printPdf(QString &print_fn,QString &printer_name)=0;
+    virtual void convertPs2Pdf(const QString &input_fn)=0;
+    virtual int pageCount(const QString &input_fn)=0;
+    virtual QPixmap convertPdf2Png(const QString &fn, int beginPage, int Width )=0;
+    virtual void merge2Pdf(const QString &input_fn,const QString &background_fn,const QString &output_fn)=0;
+    virtual void printPdf(const QString &print_fn,const QString &printer_name)=0;
+    virtual void addPdfMark(const QString &input_fn,const QStringList mark)=0;
 };
 
 
