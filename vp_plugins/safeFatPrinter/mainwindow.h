@@ -4,7 +4,9 @@
 #include <QDir>
 #include <QtGui>
 #include <QMessageBox>
+#include <QErrorMessage>
 
+#include "mediator.h"
 
 namespace Ui {
     class MainWindow;
@@ -21,12 +23,15 @@ protected:
 
 public slots:
     void showInfo(QString info);
+    void updateStatusBar(Mediator::PluginState state);
 private slots:
     void getUserName();
+    void showError(QString &info);
 
 private:
     Ui::MainWindow *ui;
-
+    Mediator *SpiderInTheMiddle; // Центральный элемент который знает все о всех :)
+    QErrorMessage *errorMessageDialog;
 
 
     QString userName;
