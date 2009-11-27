@@ -18,7 +18,7 @@ bool gs_plugin::init(const QString &gs_bin, const QString &pdftk_bin, const QStr
                 mainPDF = QObject::trUtf8("%1/%2_main.pdf").arg(this->tempPath, this->Sid);
                 firstPage_fn = QObject::trUtf8("%1/%2_first.pdf").arg(this->tempPath, this->Sid);
                 otherPages_fn = QObject::trUtf8("%1/%2_other.pdf").arg(this->tempPath, this->Sid);
-
+                pdf2png_page = QObject::trUtf8("%1/%2_page.png").arg(this->tempPath, this->Sid);
                 if (QFile::exists(pdftk_bin)) {
                     // Проверим факт существования по указанному пути бинарника grep
                     pdftkBin = pdftk_bin;
@@ -78,6 +78,7 @@ void gs_plugin::convertPs2Pdf(const QString &input_fn)
       3 - разбиение полученного файла на первую и последующие страницы
     */
     // Проверим фактик наличия входного файла
+    qDebug() << Q_FUNC_INFO << input_fn;
     if (QFile::exists(input_fn)) {
         ProcessT *proc = new ProcessT();
         // Обработчик сообщений файлового потока
@@ -94,7 +95,8 @@ void gs_plugin::convertPs2Pdf(const QString &input_fn)
         args.append(input_fn);
         proc->execute(gsBin, args,QProcess::MergedChannels);
     }else {
-        emit error(QObject::trUtf8("ERROR : Файл %1 не найден\n").arg(input_fn));
+        QString e_msg = QObject::trUtf8("ERROR : Файл %1 не найден\n").arg(input_fn);
+        emit error(e_msg);
     }
 }
 void gs_plugin::splitPdf(const QString &source_fn, const QString &firts_page_fn,const QString &other_page_fn)
@@ -139,10 +141,12 @@ void gs_plugin::getPageCount(const QString &input_fn)
 }
 void gs_plugin::merge2Pdf(const QString &input_fn, const QString &background_fn,const QString &output_fn)
 {//pdftk in.pdf background back.pdf output out.pdf
+    QString e_msg;
     if (!QFile::exists(input_fn)) {
-        emit error (QObject::trUtf8("ERROR : Файл %1 не найден или отсутствуют права доступа").arg(input_fn));
+        e_msg =QObject::trUtf8("ERROR : Файл %1 не найден или отсутствуют права доступа").arg(input_fn);
+
     }else if (!QFile::exists(background_fn)) {
-        emit error (QObject::trUtf8("ERROR : Файл %1 не найден или отсутствуют права доступа").arg(background_fn));
+        e_msg=QObject::trUtf8("ERROR : Файл %1 не найден или отсутствуют права доступа").arg(background_fn);
     }else {
         args.clear();
         args.append(input_fn);
@@ -155,19 +159,23 @@ void gs_plugin::merge2Pdf(const QString &input_fn, const QString &background_fn,
         connect(proc,SIGNAL(commandOutput(int,QString)),this,SLOT(parseMergeThread(int,QString)));
         proc->execute(pdftkBin, args,QProcess::MergedChannels);
     }
+
+    if (!e_msg.isNull()){
+        emit error (e_msg);
+    }
 }
 void gs_plugin::addPdfMark(const QString &input_fn,const QString &user_name,const QString &host_name,quint16 host_ip )
 {
-
+    QString e_msg;
     QTemporaryFile file_tmp;
     QTemporaryFile file_pdfMark;
     QFile file_in;
-
     if (!QFile::exists(input_fn)){
-        emit error (QObject::trUtf8("ERROR : Файл % не существует\n").arg(input_fn));
+       e_msg =QObject::trUtf8("ERROR : Файл % не существует\n").arg(input_fn);
     }else{
         if (user_name.isEmpty()){
-            emit error (QObject::trUtf8("ERROR :Имя пользователя не может быть пустым"));
+            e_msg=QObject::trUtf8("ERROR :Имя пользователя не может быть пустым");
+        }else{
             // host_name  и IP адрес не проверяем или стоит все таки ?
 
             file_in.rename(input_fn,file_tmp.fileName());
@@ -198,13 +206,34 @@ void gs_plugin::addPdfMark(const QString &input_fn,const QString &user_name,cons
                 // Обработчик сообщений файлового потока
                 connect(proc,SIGNAL(commandOutput(int,QString)),this,SLOT(parseAddPdfMarkThread(int,QString)));
                 proc->execute(pdftkBin, args,QProcess::MergedChannels);
-
+            }else{
+                e_msg=QObject::trUtf8("Не могу создать файл %1 мета данных").arg(file_pdfMark.fileName());
             }
         }
     }
+    if (!e_msg.isNull()){
+        emit error (e_msg);
+    }
 }
 void gs_plugin::printPdf(const QString &print_fn, const QString &printer_name)
-{
+{ //-q -dQUIET -dNOPAUSE -dPARANOIDSAFER -dBATCH -r300 -sDEVICE=pdfwrite -sOutputFile="%%printer%%pdfcreator" -c .setpdfwrite -f %1
+
+    args.clear();
+    args.append("-q");
+    args.append("-dQUIET");
+    args.append("-dNOPAUSE");
+    args.append("-dBATCH");
+    args.append("-r600");
+    args.append("-sDEVICE=pdfwrite");
+    args.append(QString("-sOutputFile=\"\%printer\%%1\"").arg(printer_name));
+    args.append("-c");
+    args.append(".setpdfwrite");
+    args.append("-f");
+    args.append(print_fn);
+    ProcessT *proc = new ProcessT();
+    // Обработчик сообщений файлового потока
+    //connect(proc,SIGNAL(commandOutput(int,QString)),this,SLOT(parsePrintThread(int,QString)));
+    proc->execute(gsBin, args,QProcess::MergedChannels);
 
 }
 
@@ -270,7 +299,8 @@ void gs_plugin::parsePageCountThread(int Code,QString output)
         }
         switch (pagesCount) {
         case 0:
-            emit error (QObject::trUtf8("ERROR :  Ошибка разбора документа PDF %1").arg(mainPDF));
+            msg = QObject::trUtf8("ERROR :  Ошибка разбора документа PDF %1").arg(mainPDF);
+            emit error (msg);
             break;
         case 1:
             QFile::copy(mainPDF, firstPage_fn);
@@ -281,6 +311,22 @@ void gs_plugin::parsePageCountThread(int Code,QString output)
             break;
         }
 
+    }
+}
+
+void gs_plugin::clearAll()
+{// Удаляем за собой все файлы созданные в ходе работы
+    if (!QFile::exists(firstPage_fn)) {
+        QFile::remove(firstPage_fn);
+    }
+    if (!QFile::exists(otherPages_fn)) {
+        QFile::remove(otherPages_fn);
+    }
+    if (!QFile::exists(mainPDF)) {
+        QFile::remove(mainPDF);
+    }
+    if (!QFile::exists(pdf2png_page)) {
+        QFile::remove(pdf2png_page);
     }
 }
 
@@ -305,10 +351,46 @@ void gs_plugin::parseAddPdfMarkThread(int Code,QString output )
         emit StateChanged(pdfMarkAdded);
     }
 }
-//********************************************************************************************
-QPixmap gs_plugin::convertPdf2Png(const QString &fn, int beginPage, int Width)
+void gs_plugin:: parseCnv2PngThread(int Code,QString output)
 {
-    return pageSnapShot;
+    QString msg;
+    if (Code != QProcess::NormalExit) {
+        msg =QObject::trUtf8("ERROR : Ошибка преобразования запрошенной страницы в png\n%1:\nКод %2").arg(output).arg(Code,0,10);
+        emit error(msg);
+    }else{
+        // Читаем файлик
+
+        if (currentPageSnapShot.load(pdf2png_page)){
+            emit StateChanged(previewedPage);
+        }else{
+            msg = QObject::trUtf8("ERROR : Загрузка файл %1 не удачна\n").arg(pdf2png_page);
+            emit error(msg);
+        }
+
+    }
+}
+
+//********************************************************************************************
+void gs_plugin::convertPdf2Png(const QString &fn, int convertedPage)
+{// -q -sDEVICE=png16m -dBATCH -dNOPAUSE -dFirstPage=1 -dLastPage=1 -r300 -sOutputFile=test.png %1
+    if (QFile::exists(pdf2png_page)) {
+        QFile::remove(pdf2png_page); // Удалим файлик
+    }
+    args.clear();
+    args.append("-q");
+    args.append("-sDEVICE=png16m");
+    args.append("-dBATCH");
+    args.append("-dNOPAUSE");
+    args.append("-r300");
+    args.append(QString("-dFirstPage=%1").arg(convertedPage));
+    args.append(QString("-dLastPage=%1").arg(convertedPage));
+    args.append(QString("-sOutputFile=%1").arg(pdf2png_page));
+    args.append(fn);
+
+    ProcessT *proc = new ProcessT();
+    // Обработчик сообщений файлового потока
+    connect(proc,SIGNAL(commandOutput(int,QString)),this,SLOT(parseCnv2PngThread(int,QString)));
+    proc->execute(gsBin, args,QProcess::MergedChannels);
 }
 
 Q_EXPORT_PLUGIN2(Igs_plugin, gs_plugin)
