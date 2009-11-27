@@ -1,12 +1,14 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
+#include <QDebug>
 #include <QPluginLoader>
 #include <QDir>
 #include <QtGui>
 #include <QMessageBox>
-#include <QErrorMessage>
+#include <QFileDialog>
 
 #include "mediator.h"
+#include "tech_global.h"
 
 namespace Ui {
     class MainWindow;
@@ -17,31 +19,28 @@ class MainWindow : public QMainWindow {
 public:
     MainWindow(QWidget *parent = 0);
     ~MainWindow();
-
+    void setSpider(Mediator *spider);
 protected:
     void changeEvent(QEvent *e);
 
 public slots:
-    void showInfo(QString info);
-    void updateStatusBar(Mediator::PluginState state);
+    //void updateStatusBar(plugin_state_t state);
+    void showAuthWindow(QString &);
+    void enableGUI();
 private slots:
     void getUserName();
     void showError(QString &info);
 
 private:
     Ui::MainWindow *ui;
-    Mediator *SpiderInTheMiddle; // Центральный элемент который знает все о всех :)
-    QErrorMessage *errorMessageDialog;
-
+    Mediator *spiderInTheMiddle; // Центральный элемент который знает все о всех :)
 
     QString userName;
-
     QLineEdit *lineEdit;
     QLabel *label;
     QPushButton *button;
     QGridLayout *layout;
-
-
+    int Mode;
 };
 
 #endif // MAINWINDOW_H
