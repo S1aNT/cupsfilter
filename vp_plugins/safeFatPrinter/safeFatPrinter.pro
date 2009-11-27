@@ -13,10 +13,10 @@ SOURCES += main.cpp \
 HEADERS += mainwindow.h \
     ../interfaces/inet_plugin.h \
     mediator.h \
-    ../interfaces/config.h \
+    ../global/config.h \
     firstask.h \
     getusernamemandatdlg.h \
-    ../interfaces/tech_global.h
+    ../global/tech_global.h
 FORMS += mainwindow.ui \
     firstask.ui \
     getusernamemandatdlg.ui
