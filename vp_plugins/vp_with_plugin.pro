@@ -5,5 +5,6 @@
 TEMPLATE	= subdirs
 SUBDIRS	= safeFatPrinter \
 	net_plugin \
-	gs_plugin
+	gs_plugin \
+	auth_plugin
 
