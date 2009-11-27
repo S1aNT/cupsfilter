@@ -7,8 +7,8 @@ net_plugin::net_plugin(QObject *parent)
 
 void net_plugin::onConnected()
 {
-    QString message = QString("/me:%1");//.arg(SID_string);
-    client->write(QString(message + "\n").toUtf8());
+    QString message =QString("/me;:;%1;:;%2").arg(Sid).arg(REGISTER_CMD,0,10);
+    client->write(QString(message+"\n").toUtf8());
 
 }
 void net_plugin::readyRead()
@@ -21,30 +21,42 @@ void net_plugin::readyRead()
 
 }
 
-bool net_plugin::init(QString &host, int port)
+void net_plugin::init(const QString &host, int port,const QString &sid)
 {
     this->HostName = host;
     this->Port = port;
-
+    this->Sid=sid;
     client = new QTcpSocket(this);
     connect(client, SIGNAL(readyRead()), this, SLOT(readyRead()));
     connect(client, SIGNAL(connected()), this, SLOT(onConnected()));
+    connect(client, SIGNAL(error(QAbstractSocket::SocketError)),this, SLOT(selectError(QAbstractSocket::SocketError)));
     client->connectToHost(HostName, Port);
-    if (!client->waitForConnected(i_timeout_connect)) {
-        QString msg = QObject::trUtf8("Error: %1\n%2");
-        msg.arg(client->error(), 0, 10).arg(client->errorString());
-        emit error(msg);
-        return false;
-    }else {
-        return true;
-    }
+}
 
+void net_plugin::selectError(QAbstractSocket::SocketError err)
+{
+    QString e_msg;
+    switch(err)
+    {
+    case QAbstractSocket::ConnectionRefusedError :
+        e_msg =QObject::trUtf8("Cоединение не выполнено | connection refused");
+        break;
+    case QAbstractSocket::HostNotFoundError :
+        e_msg =QObject::trUtf8("Удаленный сервер не найден | host not found");
+        break;
+    case QAbstractSocket::SocketTimeoutError :
+        e_msg =QObject::trUtf8("Превышено время ожидания ответа от сервера | The socket operation timed out.");
+        break;
+    }
+    emit error(e_msg);
 }
 
 void net_plugin::sendData(const QString &cmd)
 {
+    qDebug()<< Q_FUNC_INFO << cmd << client->state();
+
     if (!cmd.isEmpty()) {
-        client->write(QString(cmd + "\n").toUtf8());
+        client->write(QString(cmd+"\n").toUtf8());
     }
 }
 

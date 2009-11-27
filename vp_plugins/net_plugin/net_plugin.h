@@ -7,11 +7,8 @@
 #include <QtPlugin>
 
 #include "inet_plugin.h"
+#include "tech_global.h"
 
-// timeouts are in ms
-static const int i_timeout_connect	= 3000;
-static const int i_timeout_read		= 3000;
-static const int i_timeout_write	= 3000;
 
 class net_plugin :public QObject, Inet_plugin
 {
@@ -20,24 +17,26 @@ class net_plugin :public QObject, Inet_plugin
 
 public:
     net_plugin(QObject *parent=0);
-    bool init(QString &host,int port);
+    void init(const QString &host,int port,const QString &sid);
     void sendData(const QString &cmd);
-    bool state(){return con_state;};
+    //bool state(){return con_state;};
 
 signals:
-    void serverResponse(QString line);
-    void error(const QString &error_message);
+    void serverResponse(QString &line);
+    void error(QString error_message);
+
 
 private:
     QString HostName;
     quint16 Port;
     QTcpSocket *client;
-    bool con_state;
+    //bool con_state;
+    QString Sid;
 
 private slots:
     void readyRead();
     void onConnected();
-//    void error (QAbstractSocket::SocketError socketError)
+    void selectError(QAbstractSocket::SocketError err);
 
 };
 
