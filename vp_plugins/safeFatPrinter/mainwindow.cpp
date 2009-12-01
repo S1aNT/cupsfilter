@@ -6,57 +6,112 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    /*
+
+    QDesktopWidget desktop;
+    QRect rect = desktop.availableGeometry(desktop.primaryScreen());
+    //получаем прямоугольник с размерами как у экрана
+    centerWindow = rect.center(); //получаем координаты центра экрана
+    centerWindow.setX(centerWindow.x() - (this->width()/2));
+    centerWindow.setY(centerWindow.y() - (this->height()/2));
+
+
     SpiderInTheMiddle = new Mediator(this);
-    //connect (SpiderInTheMiddle,SIGNAL(StateChanged(plugin_state_t )),this,SLOT(updateStatusBar(plugin_state_t)));
-    connect (SpiderInTheMiddle,SIGNAL(error(QString &)),this,SLOT(showError(QString &)));
-    connect (SpiderInTheMiddle,SIGNAL(needShowAuthWindow(QString &)),this,SLOT(showAuthWindow(QString &)));
-    */
+    UMDlg = new getUserNameMandatDlg(this);
+    askDlg = new firstAsk(this);
+
+    askDlg->setWindowFlags(Qt::Dialog |  Qt::CustomizeWindowHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint | Qt::WindowSystemMenuHint);
+
+    connect (SpiderInTheMiddle,SIGNAL(error (QString )),this,SLOT(showCritError(QString)));
+    connect (SpiderInTheMiddle,SIGNAL(needShowAuthWindow(QString &)),this,SLOT(showAuthWindow(QString&)));
+    connect (SpiderInTheMiddle,SIGNAL(needShowSelectWindow()),this,SLOT(showSelectWindow()));
+    connect (SpiderInTheMiddle,SIGNAL(pluginLoad(const QString &,int, const QColor &)),this,SIGNAL(pluginLoad(const QString &,int, const QColor &)));
+    connect (qApp,SIGNAL(aboutToQuit()),this,SLOT(cleanUp()));
+    connect (askDlg,SIGNAL(printerSelected(QString)),SpiderInTheMiddle,SLOT(authToPrinter(QString)));
 }
 
-void MainWindow::setSpider(Mediator *spider)
+void MainWindow::setFileToWork(QString &in_file)
 {
-    spiderInTheMiddle =spider;
+    mainFileName=in_file;
 }
 
-
-
-void MainWindow::enableGUI()
+void MainWindow::loadPlugin(const QString &app_dir)
 {
-    //statusBar()->showMessage( );
+    SpiderInTheMiddle->loadPlugin(app_dir);
+}
+
+void MainWindow::showCritError(QString e_msg)
+{
+    QMessageBox msgBox;
+    QPushButton *abortButton;
+    msgBox.setIcon(QMessageBox::Critical);
+    msgBox.setInformativeText(QObject::trUtf8("Для решения этой проблемы обратитесь к администратору безопасности!"));
+    abortButton=msgBox.addButton(QObject::trUtf8("Выход"), QMessageBox::RejectRole);
+    msgBox.setText(e_msg);
+    QObject::connect(&msgBox,SIGNAL(rejected()),qApp,SLOT(quit()));
+    msgBox.exec();
+}
+
+void MainWindow::cleanUp()
+{
+    // в 1937 это называлось ЗАЧИСТКОЙ :)
+
+    qDebug() << Q_FUNC_INFO << "cleanup" << this->sender();
+}
+
+//************************ Private slots ***************************
+void MainWindow::checkPluginReady()
+{
+    emit closeSplash();
+}
+
+void MainWindow::showSelectWindow()
+{
+    QString msg;
+    msg=QObject::trUtf8("[%1] Выбери принтер и режим работы").arg(SpiderInTheMiddle->getUserName());
+    askDlg->setWindowTitle(msg);
+    int ret = askDlg->exec();
+    if (ret == QDialog::Accepted){
+        emit closeSplash();
+        this->show();
+        switch (askDlg->getCurrentMode()){
+        case 0:
+            break;
+        case 1:
+            break;
+        case 2:
+            break;
+        }
+    }
 }
 
 void MainWindow::showAuthWindow(QString &user_name)
 {
-    /*
-
     QString msg;
-    UMDlg = new getUserNameMandatDlg(this);
     UMDlg->setUserName(user_name);
-    //UMDlg->setMandatModel(SpiderInTheMiddle->mandat_model());
-    //TODO изменить на центр экрана
-    QPoint pos = QPoint(300, 300);
-    UMDlg->move(pos);
+    UMDlg->setMandatModel(SpiderInTheMiddle->mandat_model());
+    UMDlg->move(centerWindow);
     int ret = UMDlg->exec();
-    if (ret ==QDialog::Accepted){
-        //SpiderInTheMiddle->setUserMandat(UMDlg->getCurrentUserMandat());
+    if (ret == QDialog::Accepted){
+        SpiderInTheMiddle->setUserMandat(UMDlg->getCurrentMandat());
 
         msg= QObject::trUtf8("Авторизация с консоли");
         this->statusBar()->showMessage(msg);
-        //control->getStampName();
-        //control->getPrinterCount();
     }else{
-
+        close();
         //msg= QObject::trUtf8("Ошибка получения имени пользователя или его мандата");
     }
-*/
+
 }
+//***************************************************************************************
+
+
 
 MainWindow::~MainWindow()
 {
     delete ui;
 }
 
+//***************************************************************************************
 
 /*
 void MainWindow::updateStatusBar(plugin_state_t state)
@@ -79,26 +134,9 @@ void MainWindow::updateStatusBar(plugin_state_t state)
     statusBar()->showMessage(msg);
 }
 */
-void MainWindow::showError(QString &info)
-{
-    this->Mode=ERROR;
 
-    QMessageBox msgBox;
-    msgBox.setObjectName("info_msg_box");
-    msgBox.setText(info);
-    msgBox.addButton(QObject::trUtf8("OK"),QMessageBox::AcceptRole);
-    msgBox.exec();
-}
 
-void MainWindow::getUserName()
-{
-    //net_plugin_Interface->sendData(tr("/cmd;:;300;:;test"));
-   QFileDialog *f_dialog = new QFileDialog(this);
-   //connect (f_dialog,SIGNAL(fileSelected(QString)),this,SLOT(showInfo(QString)));
-//   connect (f_dialog,SIGNAL(fileSelected(QString &)),SpiderInTheMiddle,SLOT(convert2pdf(QString &)));
-   f_dialog->exec();
 
-}
 
 void MainWindow::changeEvent(QEvent *e)
 {

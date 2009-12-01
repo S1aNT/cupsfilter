@@ -5,9 +5,12 @@
 #include <QDir>
 #include <QtGui>
 #include <QMessageBox>
-#include <QFileDialog>
+#include <QDesktopWidget>
+
 
 #include "mediator.h"
+#include "firstask.h"
+#include "getusernamemandatdlg.h"
 #include "tech_global.h"
 
 namespace Ui {
@@ -19,28 +22,32 @@ class MainWindow : public QMainWindow {
 public:
     MainWindow(QWidget *parent = 0);
     ~MainWindow();
-    void setSpider(Mediator *spider);
+   void setFileToWork(QString &in_file);
+   void loadPlugin(const QString &app_dir);
+
+
 protected:
     void changeEvent(QEvent *e);
 
-public slots:
-    //void updateStatusBar(plugin_state_t state);
-    void showAuthWindow(QString &);
-    void enableGUI();
-private slots:
-    void getUserName();
-    void showError(QString &info);
+signals:
+    void pluginLoad(const QString &message, int alignment = Qt::AlignLeft| Qt::AlignBottom, const QColor & color = QColor::fromRgb(170,255,0));
+    void closeSplash();
 
+private slots:
+    void showCritError(QString e_msg); // окажем окно с сообщением об ошибке и закроем приложение
+    void showAuthWindow(QString &user_name);
+    void showSelectWindow();
+    void cleanUp();
+    void checkPluginReady();// каждый загруженный плагин докладывает о своей готовности к работе в этот слот
 private:
     Ui::MainWindow *ui;
-    Mediator *spiderInTheMiddle; // Центральный элемент который знает все о всех :)
+    Mediator *SpiderInTheMiddle; // Центральный элемент который знает все о всех :)
+    getUserNameMandatDlg *UMDlg;
+    firstAsk *askDlg;
 
-    QString userName;
-    QLineEdit *lineEdit;
-    QLabel *label;
-    QPushButton *button;
-    QGridLayout *layout;
-    int Mode;
+    QString mainFileName; // Основной рабочий файл
+
+    QPoint centerWindow;
 };
 
 #endif // MAINWINDOW_H
