@@ -13,6 +13,7 @@ void net_plugin::onConnected()
 }
 void net_plugin::readyRead()
 {
+    qDebug() << "readyRead";
     while (client->canReadLine()) {
         QString line = QString::fromUtf8(client->readLine()).trimmed();
         qDebug() << "Read line and send to app:" << line;
@@ -47,6 +48,8 @@ void net_plugin::selectError(QAbstractSocket::SocketError err)
     case QAbstractSocket::SocketTimeoutError :
         e_msg =QObject::trUtf8("Превышено время ожидания ответа от сервера | The socket operation timed out.");
         break;
+    default:
+        e_msg = QObject::trUtf8("Error code %1").arg(err,0,10);
     }
     emit error(e_msg);
 }
