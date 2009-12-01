@@ -14,6 +14,8 @@ public:
     firstAsk(QWidget *parent = 0);
     ~firstAsk();
     int getCurrentMode(){return work_mode;};
+signals:
+    void printerSelected( const QString & text );
 private slots:
     void setMode (int signal_mode);
 protected:

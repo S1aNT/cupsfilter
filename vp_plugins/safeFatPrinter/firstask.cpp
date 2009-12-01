@@ -14,6 +14,7 @@ firstAsk::firstAsk(QWidget *parent) :
     signalMapper->setMapping(ui->printFromAccountPaper,1);
     signalMapper->setMapping(ui->printWithAccountingPaper,2 );
     connect(signalMapper, SIGNAL(mapped(int)),  this, SLOT(setMode(int)));
+    connect(ui->printerCBox,SIGNAL(currentIndexChanged(QString)),this,SIGNAL(printerSelected(QString)));
 }
 
 firstAsk::~firstAsk()
@@ -24,6 +25,7 @@ firstAsk::~firstAsk()
 void firstAsk::setMode (int signal_mode)
 {
     work_mode = signal_mode;
+    this->accept();
 }
 
 void firstAsk::changeEvent(QEvent *e)
