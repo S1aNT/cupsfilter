@@ -1,23 +1,26 @@
 QT += network
 CONFIG += warn_on \
-    qt \
-    console
+    qt
 TEMPLATE = app
-INCLUDEPATH += ../interfaces
+INCLUDEPATH += ../interfaces \
+    ../global
 TARGET = safeFatPrinter
 SOURCES += main.cpp \
     mainwindow.cpp \
     mediator.cpp \
     firstask.cpp \
-    getusernamemandatdlg.cpp
+    getusernamemandatdlg.cpp \
+    selectwindow.cpp
 HEADERS += mainwindow.h \
-    ../interfaces/inet_plugin.h \
     mediator.h \
-    ../global/config.h \
     firstask.h \
     getusernamemandatdlg.h \
-    ../global/tech_global.h
+    ../interfaces/inet_plugin.h \
+    ../global/config.h \
+    ../global/tech_global.h \
+    selectwindow.h
 FORMS += mainwindow.ui \
     firstask.ui \
-    getusernamemandatdlg.ui
+    getusernamemandatdlg.ui \
+    selectwindow.ui
 RESOURCES += images.qrc
