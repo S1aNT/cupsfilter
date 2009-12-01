@@ -3,7 +3,8 @@ CONFIG += plugin
 QT -= gui
 QT += network
 TARGET = net_plugin
-INCLUDEPATH += ../interfaces
+INCLUDEPATH += ../interfaces \
+	       ../global/
 DESTDIR = ../safeFatPrinter/plugins
 HEADERS = net_plugin.h \
     ../interfaces/inet_plugin.h \
