@@ -3,12 +3,14 @@
 
 #include <QDebug>
 #include <QObject>
+#include <QCoreApplication>
 #include <QPluginLoader>
 #include <QDir>
 #include <QUuid>
 #include <QStandardItemModel>
 #include <QStringListModel>
 #include <QColor>
+#include <QPrinterInfo>
 
 #include "tech_global.h"
 #include "inet_plugin.h"
@@ -37,27 +39,32 @@ public:
     QStandardItemModel *document_model () const {return doc_model;}
     QStringListModel *stamp_model() const{ return stampModel;}
     QStringListModel *mandat_model() const{ return mandatModel;}
-    void setUserMandat(QString mnd){user_mandat=mnd;};
+    QStringListModel *printers_model() const{ return printersModel;}
+    void setUserMandat(QString mnd);
     bool isConnected(){return connect_state;};
     void plugin_init();
+    /*
     bool isValid(){return valid_status;};
     bool isAuth();
     bool isHaveMandatList();
     void setWorkMode(int mode){work_mode = mode;};
+    */
 signals:
-    void StateChanged(plugin_state_t state);
+    //void StateChanged(plugin_state_t state);
     void error (QString msg);
-    void needShowAuthWindow(QString &userName);
-    void pluginLoad(const QString &message, int alignment = Qt::AlignLeft| Qt::AlignBottom, const QColor & color = QColor::fromRgb(170,255,0));
-
+    void needShowAuthWindow(QString &userName); // Требуется показать окно выбора мандата
+    void needShowSelectWindow(); // Требуется показать окно выбора режима работы
+    //void pluginLoad(const QString &message, int alignment = Qt::AlignLeft| Qt::AlignBottom, const QColor & color = QColor::fromRgb(170,255,0));
+    void pluginMessage(const QString &message);
 
 public slots:
     void convert2pdf(const QString &input_fn);
+    void authToPrinter(const QString & printer);
 private slots:
     void do_User_name_mandat(QString &userName,QString &userMandat);
     void parseServerResponse(QString &responce_msg);
     void getMeMandatList(QString &userName);
-    void parseError(QString msg);
+    //void parseError(QString msg);
 private:
     Inet_plugin *net_plugin;
     Igs_plugin *gs_plugin;
@@ -72,6 +79,7 @@ private:
     QStandardItemModel *doc_model;
     QStringListModel *stampModel;
     QStringListModel *mandatModel;
+    QStringListModel *printersModel;
 
     bool connect_state;
 
@@ -86,9 +94,13 @@ protected:
     /**
      *  This is spider soul :) connect any with any
      */
-    void spiderSoul();
+
     void createModels();
-    void test_cmd();
+
+
+    void getSecretLevelName(); //
+    void getEnablePrinter();
+
 };
 
 #endif // MEDIATOR_H
