@@ -32,7 +32,7 @@ public:
 
 signals:
     void error(QString error_message);
-    void needShowAuthWindow(QString &userName);
+    //void needShowAuthWindow(QString &userName);
     void get_User_name_mandat(QString &userName,QString &userMandat);
 
 protected:
