@@ -6,7 +6,7 @@ getUserNameMandatDlg::getUserNameMandatDlg(QWidget *parent) :
     ui(new Ui::getUserNameMandatDlg)
 {
     ui->setupUi(this);
-    connect (ui->mandatCBox,SIGNAL(currentIndexChanged(QString)),this,SLOT(setCurrentMandat(QString &)));
+    connect (ui->mandatCBox,SIGNAL(currentIndexChanged(QString)),this,SLOT(setCurrentMandat(QString )));
 }
 
 getUserNameMandatDlg::~getUserNameMandatDlg()
@@ -25,7 +25,7 @@ void getUserNameMandatDlg::setMandatModel(QStringListModel *mandat_model)
      ui->mandatCBox->setModel(mandat_model);
 }
 
-void getUserNameMandatDlg::setCurrentMandat(QString &mandat)
+void getUserNameMandatDlg::setCurrentMandat(QString mandat)
 {
     u_mandat=mandat;
 }

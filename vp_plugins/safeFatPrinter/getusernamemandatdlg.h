@@ -21,7 +21,7 @@ public:
 public slots:
     void setUserName(QString &userName);
 private slots:
-    void setCurrentMandat(QString &mandat);
+    void setCurrentMandat(QString mandat);
 protected:
     void changeEvent(QEvent *e);
 private:
