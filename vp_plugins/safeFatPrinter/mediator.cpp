@@ -10,38 +10,36 @@ Mediator::Mediator(QObject *parent) :
     valid_status =  true;
 }
 
-bool Mediator::isAuth()
-{
-    if (!user_name.isEmpty() && !user_mandat.isEmpty()){
-        return true;
-    }else {
-        return false;
-    }
-}
 
 
-bool Mediator::isHaveMandatList()
-{
-    if (mandatModel->rowCount()>0){
-        return true;
-    }else{
-        return false;
-    }
-}
 
 void Mediator::do_User_name_mandat(QString &userName,QString &userMandat)
 {
+    QString msg= QObject::trUtf8("Плагин: [Auth_User] успешно загружен.");
+    emit pluginMessage(msg);
+
+    qDebug() << Q_FUNC_INFO << userName <<userMandat;
     if (!userName.isEmpty()){
         user_name=userName;
         if (!userMandat.isEmpty()){
             user_mandat=userMandat;
-            emit StateChanged(authPluginLoaded);
+            this->getSecretLevelName();
+
+        }else{
+            this->getMeMandatList(userName);
         }
     }
 }
 
+void Mediator::setUserMandat(QString mnd)
+{
+    user_mandat=mnd;
+    // Получим название уровней секретности
+    this->getSecretLevelName();
+}
 void Mediator::plugin_init()
 {
+    qDebug() << Q_FUNC_INFO << auth_plugin << gs_plugin;
     if (auth_plugin){
 #if defined(Q_OS_UNIX)
         QString t_name;
@@ -50,10 +48,10 @@ void Mediator::plugin_init()
 #elif defined(Q_OS_WIN)
         qDebug() << "start   auth_plugin->init();";
         auth_plugin->init();
-
 #endif
-        emit StateChanged(authPluginLoaded);
+        //emit StateChanged(authpluginMessageed);
     }
+
     if (gs_plugin) {
         // remove after debug
         QString gs_bin="C:\\Program Files\\gs\\gs8.70\\bin\\gswin32c.exe";
@@ -64,7 +62,9 @@ void Mediator::plugin_init()
         qDebug() << "start gs_init";
         if (gs_plugin->init(gs_bin, pdftk_bin,temp_folder,rcp_file,sid)){
             qDebug() << "true gs_init";
-            emit StateChanged(gsPluginLoaded);
+            //emit StateChanged(gspluginMessageed);
+            QString msg =QObject::trUtf8("Плагин: [Обработки ps и pdf документов] успешно загружен.");
+            emit pluginMessage(msg);
         }
     }
 }
@@ -74,9 +74,6 @@ void Mediator::plugin_init()
 
 void Mediator::loadPlugin(const QString &app_dir)
 {
-    //QString msg=QObject::trUtf8("Пример ошибки");
-    //emit error(msg);
-
     QDir pluginsDir(app_dir);
     Inet_plugin *net_plugin_Interface;
     Igs_plugin *gs_plugin_Interface;
@@ -94,10 +91,10 @@ void Mediator::loadPlugin(const QString &app_dir)
 #endif
     pluginsDir.cd("plugins");
     foreach (QString fileName, pluginsDir.entryList(QDir::Files)){
-        QPluginLoader pluginLoader(pluginsDir.absoluteFilePath(fileName));
-        QObject *plugin = pluginLoader.instance();
+        QPluginLoader pluginMessageer(pluginsDir.absoluteFilePath(fileName));
+        QObject *plugin = pluginMessageer.instance();
         if (plugin) {
-            connect(plugin, SIGNAL(error(QString )), this, SLOT (parseError(QString )));
+            connect(plugin, SIGNAL(error(QString )), this, SIGNAL (error(QString )));
             net_plugin_Interface = qobject_cast<Inet_plugin *> (plugin);
             if (net_plugin_Interface) {
 
@@ -105,10 +102,11 @@ void Mediator::loadPlugin(const QString &app_dir)
                 // Сохраним указатель на плагин как данные класса
                 net_plugin=net_plugin_Interface;
 
-                QString host = QObject::trUtf8("192.168.112.2");
-                //QString host = QObject::trUtf8("127.0.0.1");
+                //QString host = QObject::trUtf8("192.168.112.2");
+                QString host = QObject::trUtf8("127.0.0.1");
                 net_plugin->init(host, 4242,sid);
-                emit StateChanged(netPluginLoaded);
+                QString  msg= QObject::trUtf8("Плагин: [Работы с сетью] успешно загружен.");
+                emit pluginMessage(msg);
             }
 
             gs_plugin_Interface = qobject_cast<Igs_plugin *> (plugin);
@@ -119,7 +117,7 @@ void Mediator::loadPlugin(const QString &app_dir)
             auth_plugin_Interface = qobject_cast<Auth_plugin *>(plugin);
             if (auth_plugin_Interface){
                 connect(plugin,SIGNAL(get_User_name_mandat(QString &,QString &)),this,SLOT(do_User_name_mandat(QString&,QString&)));
-                connect(plugin,SIGNAL(needShowAuthWindow(QString &)),this,SLOT(getMeMandatList(QString &)));
+                //connect(plugin,SIGNAL(needShowAuthWindow(QString &)),this,SLOT(getMeMandatList(QString &)));
                 auth_plugin =auth_plugin_Interface;
             }
         }
@@ -133,28 +131,48 @@ void Mediator::readGlobal()
 
 }
 
+void Mediator::getSecretLevelName()
+{
+    qDebug() << Q_FUNC_INFO;
+    if (this->connect_state){
+        QString message =QString("/cmd;:;%1;:;%2;:;%3").arg(this->sid).arg(GET_SEC_LEVEL_CMD,0,10).arg(this->user_mandat);
+        qDebug() << Q_FUNC_INFO << message;
+        net_plugin->sendData(message);
+    }
+}
+
+void Mediator::getEnablePrinter()
+{
+    if (this->connect_state){
+
+        QString msg =QString("/cmd;:;%1;:;%2;:;%3;:;%4").arg(sid).arg(GET_PRINTER_LIST_CMD,0,10).arg(this->user_name).arg(this->user_mandat);
+        qDebug() << Q_FUNC_INFO << msg;
+        net_plugin->sendData(msg);
+    }
+}
 //*************************************** private slots *****************************************
 void Mediator::getMeMandatList(QString &userName)
 {
+    qDebug() << Q_FUNC_INFO << userName << this->connect_state;
     if (this->connect_state){
         QString message =QString("/cmd;:;%1;:;%2;:;%3").arg(sid).arg(GET_MANDAT_LIST_CMD,0,10).arg(userName);
         qDebug() << Q_FUNC_INFO << message;
         net_plugin->sendData(message);
-        this->user_name=userName;
     }
 }
-void Mediator::parseError(QString msg)
-{
-    this->valid_status = false;
-    emit error(msg);
-}
+
 
 void  Mediator::parseServerResponse(QString &responce_msg)
 {
+    qDebug() << Q_FUNC_INFO << responce_msg;
+
     QRegExp rx("^/(\\d+);:;(.*)$");
     QString msg;
     QString cmd;
     QString body;
+    QList<QPrinterInfo> plist;
+    QStringList tmp_list;
+
     if(rx.indexIn(responce_msg) != -1)
     {
         cmd =rx.cap(1);
@@ -162,19 +180,14 @@ void  Mediator::parseServerResponse(QString &responce_msg)
         qDebug() <<Q_FUNC_INFO<< cmd<<body;
         switch (cmd.toInt()){
             case STAMP_LIST_ANS:
-                //this->stampModel->setStringList(QStringList() << body.split(";:;"));
-
-            msg =QString("/cmd;:;%1;:;%2;:;%3;:;CC").arg(sid).arg(GET_PRINTER_LIST_CMD,0,10).arg(this->user_name).arg(this->user_mandat);
-            qDebug() << Q_FUNC_INFO << msg;
-            net_plugin->sendData(msg);
-
+                 this->stampModel->setStringList(QStringList() << body.split(";:;"));
+                 this->getEnablePrinter();
                 break;
             case REGISTER_ANS: // Соединились с сервером безопастности
-                 emit StateChanged(connectedToDemon);
-                 qDebug() <<Q_FUNC_INFO<< "StateChanged(connectedToDemon);";
-                 this->plugin_init();
-
                  this->connect_state=true;
+                 msg =QObject::trUtf8("Успешно соединились с сервером безопасности");
+                 emit pluginMessage(msg);
+                 this->plugin_init();
                  break;
             case MB_EXIST_AND_BRAK_ANS:
                 //this->insertDocToModel(body);
@@ -187,23 +200,30 @@ void  Mediator::parseServerResponse(QString &responce_msg)
                 //emit mbNumberNotExist();
                 break;
             case PRINTER_LIST_ANS:
-                //emit printersNotFound();
-                this->user_name="usr1";
-                this->user_mandat="CC";
-                msg =QString("/cmd;:;%1;:;%2;:;SL9PRT.NEW;:;%3;:;%4").arg(sid).arg(AUTHOR_USER,0,10).arg(this->user_mandat).arg(this->user_name).arg("usr1");
-                qDebug() << Q_FUNC_INFO << msg;
-                net_plugin->sendData(msg);
+//TODO написать парсер разбирающий список принтеров отданый сервером
+                plist = QPrinterInfo::availablePrinters();
+
+                for (int i = 0; i < plist.size(); ++i) {
+                    if (plist.at(i).printerName()!="Защищенный принтер"){
+                       tmp_list.append(plist.at(i).printerName());
+                    }
+                }
+                this->printersModel->setStringList(tmp_list);
+                emit needShowSelectWindow();
 
                 break;
+        case PRINTER_LIST_EMPTY:
+                msg =QObject::trUtf8("У данного пользователя нет ни одного разрешенного принтера");
+                emit error(msg);
+                break;
             case MANDAT_LIST_ANS:// Список мандатов к которым допущен пользоватль
-                emit needShowAuthWindow(this->user_name);
                 qDebug() <<body.split(";:;");
                 this->mandatModel->setStringList(QStringList() << body.split(";:;"));
-                this->test_cmd();
+                emit needShowAuthWindow(this->user_name);
                 break;
             case MANDAT_LIST_EMPTY_ANS:// У данного пользователя нет ни одного мадата
                 msg =QObject::trUtf8("У данного пользователя нет ни одного мандата");
-                this->parseError(msg);
+                emit error(msg);
                 break;
         }
     }else{
@@ -218,21 +238,26 @@ void Mediator::convert2pdf(const QString &input_fn)
     gs_plugin->convertPs2Pdf(input_fn);
 }
 
+
+
+void Mediator::authToPrinter(const QString & printer)
+{
+    //this->user_name="usr1";
+    //this->user_mandat="CC";
+
+    QString msg =QString("/cmd;:;%1;:;%2;:;%3;:;%4;:;%5").arg(sid).arg(AUTHOR_USER,0,10).arg(printer).arg(this->user_mandat).arg(this->user_name);
+    qDebug() << Q_FUNC_INFO << msg;
+    net_plugin->sendData(msg);
+
+
+}
+
 //**************************************** protected ******************************************
 void Mediator::createModels()
 {
     stampModel = new  QStringListModel(this);
     doc_model = new QStandardItemModel(this);
     mandatModel = new  QStringListModel(this);
+    printersModel = new  QStringListModel(this);
 }
 
-void Mediator::test_cmd()
-{
-    if (this->connect_state){
-        QString message =QString("/cmd;:;%1;:;%2;:;CC").arg(sid).arg(GET_SEC_LEVEL_CMD,0,10).arg(this->user_mandat);
-        qDebug() << Q_FUNC_INFO << message;
-        net_plugin->sendData(message);
-
-
-    }
-}
