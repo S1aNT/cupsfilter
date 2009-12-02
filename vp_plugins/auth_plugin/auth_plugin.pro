@@ -1,8 +1,10 @@
 TEMPLATE        = lib
 CONFIG         += plugin
-INCLUDEPATH += ../interfaces
+INCLUDEPATH += ../interfaces \
+		../global	
 HEADERS         = auth.h \
-		../interfaces/auth_plugin.h 
+		../interfaces/auth_plugin.h \
+	        ../global/tech_global.h 
 SOURCES         = auth.cpp
 TARGET 		= auth_plugin
 
