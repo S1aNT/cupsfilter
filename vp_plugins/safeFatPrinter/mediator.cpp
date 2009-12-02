@@ -127,6 +127,7 @@ void Mediator::loadPlugin(const QString &app_dir)
             gs_plugin_Interface = qobject_cast<Igs_plugin *> (plugin);
             if (gs_plugin_Interface) {
                 connect (plugin,SIGNAL(taskStateChanged(TaskState)),this,SLOT(parserGSMessage(TaskState)));
+                connect (plugin,SIGNAL(pagesInDoc(int)),this,SLOT(setPageCountInDoc(int)));
                 gs_plugin=gs_plugin_Interface;
             }
             auth_plugin_Interface = qobject_cast<Auth_plugin *>(plugin);
@@ -228,8 +229,13 @@ void Mediator::getEnablePrinter()
 
 //*************************************** private slots *****************************************
 
-void Mediator::parserGSMessage(TaskState state)
+void Mediator::setPageCountInDoc(int p_count)
 {
+    this->pagesInDocCount=p_count;
+}
+
+void Mediator::parserGSMessage(TaskState state)
+{// Обработчик сообщений для плагина работы с ghostscript
     switch(state){
     case converted:
         emit StateChanged(psToPdfConverted);
