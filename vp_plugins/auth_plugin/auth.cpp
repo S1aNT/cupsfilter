@@ -1,7 +1,9 @@
 #include <QtGui>
 
 #include "auth.h"
+#include "tech_global.h"
 
+using namespace SafeVirtualPrinter;
 
 
 Auth::Auth()
