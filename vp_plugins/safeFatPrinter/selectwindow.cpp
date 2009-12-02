@@ -23,13 +23,14 @@ SelectWindow::SelectWindow(QWidget *parent) :
 
     this->setWindowFlags(Qt::Dialog |  Qt::CustomizeWindowHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint | Qt::WindowSystemMenuHint);
     this->move(calcCenter());
+    connect (SpiderInTheMiddle,SIGNAL(StateChanged(WorkStep)),this,SLOT(checkPoint(WorkStep)));
     connect (SpiderInTheMiddle,SIGNAL(error (QString )),this,SLOT(showCritError(QString)));
     connect (SpiderInTheMiddle,SIGNAL(pluginMessage(const QString &)),this,SLOT (showPluginMessage(const QString &)));
     connect (SpiderInTheMiddle,SIGNAL(needShowAuthWindow(QString &)),this,SLOT(showAuthWindow(QString&)));
-    connect (SpiderInTheMiddle,SIGNAL(needShowSelectWindow()),this,SLOT(enableGUI()));
-    //connect (SpiderInTheMiddle,SIGNAL(pluginLoad(const QString &,int, const QColor &)),this,SIGNAL(pluginLoad(const QString &,int, const QColor &)));
-    //connect (qApp,SIGNAL(aboutToQuit()),this,SLOT(cleanUp()));
+
     connect (ui->printerCBox,SIGNAL(currentIndexChanged(QString)),SpiderInTheMiddle,SLOT(authToPrinter(QString)));
+
+    //connect (qApp,SIGNAL(aboutToQuit()),this,SLOT(cleanUp()));
 
     connect(ui->printModeAccounting, SIGNAL(clicked()), signalMapper, SLOT(map()));
     connect(ui->printFromAccountPaper, SIGNAL(clicked()), signalMapper, SLOT(map()));
@@ -38,6 +39,28 @@ SelectWindow::SelectWindow(QWidget *parent) :
     signalMapper->setMapping(ui->printFromAccountPaper,1);
     signalMapper->setMapping(ui->printWithAccountingPaper,2 );
     connect(signalMapper, SIGNAL(mapped(int)),  this, SLOT(setMode(int)));
+}
+
+void SelectWindow::checkPoint(WorkStep step)
+{
+    switch (step){
+    case authPluginInit:
+        break;
+    case netPluginInit:
+        connected=true;
+        break;
+    case gsPluginInit:
+        SpiderInTheMiddle->convert2pdf(mainFileName);
+        break;
+    case psToPdfConverted:
+        converted=true;
+        break;
+    case filledPrinterList:
+        if (connected && converted){
+            this->enableGUI();//
+        }
+        break;
+    }
 
 }
 
