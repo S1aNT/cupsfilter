@@ -4,7 +4,7 @@
 
 GS_plugin::GS_plugin(QObject *parent)
 {
-	
+
 }
 bool GS_plugin::init(const QString &gs_bin, const QString &pdftk_bin, const QString &temp_folder,const QString &gs_rcp_file,const QString &sid)
 {
@@ -293,30 +293,34 @@ void GS_plugin::parsePageCountThread(int Code,QString output)
         // Определим количество страниц в документе
         if (!output.isEmpty()) {
             // разберем по кирпичику
-            rx.setPattern("NumberOfPages:\\s+(\\d{1,5}).*$");
+            rx.setPattern("NumberOfPages:\\s+(\\d{1,5}).*");
             rx.setMinimal(true);
             if (rx.indexIn(output) != -1) {
                 bool ok;
-                int page_count = rx.cap(1).toInt(&ok, 10);
+                this->pagesCount = rx.cap(1).toInt(&ok, 10);
                 if (!ok) {
-                    page_count =0;
+                    this->pagesCount =0;
+                    emit error (msg);
+
+                }else{
+                    emit pagesInDoc(this->pagesCount);
+
+                    switch (this->pagesCount) {
+                    case 0:
+                        msg = QObject::trUtf8("ERROR :  Ошибка разбора документа PDF %1").arg(mainPDF);
+                        emit error (msg);
+                        break;
+                    case 1:
+                        QFile::copy(mainPDF, firstPage_fn);
+                        break;
+                    default:
+                        // Делим файлы на 2 части
+                        this->splitPdf(mainPDF, firstPage_fn, otherPages_fn);
+                        break;
+                    }
                 }
             }
         }
-        switch (pagesCount) {
-        case 0:
-            msg = QObject::trUtf8("ERROR :  Ошибка разбора документа PDF %1").arg(mainPDF);
-            emit error (msg);
-            break;
-        case 1:
-            QFile::copy(mainPDF, firstPage_fn);
-            break;
-        default:
-            // Делим файлы на 2 части
-            this->splitPdf(mainPDF, firstPage_fn, otherPages_fn);
-            break;
-        }
-
     }
 }
 
