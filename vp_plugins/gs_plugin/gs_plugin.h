@@ -27,7 +27,7 @@ class GS_plugin :public QObject, Igs_plugin
     Q_ENUMS(TaskState)
    // Q_ENUMS(ErrorCode)
 public:
-    
+
     GS_plugin(QObject *parent=0);
     bool init(const QString &gs_bin,const QString &pdftk_bin,const QString &temp_folder,const QString &gs_rcp_file,const QString &sid);
     QString getFirstPages(){return firstPage_fn;};
@@ -43,11 +43,12 @@ public:
 signals:
     void error(QString error_message);
     void taskStateChanged(TaskState);
+    void pagesInDoc(int pages);// Как только я определил количество  листов в документе то сразу сообщаю всем об этом
 
 private slots:
     //TODO добавить для всех этих слотов сигнал маппер и объединить в одну функцию
     //TODO порождаемый поток держать в спящем состоянии и пробуждать при приходе новой команды
-    //то есть при инициализации загружать библиотеку gs_lib 
+    //то есть при инициализации загружать библиотеку gs_lib
     // а не создовать каждый раз заново.
     void parseCnvThread(int Code,QString output);
     void parsePageCountThread(int Code,QString output);
