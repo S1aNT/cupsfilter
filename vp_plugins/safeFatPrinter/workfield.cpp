@@ -15,6 +15,15 @@ workField::~workField()
     delete ui;
 }
 
+void workField::setPagesCount(int p_count)
+{
+    ui->pageCountEd->setText(QString::number(p_count,10));
+}
+
+void workField::setStampModel(QStringListModel *stamp_model)
+{
+    ui->secretCBox->setModel(stamp_model);
+}
 
 //********************************** private slots ******************************************
 void workField::flipLabel(bool flip)
