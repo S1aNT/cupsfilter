@@ -7,7 +7,10 @@
 #include <QtPlugin>
 
 #include "inet_plugin.h"
+
 #include "tech_global.h"
+
+using namespace SafeVirtualPrinter;
 
 
 class net_plugin :public QObject, Inet_plugin
