@@ -1,16 +1,8 @@
 #ifndef TECH_GLOBAL_H
 #define TECH_GLOBAL_H
 
-// timeouts are in ms
-static const int i_timeout_connect	= 5000;
-static const int i_timeout_read		= 5000;
-static const int i_timeout_write	= 5000;
 
-typedef enum{
-    CONN_STEP,
-    CONVERT_STEP,
-    GET_FROM_FTP_STEP
-}steps_t;
+namespace SafeVirtualPrinter{
 
 typedef enum{
    REGISTER_CMD		= 10,
@@ -29,7 +21,7 @@ typedef enum{
    GET_MANDAT_LIST_CMD	= 600,
    DISCONNECT		= 5000
 
-}commands_t;
+};
 
 typedef enum{
    REGISTER_ANS	    = 1010,
@@ -48,19 +40,24 @@ typedef enum{
    MANDAT_LIST_ANS	= 1600, // Список мандатов к которым допущен пользоватль
    MANDAT_LIST_EMPTY_ANS= 1601  // У данного пользователя нет ни одного мадата
 
-}answer_t;
+};
 
-typedef enum{
-   DOC_PRINTED =-1
-}doc_state_t;
+typedef enum TaskState{
+	converted,
+	merged,
+	splitted_first,
+	splitted_other,
+	printed,
+	previewedPage,
+	pdfMarkAdded
+};
 
-typedef enum {
-            ERROR,
-            HOSTNAME_EMPTY_ERR,
-            INVALID_PORT_RANGE_ERR,
-            HOST_NOT_FOUND_ERR,
-            CONNECTION_REFUSED_ERR,
-            FILE_NOT_FOUND
-}error_t;
-
+typedef enum WorkStep {
+	netPluginInit,
+	authPluginInit,
+	gsPluginInit,
+	filledPrinterList,
+	psToPdfConverted
+};
+}
 #endif // TECH_GLOBAL_H
