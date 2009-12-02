@@ -6,21 +6,24 @@ INCLUDEPATH += ../interfaces \
     ../global
 TARGET = safeFatPrinter
 SOURCES += main.cpp \
-    mainwindow.cpp \
     mediator.cpp \
     firstask.cpp \
     getusernamemandatdlg.cpp \
-    selectwindow.cpp
-HEADERS += mainwindow.h \
-    mediator.h \
+    selectwindow.cpp \
+    workfield.cpp \
+    addelemdlg.cpp
+HEADERS += mediator.h \
     firstask.h \
     getusernamemandatdlg.h \
     ../interfaces/inet_plugin.h \
     ../global/config.h \
     ../global/tech_global.h \
-    selectwindow.h
-FORMS += mainwindow.ui \
-    firstask.ui \
+    selectwindow.h \
+    workfield.h \
+    addelemdlg.h
+FORMS += firstask.ui \
     getusernamemandatdlg.ui \
-    selectwindow.ui
+    selectwindow.ui \
+    workfield.ui \
+    addelemdlg.ui
 RESOURCES += images.qrc
