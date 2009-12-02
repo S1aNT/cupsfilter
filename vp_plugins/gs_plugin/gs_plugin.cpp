@@ -1,6 +1,12 @@
 #include "gs_plugin.h"
 
-bool gs_plugin::init(const QString &gs_bin, const QString &pdftk_bin, const QString &temp_folder,const QString &gs_rcp_file,const QString &sid)
+
+
+GS_plugin::GS_plugin(QObject *parent)
+{
+	
+}
+bool GS_plugin::init(const QString &gs_bin, const QString &pdftk_bin, const QString &temp_folder,const QString &gs_rcp_file,const QString &sid)
 {
     QString error_msg;
     QDir dir;
@@ -69,7 +75,7 @@ bool gs_plugin::init(const QString &gs_bin, const QString &pdftk_bin, const QStr
         return true;
     }
 }
-void gs_plugin::convertPs2Pdf(const QString &input_fn)
+void GS_plugin::convertPs2Pdf(const QString &input_fn)
 {
     /*
       Конвертация происходит в 3 этапа:
@@ -99,7 +105,7 @@ void gs_plugin::convertPs2Pdf(const QString &input_fn)
         emit error(e_msg);
     }
 }
-void gs_plugin::splitPdf(const QString &source_fn, const QString &firts_page_fn,const QString &other_page_fn)
+void GS_plugin::splitPdf(const QString &source_fn, const QString &firts_page_fn,const QString &other_page_fn)
 {
     //pdftk %1 cat %2 output page_%2.pdf
     // Первую страницу
@@ -127,7 +133,7 @@ void gs_plugin::splitPdf(const QString &source_fn, const QString &firts_page_fn,
         proc_other->execute(pdftkBin, args,QProcess::MergedChannels);
     }
 }
-void gs_plugin::getPageCount(const QString &input_fn)
+void GS_plugin::getPageCount(const QString &input_fn)
 {
     //pdfTk input_file dump_data
     args.clear();
@@ -139,7 +145,7 @@ void gs_plugin::getPageCount(const QString &input_fn)
     connect(proc,SIGNAL(commandOutput(int,QString)),this,SLOT(parsePageCountThread(int,QString)));
     proc->execute(pdftkBin, args,QProcess::MergedChannels);
 }
-void gs_plugin::merge2Pdf(const QString &input_fn, const QString &background_fn,const QString &output_fn)
+void GS_plugin::merge2Pdf(const QString &input_fn, const QString &background_fn,const QString &output_fn)
 {//pdftk in.pdf background back.pdf output out.pdf
     QString e_msg;
     if (!QFile::exists(input_fn)) {
@@ -164,7 +170,7 @@ void gs_plugin::merge2Pdf(const QString &input_fn, const QString &background_fn,
         emit error (e_msg);
     }
 }
-void gs_plugin::addPdfMark(const QString &input_fn,const QString &user_name,const QString &host_name,quint16 host_ip )
+void GS_plugin::addPdfMark(const QString &input_fn,const QString &user_name,const QString &host_name,quint16 host_ip )
 {
     QString e_msg;
     QTemporaryFile file_tmp;
@@ -215,7 +221,7 @@ void gs_plugin::addPdfMark(const QString &input_fn,const QString &user_name,cons
         emit error (e_msg);
     }
 }
-void gs_plugin::printPdf(const QString &print_fn, const QString &printer_name)
+void GS_plugin::printPdf(const QString &print_fn, const QString &printer_name)
 { //-q -dQUIET -dNOPAUSE -dPARANOIDSAFER -dBATCH -r300 -sDEVICE=pdfwrite -sOutputFile="%%printer%%pdfcreator" -c .setpdfwrite -f %1
 
     args.clear();
@@ -239,7 +245,7 @@ void gs_plugin::printPdf(const QString &print_fn, const QString &printer_name)
 
 // ********************* Private SLOTS *******************************************************
 
-void gs_plugin::parseCnvThread(int Code,QString output )
+void GS_plugin::parseCnvThread(int Code,QString output )
 {
     QString msg;
     if (Code != QProcess::NormalExit) {
@@ -247,35 +253,35 @@ void gs_plugin::parseCnvThread(int Code,QString output )
         emit error(msg);
     }else{
         // Файл преобразован в pdf
-        emit StateChanged(converted);
+        emit taskStateChanged(converted);
         //вызовем pdfTk для получения числа страниц в документе ...
         this->getPageCount(mainPDF);
     }
 }
 
-void gs_plugin::parseFirstPageThread(int Code,QString output )
+void GS_plugin::parseFirstPageThread(int Code,QString output )
 {
     QString msg;
     if (Code != QProcess::NormalExit) {
         msg =QObject::trUtf8("ERROR : Первую страницу документа не удалось создать\n%1:\nКод %2").arg(output).arg(Code,0,10);
         emit error(msg);
     }else{
-        emit StateChanged(splitted_first);
+        emit taskStateChanged(splitted_first);
     }
 }
 
-void gs_plugin::parseOtherPageThread(int Code,QString output )
+void GS_plugin::parseOtherPageThread(int Code,QString output )
 {
     QString msg;
     if (Code != QProcess::NormalExit) {
         msg =QObject::trUtf8("ERROR : Вторую и последующие страницы документа не удалось создать\n%1:\nКод %2").arg(output).arg(Code,0,10);
         emit error(msg);
     }else{
-        emit StateChanged(splitted_other);
+        emit taskStateChanged(splitted_other);
     }
 }
 
-void gs_plugin::parsePageCountThread(int Code,QString output)
+void GS_plugin::parsePageCountThread(int Code,QString output)
 {
     QString msg;
     QRegExp rx;
@@ -314,7 +320,7 @@ void gs_plugin::parsePageCountThread(int Code,QString output)
     }
 }
 
-void gs_plugin::clearAll()
+void GS_plugin::clearAll()
 {// Удаляем за собой все файлы созданные в ходе работы
     if (!QFile::exists(firstPage_fn)) {
         QFile::remove(firstPage_fn);
@@ -330,28 +336,28 @@ void gs_plugin::clearAll()
     }
 }
 
-void gs_plugin::parseMergeThread(int Code,QString output )
+void GS_plugin::parseMergeThread(int Code,QString output )
 {
     QString msg;
     if (Code != QProcess::NormalExit) {
         msg =QObject::trUtf8("ERROR : Ошибка наложения шаблона на документ\n%1:\nКод %2").arg(output).arg(Code,0,10);
         emit error(msg);
     }else{
-        emit StateChanged(merged);
+        emit taskStateChanged(merged);
     }
 }
 
-void gs_plugin::parseAddPdfMarkThread(int Code,QString output )
+void GS_plugin::parseAddPdfMarkThread(int Code,QString output )
 {
     QString msg;
     if (Code != QProcess::NormalExit) {
         msg =QObject::trUtf8("ERROR : Ошибка добавления meta данных в документ\n%1:\nКод %2").arg(output).arg(Code,0,10);
         emit error(msg);
     }else{
-        emit StateChanged(pdfMarkAdded);
+        emit taskStateChanged(pdfMarkAdded);
     }
 }
-void gs_plugin:: parseCnv2PngThread(int Code,QString output)
+void GS_plugin:: parseCnv2PngThread(int Code,QString output)
 {
     QString msg;
     if (Code != QProcess::NormalExit) {
@@ -361,7 +367,7 @@ void gs_plugin:: parseCnv2PngThread(int Code,QString output)
         // Читаем файлик
 
         if (currentPageSnapShot.load(pdf2png_page)){
-            emit StateChanged(previewedPage);
+            emit taskStateChanged(previewedPage);
         }else{
             msg = QObject::trUtf8("ERROR : Загрузка файл %1 не удачна\n").arg(pdf2png_page);
             emit error(msg);
@@ -371,7 +377,7 @@ void gs_plugin:: parseCnv2PngThread(int Code,QString output)
 }
 
 //********************************************************************************************
-void gs_plugin::convertPdf2Png(const QString &fn, int convertedPage)
+void GS_plugin::convertPdf2Png(const QString &fn, int convertedPage)
 {// -q -sDEVICE=png16m -dBATCH -dNOPAUSE -dFirstPage=1 -dLastPage=1 -r300 -sOutputFile=test.png %1
     if (QFile::exists(pdf2png_page)) {
         QFile::remove(pdf2png_page); // Удалим файлик
@@ -393,5 +399,5 @@ void gs_plugin::convertPdf2Png(const QString &fn, int convertedPage)
     proc->execute(gsBin, args,QProcess::MergedChannels);
 }
 
-Q_EXPORT_PLUGIN2(Igs_plugin, gs_plugin)
+Q_EXPORT_PLUGIN2(Igs_plugin, GS_plugin)
 ;

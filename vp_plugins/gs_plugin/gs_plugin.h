@@ -16,18 +16,19 @@
 
 #include "proc_thread.h"
 #include "igs_plugin.h"
+#include "tech_global.h"
 
+using namespace SafeVirtualPrinter;
 
-class gs_plugin :public QObject, Igs_plugin
+class GS_plugin :public QObject, Igs_plugin
 {
     Q_OBJECT
     Q_INTERFACES(Igs_plugin)
     Q_ENUMS(TaskState)
    // Q_ENUMS(ErrorCode)
 public:
-    enum TaskState {converted,merged,splitted_first,splitted_other,printed,previewedPage,pdfMarkAdded };
-    //enum ErrorCode {forkProccessDie};
-    gs_plugin(QObject *parent=0){}
+    
+    GS_plugin(QObject *parent=0);
     bool init(const QString &gs_bin,const QString &pdftk_bin,const QString &temp_folder,const QString &gs_rcp_file,const QString &sid);
     QString getFirstPages(){return firstPage_fn;};
     QString getOtherPages(){return otherPages_fn;};
@@ -41,11 +42,12 @@ public:
     void clearAll();
 signals:
     void error(QString error_message);
-    void StateChanged(TaskState state);
+    void taskStateChanged(TaskState);
 
 private slots:
     //TODO добавить для всех этих слотов сигнал маппер и объединить в одну функцию
     //TODO порождаемый поток держать в спящем состоянии и пробуждать при приходе новой команды
+    //то есть при инициализации загружать библиотеку gs_lib 
     // а не создовать каждый раз заново.
     void parseCnvThread(int Code,QString output);
     void parsePageCountThread(int Code,QString output);
