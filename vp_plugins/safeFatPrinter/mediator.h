@@ -11,96 +11,111 @@
 #include <QStringListModel>
 #include <QColor>
 #include <QPrinterInfo>
+#include <QMap>
+#include <QMapIterator>
+#include <QSettings>
+#include <QDate>
 
 #include "tech_global.h"
 #include "inet_plugin.h"
 #include "igs_plugin.h"
 #include "auth_plugin.h"
 
+using namespace SafeVirtualPrinter;
 
 
 
-typedef enum{
-   netPluginLoaded,
-   authPluginLoaded,
-   gsPluginLoaded,
-   connectedToDemon
-}plugin_state_t;
 
 class Mediator: public QObject
 {
     Q_OBJECT
+    Q_ENUMS(WorkStep)
 
 public:
+
     Mediator(QObject *parent = 0);
+
     void loadPlugin(const QString &app_dir);
+    void plugin_init();
+    // Геттеры
     QString getUserName(){return user_name;};
     QString getUserMandat(){return user_mandat;};
+    QString getElemTagById(int elem_id);
+
+    int getElemIdByName(const QString elem_name);
+
     QStandardItemModel *document_model () const {return doc_model;}
     QStringListModel *stamp_model() const{ return stampModel;}
     QStringListModel *mandat_model() const{ return mandatModel;}
     QStringListModel *printers_model() const{ return printersModel;}
+    // Сеттеры
     void setUserMandat(QString mnd);
-    bool isConnected(){return connect_state;};
-    void plugin_init();
-    /*
-    bool isValid(){return valid_status;};
-    bool isAuth();
-    bool isHaveMandatList();
-    void setWorkMode(int mode){work_mode = mode;};
-    */
+
 signals:
-    //void StateChanged(plugin_state_t state);
     void error (QString msg);
     void needShowAuthWindow(QString &userName); // Требуется показать окно выбора мандата
-    void needShowSelectWindow(); // Требуется показать окно выбора режима работы
-    //void pluginLoad(const QString &message, int alignment = Qt::AlignLeft| Qt::AlignBottom, const QColor & color = QColor::fromRgb(170,255,0));
     void pluginMessage(const QString &message);
+    // Сигнал высылается при прохождении очередного шага загрузки
+    void StateChanged(WorkStep);
 
 public slots:
     void convert2pdf(const QString &input_fn);
     void authToPrinter(const QString & printer);
+
 private slots:
     void do_User_name_mandat(QString &userName,QString &userMandat);
     void parseServerResponse(QString &responce_msg);
     void getMeMandatList(QString &userName);
-    //void parseError(QString msg);
+    void parserGSMessage(TaskState state);
 private:
     Inet_plugin *net_plugin;
     Igs_plugin *gs_plugin;
     Auth_plugin *auth_plugin;
 
+    bool connect_state;
+
     QString sid;
 
     QString user_name;
     QString user_mandat;
-    int work_mode;
 
+    QMap <QString, int> elemTag;
+    // Набор моделей [для сборки :)]
     QStandardItemModel *doc_model;
     QStringListModel *stampModel;
     QStringListModel *mandatModel;
     QStringListModel *printersModel;
 
-    bool connect_state;
+    // Блок переменных из ini файла
+    QString serverHostName;
+    int serverPort;
+    int timeout_connect;
+    int timeout_read;
+    int timeout_write;
 
-    bool valid_status;
-    bool auth_status;
+    QDate begin_date;
+    QDate end_date;
 
+    QString gsBin;
+    QString pdftkBin;
+    QString spoolDIR;
+    QString ticket_fname;
+    QString rcp_file;
+
+    QString localTemplates;
+    QString globalTemplates;
+    QString ftpTemplatesDir;
 protected:
     /**
      * Read global settings from Application Dir
      */
-    void readGlobal();
-    /**
-     *  This is spider soul :) connect any with any
-     */
+    void readGlobal(const QString &app_dir);
 
     void createModels();
-
+    void fillMap(); // Заполним список значениями
 
     void getSecretLevelName(); //
     void getEnablePrinter();
-
 };
 
 #endif // MEDIATOR_H
