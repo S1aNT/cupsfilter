@@ -43,6 +43,7 @@ public:
     QString getElemTagById(int elem_id);
 
     int getElemIdByName(const QString elem_name);
+    int getPageCountInDoc(){return pagesInDocCount;};
 
     QStandardItemModel *document_model () const {return doc_model;}
     QStringListModel *stamp_model() const{ return stampModel;}
@@ -67,6 +68,7 @@ private slots:
     void parseServerResponse(QString &responce_msg);
     void getMeMandatList(QString &userName);
     void parserGSMessage(TaskState state);
+    void setPageCountInDoc(int p_count);
 private:
     Inet_plugin *net_plugin;
     Igs_plugin *gs_plugin;
@@ -75,6 +77,7 @@ private:
     bool connect_state;
 
     QString sid;
+    int pagesInDocCount; // число страниц в документе котрый отправили на печать
 
     QString user_name;
     QString user_mandat;
