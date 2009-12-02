@@ -259,5 +259,29 @@ void Mediator::createModels()
     doc_model = new QStandardItemModel(this);
     mandatModel = new  QStringListModel(this);
     printersModel = new  QStringListModel(this);
+
+    header << QObject::trUtf8("Номер док-та")
+           << QObject::trUtf8("Название док-та")
+           << QObject::trUtf8("Гриф")
+           << QObject::trUtf8("Пункт перечня")
+           << QObject::trUtf8("Номер копии")
+           << QObject::trUtf8("Кол-во листов")
+           << QObject::trUtf8("Исполнитель")
+           << QObject::trUtf8("Отпечатал")
+           << QObject::trUtf8("Телефон")
+           << QObject::trUtf8("Инв. №")
+           << QObject::trUtf8("Дата распечатки")
+           << QObject::trUtf8("Получатель №1")
+           << QObject::trUtf8("Получатель №2")
+           << QObject::trUtf8("Получатель №3")
+           << QObject::trUtf8("Получатель №4")
+           << QObject::trUtf8("Получатель №5")
+           << QObject::trUtf8("Штамп последней стр.")
+           << QObject::trUtf8("Список рассылки")
+           << QObject::trUtf8("Статус документа")
+           << QObject::trUtf8("Брак страниц")
+           << QObject::trUtf8("Брак документа");
+   doc_model->setHorizontalHeaderLabels(header);
+
 }
 
