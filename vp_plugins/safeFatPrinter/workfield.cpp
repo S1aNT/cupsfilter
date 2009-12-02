@@ -34,14 +34,13 @@ void workField::checkData()
     ui->centralWidget->setEnabled(false);
     // Запишем данные в строку статуса:
 
-    QString msg=QObject::trUtf8("Проверка наличия в БД документа с МБ=[%1] и номером экземпляра =[%2]")
-                .arg().arg();
-    ui->AnsLabel->setText(msg);
+    //QString msg=QObject::trUtf8("Проверка наличия в БД документа с МБ=[%1] и номером экземпляра =[%2]").arg().arg();
+    //ui->AnsLabel->setText(msg);
 }
 
 //*******************************************************************************************
 //                              private function
-bool workField::isAnyFiedEmpty()
+void workField::isAnyFiedEmpty()
 {
     QMessageBox msgBox;
     QPushButton *abortButton;

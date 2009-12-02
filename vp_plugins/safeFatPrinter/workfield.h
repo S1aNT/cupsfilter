@@ -24,6 +24,7 @@ protected:
 private:
     Ui::workField *ui;
     int mode;
+    void isAnyFiedEmpty();
 };
 
 #endif // WORKFIELD_H
