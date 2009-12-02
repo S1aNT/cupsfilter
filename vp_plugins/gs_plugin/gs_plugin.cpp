@@ -300,6 +300,7 @@ void GS_plugin::parsePageCountThread(int Code,QString output)
                 this->pagesCount = rx.cap(1).toInt(&ok, 10);
                 if (!ok) {
                     this->pagesCount =0;
+                    msg = QObject::trUtf8("ERROR: В документе отправленном на печать число страниц = 0.Или ошибка структуры документа.");
                     emit error (msg);
 
                 }else{
@@ -307,7 +308,7 @@ void GS_plugin::parsePageCountThread(int Code,QString output)
 
                     switch (this->pagesCount) {
                     case 0:
-                        msg = QObject::trUtf8("ERROR :  Ошибка разбора документа PDF %1").arg(mainPDF);
+                        msg = QObject::trUtf8("ERROR: Ошибка разбора документа PDF %1").arg(mainPDF);
                         emit error (msg);
                         break;
                     case 1:
