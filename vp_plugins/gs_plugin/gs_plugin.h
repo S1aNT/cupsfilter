@@ -1,8 +1,8 @@
 #ifndef GS_PLUGIN_H
 #define GS_PLUGIN_H
 
-#include <QObject>
 #include <QDebug>
+#include <QObject>
 #include <QPixmap>
 #include <QtPlugin>
 #include <QStringList>
