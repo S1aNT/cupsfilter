@@ -38,6 +38,7 @@ public:
     void plugin_init();
     void convert2pdf(QString &in_file);
     // Геттеры
+    QString getSpoolDir(){return spoolDIR;};
     QString getUserName(){return user_name;};
     QString getUserMandat(){return user_mandat;};
 
