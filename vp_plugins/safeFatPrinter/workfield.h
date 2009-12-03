@@ -4,6 +4,11 @@
 #include <QDialog>
 #include <QMessageBox>
 #include <QStringListModel>
+#include <QStandardItemModel>
+
+#include <QSignalMapper>
+#include <QDataWidgetMapper>
+
 
 namespace Ui {
     class workField;
@@ -17,6 +22,7 @@ public:
     ~workField();
     void setPagesCount(int p_count);
     void setStampModel(QStringListModel *stamp_model);
+    void setModel (QStandardItemModel * model);
 
 private slots:
     void flipLabel(bool flip);
@@ -27,6 +33,8 @@ protected:
 
 private:
     Ui::workField *ui;
+    QDataWidgetMapper *mapper;
+    QSignalMapper *signalMapper;
 
     int mode;
     void isAnyFiedEmpty();
