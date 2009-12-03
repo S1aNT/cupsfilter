@@ -33,8 +33,8 @@ bool GS_plugin::init(const QString &gs_bin, const QString &pdftk_bin, const QStr
                         // Файл не существует но он мне нужен значит создаем его
                         gs_rcp=QString("%1/%2.rcp").arg(temp_folder,sid);
 
+                        new_file.setFileName(gs_rcp); // Надо больше спать из за отсутсвия этой строчки 20 минут искал ошибку
 
-                        qDebug() << Q_FUNC_INFO << gs_rcp;
                         if (new_file.open(QIODevice::WriteOnly | QIODevice::Text)) {
                             QTextStream out(&new_file);
                             out << QObject::trUtf8("-dQUIET\n")
@@ -48,7 +48,7 @@ bool GS_plugin::init(const QString &gs_bin, const QString &pdftk_bin, const QStr
                             new_file.close();
 
                         }else{
-                            error_msg = QObject::trUtf8("ERROR : Ошибка создания файла из %1\n").arg(gs_rcp);
+                            error_msg = QObject::trUtf8("ERROR : Ошибка создания файла %1\nОшибка %2").arg(gs_rcp).arg(new_file.errorString());
                         }
 
                     }else{
