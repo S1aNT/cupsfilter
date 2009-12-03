@@ -43,21 +43,27 @@ typedef enum{
 };
 
 typedef enum TaskState{
-	converted,
-	merged,
-	splitted_first,
-	splitted_other,
-	printed,
-	previewedPage,
-	pdfMarkAdded
+        converted,
+        merged,
+        splitted_first,
+        splitted_other,
+        printed,
+        previewedPage,
+        pdfMarkAdded
 };
 
 typedef enum WorkStep {
-	netPluginInit,
-	authPluginInit,
-	gsPluginInit,
-	filledPrinterList,
-	psToPdfConverted
+        netPluginInit,
+        authPluginInit,
+        gsPluginInit,
+        filledPrinterList,
+        psToPdfConverted
+};
+typedef enum WorkMode{
+    Accounting,
+    AccountingOnly,
+    PrintOverAccountPaper,
+    PrintWithAccounting
 };
 }
 #endif // TECH_GLOBAL_H
