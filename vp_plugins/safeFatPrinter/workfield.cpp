@@ -2,8 +2,8 @@
 #include "ui_workfield.h"
 
 workField::workField(QWidget *parent) :
-    QDialog(parent),
-    ui(new Ui::workField)
+        QDialog(parent),
+        ui(new Ui::workField)
 {
     ui->setupUi(this);
     mapper = new QDataWidgetMapper(this);
@@ -28,6 +28,11 @@ void workField::setStampModel(QStringListModel *stamp_model)
     ui->secretCBox->setModel(stamp_model);
 }
 
+void workField::setMode(int mode_value)
+{
+    mode = mode_value;
+}
+
 void workField::setModel (QStandardItemModel * model)
 {
     //Свяжем  элементы диалогового окна с моделью через mapper
@@ -35,73 +40,73 @@ void workField::setModel (QStandardItemModel * model)
     mapper->toLast();
 
     for (int i = 0; i < model->columnCount(); i++)
-      {
+    {
         QStandardItem * header_item = model->horizontalHeaderItem(i);
         QString header = header_item->data(Qt::EditRole).toString();
 
         if (header.compare(QObject::trUtf8("МБ")) == 0)
-          {
+        {
             mapper->addMapping(ui->mbNumberLineEd, i);
-          }
+        }
         else if (header.compare(QObject::trUtf8("Название док-та")) == 0)
-          {
+        {
             mapper->addMapping(ui->docName_plainTextEdit, i);
-          }
+        }
         else if (header.compare(QObject::trUtf8("Гриф")) == 0)
-          {
+        {
             mapper->addMapping(ui->secretCBox, i, "currentIndex");
-          }
+        }
         else if (header.compare(QObject::trUtf8("Пункт перечня"))==0)
-          {
+        {
             mapper->addMapping(ui->punktLineEd, i);
-          }
+        }
         else if (header.compare(QObject::trUtf8("Номер копии"))==0)
-          {
+        {
             mapper->addMapping(ui->copyNumberLineEd, i);
-          }else if (header.compare(QObject::trUtf8("Кол-во листов"))==0)
-          {
+        }else if (header.compare(QObject::trUtf8("Кол-во листов"))==0)
+        {
             mapper->addMapping(ui->pageCountEd, i);
-          }
+        }
         else if (header.compare(QObject::trUtf8("last_page_stamp"))==0)
-          {
+        {
             mapper->addMapping(ui->lastPageGroupBoxChecked, i,"checked");
-          }
+        }
         else if (header.compare(QObject::trUtf8("Исполнитель"))==0)
-         {
-           mapper->addMapping(ui->executor_lineEd, i);
-         }else if (header.compare(QObject::trUtf8("Отпечатал"))==0)
-         {
-           mapper->addMapping(ui->pressman_lineEd, i);
-         } else if (header.compare(QObject::trUtf8("Телефон"))==0)
-         {
-           mapper->addMapping(ui->telephone_lineEd, i);
-         } else if (header.compare(QObject::trUtf8("Инв. N"))==0)
-         {
-           mapper->addMapping(ui->invNumber_lineEd, i);
-         }  else if (header.compare(QObject::trUtf8("Дата распечатки"))==0)
-         {
-           mapper->addMapping(ui->dateField_dateEd, i);
-         }
+        {
+            mapper->addMapping(ui->executor_lineEd, i);
+        }else if (header.compare(QObject::trUtf8("Отпечатал"))==0)
+        {
+            mapper->addMapping(ui->pressman_lineEd, i);
+        } else if (header.compare(QObject::trUtf8("Телефон"))==0)
+        {
+            mapper->addMapping(ui->telephone_lineEd, i);
+        } else if (header.compare(QObject::trUtf8("Инв. N"))==0)
+        {
+            mapper->addMapping(ui->invNumber_lineEd, i);
+        }  else if (header.compare(QObject::trUtf8("Дата распечатки"))==0)
+        {
+            mapper->addMapping(ui->dateField_dateEd, i);
+        }
         else if (header.compare(QObject::trUtf8("recivers_list"))==0)
-         {
-           mapper->addMapping(ui->reciversListGroupBoxChecked, i,"checked");
-         }else if (header.compare(QObject::trUtf8("Получатель N1"))==0)
-         {
-           mapper->addMapping(ui->reciverOne_lineEd, i);
-         }else if (header.compare(QObject::trUtf8("Получатель N2"))==0)
-         {
-           mapper->addMapping(ui->reciverTwo_lineEd, i);
-         }else if (header.compare(QObject::trUtf8("Получатель N3"))==0)
-         {
-           mapper->addMapping(ui->reciverThree_lineEd, i);
-         }else if (header.compare(QObject::trUtf8("Получатель N4"))==0)
-         {
-           mapper->addMapping(ui->reciverFour_lineEd, i);
-         }else if (header.compare(QObject::trUtf8("Получатель N5"))==0)
-         {
-           mapper->addMapping(ui->reciverFive_lineEd, i);
-         }
-         /*else if (header.compare(QObject::trUtf8("doc_status"))==0)
+        {
+            mapper->addMapping(ui->reciversListGroupBoxChecked, i,"checked");
+        }else if (header.compare(QObject::trUtf8("Получатель N1"))==0)
+        {
+            mapper->addMapping(ui->reciverOne_lineEd, i);
+        }else if (header.compare(QObject::trUtf8("Получатель N2"))==0)
+        {
+            mapper->addMapping(ui->reciverTwo_lineEd, i);
+        }else if (header.compare(QObject::trUtf8("Получатель N3"))==0)
+        {
+            mapper->addMapping(ui->reciverThree_lineEd, i);
+        }else if (header.compare(QObject::trUtf8("Получатель N4"))==0)
+        {
+            mapper->addMapping(ui->reciverFour_lineEd, i);
+        }else if (header.compare(QObject::trUtf8("Получатель N5"))==0)
+        {
+            mapper->addMapping(ui->reciverFive_lineEd, i);
+        }
+        /*else if (header.compare(QObject::trUtf8("doc_status"))==0)
          {
              // Мапим скрытое поле статус документа
              mapper->addMapping(&documentStatus, i);
@@ -109,6 +114,27 @@ void workField::setModel (QStandardItemModel * model)
          */
     }
 
+}
+//********************************** public slots ******************************************
+void workField::showInfoWindow(const QString &info)
+{
+    QMessageBox msgBox;
+    QPushButton *okButton;
+
+    QString info_txt = QObject::trUtf8("Сервер безопасности уполномочен заявить!");
+    msgBox.setIcon(QMessageBox::Information);
+    msgBox.setInformativeText(info_txt);
+    okButton=msgBox.addButton(QObject::trUtf8("Выход"), QMessageBox::AcceptRole);
+    msgBox.setText(info);
+    msgBox.exec();
+}
+
+void workField::showPreviewPage(QPixmap &preview_page)
+{
+    PreViewWnd *wnd = new PreViewWnd(this);
+    connect (wnd,SIGNAL(needPrintPage()),this,SIGNAL(needPrintPage()));
+    connect (wnd,SIGNAL(dontNeedPrintPage()),this,SIGNAL(dontNeedPrintPage()));
+    wnd->showPage(preview_page);
 }
 
 //********************************** private slots ******************************************
@@ -125,30 +151,55 @@ void workField::flipLabel(bool flip)
 
 void workField::checkData()
 {
-    // Запретим все элементы
-    ui->centralWidget->setEnabled(false);
-    // Запишем данные в строку статуса:
+    // Проверим что поле МБ и номер экземпляра не пустые
+    QString mb = ui->mbNumberLineEd->text();
+    QString copyNum = ui->copyNumberLineEd->text();
+    QString msg;
+    QString info_txt;
+    QString e_msg;
+    QMessageBox msgBox;
+    QPushButton *abortButton;
 
-    QString msg=QObject::trUtf8("Проверка наличия в БД документа с МБ=[%1] и номером экземпляра =[%2]").arg().arg();
-    ui->AnsLabel->setText(msg);
+    if (!mb.isEmpty()){
+        if (!copyNum.isEmpty()){
+            // Запретим все элементы
+            this->setEnableField(false);
+            ui->previewBtn->setEnabled(false);
+            // Запишем данные в строку статуса
+            msg = QObject::trUtf8("Проверка наличия в БД документа с МБ=[%1] и номером экземпляра =[%2]").arg(mb).arg(copyNum);
+            ui->AnsLabel->setText(msg);
+            emit needAuthUserToPrinter();
+            emit checkMBInBase(mb,copyNum,this->mode);
+        }else{
+            e_msg = QObject::trUtf8("Номер экземпляра не может быть не заполнен!");
+        }
+    }else{
+        e_msg = QObject::trUtf8("Поле МБ должно быть заполнено");
+    }
+    if (!e_msg.isEmpty()){
+        info_txt = QObject::trUtf8("Данное поле не может быть пустым");
+        msgBox.setIcon(QMessageBox::Warning);
+        msgBox.setInformativeText(info_txt);
+        abortButton=msgBox.addButton(QObject::trUtf8("Выход"), QMessageBox::RejectRole);
+        msgBox.setText(e_msg);
+        msgBox.exec();
+    }
 }
 
 //*******************************************************************************************
 //                              private function
+
+void workField::setEnableField(bool e)
+{
+    ui->titleGroupBox->setEnabled(e);
+    ui->commonGroupBox->setEnabled(e);
+    ui->lastPageGroupBoxChecked->setEnabled(e);
+    ui->reciversListGroupBoxChecked->setEnabled(e);
+    ui->paperAccountsOutSide->setEnabled(e);
+}
+
 void workField::isAnyFiedEmpty()
 {
-    QMessageBox msgBox;
-    QPushButton *abortButton;
-    QString info_txt=QObject::trUtf8("Данное поле [%1] не может быть пустым");
-    QString e_msg;
-
-
-    msgBox.setIcon(QMessageBox::Warning);
-    msgBox.setInformativeText(info_txt);
-    abortButton=msgBox.addButton(QObject::trUtf8("Выход"), QMessageBox::RejectRole);
-    msgBox.setText(e_msg);
-    //QObject::connect(&msgBox,SIGNAL(rejected()),qApp,SLOT(quit()));
-    msgBox.exec();
 
 }
 
