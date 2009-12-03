@@ -39,6 +39,7 @@ public:
     void convert2pdf(QString &in_file);
     // Геттеры
     QString getSpoolDir(){return spoolDIR;};
+    QString getSeansSid(){return sid;};
     QString getUserName(){return user_name;};
     QString getUserMandat(){return user_mandat;};
 
