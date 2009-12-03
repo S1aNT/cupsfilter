@@ -265,7 +265,7 @@ void  Mediator::parseServerResponse(QString &responce_msg)
             //emit mbNumberExist(DOC_PRINTED);
             break;
         case MB_NOT_EXIST_ANS:
-            //emit mbNumberNotExist();
+            emit mbNumberNotExist();
             break;
         case PRINTER_LIST_ANS:
             //TODO написать парсер разбирающий список принтеров отданый сервером
@@ -301,22 +301,36 @@ void  Mediator::parseServerResponse(QString &responce_msg)
 }
 
 //*************************************** public slots*******************************************
-
-
-
-void Mediator::authToPrinter(const QString & printer)
+void Mediator::setCurrentPrinter(const QString & printer)
 {
-    //this->user_name="usr1";
-    //this->user_mandat="CC";
+    this->currentPrinter=printer;
+}
 
-    QString msg =QString("/cmd;:;%1;:;%2;:;%3;:;%4;:;%5").arg(sid).arg(AUTHOR_USER,0,10).arg(printer).arg(this->user_mandat).arg(this->user_name);
+void Mediator::do_needAuthUserToPrinter()
+{
+    QString msg =QString("/cmd;:;%1;:;%2;:;%3;:;%4;:;%5").arg(sid).arg(AUTHOR_USER,0,10).arg(this->currentPrinter).arg(this->user_mandat).arg(this->user_name);
     qDebug() << Q_FUNC_INFO << msg;
     net_plugin->sendData(msg);
+}
 
+void Mediator::checkMBInBase(QString &mb_value, QString &copyNum_value)
+{
+    // Запрос к БД через демон период задается через
+    // ini файл по умолчанию от начала текущего года до сегодня
+    // Формируем SQL   SELECT count (*) AS mb_count from
 
+    QDate dt_end;
+    dt_end=QDate::currentDate (); // Текущая дата
+    QDate dt_begin (dt_end.year (), 1,1); // Первое января
+
+    QString msg=QString(QObject::trUtf8("%1;:;%2;:;%3;:;%4;:;%5")).arg(IS_MB_EXIST_CMD,0,10).arg(mb_value).arg(copyNum_value).arg(dt_begin.toString("dd.MM.yyyy"),dt_end.toString("dd.MM.yyyy"));
+    qDebug() <<Q_FUNC_INFO<<msg;
+    net_plugin->sendData(msg);
 }
 
 //**************************************** protected ******************************************
+
+
 void Mediator::createModels()
 {
     stampModel = new  QStringListModel(this);
@@ -350,6 +364,7 @@ int Mediator::getElemIdByName(const QString elem_name)
     }
     return result;
 }
+
 QStringList Mediator::getAllElem()
 {
     QStringList result;

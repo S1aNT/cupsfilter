@@ -32,7 +32,6 @@ class Mediator: public QObject
     Q_ENUMS(WorkStep)
 
 public:
-
     Mediator(QObject *parent = 0);
 
     void loadPlugin(const QString &app_dir);
@@ -57,10 +56,14 @@ signals:
     void pluginMessage(const QString &message);
     // Сигнал высылается при прохождении очередного шага загрузки
     void StateChanged(WorkStep);
+    void mbNumberNotExist();
 
 public slots:
-    void authToPrinter(const QString & printer);
-
+    // Сохранение выбранного пользователем принтера
+    void setCurrentPrinter(const QString & printer);
+    // авторизация текущего пользователя на предварительно выбранный принтер
+    void do_needAuthUserToPrinter();
+    void checkMBInBase(QString &mb_value, QString &copyNum_value);
 private slots:
     void do_User_name_mandat(QString &userName,QString &userMandat);
     void parseServerResponse(QString &responce_msg);
@@ -74,6 +77,7 @@ private:
 
     bool connect_state;
 
+    QString currentPrinter;
     QString sid;
     int pagesInDocCount; // число страниц в документе котрый отправили на печать
 
@@ -123,6 +127,7 @@ protected:
 
     void getSecretLevelName(); //
     void getEnablePrinter();
+
 };
 
 #endif // MEDIATOR_H
