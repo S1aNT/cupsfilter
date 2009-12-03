@@ -1,0 +1,40 @@
+Описание шаблона:
+QDataStream::Qt_4_5 // Версия потока
+templates_version   // Волшебный маркер шаблона "Technoserv templates ver"
+date_time           // дата и время создания шаблона
+author:             // автор шаблона (author [date_time]) отобразиться в tooltipe
+templates_name:     // название шаблона, то что покажем в списке шаблонов
+description:        // описание шаблона, может быть пустым
+page_height         // qreal
+page_width          // qreal
+page_orient         // bool
+margin_top          // qreal
+margin_bottom       // qreal
+margin_left         // qreal
+margin_right        // qreal
+first_page          // смещение первой страницы
+second_page         // смещение второй страницы
+third_page          // смещение третьей страницы
+fourth_page         // смещение четвертой страницы
+page_elem_count     // число элементов на текущей странице
+elem_1
+...
+elem_i
+page_elem_count     // число элементов на текущей странице
+elem_1
+...
+elem_i
+page_elem_count     // число элементов на текущей странице
+elem_1
+...
+elem_i
+page_elem_count     // число элементов на текущей странице
+elem_1
+...
+elem_i
+даже если шаблон пустой он содержит группу
+page_elem_count     // число элементов на текущей странице
+elem_1
+...
+elem_i
+для каждой страниц, только число элементов = 0
