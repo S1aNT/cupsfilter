@@ -28,7 +28,7 @@ void workField::setStampModel(QStringListModel *stamp_model)
     ui->secretCBox->setModel(stamp_model);
 }
 
-void workField::setMode(int mode_value)
+void workField::setMode(WorkMode mode_value)
 {
     mode = mode_value;
 }

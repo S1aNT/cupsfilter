@@ -11,6 +11,8 @@
 #include <QDataWidgetMapper>
 
 #include "previewwnd.h"
+#include "tech_global.h"
+using namespace SafeVirtualPrinter;
 
 namespace Ui {
     class workField;
@@ -19,15 +21,17 @@ namespace Ui {
 class workField : public QDialog{
 
     Q_OBJECT
+    Q_ENUMS(WorkMode)
+
 public:
     workField(QWidget *parent = 0);
     ~workField();
     void setPagesCount(int p_count);
     void setStampModel(QStringListModel *stamp_model);
     void setModel (QStandardItemModel * model);
-    void setMode (int mode_value);
+    void setMode (WorkMode mode_value);
 signals:
-    void checkMBInBase(const QString &mb_value,const QString &copyNum_value,int work_mode);
+    void checkMBInBase(const QString &mb_value,const QString &copyNum_value,WorkMode work_mode);
     void needAuthUserToPrinter();
     void needPrintPage();
     void dontNeedPrintPage();
@@ -44,7 +48,7 @@ private:
     QDataWidgetMapper *mapper;
     QSignalMapper *signalMapper;
 
-    int mode;
+    WorkMode mode;
     void isAnyFiedEmpty();
     void setEnableField(bool e);
 
