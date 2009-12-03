@@ -121,10 +121,10 @@ void Mediator::readGlobal(const QString &app_dir)
 {
     // Читаем файл настроек
 
-    QString ini_path =QString(QObject::trUtf8("%1\\Technoserv\\safe_printer.ini")).arg(app_dir);
+    QString ini_path =QString(QObject::trUtf8("%1/Technoserv/safe_printer.ini")).arg(app_dir);
     qDebug() << ini_path << endl;
     QSettings settings (ini_path,QSettings::IniFormat);
-
+    qDebug() << "Status " << settings.status();
     settings.setIniCodec("UTF-8");
 
     settings.beginGroup("SERVICE");
@@ -161,14 +161,14 @@ void Mediator::readGlobal(const QString &app_dir)
     settings.endGroup();
 #elif defined(Q_OS_WIN)
     settings.beginGroup("POSTSCRIPT");
-    gsBin = settings.value("gs_bin","C:\\Program Files\\gs\\gs8.70\\bin\\gswin32c.exe").toString();
+    gsBin = settings.value("gs_bin","C:/Program Files/gs/gs8.70/bin/gswin32c.exe").toString();
     settings.endGroup();
     settings.beginGroup("PDF");
-    pdftkBin = settings.value("pdfTK","c:\\Tools\\pdftk.exe").toString();
+    pdftkBin = settings.value("pdfTK","c:/Tools/pdftk.exe").toString();
     settings.endGroup();
     settings.beginGroup("USED_DIR_FILE");
-    spoolDIR = settings.value("spool_dir","c:\\spool\\").toString();
-    rcp_file = settings.value("rcp_file","c:\\gs\\pdf.rcp").toString();
+    spoolDIR = settings.value("spool_dir","c:/spool").toString();
+    rcp_file = settings.value("rcp_file","c:/gs/pdf.rcp").toString();
     settings.endGroup();
 
     settings.beginGroup("TEMPLATES");
@@ -266,6 +266,28 @@ void  Mediator::parseServerResponse(QString &responce_msg)
             break;
         case MB_NOT_EXIST_ANS:
             emit mbNumberNotExist();
+            // Формируем в зависимости от режима работы нужные страницы
+            switch (this->work_mode){
+            case Accounting:
+                // Учет листов с печатью обратной стороны
+                if (QFile::exists(this->currentTemplates_fname)){
+                    // Шаблон выбран он существует
+                    QPixmap page = this->formatPage(currentTemplates_fname,2);
+                    emit needShowPreviewPage(page);
+                }else{
+                    msg =QObject::trUtf8("Не выбран шаблон или отсутсвует файл шаблона");
+                    emit error(msg);
+                }
+                break;
+            case AccountingOnly:
+                // Только учет без реальной печати оборотной стороны
+                break;
+            case PrintOverAccountPaper:
+                break;
+            case PrintWithAccounting:
+                break;
+            }
+
             break;
         case PRINTER_LIST_ANS:
             //TODO написать парсер разбирающий список принтеров отданый сервером
@@ -313,11 +335,12 @@ void Mediator::do_needAuthUserToPrinter()
     net_plugin->sendData(msg);
 }
 
-void Mediator::checkMBInBase(QString &mb_value, QString &copyNum_value)
+void Mediator::checkMBInBase(QString &mb_value, QString &copyNum_value, WorkMode w_mode)
 {
     // Запрос к БД через демон период задается через
     // ini файл по умолчанию от начала текущего года до сегодня
     // Формируем SQL   SELECT count (*) AS mb_count from
+    this->work_mode=w_mode;
 
     QDate dt_end;
     dt_end=QDate::currentDate (); // Текущая дата
@@ -330,6 +353,10 @@ void Mediator::checkMBInBase(QString &mb_value, QString &copyNum_value)
 
 //**************************************** protected ******************************************
 
+QPixmap Mediator::formatPage(const QString &in_file,int pageNum)
+{
+
+}
 
 void Mediator::createModels()
 {
