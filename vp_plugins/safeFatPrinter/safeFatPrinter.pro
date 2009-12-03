@@ -11,7 +11,8 @@ SOURCES += main.cpp \
     getusernamemandatdlg.cpp \
     selectwindow.cpp \
     workfield.cpp \
-    addelemdlg.cpp
+    addelemdlg.cpp \
+    previewwnd.cpp
 HEADERS += mediator.h \
     firstask.h \
     getusernamemandatdlg.h \
@@ -20,10 +21,12 @@ HEADERS += mediator.h \
     ../global/tech_global.h \
     selectwindow.h \
     workfield.h \
-    addelemdlg.h
+    addelemdlg.h \
+    previewwnd.h
 FORMS += firstask.ui \
     getusernamemandatdlg.ui \
     selectwindow.ui \
     workfield.ui \
-    addelemdlg.ui
+    addelemdlg.ui \
+    previewwnd.ui
 RESOURCES += images.qrc
