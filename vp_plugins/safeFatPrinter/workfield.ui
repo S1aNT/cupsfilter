@@ -376,7 +376,7 @@
      </item>
     </layout>
    </widget>
-   <widget class="QGroupBox" name="groupBox_4">
+   <widget class="QGroupBox" name="titleGroupBox">
     <property name="geometry">
      <rect>
       <x>5</x>
