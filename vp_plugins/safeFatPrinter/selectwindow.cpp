@@ -32,7 +32,7 @@ SelectWindow::SelectWindow(QWidget *parent) :
     connect (WorkDlg,SIGNAL(needAuthUserToPrinter()),SpiderInTheMiddle,SLOT(do_needAuthUserToPrinter()));
     connect (ui->printerCBox,SIGNAL(currentIndexChanged(QString)),SpiderInTheMiddle,SLOT(setCurrentPrinter(QString)));
 
-    //connect (qApp,SIGNAL(aboutToQuit()),this,SLOT(cleanUp()));
+    connect (qApp,SIGNAL(aboutToQuit()),this,SLOT(cleanUp()));
 
     connect(ui->printModeAccounting, SIGNAL(clicked()), signalMapper, SLOT(map()));
     connect(ui->printFromAccountPaper, SIGNAL(clicked()), signalMapper, SLOT(map()));
@@ -41,6 +41,23 @@ SelectWindow::SelectWindow(QWidget *parent) :
     signalMapper->setMapping(ui->printFromAccountPaper,1);
     signalMapper->setMapping(ui->printWithAccountingPaper,2 );
     connect(signalMapper, SIGNAL(mapped(int)),  this, SLOT(setMode(int)));
+}
+
+
+void SelectWindow::cleanUp()
+{
+    // Великая чистка 37 года
+    QDir dir(SpiderInTheMiddle->getSpoolDir());
+    QStringList filters;
+    filters << QObject::trUtf8("*%1*.*").arg(SpiderInTheMiddle->getSeansSid());
+    dir.setFilter(QDir::Files | QDir::Hidden | QDir::NoSymLinks);
+    dir.setNameFilters(filters);
+    QFileInfoList list = dir.entryInfoList();
+    for (int i = 0; i < list.size(); ++i) {
+          QFileInfo fileInfo = list.at(i);
+          QFile::remove(fileInfo.absoluteFilePath());
+      }
+
 }
 
 void SelectWindow::checkPoint(WorkStep step)
