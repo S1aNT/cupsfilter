@@ -19,7 +19,7 @@ SelectWindow::SelectWindow(QWidget *parent) :
     signalMapper = new QSignalMapper(this);
     WorkDlg = new workField(this);
     WorkDlg->setWindowFlags(Qt::Dialog |  Qt::CustomizeWindowHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint | Qt::WindowSystemMenuHint);
-
+    WorkDlg->setStampModel(SpiderInTheMiddle->stamp_model());
 
     this->setWindowFlags(Qt::Dialog |  Qt::CustomizeWindowHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint | Qt::WindowSystemMenuHint);
     this->move(calcCenter());
@@ -28,7 +28,9 @@ SelectWindow::SelectWindow(QWidget *parent) :
     connect (SpiderInTheMiddle,SIGNAL(pluginMessage(const QString &)),this,SLOT (showPluginMessage(const QString &)));
     connect (SpiderInTheMiddle,SIGNAL(needShowAuthWindow(QString &)),this,SLOT(showAuthWindow(QString&)));
 
-    connect (ui->printerCBox,SIGNAL(currentIndexChanged(QString)),SpiderInTheMiddle,SLOT(authToPrinter(QString)));
+    connect (WorkDlg,SIGNAL(checkMBInBase(QString &, QString &)),SpiderInTheMiddle,SLOT(do_checkMBInBase(QString &, QString &)));
+    connect (WorkDlg,SIGNAL(needAuthUserToPrinter()),SpiderInTheMiddle,SLOT(do_needAuthUserToPrinter()));
+    connect (ui->printerCBox,SIGNAL(currentIndexChanged(QString)),SpiderInTheMiddle,SLOT(setCurrentPrinter(QString)));
 
     //connect (qApp,SIGNAL(aboutToQuit()),this,SLOT(cleanUp()));
 
@@ -81,7 +83,7 @@ void SelectWindow::setMode (int signal_mode)
     case 0:
         title = QObject::trUtf8("Режим работы: [Учет листов]");
         WorkDlg->setWindowTitle(title);
-        WorkDlg->move(calcCenter());
+        //WorkDlg->move(calcCenter());
         break;
     case 1:
         break;
