@@ -1,8 +1,5 @@
 #include "mediator.h"
 
-
-
-
 Mediator::Mediator(QObject *parent) :
         QObject(parent)
 {
@@ -13,30 +10,9 @@ Mediator::Mediator(QObject *parent) :
 }
 
 //************************** public function *****************************************
-//                                Геттеры
-
-QString Mediator::getElemTagById(int elem_id)
+void Mediator::convert2pdf(QString &in_file)
 {
-    QString result;
-    if (elem_id <= elemTag.size() && elem_id >0){
-        QMapIterator<QString, int> i (elemTag);
-         while (i.hasNext()) {
-             i.next();
-             if (i.value() == elem_id){
-                 result = i.key();
-             }
-         }
-    }
-    return result;
-}
-
-int Mediator::getElemIdByName(const QString elem_name)
-{
-    int result=0; // Если в списке запрошенного элемента нет то возвращаем 0
-    if (!elem_name.isEmpty() && elemTag.contains(elem_name)){
-        result= elemTag.value(elem_name);
-    }
-    return result;
+    gs_plugin->convertPs2Pdf(in_file);
 }
 
 //************************************************************************************
@@ -270,44 +246,44 @@ void  Mediator::parseServerResponse(QString &responce_msg)
         body = rx.cap(2);
         qDebug() <<Q_FUNC_INFO<< cmd<<body;
         switch (cmd.toInt()){
-            case STAMP_LIST_ANS:
-                 this->stampModel->setStringList(QStringList() << body.split(";:;"));
-                 this->getEnablePrinter();
-                break;
-            case REGISTER_ANS: // Соединились с сервером безопастности
-                 this->connect_state=true;
-                 msg =QObject::trUtf8("Успешно соединились с сервером безопасности");
-                 emit pluginMessage(msg);
-                 emit StateChanged(netPluginInit);
-                 this->plugin_init();
-                 break;
-            case MB_EXIST_AND_BRAK_ANS:
-                //this->insertDocToModel(body);
-                //emit mbNumberExist(doc_model->rowCount());
-                break;
-            case MB_EXIST_AND_NOT_BRAK_ANS:
-                //emit mbNumberExist(DOC_PRINTED);
-                break;
-            case MB_NOT_EXIST_ANS:
-                //emit mbNumberNotExist();
-                break;
-            case PRINTER_LIST_ANS:
-//TODO написать парсер разбирающий список принтеров отданый сервером
-                plist = QPrinterInfo::availablePrinters();
+        case STAMP_LIST_ANS:
+            this->stampModel->setStringList(QStringList() << body.split(";:;"));
+            this->getEnablePrinter();
+            break;
+        case REGISTER_ANS: // Соединились с сервером безопастности
+            this->connect_state=true;
+            msg =QObject::trUtf8("Успешно соединились с сервером безопасности");
+            emit pluginMessage(msg);
+            emit StateChanged(netPluginInit);
+            this->plugin_init();
+            break;
+        case MB_EXIST_AND_BRAK_ANS:
+            //this->insertDocToModel(body);
+            //emit mbNumberExist(doc_model->rowCount());
+            break;
+        case MB_EXIST_AND_NOT_BRAK_ANS:
+            //emit mbNumberExist(DOC_PRINTED);
+            break;
+        case MB_NOT_EXIST_ANS:
+            //emit mbNumberNotExist();
+            break;
+        case PRINTER_LIST_ANS:
+            //TODO написать парсер разбирающий список принтеров отданый сервером
+            plist = QPrinterInfo::availablePrinters();
 
-                for (int i = 0; i < plist.size(); ++i) {
-                    if (plist.at(i).printerName()!="Защищенный принтер"){
-                       tmp_list.append(plist.at(i).printerName());
-                    }
+            for (int i = 0; i < plist.size(); ++i) {
+                if (plist.at(i).printerName()!="Защищенный принтер"){
+                    tmp_list.append(plist.at(i).printerName());
                 }
-                this->printersModel->setStringList(tmp_list);
-                emit StateChanged(filledPrinterList);
+            }
+            this->printersModel->setStringList(tmp_list);
+            emit StateChanged(filledPrinterList);
 
-                break;
+            break;
         case PRINTER_LIST_EMPTY:
-                msg =QObject::trUtf8("У данного пользователя нет ни одного разрешенного принтера");
-                emit error(msg);
-                break;
+            msg =QObject::trUtf8("У данного пользователя нет ни одного разрешенного принтера");
+            emit error(msg);
+            break;
             case MANDAT_LIST_ANS:// Список мандатов к которым допущен пользоватль
                 qDebug() <<body.split(";:;");
                 this->mandatModel->setStringList(QStringList() << body.split(";:;"));
@@ -317,7 +293,7 @@ void  Mediator::parseServerResponse(QString &responce_msg)
                 msg =QObject::trUtf8("У данного пользователя нет ни одного мандата");
                 emit error(msg);
                 break;
-        }
+            }
     }else{
         // emit error
     }
@@ -326,10 +302,7 @@ void  Mediator::parseServerResponse(QString &responce_msg)
 
 //*************************************** public slots*******************************************
 
-void Mediator::convert2pdf(const QString &input_fn)
-{
-    gs_plugin->convertPs2Pdf(input_fn);
-}
+
 
 void Mediator::authToPrinter(const QString & printer)
 {
@@ -350,11 +323,88 @@ void Mediator::createModels()
     doc_model = new QStandardItemModel(this);
     mandatModel = new  QStringListModel(this);
     printersModel = new  QStringListModel(this);
+    fillMap();
+    doc_model->setHorizontalHeaderLabels(getAllElem());
+}
+//                                Геттеры
+QString Mediator::getElemTagById(int elem_id)
+{
+    QString result;
+    if (elem_id <= elemTag.size() && elem_id >0){
+        QMapIterator<QString, int> i (elemTag);
+        while (i.hasNext()) {
+            i.next();
+            if (i.value() == elem_id){
+                result = i.key();
+            }
+        }
+    }
+    return result;
+}
+
+int Mediator::getElemIdByName(const QString elem_name)
+{
+    int result=0; // Если в списке запрошенного элемента нет то возвращаем 0
+    if (!elem_name.isEmpty() && elemTag.contains(elem_name)){
+        result= elemTag.value(elem_name);
+    }
+    return result;
+}
+QStringList Mediator::getAllElem()
+{
+    QStringList result;
+
+        QMapIterator<QString, int> i (elemTag);
+        while (i.hasNext()) {
+            i.next();
+            result.append(i.key());
+        }
+
+    return result;
+}
+
+void Mediator::insertDocToModel()
+{
+    // add empty row to model
+    doc_model->insertRow(doc_model->rowCount());
+}
+
+void Mediator::insertDocToModel(QString &item)
+{
+    if (!item.isEmpty() && item.contains(";:;", Qt::CaseInsensitive)){
+        QStringList itemList= item.split(";:;");
+        if (itemList.size()>0){
+            QList<QStandardItem *> cells;
+            int Pos;
+
+            for (int i = 0; i <itemList.size() ; ++i) {
+                QStandardItem * cell_item= new QStandardItem();
+                cells.append(cell_item);
+            }
+            QStringList list_2;
+            for (int i = 0; i <itemList.size() ; ++i) {
+                QString tmp_str=itemList.at(i);
+                qDebug() << tmp_str;
+                if (!tmp_str.isEmpty() && tmp_str.contains("=")){
+                    list_2.clear();
+                    list_2 = tmp_str.split("=");
+                    if (list_2.size() == 1){
+                        QStandardItem *cell_item =cells.at(this->getElemIdByName(list_2.at(0)));
+                        cell_item->setData(QVariant(list_2.at(1)),Qt::EditRole);
+                        qDebug() << "Key" << list_2.at(0) << " Value " << list_2.at(1);
+                    }
+                }
+            }
+            doc_model->appendRow (cells);
+        }
+
+    }
+
 }
 
 void Mediator::fillMap()
 {
-    elemTag.insert(QObject::trUtf8("N док-та"),1 );
+    elemTag.insert(QObject::trUtf8("МБ"),1 );
     elemTag.insert(QObject::trUtf8("Название док-та"),2 );
     elemTag.insert(QObject::trUtf8("Гриф"), 3);
     elemTag.insert(QObject::trUtf8("Пункт перечня"),4 );
@@ -375,4 +425,5 @@ void Mediator::fillMap()
     elemTag.insert(QObject::trUtf8("doc_status"), 19);
     elemTag.insert(QObject::trUtf8("brak_pages"), 20);
     elemTag.insert(QObject::trUtf8("brak_doc"), 21);
+
 }

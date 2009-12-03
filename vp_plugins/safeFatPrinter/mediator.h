@@ -37,12 +37,11 @@ public:
 
     void loadPlugin(const QString &app_dir);
     void plugin_init();
+    void convert2pdf(QString &in_file);
     // Геттеры
     QString getUserName(){return user_name;};
     QString getUserMandat(){return user_mandat;};
-    QString getElemTagById(int elem_id);
 
-    int getElemIdByName(const QString elem_name);
     int getPageCountInDoc(){return pagesInDocCount;};
 
     QStandardItemModel *document_model () const {return doc_model;}
@@ -60,7 +59,6 @@ signals:
     void StateChanged(WorkStep);
 
 public slots:
-    void convert2pdf(const QString &input_fn);
     void authToPrinter(const QString & printer);
 
 private slots:
@@ -109,12 +107,18 @@ private:
     QString globalTemplates;
     QString ftpTemplatesDir;
 protected:
+    //Геттеры
+    QString getElemTagById(int elem_id);
+    QStringList getAllElem();
+    int getElemIdByName(const QString elem_name);
+
     /**
      * Read global settings from Application Dir
      */
     void readGlobal(const QString &app_dir);
-
     void createModels();
+    void insertDocToModel();
+    void insertDocToModel(QString &item);
     void fillMap(); // Заполним список значениями
 
     void getSecretLevelName(); //
