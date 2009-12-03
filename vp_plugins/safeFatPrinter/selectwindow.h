@@ -19,6 +19,7 @@ using namespace SafeVirtualPrinter;
 
 class SelectWindow : public QMainWindow {
     Q_OBJECT
+    Q_ENUMS(WorkMode)
 public:
     SelectWindow(QWidget *parent = 0);
     ~SelectWindow();

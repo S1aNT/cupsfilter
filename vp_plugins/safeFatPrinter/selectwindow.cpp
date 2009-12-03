@@ -28,7 +28,7 @@ SelectWindow::SelectWindow(QWidget *parent) :
     connect (SpiderInTheMiddle,SIGNAL(pluginMessage(const QString &)),this,SLOT (showPluginMessage(const QString &)));
     connect (SpiderInTheMiddle,SIGNAL(needShowAuthWindow(QString &)),this,SLOT(showAuthWindow(QString&)));
 
-    connect (WorkDlg,SIGNAL(checkMBInBase(QString &, QString &)),SpiderInTheMiddle,SLOT(do_checkMBInBase(QString &, QString &)));
+    connect (WorkDlg,SIGNAL(checkMBInBase(QString &, QString &,WorkMode)),SpiderInTheMiddle,SLOT(do_checkMBInBase(QString &, QString &,WorkMode )));
     connect (WorkDlg,SIGNAL(needAuthUserToPrinter()),SpiderInTheMiddle,SLOT(do_needAuthUserToPrinter()));
     connect (ui->printerCBox,SIGNAL(currentIndexChanged(QString)),SpiderInTheMiddle,SLOT(setCurrentPrinter(QString)));
 
