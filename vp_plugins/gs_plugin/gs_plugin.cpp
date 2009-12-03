@@ -10,6 +10,7 @@ bool GS_plugin::init(const QString &gs_bin, const QString &pdftk_bin, const QStr
 {
     QString error_msg;
     QDir dir;
+    QFile new_file;
     const QString startnow = QDir::currentPath();
 
     if (QFile::exists(gs_bin)) {
@@ -30,10 +31,12 @@ bool GS_plugin::init(const QString &gs_bin, const QString &pdftk_bin, const QStr
                     pdftkBin = pdftk_bin;
                     if (!QFile::exists(gs_rcp_file)){
                         // Файл не существует но он мне нужен значит создаем его
-                        QTemporaryFile file_rcp;
-                        qDebug() << Q_FUNC_INFO << file_rcp.fileName() ;
-                        if (file_rcp.open()) {
-                            QTextStream out(&file_rcp);
+                        gs_rcp=QString("%1/%2.rcp").arg(temp_folder,sid);
+
+
+                        qDebug() << Q_FUNC_INFO << gs_rcp;
+                        if (new_file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+                            QTextStream out(&new_file);
                             out << QObject::trUtf8("-dQUIET\n")
                                     << QObject::trUtf8("-dNOPAUSE\n")
                                     << QObject::trUtf8("-dPARANOIDSAFER\n")
@@ -42,11 +45,12 @@ bool GS_plugin::init(const QString &gs_bin, const QString &pdftk_bin, const QStr
                                     << QObject::trUtf8("-dPDFSETTINGS=/prepress\n")
                                     << QObject::trUtf8("-dEmbedAllFonts=true\n")
                                     << QObject::trUtf8("-sDEVICE=pdfwrite\n");
-                            file_rcp.close();
-                            gs_rcp.clear();
-                            gs_rcp=QString("%1/%2.rcp").arg(temp_folder,sid);
-                            file_rcp.rename(file_rcp.fileName(),gs_rcp);
+                            new_file.close();
+
+                        }else{
+                            error_msg = QObject::trUtf8("ERROR : Ошибка создания файла из %1\n").arg(gs_rcp);
                         }
+
                     }else{
                         gs_rcp=gs_rcp_file;
                     }
