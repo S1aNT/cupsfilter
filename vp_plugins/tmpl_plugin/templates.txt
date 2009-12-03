@@ -12,29 +12,30 @@ margin_top          // qreal
 margin_bottom       // qreal
 margin_left         // qreal
 margin_right        // qreal
-first_page          // смещение первой страницы
-second_page         // смещение второй страницы
-third_page          // смещение третьей страницы
-fourth_page         // смещение четвертой страницы
 page_elem_count     // число элементов на текущей странице
-elem_1
+elem_type_1         // тип элемента
+elem_1              // запись полей элемента
 ...
+elem_type_i
 elem_i
 page_elem_count     // число элементов на текущей странице
+elem_type_1
 elem_1
 ...
+elem_type_i
 elem_i
 page_elem_count     // число элементов на текущей странице
+elem_type_1
 elem_1
 ...
+elem_type_i
 elem_i
 page_elem_count     // число элементов на текущей странице
+elem_type_1
 elem_1
 ...
+elem_type_i
 elem_i
 даже если шаблон пустой он содержит группу
 page_elem_count     // число элементов на текущей странице
-elem_1
-...
-elem_i
 для каждой страниц, только число элементов = 0
