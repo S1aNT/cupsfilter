@@ -3,7 +3,7 @@
 
 
 namespace SafeVirtualPrinter{
-
+#define MM_TO_POINT(mm) ((mm)*2.83465058)
 typedef enum{
    REGISTER_CMD		= 10,
 
