@@ -42,7 +42,7 @@ bool GS_plugin::init(const QString &gs_bin, const QString &pdftk_bin, const QStr
                                     << QObject::trUtf8("-dEmbedAllFonts=true\n")
                                     << QObject::trUtf8("-sDEVICE=pdfwrite\n");
                             file_rcp.close();
-                            gs_rcp=QString("%1//%2.rcp").arg(temp_folder,sid);
+                            gs_rcp=QString("%1/%2.rcp").arg(temp_folder,sid);
                             file_rcp.rename(file_rcp.fileName(),gs_rcp);
                         }
                     }else{
