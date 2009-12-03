@@ -30,7 +30,7 @@ class Mediator: public QObject
 {
     Q_OBJECT
     Q_ENUMS(WorkStep)
-
+    Q_ENUMS(WorkMode)
 public:
     Mediator(QObject *parent = 0);
 
@@ -57,13 +57,14 @@ signals:
     // Сигнал высылается при прохождении очередного шага загрузки
     void StateChanged(WorkStep);
     void mbNumberNotExist();
+    void needShowPreviewPage(const QPixmap &preview_page); // Требуется показать страницу документа
 
 public slots:
     // Сохранение выбранного пользователем принтера
     void setCurrentPrinter(const QString & printer);
     // авторизация текущего пользователя на предварительно выбранный принтер
     void do_needAuthUserToPrinter();
-    void checkMBInBase(QString &mb_value, QString &copyNum_value);
+    void checkMBInBase(QString &mb_value, QString &copyNum_value,WorkMode w_mode);
 private slots:
     void do_User_name_mandat(QString &userName,QString &userMandat);
     void parseServerResponse(QString &responce_msg);
@@ -80,6 +81,7 @@ private:
     QString currentPrinter;
     QString sid;
     int pagesInDocCount; // число страниц в документе котрый отправили на печать
+    QString currentTemplates_fname; // Текущий выбранный шаблон
 
     QString user_name;
     QString user_mandat;
@@ -110,6 +112,8 @@ private:
     QString localTemplates;
     QString globalTemplates;
     QString ftpTemplatesDir;
+
+    WorkMode work_mode;
 protected:
     //Геттеры
     QString getElemTagById(int elem_id);
@@ -127,6 +131,7 @@ protected:
 
     void getSecretLevelName(); //
     void getEnablePrinter();
+    QPixmap formatPage(const QString &in_file,int pageNum);
 
 };
 
