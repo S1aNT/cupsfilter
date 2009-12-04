@@ -29,6 +29,7 @@ public:
 
     Tmpl_plugin(QObject *parent=0){};
     void init(const QString & spool,const QString & sid);
+    void createEmptyTemplate();
     // Возвращает полный путь к сформированному на основании шаблона и данных модели файлу
     void setTemplates(const QString & templates_in_file,QStandardItemModel * model);
     void printFormatingPageToFile(int pageNum);

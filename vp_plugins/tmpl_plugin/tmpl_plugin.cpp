@@ -39,6 +39,25 @@ void Tmpl_plugin::init(const QString &spool,const QString &sid)
     }
 }
 
+void Tmpl_plugin::createEmptyTemplate()
+{
+    QString error_msg;
+    QDir dir;
+    QFile new_file;
+    const QString startnow = QDir::currentPath();
+
+    if (dir.cd(spool_dir) && !spool_dir.isEmpty() && !current_sid.isEmpty()){
+        // Создаем пустой шаблон документа
+    }else{
+        error_msg = QObject::trUtf8("ERROR: плагин [tmpl_plugin] не правильно инициализирован");
+    }
+    QDir::setCurrent(startnow);
+
+    if (!error_msg.isEmpty()) {
+        emit error(error_msg);
+    }
+}
+
 void Tmpl_plugin::setTemplates(const QString & templates_in_file,QStandardItemModel * model)
 {
     QString error_msg;
