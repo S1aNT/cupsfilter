@@ -10,8 +10,8 @@ class Itmpl_plugin{
 
 public:
     virtual ~Itmpl_plugin() {}
-    virtual void init(const QString & spool,const QString & sid,const QStandardItemModel * model)=0;
-    virtual void setTemplates(const QString & templates_in_file)=0;
+    virtual void init(const QString & spool,const QString & sid)=0;
+    virtual void setTemplates(const QString & templates_in_file,QStandardItemModel * model)=0;
     virtual void printFormatingPageToFile(int pageNum)=0;
     virtual QGraphicsScene *getFirstPage()=0;
     virtual QGraphicsScene *getSecondPage()=0;
