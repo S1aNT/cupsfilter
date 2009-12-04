@@ -1,6 +1,7 @@
 #ifndef BOXSERVER_H
 #define BOXSERVER_H
 
+#include <QDebug>
 #include <QStringList>
 #include <QTcpServer>
 #include <QTcpSocket>
