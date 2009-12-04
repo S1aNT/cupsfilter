@@ -7,8 +7,7 @@ TARGET = simpleDemon
 CONFIG += console
 CONFIG -= app_bundle
 TEMPLATE = app
-INCLUDEPATH += ../../vp_with_plugin/global/
 HEADERS += boxserver.h \
-    ../../vp_with_plugin/global/tech_global.h
+    tech_global.h
 SOURCES += boxserver.cpp \
     main.cpp
