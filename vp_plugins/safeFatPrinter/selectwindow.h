@@ -41,6 +41,7 @@ private slots:
     void showAuthWindow(QString &user_name);
     void showPluginMessage(const QString &message);
     void checkPoint(WorkStep step);
+    void cleanUp();
 private:
     Ui::SelectWindow *ui;
     QString mainFileName; // Основной рабочий файл
