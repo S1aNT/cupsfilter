@@ -11,6 +11,7 @@ class Itmpl_plugin{
 public:
     virtual ~Itmpl_plugin() {}
     virtual void init(const QString & spool,const QString & sid)=0;
+    virtual void createEmptyTemplate()=0;
     virtual void setTemplates(const QString & templates_in_file,QStandardItemModel * model)=0;
     virtual void printFormatingPageToFile(int pageNum)=0;
     virtual QGraphicsScene *getFirstPage()=0;
