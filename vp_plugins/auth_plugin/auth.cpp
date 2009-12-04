@@ -49,6 +49,7 @@ void  Auth::init ()
 
         QSettings log_settings("HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer",QSettings::NativeFormat);
         user_name =log_settings.value("Logon User Name").toString(); // returns "Logon User Name"
+        qDebug() <<Q_FUNC_INFO <<log_settings.status();
         //user_name="usr1";
         //emit needShowAuthWindow(user_name);
         user_mandat="";
