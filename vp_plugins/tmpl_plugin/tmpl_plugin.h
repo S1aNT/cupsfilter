@@ -13,6 +13,7 @@
 #include <QPrinter>
 #include <QPainter>
 #include <QDate>
+#include <QGraphicsRectItem>
 
 
 #include "itmpl_plugin.h"
@@ -27,9 +28,9 @@ class Tmpl_plugin :public QObject, Itmpl_plugin
 public:
 
     Tmpl_plugin(QObject *parent=0){};
-    void init(const QString & spool,const QString & sid,const QStandardItemModel * model);
+    void init(const QString & spool,const QString & sid);
     // Возвращает полный путь к сформированному на основании шаблона и данных модели файлу
-    void setTemplates(const QString & templates_in_file);
+    void setTemplates(const QString & templates_in_file,QStandardItemModel * model);
     void printFormatingPageToFile(int pageNum);
     QGraphicsScene *getFirstPage(){return firstPage_tmpl;};
     QGraphicsScene *getSecondPage(){return secondPage_tmpl;};
@@ -38,9 +39,14 @@ public:
 
 signals:
     void error(QString error_message);
-
+    void allTemplatesPagesParsed();
+public slots:
+    void update_scene(int pageNum);
 protected:
-    bool parse_templates(int page,QGraphicsScene * scene);
+    bool parse_templates(const QString & in_file);
+    // Ищет в модели колонку с названием [тэг] где тэг==имени колонки
+    // И возвращает или исходную строчку или преобразованную
+    QString findFromModel(const QString &find_line);
     static const int version = 1;
 
     QStandardItemModel *work_model;
@@ -58,12 +64,14 @@ protected:
     QGraphicsScene * secondPage_tmpl;
     QGraphicsScene * thirdPage_tmpl;
     QGraphicsScene * fourthPage_tmpl;
+
+
     // Текущий шаблон
-    QString date_time;               // дата и время создания шаблона
+    QDate date_time;               // дата и время создания шаблона
     QString author;                  // автор шаблона (author [date_time]) отобразиться в tooltipe
     QString templates_name;          // название шаблона, то что покажем в списке шаблонов
     QString description;             // описание шаблона, может быть пустым
-    QPrinter::PaperSize paper_size;
+    QString paper_size;
     qreal page_height;               //
     qreal page_width;                //
     bool  page_orient;               //
@@ -72,6 +80,10 @@ protected:
     qreal margin_left;               //
     qreal margin_right;              //
 
+    int firstPageElemCount;
+    int secondPageElemCount;
+    int thirdPageElemCount;
+    int fourthPageElemCount;
 };
 
 #endif
