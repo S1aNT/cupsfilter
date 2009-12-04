@@ -146,6 +146,31 @@ void workField::showPreviewPage(QPixmap &preview_page)
 }
 
 //********************************** private slots ******************************************
+void workField::setCurrentTemplates(QString temp)
+{
+    QString f_name;
+    if (localORglobal){
+        for (int i=0;i<local_templates_path.size();i++){
+            QFileInfo fi=local_templates_path.at(i);
+            if (fi.fileName()==temp){
+                f_name = fi.absoluteFilePath();
+                break;
+            }
+        }
+    }else{
+        for (int i=0;i<global_templates_path.size();i++){
+            QFileInfo fi=global_templates_path.at(i);
+            if (fi.fileName()==temp){
+                f_name = fi.absoluteFilePath();
+                break;
+            }
+        }
+    }
+   currentTemplates = f_name; // Запомним выбор пользователя
+
+}
+
+
 void workField::selectTemplatesDir(bool mode)
 {
     QString title_str;
@@ -250,10 +275,7 @@ void workField::setEnableField(bool e)
     ui->paperAccountsOutSide->setEnabled(e);
 }
 
-void workField::isAnyFiedEmpty()
-{
 
-}
 
 
 //*******************************************************************************************

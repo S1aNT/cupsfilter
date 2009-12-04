@@ -44,7 +44,8 @@ private slots:
     void flipLabel(bool flip);
     void checkData(); // При нажатии на кнопку идет анализ введенных данных
     void selectTemplatesDir(bool mode); //Выбор локальный или глобальный каталог шаблонов
-    void setCurrentTemplates(QString);
+
+    void setCurrentTemplates(QString temp);
 protected:
     void changeEvent(QEvent *e);
 private:
@@ -55,12 +56,13 @@ private:
     bool localORglobal; // Режим шаблонов локальные или глобальные
     QString local_templ_dir;
     QString global_templ_dir;
+    QString currentTemplates;
 
     QList <QFileInfo> local_templates_path;
     QList <QFileInfo> global_templates_path;
 
     WorkMode mode;
-    void isAnyFiedEmpty();
+
     void setEnableField(bool e);
 
 };
