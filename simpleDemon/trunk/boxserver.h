@@ -12,7 +12,6 @@
 #include <stdio.h>
 
 
-#include "tech_global.h"
 
 class BoxServer : public QTcpServer
 {
@@ -20,16 +19,16 @@ class BoxServer : public QTcpServer
 public:
     BoxServer(QObject *parent=0);
 private slots:
-	void readyRead();
-	void disconnected();
+        void readyRead();
+        void disconnected();
 //        void sendUserList();
 
 protected:
-	void incomingConnection(int socketfd);
-	void doCommand(const QString &user,int command,const QString &body);
+        void incomingConnection(int socketfd);
+        void doCommand(const QString &user,int command,const QString &body);
 private:
-	QSet<QTcpSocket*> clients;
-	QMap<QTcpSocket*,QString> clientsUID; //Соединение, SID
+        QSet<QTcpSocket*> clients;
+        QMap<QTcpSocket*,QString> clientsUID; //Соединение, SID
 
 };
 
