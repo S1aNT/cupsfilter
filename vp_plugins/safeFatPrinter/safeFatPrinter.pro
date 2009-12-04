@@ -12,7 +12,8 @@ SOURCES += main.cpp \
     selectwindow.cpp \
     workfield.cpp \
     addelemdlg.cpp \
-    previewwnd.cpp
+    previewwnd.cpp \
+    addtemplate.cpp
 HEADERS += mediator.h \
     firstask.h \
     getusernamemandatdlg.h \
@@ -21,11 +22,14 @@ HEADERS += mediator.h \
     selectwindow.h \
     workfield.h \
     addelemdlg.h \
-    previewwnd.h 
+    previewwnd.h \
+    addtemplate.h
 FORMS += firstask.ui \
     getusernamemandatdlg.ui \
     selectwindow.ui \
     workfield.ui \
     addelemdlg.ui \
-    previewwnd.ui
+    previewwnd.ui \
+    addtemplate.ui
 RESOURCES += images.qrc
+OTHER_FILES += ../tmpl_plugin/templates.txt
