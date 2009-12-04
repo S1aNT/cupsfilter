@@ -70,6 +70,7 @@ void Mediator::loadPlugin(const QString &app_dir)
     Inet_plugin *net_plugin_Interface;
     Igs_plugin *gs_plugin_Interface;
     Auth_plugin *auth_plugin_Interface;
+    Itmpl_plugin *tmpl_plugin_Interface;
 
 #if defined(Q_OS_WIN)
     if (pluginsDir.dirName().toLower() == "debug" || pluginsDir.dirName().toLower() == "release")
@@ -99,7 +100,12 @@ void Mediator::loadPlugin(const QString &app_dir)
                 QString  msg= QObject::trUtf8("Плагин: [Работы с сетью] успешно загружен.");
                 emit pluginMessage(msg);
             }
-
+            tmpl_plugin_Interface = qobject_cast<Itmpl_plugin *> (plugin);
+            if (tmpl_plugin_Interface){
+                tmpl_plugin = tmpl_plugin_Interface;
+                connect (plugin,SIGNAL(allTemplatesPagesParsed()),this,SIGNAL(allTemplatesPagesParsed()));
+                connect (this,SIGNAL(needUpdatePage(int)),plugin,SLOT(update_scene(int)));
+            }
             gs_plugin_Interface = qobject_cast<Igs_plugin *> (plugin);
             if (gs_plugin_Interface) {
                 connect (plugin,SIGNAL(taskStateChanged(TaskState)),this,SLOT(parserGSMessage(TaskState)));

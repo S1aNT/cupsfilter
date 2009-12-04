@@ -19,6 +19,7 @@
 #include "tech_global.h"
 #include "inet_plugin.h"
 #include "igs_plugin.h"
+#include "itmpl_plugin.h"
 #include "auth_plugin.h"
 
 using namespace SafeVirtualPrinter;
@@ -60,7 +61,8 @@ signals:
     void StateChanged(WorkStep);
     void mbNumberNotExist();
     void needShowPreviewPage(const QPixmap &preview_page); // Требуется показать страницу документа
-
+    void allTemplatesPagesParsed(); // успешый разбор всех страниц шаблона и запись их в сцены
+    void needUpdatePage(int page); // Требование плагину обновить страницу шаблона номер
 public slots:
     // Сохранение выбранного пользователем принтера
     void setCurrentPrinter(const QString & printer);
@@ -77,6 +79,7 @@ private:
     Inet_plugin *net_plugin;
     Igs_plugin *gs_plugin;
     Auth_plugin *auth_plugin;
+    Itmpl_plugin *tmpl_plugin;
 
     bool connect_state;
 
