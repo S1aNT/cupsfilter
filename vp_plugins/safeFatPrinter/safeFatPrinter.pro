@@ -12,17 +12,18 @@ SOURCES += main.cpp \
     selectwindow.cpp \
     workfield.cpp \
     addelemdlg.cpp \
-    previewwnd.cpp
+    previewwnd.cpp \
+    view.cpp
 HEADERS += mediator.h \
     firstask.h \
     getusernamemandatdlg.h \
-    ../interfaces/inet_plugin.h \
     ../global/config.h \
     ../global/tech_global.h \
     selectwindow.h \
     workfield.h \
     addelemdlg.h \
-    previewwnd.h
+    previewwnd.h \
+    view.h
 FORMS += firstask.ui \
     getusernamemandatdlg.ui \
     selectwindow.ui \
