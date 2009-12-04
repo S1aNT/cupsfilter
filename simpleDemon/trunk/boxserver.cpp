@@ -6,6 +6,8 @@
 
 #include "tech_global.h"
 
+using namespace SafeVirtualPrinter;
+
 BoxServer::BoxServer(QObject *parent) : QTcpServer(parent)
 {
 }
