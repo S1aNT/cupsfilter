@@ -11,11 +11,19 @@ workField::workField(QWidget *parent) :
 
     connect (ui->paperAccountsOutSide,SIGNAL(toggled(bool)),this,SLOT(flipLabel(bool)));
     connect (ui->previewBtn,SIGNAL(clicked()),this,SLOT(checkData()));
+    connect (ui->switch_Local_GlolbalBtn,SIGNAL(clicked(bool)),this,SLOT(selectTemplatesDir(bool)));
+    connect (ui->templatesCbox,SIGNAL(currentIndexChanged(QString)),this,SLOT(setCurrentTemplates(QString)));
 }
 
 workField::~workField()
 {
     delete ui;
+}
+
+void workField::setTemplatesDir(const QString &local,const QString &global)
+{
+    local_templ_dir = local;
+    global_templ_dir = global;
 }
 
 void workField::setPagesCount(int p_count)
@@ -138,6 +146,50 @@ void workField::showPreviewPage(QPixmap &preview_page)
 }
 
 //********************************** private slots ******************************************
+void workField::selectTemplatesDir(bool mode)
+{
+    QString title_str;
+    QString find_dir;
+    QString path;
+
+    localORglobal = mode;
+
+    if (mode){
+        ui->tmplLabel->setText(QObject::trUtf8("Личные шаблоны"));
+        title_str =QObject::trUtf8("Выберите ранее сохраненные индивидуальные шаблоны");
+        path = local_templ_dir;
+    }else{
+        // Читаем глобальные шаблоны которые предварительно закачаны в нужный каталог
+        ui->tmplLabel->setText(QObject::trUtf8("Глобальные шаблоны"));
+        title_str =QObject::trUtf8("Выберите глобальные шаблоны");
+        path = global_templ_dir;
+    }
+
+    QFileDialog::Options options = QFileDialog::DontResolveSymlinks | QFileDialog::ShowDirsOnly | QFileDialog::ReadOnly;
+    find_dir = QFileDialog::getExistingDirectory(this, title_str,path, options);
+
+    if (!find_dir.isEmpty()){
+        ui->templatesCbox->clear();
+
+        QStringList filters;
+        filters << "*.tmpl" << "*.TMPL";
+
+        QDir dir(find_dir);
+        dir.setFilter(QDir::Files | QDir::Hidden | QDir::NoSymLinks);
+        dir.setNameFilters(filters);
+        QFileInfoList list = dir.entryInfoList();
+        for (int i = 0; i < list.size(); ++i) {
+              QFileInfo fileInfo = list.at(i);
+              ui->templatesCbox->addItem(fileInfo.fileName());
+              if (mode){
+                 local_templates_path.append(fileInfo);
+             }else{
+                 global_templates_path.append(fileInfo);
+             }
+          }
+    }
+}
+
 void workField::flipLabel(bool flip)
 {
     QString msg;

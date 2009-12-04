@@ -9,6 +9,7 @@
 
 #include <QSignalMapper>
 #include <QDataWidgetMapper>
+#include <QFileDialog>
 
 #include "previewwnd.h"
 #include "tech_global.h"
@@ -30,6 +31,7 @@ public:
     void setStampModel(QStringListModel *stamp_model);
     void setModel (QStandardItemModel * model);
     void setMode (WorkMode mode_value);
+    void setTemplatesDir(const QString &local,const QString &global);
 signals:
     void checkMBInBase(const QString &mb_value,const QString &copyNum_value,WorkMode work_mode);
     void needAuthUserToPrinter();
@@ -41,12 +43,21 @@ public slots:
 private slots:
     void flipLabel(bool flip);
     void checkData(); // При нажатии на кнопку идет анализ введенных данных
+    void selectTemplatesDir(bool mode); //Выбор локальный или глобальный каталог шаблонов
+    void setCurrentTemplates(QString);
 protected:
     void changeEvent(QEvent *e);
 private:
     Ui::workField *ui;
     QDataWidgetMapper *mapper;
     QSignalMapper *signalMapper;
+
+    bool localORglobal; // Режим шаблонов локальные или глобальные
+    QString local_templ_dir;
+    QString global_templ_dir;
+
+    QList <QFileInfo> local_templates_path;
+    QList <QFileInfo> global_templates_path;
 
     WorkMode mode;
     void isAnyFiedEmpty();
