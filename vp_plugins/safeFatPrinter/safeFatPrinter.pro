@@ -1,10 +1,26 @@
 QT += network
 CONFIG += warn_on \
-    qt
+    	qt \
+	precompile_header
 TEMPLATE = app
 INCLUDEPATH += ../interfaces \
     ../global
 TARGET = safeFatPrinter
+
+LANGUAGE  = C++
+# Use Precompiled headers (PCH)
+PRECOMPILED_HEADER  = ../global/pre_header.h
+HEADERS += ../global/pre_header.h \
+	mediator.h \
+    	firstask.h \
+	getusernamemandatdlg.h \
+    ../global/config.h \
+    ../global/tech_global.h \
+    selectwindow.h \
+    workfield.h \
+    addelemdlg.h \
+    previewwnd.h \
+    addtemplate.h
 SOURCES += main.cpp \
     mediator.cpp \
     firstask.cpp \
@@ -14,16 +30,6 @@ SOURCES += main.cpp \
     addelemdlg.cpp \
     previewwnd.cpp \
     addtemplate.cpp
-HEADERS += mediator.h \
-    firstask.h \
-    getusernamemandatdlg.h \
-    ../global/config.h \
-    ../global/tech_global.h \
-    selectwindow.h \
-    workfield.h \
-    addelemdlg.h \
-    previewwnd.h \
-    addtemplate.h
 FORMS += firstask.ui \
     getusernamemandatdlg.ui \
     selectwindow.ui \
@@ -32,4 +38,5 @@ FORMS += firstask.ui \
     previewwnd.ui \
     addtemplate.ui
 RESOURCES += images.qrc
-OTHER_FILES += ../tmpl_plugin/templates.txt
+
+TRANSLATIONS = safeFatPrinter_ru.ts 
