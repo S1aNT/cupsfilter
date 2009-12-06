@@ -1,6 +1,7 @@
 #ifndef AUTH_H
 #define AUTH_H
 
+
 #include <QObject>
 #include <QFile>
 #include <QDataStream>
