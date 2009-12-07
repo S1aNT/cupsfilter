@@ -1,4 +1,9 @@
-#include <QtGui>
+//#include <QtGui>
+#include <QFile>
+#include <QDebug>
+#include <QLibrary>
+#include <QSettings>
+#include <QString>
 
 #include "auth.h"
 #include "tech_global.h"
@@ -13,6 +18,7 @@ Auth::Auth()
 
 void Auth::init (const QString &mandat_filename)
 {
+    //TODO написать чтение из файла мандата
 }
 
 void  Auth::init ()
@@ -56,10 +62,5 @@ void  Auth::init ()
         emit get_User_name_mandat(user_name,user_mandat);
     }
 }
-
-
-
-
-
 
 Q_EXPORT_PLUGIN2(auth, Auth);

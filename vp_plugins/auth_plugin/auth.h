@@ -1,17 +1,12 @@
 #ifndef AUTH_H
 #define AUTH_H
 
-
 #include <QObject>
-#include <QFile>
-#include <QDataStream>
-#include <QLibrary>
-#include <QSettings>
-
 #include <windows.h>
 #include <stdio.h>
-
 #include "auth_plugin.h"
+
+class QString;
 
 #define PLUGIN_API __declspec(dllimport)
 typedef PLUGIN_API LPWSTR (*DLLGETCURRENTUSER)(void);
