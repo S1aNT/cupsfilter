@@ -2,7 +2,8 @@
 #define ADDTEMPLATE_H
 
 #include <QDialog>
-#include <QStringList>
+#include <QStringListModel>
+#include <QFont>
 
 namespace Ui {
     class AddTemplate;
@@ -14,12 +15,38 @@ public:
     AddTemplate(QWidget *parent = 0);
     ~AddTemplate();
     void setUserName(const QString & name);
-    void setPageSize(const QStringList & p_list,int page_height,int page_width);
+    void setPageSize(QStringListModel *page_size_model);
+    QString getTemplName();
+    QString getTemplDesc();
+    QString getPageSize();
+    QString getCreationDate();
+    qreal getMarginTop();
+    qreal getMarginBottom();
+    qreal getMarginLeft();
+    qreal getMarginRight();
+    bool getPageOrient();
+private slots:
+    void set_portret();
+    void set_landscape();
+    void setCurrentPageSize(const QString &psize);
 protected:
     void changeEvent(QEvent *e);
 
 private:
     Ui::AddTemplate *ui;
+    QFont boldFont;
+    QFont normalFont;
+    bool page_orient;
+    QString page_size;
+    QString templ_name;
+    QString templ_desc;
+
+    qreal page_height;               //
+    qreal page_width;                //
+    qreal margin_top;                //
+    qreal margin_bottom;             //
+    qreal margin_left;               //
+    qreal margin_right;
 };
 
 #endif // ADDTEMPLATE_H
