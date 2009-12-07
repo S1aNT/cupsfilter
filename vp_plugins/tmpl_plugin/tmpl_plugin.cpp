@@ -1,3 +1,16 @@
+#include <QDebug>
+#include <QPixmap>
+#include <QtPlugin>
+#include <QPainter>
+#include <QFile>
+#include <QDir>
+#include <QTemporaryFile>
+#include <QDataStream>
+#include <QPrinter>
+#include <QPainter>
+#include <QDate>
+#include <QGraphicsRectItem>
+
 #include "tmpl_plugin.h"
 #include "tech_global.h"
 #include "simpleitem.h"
@@ -94,6 +107,8 @@ void Tmpl_plugin::createEmptyTemplate(const QString & file_name,
     new_tmpl_file.open(QIODevice::WriteOnly);
     QDataStream out(&new_tmpl_file);
     out.setVersion(QDataStream::Qt_4_5);
+    // Запишем версию шаблона
+    out << version;
     // Создаем общую часть шаблона
     out << c_date;      // дата и время создания шаблона
     out << t_author;    // автор шаблона
@@ -260,6 +275,7 @@ bool Tmpl_plugin::parse_templates(const QString & in_file)
             file.open(QIODevice::ReadOnly);
             QDataStream in(&file);
             in.setVersion(QDataStream::Qt_4_5);
+            // Запишем версию шаблона
             in >> ver;
             if (ver <= version ){
                 // Читаем общую часть шаблона

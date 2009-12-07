@@ -2,19 +2,6 @@
 #define TMPL_PLUGIN_H
 
 #include <QObject>
-#include <QDebug>
-#include <QPixmap>
-#include <QtPlugin>
-#include <QPainter>
-#include <QFile>
-#include <QDir>
-#include <QTemporaryFile>
-#include <QDataStream>
-#include <QPrinter>
-#include <QPainter>
-#include <QDate>
-#include <QGraphicsRectItem>
-
 
 #include "itmpl_plugin.h"
 #include "tech_global.h"

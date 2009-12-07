@@ -1,3 +1,23 @@
+#include <QGraphicsRectItem>
+#include <QGraphicsSceneContextMenuEvent>
+#include <QAction>
+#include <QDebug>
+//#include <QApplication>
+#include <QPen>
+#include <QPainter>
+#include <QFont>
+#include <QFontMetrics>
+#include <QFontDialog>
+#include <QColorDialog>
+#include <QStringList>
+#include <QMenu>
+
+#include <QPoint>
+#include <QDrag>
+#include <QDir>
+#include <QMimeData>
+#include <QInputDialog>
+
 #include "simpleitem.h"
 
 SimpleItem::SimpleItem(QGraphicsItem * parent)

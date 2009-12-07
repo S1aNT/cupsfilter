@@ -1,23 +1,7 @@
 #ifndef SIMPLEITEM_H
 #define SIMPLEITEM_H
-#include <QDebug>
-#include <QApplication>
-#include <QGraphicsRectItem>
-#include <QGraphicsSceneContextMenuEvent>
-#include <QPen>
-#include <QPainter>
-#include <QFont>
-#include <QFontMetrics>
-#include <QFontDialog>
-#include <QColorDialog>
-#include <QStringList>
-#include <QMenu>
-#include <QAction>
-#include <QPoint>
-#include <QDrag>
-#include <QDir>
-#include <QMimeData>
-#include <QInputDialog>
+
+
 
 QT_BEGIN_NAMESPACE
 class QFocusEvent;
