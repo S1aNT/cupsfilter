@@ -19,23 +19,22 @@ SelectWindow::SelectWindow(QWidget *parent) :
     UMDlg = new getUserNameMandatDlg(this);
     signalMapper = new QSignalMapper(this);
     WorkDlg = new workField(this);
-    WorkDlg->setWindowFlags(Qt::Dialog |  Qt::CustomizeWindowHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint | Qt::WindowSystemMenuHint);
+    WorkDlg->setWindowFlags(Qt::Dialog | Qt::CustomizeWindowHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint | Qt::WindowSystemMenuHint);
     WorkDlg->setStampModel(SpiderInTheMiddle->getStampModel());
 
     this->setWindowFlags(Qt::Dialog |  Qt::CustomizeWindowHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint | Qt::WindowSystemMenuHint);
     this->move(calcCenter());
+
     connect (SpiderInTheMiddle,SIGNAL(StateChanged(WorkStep)),this,SLOT(checkPoint(WorkStep)));
     connect (SpiderInTheMiddle,SIGNAL(error (QString )),this,SLOT(showCritError(QString)));
     connect (SpiderInTheMiddle,SIGNAL(pluginMessage(const QString &)),this,SLOT (showPluginMessage(const QString &)));
     connect (SpiderInTheMiddle,SIGNAL(needShowAuthWindow(QString &)),this,SLOT(showAuthWindow(QString&)));
-connect (ui->printerCBox,SIGNAL(currentIndexChanged(QString)),SpiderInTheMiddle,SLOT(setCurrentPrinter(QString)));
+    connect (ui->printerCBox,SIGNAL(currentIndexChanged(QString)),SpiderInTheMiddle,SLOT(setCurrentPrinter(QString)));
 
     connect (WorkDlg,SIGNAL(checkMBInBase(QString &, QString &,WorkMode)),SpiderInTheMiddle,SLOT(do_checkMBInBase(QString &, QString &,WorkMode )));
     connect (WorkDlg,SIGNAL(needAuthUserToPrinter()),SpiderInTheMiddle,SLOT(do_needAuthUserToPrinter()));
     connect (WorkDlg,SIGNAL(needCreateEmptyTemplates(QString,QString,QString,QString,QString,bool,QString,qreal,qreal,qreal,qreal)),
              SpiderInTheMiddle,SLOT(do_needCreateEmptyTemplates(QString,QString,QString,QString,QString,bool,QString,qreal,qreal,qreal,qreal)));
-
-
 
     connect (qApp,SIGNAL(aboutToQuit()),this,SLOT(cleanUp()));
 
