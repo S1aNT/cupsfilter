@@ -9,20 +9,63 @@ workField::workField(QWidget *parent) :
     mapper = new QDataWidgetMapper(this);
     mapper->setSubmitPolicy(QDataWidgetMapper::AutoSubmit);
     addTmplDlg = new AddTemplate(this);
-    addTmplDlg->setWindowFlags(Qt::Dialog |  Qt::CustomizeWindowHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint | Qt::WindowSystemMenuHint);
+    addTmplDlg->setWindowFlags(Qt::Dialog |
+                               Qt::CustomizeWindowHint |
+                               Qt::WindowTitleHint |
+                               Qt::WindowCloseButtonHint |
+                               Qt::WindowSystemMenuHint);
     teditorDlg = new TEditor(this);
-    teditorDlg->setWindowFlags(Qt::Dialog |  Qt::CustomizeWindowHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint | Qt::WindowSystemMenuHint);
+    teditorDlg->setWindowFlags(Qt::Dialog |
+                               Qt::CustomizeWindowHint |
+                               Qt::WindowTitleHint |
+                               Qt::WindowCloseButtonHint |
+                               Qt::WindowSystemMenuHint);
 
-    connect (ui->editTemplatesTBtn,SIGNAL(clicked()),this,SLOT(showEditor()));
-    connect (ui->paperAccountsOutSide,SIGNAL(toggled(bool)),this,SLOT(flipLabel(bool)));
-    connect (ui->previewBtn,SIGNAL(clicked()),this,SLOT(checkData()));
-    connect (ui->switch_Local_GlolbalBtn,SIGNAL(clicked(bool)),this,SLOT(selectTemplatesDir(bool)));
-    connect (ui->templatesCbox,SIGNAL(currentIndexChanged(QString)),this,SLOT(setCurrentTemplates(QString)));
-    connect (ui->addTemplatesTBtn,SIGNAL(clicked()),this,SLOT(do_addTemplates()));
-    connect (addTmplDlg,
-             SIGNAL(needCreateEmptyTemplates(QString,QString,QString,QString,QString,qreal,qreal,bool,QString,qreal,qreal,qreal,qreal)),
+    connect (this,
+             SIGNAL(allTemplatesPagesParsed(QGraphicsScene*,QGraphicsScene*,
+                                            QGraphicsScene*,QGraphicsScene*)),
+             teditorDlg,
+             SLOT(setScene(QGraphicsScene*,QGraphicsScene*,
+                           QGraphicsScene*,QGraphicsScene*))
+             );
+    connect (ui->editTemplatesTBtn,
+             SIGNAL(clicked()),
              this,
-             SIGNAL(needCreateEmptyTemplates(QString,QString,QString,QString,QString,qreal,qreal,bool,QString,qreal,qreal,qreal,qreal)));
+             SLOT(showEditor())
+             );
+    connect (ui->paperAccountsOutSide,
+             SIGNAL(toggled(bool)),
+             this,
+             SLOT(flipLabel(bool))
+             );
+    connect (ui->previewBtn,
+             SIGNAL(clicked()),
+             this,
+             SLOT(checkData())
+             );
+    connect (ui->switch_Local_GlolbalBtn,
+             SIGNAL(clicked(bool)),
+             this,
+             SLOT(selectTemplatesDir(bool))
+             );
+    connect (ui->templatesCbox,
+             SIGNAL(currentIndexChanged(QString)),
+             this,
+             SLOT(setCurrentTemplates(QString)));
+    connect (ui->addTemplatesTBtn,
+             SIGNAL(clicked()),
+             this,
+             SLOT(do_addTemplates())
+             );
+    connect (addTmplDlg,
+             SIGNAL(needCreateEmptyTemplates(QString,QString,QString,QString,
+                                             QString,qreal,qreal,bool,QString,
+                                             qreal,qreal,qreal,qreal)),
+             this,
+             SIGNAL(needCreateEmptyTemplates(QString,QString,QString,QString,
+                                             QString,qreal,qreal,bool,QString,
+                                             qreal,qreal,qreal,qreal))
+             );
 }
 
 workField::~workField()
@@ -136,7 +179,10 @@ void workField::setModel (QStandardItemModel * model)
 //********************************** public slots ******************************************
 void workField::showEditor()
 {
+    //Отправим запрос на преобразование шаблона в набор сцен
+    emit convertTemplatesToScenes(this->currentTemplates);
 
+    int ret = teditorDlg->exec();
 }
 
 void workField::showInfoWindow(const QString &info)
@@ -146,6 +192,7 @@ void workField::showInfoWindow(const QString &info)
 
     QString info_txt = QObject::trUtf8("Сервер безопасности уполномочен заявить!");
     msgBox.setIcon(QMessageBox::Information);
+    msgBox.setWindowTitle(QObject::trUtf8("Информационное сообщение"));
     msgBox.setInformativeText(info_txt);
     okButton=msgBox.addButton(QObject::trUtf8("Выход"), QMessageBox::AcceptRole);
     msgBox.setText(info);
@@ -170,7 +217,9 @@ void workField::do_addTemplates()
     ret = addTmplDlg->exec();
 
     if (ret == QDialog::Accepted){
-// TODO если успешно завершили создание пустого шаблона оо покажем редактор
+        // TODO если успешно завершили создание пустого шаблона оо покажем редактор
+
+        this->showEditor();
     }
 }
 
@@ -196,8 +245,7 @@ void workField::setCurrentTemplates(QString temp)
         }
         ui->editTemplatesTBtn->setEnabled(false);
     }
-   currentTemplates = f_name; // Запомним выбор пользователя
-
+    currentTemplates = f_name; // Запомним выбор пользователя
 }
 
 void workField::selectTemplatesDir(bool mode)
@@ -233,14 +281,19 @@ void workField::selectTemplatesDir(bool mode)
         dir.setNameFilters(filters);
         QFileInfoList list = dir.entryInfoList();
         for (int i = 0; i < list.size(); ++i) {
-              QFileInfo fileInfo = list.at(i);
-              ui->templatesCbox->addItem(fileInfo.fileName());
-              if (mode){
-                 local_templates_path.append(fileInfo);
-             }else{
-                 global_templates_path.append(fileInfo);
-             }
-          }
+            QFileInfo fileInfo = list.at(i);
+            ui->templatesCbox->addItem(fileInfo.fileName());
+            if (mode){
+                local_templates_path.append(fileInfo);
+            }else{
+                global_templates_path.append(fileInfo);
+            }
+        }
+        // Установим шаблон файл которого выбран текущим
+        QString cur_tmpl = ui->templatesCbox->currentText();
+        if (!cur_tmpl.isEmpty()){
+            this->setCurrentTemplates(cur_tmpl);
+        }
     }
 }
 
