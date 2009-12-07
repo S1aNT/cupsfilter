@@ -31,6 +31,8 @@ public:
     ~workField();
     void setPagesCount(int p_count);
     void setStampModel(QStringListModel *stamp_model);
+    void setPageSizeModel(QStringListModel *page_size_model){p_size_mod =page_size_model;};
+    void setUserName(const QString & user_name){userName=user_name;};
     void setModel (QStandardItemModel * model);
     void setMode (WorkMode mode_value);
     void setTemplatesDir(const QString &local,const QString &global);
@@ -56,6 +58,9 @@ private:
     QSignalMapper *signalMapper;
 
     AddTemplate *addTmplDlg;
+
+    QStringListModel *p_size_mod;
+    QString userName;
 
     bool localORglobal; // Режим шаблонов локальные или глобальные
     QString local_templ_dir;
