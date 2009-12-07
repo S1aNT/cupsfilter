@@ -38,8 +38,11 @@ public:
     void setMode (WorkMode mode_value);
     void setTemplatesDir(const QString &local,const QString &global);
 signals:
+    // Запрос на преобразование шаблона в набор из 4-х сцен
+    void convertTemplatesToScenes(const QString &t_file_name);
+
     void checkMBInBase(const QString &mb_value,const QString &copyNum_value,WorkMode work_mode);
-    void needAuthUserToPrinter();
+    void needAuthUserToPrinter(); // Требуется авторизовать пользователя на принтер
     void needPrintPage();
     void dontNeedPrintPage();
     void needCreateEmptyTemplates(const QString & file_name,
@@ -59,7 +62,8 @@ public slots:
 private slots:
     void flipLabel(bool flip);
     void checkData(); // При нажатии на кнопку идет анализ введенных данных
-    void selectTemplatesDir(bool mode); //Выбор локальный или глобальный каталог шаблонов
+    //Выбор локальный или глобальный каталог шаблонов
+    void selectTemplatesDir(bool mode);
     void do_addTemplates(); // добавление пустого шаблона
     void setCurrentTemplates(QString temp);
     void showEditor();
@@ -87,7 +91,6 @@ private:
     WorkMode mode;
 
     void setEnableField(bool e);
-
 };
 
 #endif // WORKFIELD_H
