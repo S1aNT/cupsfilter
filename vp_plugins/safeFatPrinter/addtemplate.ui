@@ -58,7 +58,7 @@
     <item>
      <widget class="QPushButton" name="addBtn">
       <property name="text">
-       <string>Добавить</string>
+       <string>Сохранить шаблон как....</string>
       </property>
      </widget>
     </item>
