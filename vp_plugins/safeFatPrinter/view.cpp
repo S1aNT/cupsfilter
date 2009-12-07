@@ -87,7 +87,7 @@ View::View(const QString &name, QWidget *parent)
     setupMatrix();
 }
 
-QGraphicsView *View::view() const
+QGraphicsView *View::gr_view() const
 {
     return graphicsView;
 }
