@@ -1,5 +1,16 @@
 #include "gs_plugin.h"
+#include "proc_thread.h"
 
+#include <QDebug>
+#include <QString>
+#include <QPixmap>
+#include <QStringList>
+#include <QFile>
+#include <QDir>
+#include <QRegExp>
+#include <QTemporaryFile>
+#include <QTextStream>
+#include <QDateTime>
 
 
 GS_plugin::GS_plugin(QObject *parent)

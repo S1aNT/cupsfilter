@@ -1,20 +1,13 @@
 #ifndef GS_PLUGIN_H
 #define GS_PLUGIN_H
 
-#include <QDebug>
-#include <QObject>
-#include <QPixmap>
-#include <QtPlugin>
-#include <QStringList>
-#include <QPainter>
-#include <QFile>
-#include <QDir>
-#include <QRegExp>
-#include <QTemporaryFile>
-#include <QTextStream>
-#include <QDateTime>
+class QString;
+class QPixmap;
+class QStringList;
 
-#include "proc_thread.h"
+
+#include <QObject>
+
 #include "igs_plugin.h"
 #include "tech_global.h"
 

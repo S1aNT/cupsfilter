@@ -1,4 +1,8 @@
 #include "proc_thread.h"
+#include <QtDebug>
+#include <QString>
+#include <QStringList>
+#include <QProcess>
 
 
 ProcessT::ProcessT( QObject *parent ) :

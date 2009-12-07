@@ -1,12 +1,13 @@
 #ifndef PROC_THREAD_H
 #define PROC_THREAD_H
 
-#include <QtDebug>
-#include <QObject>
+
+//#include <QObject>
 #include <QThread>
-#include <QString>
-#include <QStringList>
-#include <QProcess>
+
+class QString;
+class QStringList;
+class QProcess;
 
 
 /**
