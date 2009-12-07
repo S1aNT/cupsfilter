@@ -11,101 +11,112 @@ void Tmpl_plugin::init(const QString &spool,const QString &sid)
     QDir dir;
 
     if (!sid.isEmpty()) {
-        current_sid = sid;// Запомним уникальный номер
+        current_sid = sid;// Р—Р°РїРѕРјРЅРёРј СѓРЅРёРєР°Р»СЊРЅС‹Р№ РЅРѕРјРµСЂ
 
         if (dir.cd(spool) && !spool.isEmpty()) {
-            // Проверим факт существования временного каталога
+            // РџСЂРѕРІРµСЂРёРј С„Р°РєС‚ СЃСѓС‰РµСЃС‚РІРѕРІР°РЅРёСЏ РІСЂРµРјРµРЅРЅРѕРіРѕ РєР°С‚Р°Р»РѕРіР°
             spool_dir = spool;
-            // Формируем пути для файлов
+            // Р¤РѕСЂРјРёСЂСѓРµРј РїСѓС‚Рё РґР»СЏ С„Р°Р№Р»РѕРІ
             firstPage_tmpl_fn = QObject::trUtf8("%1/%2_first.pdf").arg(spool, sid);
             secondPage_tmpl_fn = QObject::trUtf8("%1/%2_second.pdf").arg(spool, sid);
             thirdPage_tmpl_fn = QObject::trUtf8("%1/%2_third.pdf").arg(spool, sid);
             fourthPage_tmpl_fn = QObject::trUtf8("%1/%2_fourth.pdf").arg(spool, sid);
-            // создаем сцены
+            // СЃРѕР·РґР°РµРј СЃС†РµРЅС‹
             firstPage_tmpl  = new QGraphicsScene(this);
             secondPage_tmpl = new QGraphicsScene(this);
             thirdPage_tmpl  = new QGraphicsScene(this);
             fourthPage_tmpl = new QGraphicsScene(this);
 
-            page_size.insert(QString("A4 (210 x 297 mm)"), QPrinter::A4);
-            page_size.insert(QString("A3 (297 x 420 mm)"), QPrinter::A3);
-            page_size.insert(QString("A0 (841 x 1189 mm)"), QPrinter::A0);
-            page_size.insert(QString("A1 (594 x 841 mm)"), QPrinter::A1);
-            page_size.insert(QString("A2 (420 x 594 mm)"), QPrinter::A2);
-            page_size.insert(QString("A5 (148 x 210 mm)"), QPrinter::A5);
-            page_size.insert(QString("A6 (105 x 148 mm)"), QPrinter::A6);
-            page_size.insert(QString("A7 (74 x 105 mm)"), QPrinter::A7);
-            page_size.insert(QString("A8 (52 x 74 mm)"), QPrinter::A8);
-            page_size.insert(QString("A9 (37 x 52 mm)"), QPrinter::A9);
-            page_size.insert(QString("B0 (1000 x 1414 mm)"), QPrinter::B0);
-            page_size.insert(QString("B1 (707 x 1000 mm)"), QPrinter::B1);
-            page_size.insert(QString("B2 (500 x 707 mm)"), QPrinter::B2);
-            page_size.insert(QString("B3 (353 x 500 mm)"), QPrinter::B3);
-            page_size.insert(QString("B4 (250 x 353 mm)"), QPrinter::B4);
-            page_size.insert(QString("B5 (176 x 250 mm)"), QPrinter::B5);
-            page_size.insert(QString("B6 (125 x 176 mm)"), QPrinter::B6);
-            page_size.insert(QString("B7 (88 x 125 mm)"), QPrinter::B7);
-            page_size.insert(QString("B8 (62 x 88 mm)"), QPrinter::B8);
-            page_size.insert(QString("B9 (44 x 62 mm)"), QPrinter::B9);
-            page_size.insert(QString("B10 (31 x 44 mm)"), QPrinter::B10);
-            page_size.insert(QString("C5E (163 x 229 mm)"), QPrinter::C5E);
-            page_size.insert(QString("DLE (110 x 220 mm)"), QPrinter::DLE);
-            page_size.insert(QString("Executive (191 x 254 mm)"), QPrinter::Executive);
-            page_size.insert(QString("Folio (210 x 330 mm)"), QPrinter::Folio);
-            page_size.insert(QString("Ledger (432 x 279 mm)"), QPrinter::Ledger);
-            page_size.insert(QString("Legal (216 x 356 mm)"), QPrinter::Legal);
-            page_size.insert(QString("Letter (216 x 279 mm)"), QPrinter::Letter);
-            page_size.insert(QString("Tabloid (279 x 432 mm)"), QPrinter::Tabloid);
+            page_size.insert(QString("A4 (210 x 297 РјРј)"), QPrinter::A4);
+            page_size.insert(QString("A3 (297 x 420 РјРј)"), QPrinter::A3);
+            page_size.insert(QString("A0 (841 x 1189 РјРј)"), QPrinter::A0);
+            page_size.insert(QString("A1 (594 x 841 РјРј)"), QPrinter::A1);
+            page_size.insert(QString("A2 (420 x 594 РјРј)"), QPrinter::A2);
+            page_size.insert(QString("A5 (148 x 210 РјРј)"), QPrinter::A5);
+            page_size.insert(QString("A6 (105 x 148 РјРј)"), QPrinter::A6);
+            page_size.insert(QString("A7 (74 x 105 РјРј)"), QPrinter::A7);
+            page_size.insert(QString("A8 (52 x 74 РјРј)"), QPrinter::A8);
+            page_size.insert(QString("A9 (37 x 52 РјРј)"), QPrinter::A9);
+            page_size.insert(QString("B0 (1000 x 1414 РјРј)"), QPrinter::B0);
+            page_size.insert(QString("B1 (707 x 1000 РјРј)"), QPrinter::B1);
+            page_size.insert(QString("B2 (500 x 707 РјРј)"), QPrinter::B2);
+            page_size.insert(QString("B3 (353 x 500 РјРј)"), QPrinter::B3);
+            page_size.insert(QString("B4 (250 x 353 РјРј)"), QPrinter::B4);
+            page_size.insert(QString("B5 (176 x 250 РјРј)"), QPrinter::B5);
+            page_size.insert(QString("B6 (125 x 176 РјРј)"), QPrinter::B6);
+            page_size.insert(QString("B7 (88 x 125 РјРј)"), QPrinter::B7);
+            page_size.insert(QString("B8 (62 x 88 РјРј)"), QPrinter::B8);
+            page_size.insert(QString("B9 (44 x 62 РјРј)"), QPrinter::B9);
+            page_size.insert(QString("B10 (31 x 44 РјРј)"), QPrinter::B10);
+            page_size.insert(QString("C5E (163 x 229 РјРј)"), QPrinter::C5E);
+            page_size.insert(QString("DLE (110 x 220 РјРј)"), QPrinter::DLE);
+            page_size.insert(QString("Executive (191 x 254 РјРј)"), QPrinter::Executive);
+            page_size.insert(QString("Folio (210 x 330 РјРј)"), QPrinter::Folio);
+            page_size.insert(QString("Ledger (432 x 279 РјРј)"), QPrinter::Ledger);
+            page_size.insert(QString("Legal (216 x 356 РјРј)"), QPrinter::Legal);
+            page_size.insert(QString("Letter (216 x 279 РјРј)"), QPrinter::Letter);
+            page_size.insert(QString("Tabloid (279 x 432 РјРј)"), QPrinter::Tabloid);
 
 
         }else{
-            error_msg = QObject::trUtf8("ERROR: каталог %1 не существует\n").arg(spool);
+            error_msg = QObject::trUtf8("ERROR: РєР°С‚Р°Р»РѕРі %1 РЅРµ СЃСѓС‰РµСЃС‚РІСѓРµС‚\n").arg(spool);
         }
 
     }else{
-        error_msg = QObject::trUtf8("ERROR: Неверный SID для документа\n").arg(sid);
+        error_msg = QObject::trUtf8("ERROR: РќРµРІРµСЂРЅС‹Р№ SID РґР»СЏ РґРѕРєСѓРјРµРЅС‚Р°\n").arg(sid);
     }
     if (!error_msg.isEmpty()) {
         emit error(error_msg);
     }
 }
 
-void Tmpl_plugin::createEmptyTemplate()
+void Tmpl_plugin::createEmptyTemplate(const QString & file_name,
+                                      const QString & t_author,
+                                      const QString & t_name,
+                                      const QString & t_desc,
+                                      const QString & p_size,
+
+                                      bool  pages_orient,
+                                      const QString & c_date,
+                                      qreal m_top,
+                                      qreal m_bottom,
+                                      qreal m_right,
+                                      qreal m_left)
 {
     QString error_msg;
-    QDir dir;
-    QFile new_tmpl_file;
     const QString startnow = QDir::currentPath();
+    // РЎРѕР·РґР°РµРј РїСѓСЃС‚РѕР№ С€Р°Р±Р»РѕРЅ РґРѕРєСѓРјРµРЅС‚Р°
 
-    if (dir.cd(spool_dir) && !spool_dir.isEmpty() && !current_sid.isEmpty()){
-        // Создаем пустой шаблон документа
-        emptyTemplate_file =QString("%1/%2.tmpl").arg(spool_dir,sid);
-        if (QFile::exists(emptyTemplate_file)){
-            QFile::remove(emptyTemplate_file);
-        }
-        QFile new_tmpl_file(emptyTemplate_file);
-        new_tmpl_file.open(QIODevice::WriteOnly);
-        QDataStream out(&new_tmpl_file);
-        out.setVersion(QDataStream::Qt_4_5);
-         // Создаем общую часть шаблона
-        out << QDateTime::currentDateTime();  // дата и время создания шаблона
-        out << QString(QObject::trUtf8("Генератор шаблонов"));                  // автор шаблона
-        out << QString(QObject::trUtf8("Пустой шаблон"));          // название шаблона, то что покажем в списке шаблонов
-        out << QString(QObject::trUtf8("Описание шаблона"));             // описание шаблона, может быть пустым
-        out << paper_size;              // размер бумаги
-        out << page_height;             // высота листа
-        out << page_width;              // ширина листа
-        out << page_orient;             // ориентация листа
-        out << margin_top;              // отступ сверху
-        out << margin_bottom;           // отступ снизу
-        out << margin_left;             // отступ слева
-        out << margin_right;            // отступ справа
-        new_tmpl_file.close();
-        emit emptyTemplateCreate(emptyTemplate_file);
-    }else{
-        error_msg = QObject::trUtf8("ERROR: плагин [tmpl_plugin] не правильно инициализирован");
+    if (QFile::exists(file_name)){
+        QFile::remove(file_name);
     }
-    QDir::setCurrent(startnow);
+    QFile new_tmpl_file(file_name);
+    new_tmpl_file.open(QIODevice::WriteOnly);
+    QDataStream out(&new_tmpl_file);
+    out.setVersion(QDataStream::Qt_4_5);
+    // РЎРѕР·РґР°РµРј РѕР±С‰СѓСЋ С‡Р°СЃС‚СЊ С€Р°Р±Р»РѕРЅР°
+    out << c_date;      // РґР°С‚Р° Рё РІСЂРµРјСЏ СЃРѕР·РґР°РЅРёСЏ С€Р°Р±Р»РѕРЅР°
+    out << t_author;    // Р°РІС‚РѕСЂ С€Р°Р±Р»РѕРЅР°
+    out << t_name;      // РЅР°Р·РІР°РЅРёРµ С€Р°Р±Р»РѕРЅР°, С‚Рѕ С‡С‚Рѕ РїРѕРєР°Р¶РµРј РІ СЃРїРёСЃРєРµ С€Р°Р±Р»РѕРЅРѕРІ
+    out << t_desc;      // РѕРїРёСЃР°РЅРёРµ С€Р°Р±Р»РѕРЅР°, РјРѕР¶РµС‚ Р±С‹С‚СЊ РїСѓСЃС‚С‹Рј
+    out << p_size;      // СЂР°Р·РјРµСЂ Р±СѓРјР°РіРё
+    int p_s_id = this->getElemIdByName(p_size);
+
+    out << this->findPageSize_H(p_s_id);    // РІС‹СЃРѕС‚Р° Р»РёСЃС‚Р°
+    out << this->findPageSize_V(p_s_id);     // С€РёСЂРёРЅР° Р»РёСЃС‚Р°
+    out << pages_orient;    // РѕСЂРёРµРЅС‚Р°С†РёСЏ Р»РёСЃС‚Р°
+    out << m_top;       // РѕС‚СЃС‚СѓРї СЃРІРµСЂС…Сѓ
+    out << m_bottom;    // РѕС‚СЃС‚СѓРї СЃРЅРёР·Сѓ
+    out << m_left;      // РѕС‚СЃС‚СѓРї СЃР»РµРІР°
+    out << m_right;     // РѕС‚СЃС‚СѓРї СЃРїСЂР°РІР°
+    int elem_count =0;
+    out << elem_count; // РїРµСЂРІР°СЏ СЃС‚СЂР°РЅРёС†Р° С€Р°Р±Р»РѕРЅР° 0 СЌР»РµРјРµРЅС‚РѕРІ
+    out << elem_count; // РІС‚РѕСЂР°СЏ СЃС‚СЂР°РЅРёС†Р° С€Р°Р±Р»РѕРЅР° 0 СЌР»РµРјРµРЅС‚РѕРІ
+    out << elem_count; // С‚СЂРµС‚СЊСЏ СЃС‚СЂР°РЅРёС†Р° С€Р°Р±Р»РѕРЅР° 0 СЌР»РµРјРµРЅС‚РѕРІ
+    out << elem_count; // С‡РµС‚РІРµСЂС‚Р°СЏ СЃС‚СЂР°РЅРёС†Р° С€Р°Р±Р»РѕРЅР° 0 СЌР»РµРјРµРЅС‚РѕРІ
+    new_tmpl_file.close();
+    emit emptyTemplateCreate(file_name);
+
 
     if (!error_msg.isEmpty()) {
         emit error(error_msg);
@@ -134,13 +145,13 @@ void Tmpl_plugin::setTemplates(const QString & templates_in_file,QStandardItemMo
             if (parse_templates(currentTemplates)){
                 emit allTemplatesPagesParsed();
             }else{
-                error_msg = QObject::trUtf8("ERROR: Ошибка разбора шаблона [%1]\n").arg(templates_in_file);
+                error_msg = QObject::trUtf8("ERROR: РћС€РёР±РєР° СЂР°Р·Р±РѕСЂР° С€Р°Р±Р»РѕРЅР° [%1]\n").arg(templates_in_file);
             }
         }else{
-            error_msg = QObject::trUtf8("ERROR: Модель [карточки документа] не существует\n");
+            error_msg = QObject::trUtf8("ERROR: РњРѕРґРµР»СЊ [РєР°СЂС‚РѕС‡РєРё РґРѕРєСѓРјРµРЅС‚Р°] РЅРµ СЃСѓС‰РµСЃС‚РІСѓРµС‚\n");
         }
     }else{
-        error_msg = QObject::trUtf8("Файл [%1] шаблона не найден.").arg(templates_in_file);
+        error_msg = QObject::trUtf8("Р¤Р°Р№Р» [%1] С€Р°Р±Р»РѕРЅР° РЅРµ РЅР°Р№РґРµРЅ.").arg(templates_in_file);
     }
     if (!error_msg.isEmpty()) {
         emit error(error_msg);
@@ -149,9 +160,9 @@ void Tmpl_plugin::setTemplates(const QString & templates_in_file,QStandardItemMo
 
 void Tmpl_plugin::update_scene(int pageNum)
 {
-    // пользователь удалил или добавил элемент на сцену, требуется заново
-    // пройти по сцене и обновить содержимое элемента имеющего в качестве
-    // текста [some_text] проверка есть ли такой в модели и запись значения
+    // РїРѕР»СЊР·РѕРІР°С‚РµР»СЊ СѓРґР°Р»РёР» РёР»Рё РґРѕР±Р°РІРёР» СЌР»РµРјРµРЅС‚ РЅР° СЃС†РµРЅСѓ, С‚СЂРµР±СѓРµС‚СЃСЏ Р·Р°РЅРѕРІРѕ
+    // РїСЂРѕР№С‚Рё РїРѕ СЃС†РµРЅРµ Рё РѕР±РЅРѕРІРёС‚СЊ СЃРѕРґРµСЂР¶РёРјРѕРµ СЌР»РµРјРµРЅС‚Р° РёРјРµСЋС‰РµРіРѕ РІ РєР°С‡РµСЃС‚РІРµ
+    // С‚РµРєСЃС‚Р° [some_text] РїСЂРѕРІРµСЂРєР° РµСЃС‚СЊ Р»Рё С‚Р°РєРѕР№ РІ РјРѕРґРµР»Рё Рё Р·Р°РїРёСЃСЊ Р·РЅР°С‡РµРЅРёСЏ
     QGraphicsScene *scene;
     QString t_str;
     QStringList old_list;
@@ -181,7 +192,7 @@ void Tmpl_plugin::update_scene(int pageNum)
 
             SimpleItem* item =(SimpleItem* )scene->items().at(i);
             old_list = item->getText();
-            //Анализ old_list на предмет наличия [тег]
+            //РђРЅР°Р»РёР· old_list РЅР° РїСЂРµРґРјРµС‚ РЅР°Р»РёС‡РёСЏ [С‚РµРі]
             for (int j = 0; j <old_list.size();j++){
                 new_list.append(findFromModel(old_list.at(j)));
             }
@@ -194,8 +205,8 @@ void Tmpl_plugin::update_scene(int pageNum)
 void Tmpl_plugin::printFormatingPageToFile(int pageNum)
 {
     QString error_msg;
-    // Печатает выбранную страницу текущего шаблона в pdf файл
-    // страница формируется исходя из данных модели
+    // РџРµС‡Р°С‚Р°РµС‚ РІС‹Р±СЂР°РЅРЅСѓСЋ СЃС‚СЂР°РЅРёС†Сѓ С‚РµРєСѓС‰РµРіРѕ С€Р°Р±Р»РѕРЅР° РІ pdf С„Р°Р№Р»
+    // СЃС‚СЂР°РЅРёС†Р° С„РѕСЂРјРёСЂСѓРµС‚СЃСЏ РёСЃС…РѕРґСЏ РёР· РґР°РЅРЅС‹С… РјРѕРґРµР»Рё
     if (!currentTemplates.isEmpty() && pageNum <= 4 && pageNum >=1){
         QPrinter pdfprinter;
         if (page_orient){
@@ -210,24 +221,24 @@ void Tmpl_plugin::printFormatingPageToFile(int pageNum)
         switch (pageNum){
         case 1:
             //FIXME:
-            // пройтись по всем элементам сцены и удалить границу
-            // сцена к этому моменту уже создана и заполнена элементами
+            // РїСЂРѕР№С‚РёСЃСЊ РїРѕ РІСЃРµРј СЌР»РµРјРµРЅС‚Р°Рј СЃС†РµРЅС‹ Рё СѓРґР°Р»РёС‚СЊ РіСЂР°РЅРёС†Сѓ
+            // СЃС†РµРЅР° Рє СЌС‚РѕРјСѓ РјРѕРјРµРЅС‚Сѓ СѓР¶Рµ СЃРѕР·РґР°РЅР° Рё Р·Р°РїРѕР»РЅРµРЅР° СЌР»РµРјРµРЅС‚Р°РјРё
 
-                pdfprinter.setOutputFileName(firstPage_tmpl_fn);
-                firstPage_tmpl->render(&painter);
+            pdfprinter.setOutputFileName(firstPage_tmpl_fn);
+            firstPage_tmpl->render(&painter);
 
             break;
         case 2:
-                pdfprinter.setOutputFileName(secondPage_tmpl_fn);
-                secondPage_tmpl->render(&painter);
+            pdfprinter.setOutputFileName(secondPage_tmpl_fn);
+            secondPage_tmpl->render(&painter);
             break;
         case 3:
-                pdfprinter.setOutputFileName(thirdPage_tmpl_fn);
-                thirdPage_tmpl->render(&painter);
+            pdfprinter.setOutputFileName(thirdPage_tmpl_fn);
+            thirdPage_tmpl->render(&painter);
             break;
         case 4:
-                pdfprinter.setOutputFileName(fourthPage_tmpl_fn);
-                fourthPage_tmpl->render(&painter);
+            pdfprinter.setOutputFileName(fourthPage_tmpl_fn);
+            fourthPage_tmpl->render(&painter);
             break;
         }
     }
@@ -252,21 +263,21 @@ bool Tmpl_plugin::parse_templates(const QString & in_file)
             in.setVersion(QDataStream::Qt_4_5);
             in >> ver;
             if (ver <= version ){
-                // Читаем общую часть шаблона
-                in >> date_time;               // дата и время создания шаблона
-                in >> author;                  // автор шаблона отобразиться в tooltipe
-                in >> templates_name;          // название шаблона, то что покажем в списке шаблонов
-                in >> description;             // описание шаблона, может быть пустым
-                in >> paper_size;              // размер бумаги
-                in >> page_height;             // высота листа
-                in >> page_width;              // ширина листа
-                in >> page_orient;             // ориентация листа
-                in >> margin_top;              // отступ сверху
-                in >> margin_bottom;           // отступ снизу
-                in >> margin_left;             // отступ слева
-                in >> margin_right;            // отступ справа
+                // Р§РёС‚Р°РµРј РѕР±С‰СѓСЋ С‡Р°СЃС‚СЊ С€Р°Р±Р»РѕРЅР°
+                in >> date_time;               // РґР°С‚Р° Рё РІСЂРµРјСЏ СЃРѕР·РґР°РЅРёСЏ С€Р°Р±Р»РѕРЅР°
+                in >> author;                  // Р°РІС‚РѕСЂ С€Р°Р±Р»РѕРЅР° РѕС‚РѕР±СЂР°Р·РёС‚СЊСЃСЏ РІ tooltipe
+                in >> templates_name;          // РЅР°Р·РІР°РЅРёРµ С€Р°Р±Р»РѕРЅР°, С‚Рѕ С‡С‚Рѕ РїРѕРєР°Р¶РµРј РІ СЃРїРёСЃРєРµ С€Р°Р±Р»РѕРЅРѕРІ
+                in >> description;             // РѕРїРёСЃР°РЅРёРµ С€Р°Р±Р»РѕРЅР°, РјРѕР¶РµС‚ Р±С‹С‚СЊ РїСѓСЃС‚С‹Рј
+                in >> paper_size;              // СЂР°Р·РјРµСЂ Р±СѓРјР°РіРё
+                in >> page_height;             // РІС‹СЃРѕС‚Р° Р»РёСЃС‚Р°
+                in >> page_width;              // С€РёСЂРёРЅР° Р»РёСЃС‚Р°
+                in >> page_orient;             // РѕСЂРёРµРЅС‚Р°С†РёСЏ Р»РёСЃС‚Р°
+                in >> margin_top;              // РѕС‚СЃС‚СѓРї СЃРІРµСЂС…Сѓ
+                in >> margin_bottom;           // РѕС‚СЃС‚СѓРї СЃРЅРёР·Сѓ
+                in >> margin_left;             // РѕС‚СЃС‚СѓРї СЃР»РµРІР°
+                in >> margin_right;            // РѕС‚СЃС‚СѓРї СЃРїСЂР°РІР°
 
-                // создаем основное рабочее поле
+                // СЃРѕР·РґР°РµРј РѕСЃРЅРѕРІРЅРѕРµ СЂР°Р±РѕС‡РµРµ РїРѕР»Рµ
                 firstPage_tmpl->setSceneRect(0, 0, page_width,page_height);
                 secondPage_tmpl->setSceneRect(0, 0, page_width,page_height);
                 thirdPage_tmpl->setSceneRect(0, 0, page_width,page_height);
@@ -275,7 +286,7 @@ bool Tmpl_plugin::parse_templates(const QString & in_file)
                 secondPage_tmpl->setBackgroundBrush(Qt::white);
                 thirdPage_tmpl->setBackgroundBrush(Qt::white);
                 fourthPage_tmpl->setBackgroundBrush(Qt::white);
-                // рисуем границы (при печати надо их убирать)
+                // СЂРёСЃСѓРµРј РіСЂР°РЅРёС†С‹ (РїСЂРё РїРµС‡Р°С‚Рё РЅР°РґРѕ РёС… СѓР±РёСЂР°С‚СЊ)
 
                 QGraphicsRectItem *paper_rect_1 = new QGraphicsRectItem (QRectF(0,0, page_width,page_height));
                 paper_rect_1->setPen(QPen(Qt::black));
@@ -360,16 +371,16 @@ bool Tmpl_plugin::parse_templates(const QString & in_file)
                 QColor col;
                 QStringList pList;
                 QStringList filledList;
-                in >> firstPageElemCount;      // число элементов на первой странице
+                in >> firstPageElemCount;      // С‡РёСЃР»Рѕ СЌР»РµРјРµРЅС‚РѕРІ РЅР° РїРµСЂРІРѕР№ СЃС‚СЂР°РЅРёС†Рµ
                 for (int i=0;i<firstPageElemCount;i++){
-                    // перебор всех элементов страницы
+                    // РїРµСЂРµР±РѕСЂ РІСЃРµС… СЌР»РµРјРµРЅС‚РѕРІ СЃС‚СЂР°РЅРёС†С‹
                     in >> elemType;
                     if (elemType=="tElem"){
                         pList.clear();
                         filledList.clear();
                         SimpleItem * pItem = new SimpleItem;
                         in >>ps >>fnt >> col >>pList;
-                        //Анализ pList на предмет наличия [тег]
+                        //РђРЅР°Р»РёР· pList РЅР° РїСЂРµРґРјРµС‚ РЅР°Р»РёС‡РёСЏ [С‚РµРі]
                         for (int j = 0; j <pList.size();j++){
                             filledList.append(findFromModel(pList.at(j)));
                         }
@@ -382,16 +393,16 @@ bool Tmpl_plugin::parse_templates(const QString & in_file)
                     }
                 }
 
-                in >> secondPageElemCount;      // число элементов на второй странице
+                in >> secondPageElemCount;      // С‡РёСЃР»Рѕ СЌР»РµРјРµРЅС‚РѕРІ РЅР° РІС‚РѕСЂРѕР№ СЃС‚СЂР°РЅРёС†Рµ
                 for (int i=0;i<secondPageElemCount;i++){
-                    // перебор всех элементов страницы
+                    // РїРµСЂРµР±РѕСЂ РІСЃРµС… СЌР»РµРјРµРЅС‚РѕРІ СЃС‚СЂР°РЅРёС†С‹
                     in >> elemType;
                     if (elemType=="tElem"){
                         pList.clear();
                         filledList.clear();
                         SimpleItem * pItem = new SimpleItem;
                         in >>ps >>fnt >> col >>pList;
-                        //Анализ pList на предмет наличия [тег]
+                        //РђРЅР°Р»РёР· pList РЅР° РїСЂРµРґРјРµС‚ РЅР°Р»РёС‡РёСЏ [С‚РµРі]
                         for (int j = 0; j <pList.size();j++){
                             filledList.append(findFromModel(pList.at(j)));
                         }
@@ -404,16 +415,16 @@ bool Tmpl_plugin::parse_templates(const QString & in_file)
                     }
                 }
 
-                in >> thirdPageElemCount;      // число элементов на третьей странице
+                in >> thirdPageElemCount;      // С‡РёСЃР»Рѕ СЌР»РµРјРµРЅС‚РѕРІ РЅР° С‚СЂРµС‚СЊРµР№ СЃС‚СЂР°РЅРёС†Рµ
                 for (int i=0;i<thirdPageElemCount;i++){
-                    // перебор всех элементов страницы
+                    // РїРµСЂРµР±РѕСЂ РІСЃРµС… СЌР»РµРјРµРЅС‚РѕРІ СЃС‚СЂР°РЅРёС†С‹
                     in >> elemType;
                     if (elemType=="tElem"){
                         pList.clear();
                         filledList.clear();
                         SimpleItem * pItem = new SimpleItem;
                         in >>ps >>fnt >> col >>pList;
-                        //Анализ pList на предмет наличия [тег]
+                        //РђРЅР°Р»РёР· pList РЅР° РїСЂРµРґРјРµС‚ РЅР°Р»РёС‡РёСЏ [С‚РµРі]
                         for (int j = 0; j <pList.size();j++){
                             filledList.append(findFromModel(pList.at(j)));
                         }
@@ -425,16 +436,16 @@ bool Tmpl_plugin::parse_templates(const QString & in_file)
                         pItem->setParentItem(paper_rect_3);
                     }
                 }
-                in >> fourthPageElemCount;      // число элементов на четвертой странице
+                in >> fourthPageElemCount;      // С‡РёСЃР»Рѕ СЌР»РµРјРµРЅС‚РѕРІ РЅР° С‡РµС‚РІРµСЂС‚РѕР№ СЃС‚СЂР°РЅРёС†Рµ
                 for (int i=0;i<fourthPageElemCount;i++){
-                    // перебор всех элементов страницы
+                    // РїРµСЂРµР±РѕСЂ РІСЃРµС… СЌР»РµРјРµРЅС‚РѕРІ СЃС‚СЂР°РЅРёС†С‹
                     in >> elemType;
                     if (elemType=="tElem"){
                         pList.clear();
                         filledList.clear();
                         SimpleItem * pItem = new SimpleItem;
                         in >>ps >>fnt >> col >>pList;
-                        //Анализ pList на предмет наличия [тег]
+                        //РђРЅР°Р»РёР· pList РЅР° РїСЂРµРґРјРµС‚ РЅР°Р»РёС‡РёСЏ [С‚РµРі]
                         for (int j = 0; j <pList.size();j++){
                             filledList.append(findFromModel(pList.at(j)));
                         }
@@ -448,7 +459,7 @@ bool Tmpl_plugin::parse_templates(const QString & in_file)
                 }
                 flag = true;
             }else {
-                flag =  false; // Мой плагин работает с шаблоном только версии <= version
+                flag =  false; // РњРѕР№ РїР»Р°РіРёРЅ СЂР°Р±РѕС‚Р°РµС‚ СЃ С€Р°Р±Р»РѕРЅРѕРј С‚РѕР»СЊРєРѕ РІРµСЂСЃРёРё <= version
             }
             file.close();
         }
@@ -467,7 +478,7 @@ QString Tmpl_plugin::findFromModel(const QString &find_line)
                 QStandardItem * header_item = work_model->horizontalHeaderItem(i);
                 QString header = header_item->data(Qt::EditRole).toString();
                 if (header.compare(find_line) == 0){
-                    // В модели всегда две строчки заголовок и данные,работаю со второй строчкой
+                    // Р’ РјРѕРґРµР»Рё РІСЃРµРіРґР° РґРІРµ СЃС‚СЂРѕС‡РєРё Р·Р°РіРѕР»РѕРІРѕРє Рё РґР°РЅРЅС‹Рµ,СЂР°Р±РѕС‚Р°СЋ СЃРѕ РІС‚РѕСЂРѕР№ СЃС‚СЂРѕС‡РєРѕР№
                     QStandardItem * cell_item = work_model->item(work_model->rowCount(), i);
                     local_find = cell_item->data(Qt::EditRole).toString();
                     break;
@@ -476,6 +487,59 @@ QString Tmpl_plugin::findFromModel(const QString &find_line)
         }
     }
     return local_find;
+}
+
+QStringList Tmpl_plugin::getPageSizeList()
+{
+    QStringList result;
+
+    QMapIterator<QString, int> i (page_size);
+    while (i.hasNext()) {
+        i.next();
+        result.append(i.key());
+    }
+
+    return result;
+}
+
+int Tmpl_plugin::getElemIdByName(const QString &elem_name)
+{
+    int result=0; // Р•СЃР»Рё РІ СЃРїРёСЃРєРµ Р·Р°РїСЂРѕС€РµРЅРЅРѕРіРѕ СЌР»РµРјРµРЅС‚Р° РЅРµС‚ С‚Рѕ РІРѕР·РІСЂР°С‰Р°РµРј 0
+    if (!elem_name.isEmpty() && page_size.contains(elem_name)){
+        result= page_size.value(elem_name);
+    }
+    return result;
+}
+qreal Tmpl_plugin::findPageSize_H(int page_size_id)
+{
+    qreal res;
+    switch (page_size_id){
+    case QPrinter::A4:
+        res=MM_TO_POINT(297);
+        break;
+    case QPrinter::A3:
+        res=MM_TO_POINT(420);
+        break;
+     //FixMe
+    }
+    return res;
+}
+
+qreal Tmpl_plugin::findPageSize_V(int page_size_id)
+{
+    qreal res;
+    switch (page_size_id){
+    case QPrinter::A4:
+        res=MM_TO_POINT(210);
+
+        break;
+    case QPrinter::A3:
+        res=MM_TO_POINT(297);
+
+        break;
+     //FixMe
+    }
+    return res;
 }
 
 Q_EXPORT_PLUGIN2(Itmpl_plugin, Tmpl_plugin)
