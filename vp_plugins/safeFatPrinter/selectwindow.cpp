@@ -1,5 +1,6 @@
 #include "selectwindow.h"
 #include "ui_selectwindow.h"
+#include <QTimer>
 
 SelectWindow::SelectWindow(QWidget *parent) :
         QMainWindow(parent),
@@ -19,7 +20,7 @@ SelectWindow::SelectWindow(QWidget *parent) :
     signalMapper = new QSignalMapper(this);
     WorkDlg = new workField(this);
     WorkDlg->setWindowFlags(Qt::Dialog |  Qt::CustomizeWindowHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint | Qt::WindowSystemMenuHint);
-    WorkDlg->setStampModel(SpiderInTheMiddle->stamp_model());
+    WorkDlg->setStampModel(SpiderInTheMiddle->getStampModel());
 
     this->setWindowFlags(Qt::Dialog |  Qt::CustomizeWindowHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint | Qt::WindowSystemMenuHint);
     this->move(calcCenter());
@@ -27,10 +28,14 @@ SelectWindow::SelectWindow(QWidget *parent) :
     connect (SpiderInTheMiddle,SIGNAL(error (QString )),this,SLOT(showCritError(QString)));
     connect (SpiderInTheMiddle,SIGNAL(pluginMessage(const QString &)),this,SLOT (showPluginMessage(const QString &)));
     connect (SpiderInTheMiddle,SIGNAL(needShowAuthWindow(QString &)),this,SLOT(showAuthWindow(QString&)));
+connect (ui->printerCBox,SIGNAL(currentIndexChanged(QString)),SpiderInTheMiddle,SLOT(setCurrentPrinter(QString)));
 
     connect (WorkDlg,SIGNAL(checkMBInBase(QString &, QString &,WorkMode)),SpiderInTheMiddle,SLOT(do_checkMBInBase(QString &, QString &,WorkMode )));
     connect (WorkDlg,SIGNAL(needAuthUserToPrinter()),SpiderInTheMiddle,SLOT(do_needAuthUserToPrinter()));
-    connect (ui->printerCBox,SIGNAL(currentIndexChanged(QString)),SpiderInTheMiddle,SLOT(setCurrentPrinter(QString)));
+    connect (WorkDlg,SIGNAL(needCreateEmptyTemplates(QString,QString,QString,QString,QString,bool,QString,qreal,qreal,qreal,qreal)),
+             SpiderInTheMiddle,SLOT(do_needCreateEmptyTemplates(QString,QString,QString,QString,QString,bool,QString,qreal,qreal,qreal,qreal)));
+
+
 
     connect (qApp,SIGNAL(aboutToQuit()),this,SLOT(cleanUp()));
 
@@ -85,7 +90,7 @@ void SelectWindow::checkPoint(WorkStep step)
 
 void SelectWindow::enableGUI()
 {
-    ui->printerCBox->setModel(SpiderInTheMiddle->printers_model());
+    ui->printerCBox->setModel(SpiderInTheMiddle->getPrintersModel());
     ui->printerCBox->setEnabled(true);
     ui->printFromAccountPaper->setEnabled(true);
     ui->printModeAccounting->setEnabled(true);
@@ -96,19 +101,25 @@ void SelectWindow::setMode (int signal_mode)
 {
     work_mode = signal_mode;
     QString title;
+    WorkDlg->move(calcCenter());
+    WorkDlg->setPageSizeModel(SpiderInTheMiddle->getPageSizeModel());
+    WorkDlg->setUserName(SpiderInTheMiddle->getUserName());
     switch (signal_mode){
     case 0:
         title = QObject::trUtf8("Режим работы: [Учет листов]");
-        WorkDlg->setWindowTitle(title);
-        //WorkDlg->move(calcCenter());
         break;
     case 1:
+        title = QObject::trUtf8("Режим работы: [Печать на учтенных листах]");
         break;
     case 2:
+        title = QObject::trUtf8("Режим работы: [Печать документа с автоматическим учетом листов]");
         break;
     }
+    WorkDlg->setWindowTitle(title);
     int ret = WorkDlg->exec();
-
+    if (ret == QDialog::Accepted){
+        QTimer::singleShot(500,qApp,SLOT(quit()));
+    }
 }
 
 void SelectWindow::showCritError(QString e_msg)
@@ -128,7 +139,7 @@ void SelectWindow::showAuthWindow(QString &user_name)
     this->hide();
     QString msg;
     UMDlg->setUserName(user_name);
-    UMDlg->setMandatModel(SpiderInTheMiddle->mandat_model());
+    UMDlg->setMandatModel(SpiderInTheMiddle->getMandatModel());
     UMDlg->move(this->calcCenter());
     int ret = UMDlg->exec();
     if (ret == QDialog::Accepted){
