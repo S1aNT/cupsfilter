@@ -73,6 +73,7 @@ void AddTemplate::accept()
                                     new_templates_name,
                                     tr("Шаблоны (*.tmpl *.TMPL)"));
         if (!fileName.isEmpty()){
+            //QMessageBox::information(this,"file",fileName);
             QString user =  ui->author_lineEd->text();
             emit needCreateEmptyTemplates(fileName,user,templ_name,templ_desc,
                                           page_size,
