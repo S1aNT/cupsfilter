@@ -110,7 +110,13 @@ void Mediator::loadPlugin(const QString &app_dir)
             tmpl_plugin_Interface = qobject_cast<Itmpl_plugin *> (plugin);
             if (tmpl_plugin_Interface){
                 tmpl_plugin = tmpl_plugin_Interface;
-                connect (plugin,SIGNAL(allTemplatesPagesParsed()),this,SIGNAL(allTemplatesPagesParsed()));
+                connect (plugin,
+                         SIGNAL(allTemplatesPagesParsed(QGraphicsScene *,QGraphicsScene *,
+                                                        QGraphicsScene *,QGraphicsScene *)),
+                         this,
+                         SIGNAL(allTemplatesPagesParsed(QGraphicsScene *,QGraphicsScene *,
+                                                        QGraphicsScene *,QGraphicsScene *))
+                         );
                 connect (this,SIGNAL(needUpdatePage(int)),plugin,SLOT(update_scene(int)));
             }
             gs_plugin_Interface = qobject_cast<Igs_plugin *> (plugin);
@@ -336,6 +342,16 @@ void  Mediator::parseServerResponse(QString &responce_msg)
 }
 
 //*************************************** public slots*******************************************
+void Mediator::do_convertTemplatesToScenes(const QString & templ_filename)
+{
+    if (tmpl_plugin){
+        tmpl_plugin->setTemplates(templ_filename,doc_model);
+    }else{
+        QString e_msg  = QObject::trUtf8("Плагин работы с шаблонами не инициализирован или не загружен!");
+        emit error(e_msg);
+    }
+}
+
 void Mediator::do_needCreateEmptyTemplates(const QString & file_name,
                             const QString & t_name,const QString & t_author,
                               const QString & t_desc,
@@ -354,6 +370,9 @@ void Mediator::do_needCreateEmptyTemplates(const QString & file_name,
                                          p_orient,c_date,
                                          m_top,m_bottom,
                                          m_right,m_left);
+    }else{
+        QString e_msg  = QObject::trUtf8("Плагин работы с шаблонами не инициализирован или не загружен!");
+        emit error(e_msg);
     }
 }
 

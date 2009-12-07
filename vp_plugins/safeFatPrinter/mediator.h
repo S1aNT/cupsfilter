@@ -62,10 +62,13 @@ signals:
     void StateChanged(WorkStep);
     void mbNumberNotExist();
     void needShowPreviewPage(const QPixmap &preview_page); // Требуется показать страницу документа
-    void allTemplatesPagesParsed(); // успешый разбор всех страниц шаблона и запись их в сцены
+    void allTemplatesPagesParsed(QGraphicsScene *scene_1,QGraphicsScene *scene_2,
+                                 QGraphicsScene *scene_3,QGraphicsScene *scene_4); // успешый разбор всех страниц шаблона и запись их в сцены
     void needUpdatePage(int page); // Требование плагину обновить страницу шаблона номер
 
 public slots:
+    // Вызов функции плагина преобразующего шаблон в набор сцен
+    void do_convertTemplatesToScenes(const QString & templ_filename);
     // Сохранение выбранного пользователем принтера
     void setCurrentPrinter(const QString & printer);
     // авторизация текущего пользователя на предварительно выбранный принтер
