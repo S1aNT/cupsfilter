@@ -6,8 +6,6 @@
 
 
 
-
-
 void myMessageOutput(QtMsgType type, const char *msg)
 {
     QFile logFile("safe_printer.log");
