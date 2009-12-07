@@ -13,6 +13,8 @@
 
 #include "previewwnd.h"
 #include "tech_global.h"
+#include "addtemplate.h"
+
 using namespace SafeVirtualPrinter;
 
 namespace Ui {
@@ -44,7 +46,7 @@ private slots:
     void flipLabel(bool flip);
     void checkData(); // При нажатии на кнопку идет анализ введенных данных
     void selectTemplatesDir(bool mode); //Выбор локальный или глобальный каталог шаблонов
-
+    void do_addTemplates(); // добавление пустого шаблона
     void setCurrentTemplates(QString temp);
 protected:
     void changeEvent(QEvent *e);
@@ -52,6 +54,8 @@ private:
     Ui::workField *ui;
     QDataWidgetMapper *mapper;
     QSignalMapper *signalMapper;
+
+    AddTemplate *addTmplDlg;
 
     bool localORglobal; // Режим шаблонов локальные или глобальные
     QString local_templ_dir;

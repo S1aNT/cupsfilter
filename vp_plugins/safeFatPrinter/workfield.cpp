@@ -8,11 +8,13 @@ workField::workField(QWidget *parent) :
     ui->setupUi(this);
     mapper = new QDataWidgetMapper(this);
     mapper->setSubmitPolicy(QDataWidgetMapper::AutoSubmit);
+    addTmplDlg = new AddTemplate(this);
 
     connect (ui->paperAccountsOutSide,SIGNAL(toggled(bool)),this,SLOT(flipLabel(bool)));
     connect (ui->previewBtn,SIGNAL(clicked()),this,SLOT(checkData()));
     connect (ui->switch_Local_GlolbalBtn,SIGNAL(clicked(bool)),this,SLOT(selectTemplatesDir(bool)));
     connect (ui->templatesCbox,SIGNAL(currentIndexChanged(QString)),this,SLOT(setCurrentTemplates(QString)));
+    connect (ui->addTemplatesTBtn,SIGNAL(clicked()),this,SLOT(do_addTemplates()));
 }
 
 workField::~workField()
@@ -146,6 +148,12 @@ void workField::showPreviewPage(QPixmap &preview_page)
 }
 
 //********************************** private slots ******************************************
+void workField::do_addTemplates()
+{
+    int ret;
+    addTmplDlg
+}
+
 void workField::setCurrentTemplates(QString temp)
 {
     QString f_name;
