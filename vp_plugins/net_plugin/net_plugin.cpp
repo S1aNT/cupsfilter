@@ -1,3 +1,6 @@
+#include <QDebug>
+
+
 #include "net_plugin.h"
 
 

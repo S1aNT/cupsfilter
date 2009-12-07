@@ -2,9 +2,8 @@
 #define NET_PLUGIN_H
 
 #include <QObject>
-#include <QDebug>
-#include <QTcpSocket>
 #include <QtPlugin>
+#include <QTcpSocket>
 
 #include "inet_plugin.h"
 
