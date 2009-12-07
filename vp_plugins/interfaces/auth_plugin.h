@@ -1,7 +1,7 @@
 #ifndef AUTHINTERFACE_H
 #define AUTHINTERFACE_H
 
-#include <QString>
+class QString;
 
 //! [0]
 class Auth_plugin{

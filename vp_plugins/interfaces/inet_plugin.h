@@ -1,7 +1,8 @@
 #ifndef INET_PLUGIN_H
 #define INET_PLUGIN_H
 
-#include <QString>
+//#include <QString>
+class QString;
 
 //! [0]
 class Inet_plugin{

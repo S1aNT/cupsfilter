@@ -1,9 +1,9 @@
 #ifndef ITMPL_PLUGIN_H
 #define ITMPL_PLUGIN_H
 
-#include <QString>
-#include <QStandardItemModel>
-#include <QGraphicsScene>
+class QString;
+class QStandardItemModel;
+class QGraphicsScene;
 
 //! [0]
 class Itmpl_plugin{

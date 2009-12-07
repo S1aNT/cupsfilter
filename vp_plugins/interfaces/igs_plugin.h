@@ -1,9 +1,9 @@
 #ifndef IGS_PLUGIN_H
 #define IGS_PLUGIN_H
 
-#include <QString>
-#include <QPixmap>
-#include <QStringList>
+class QString;
+class QStringList;
+class QPixmap;
 
 
 class Igs_plugin{
