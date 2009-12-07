@@ -40,6 +40,8 @@ public:
 signals:
     // Запрос на преобразование шаблона в набор из 4-х сцен
     void convertTemplatesToScenes(const QString &t_file_name);
+    void allTemplatesPagesParsed(QGraphicsScene *scene_1,QGraphicsScene *scene_2,
+                                 QGraphicsScene *scene_3,QGraphicsScene *scene_4); // успешый разбор всех страниц шаблона и запись их в сцены
 
     void checkMBInBase(const QString &mb_value,const QString &copyNum_value,WorkMode work_mode);
     void needAuthUserToPrinter(); // Требуется авторизовать пользователя на принтер
@@ -59,13 +61,14 @@ signals:
 public slots:
     void showInfoWindow(const QString &info);
     void showPreviewPage(QPixmap &preview_page);
+    void setCurrentTemplates(QString temp);
 private slots:
     void flipLabel(bool flip);
     void checkData(); // При нажатии на кнопку идет анализ введенных данных
     //Выбор локальный или глобальный каталог шаблонов
     void selectTemplatesDir(bool mode);
     void do_addTemplates(); // добавление пустого шаблона
-    void setCurrentTemplates(QString temp);
+
     void showEditor();
 protected:
     void changeEvent(QEvent *e);
