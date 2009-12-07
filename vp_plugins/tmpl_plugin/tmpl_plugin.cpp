@@ -143,7 +143,7 @@ void Tmpl_plugin::setTemplates(const QString & templates_in_file,QStandardItemMo
             }
             currentTemplates = templates_in_file;
             if (parse_templates(currentTemplates)){
-                emit allTemplatesPagesParsed();
+                emit allTemplatesPagesParsed(firstPage_tmpl, secondPage_tmpl, thirdPage_tmpl, fourthPage_tmpl);
             }else{
                 error_msg = QObject::trUtf8("ERROR: Ошибка разбора шаблона [%1]\n").arg(templates_in_file);
             }
@@ -243,7 +243,6 @@ void Tmpl_plugin::printFormatingPageToFile(int pageNum)
         }
     }
 }
-
 
 bool Tmpl_plugin::parse_templates(const QString & in_file)
 {
@@ -510,6 +509,7 @@ int Tmpl_plugin::getElemIdByName(const QString &elem_name)
     }
     return result;
 }
+
 qreal Tmpl_plugin::findPageSize_H(int page_size_id)
 {
     qreal res;

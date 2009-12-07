@@ -54,7 +54,8 @@ public:
 
 signals:
     void error(QString error_message);
-    void allTemplatesPagesParsed();
+    void allTemplatesPagesParsed(QGraphicsScene *scene_1,QGraphicsScene *scene_2,
+                                 QGraphicsScene *scene_3,QGraphicsScene *scene_4);
     void emptyTemplateCreate(const QString & t_name);
 public slots:
     void update_scene(int pageNum);
