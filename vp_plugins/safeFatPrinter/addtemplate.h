@@ -16,22 +16,26 @@ public:
     ~AddTemplate();
     void setUserName(const QString & name);
     void setPageSize(QStringListModel *page_size_model);
-    QString getTemplName();
-    QString getTemplDesc();
-    QString getPageSize();
-    QString getCreationDate();
-    qreal getMarginTop();
-    qreal getMarginBottom();
-    qreal getMarginLeft();
-    qreal getMarginRight();
-    bool getPageOrient();
+
+signals:
+    void needCreateEmptyTemplates(const QString & t_name,
+                                  const QString & t_desc,
+                                  const QString & p_size,
+                                  bool p_orient,
+                                  const QString & c_date,
+                                  qreal m_top,
+                                  qreal m_bottom,
+                                  qreal m_right,
+                                  qreal m_left);
 private slots:
     void set_portret();
     void set_landscape();
     void setCurrentPageSize(const QString &psize);
 protected:
     void changeEvent(QEvent *e);
-
+    void showInfo(const QString & info);
+protected slots:
+    void accepted();
 private:
     Ui::AddTemplate *ui;
     QFont boldFont;

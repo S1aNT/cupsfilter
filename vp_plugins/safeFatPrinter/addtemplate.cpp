@@ -1,7 +1,8 @@
 #include "addtemplate.h"
 #include "ui_addtemplate.h"
 #include <QDateTime>
-
+#include <QMessageBox>
+#include <QFileDialog>
 
 AddTemplate::AddTemplate(QWidget *parent) :
     QDialog(parent),
@@ -31,50 +32,36 @@ void AddTemplate::setPageSize(QStringListModel *page_size_model)
     //ui->p_widthSpBox->setValue(page_width);
 }
 
-// --------------------------------------Гетеры
-QString AddTemplate::getTemplName()
-{
 
+//-------------------------------------- protected slots
+void AddTemplate::accept()
+{
+    QString fileName;
+    QString new_templates_name = QObject::tr("%1/new_template.tmpl").arg(qApp->applicationDirPath());
+    QString e_msg = QObject::trUtf8("Поле [ %1 ] не может быть пустым!");
+    if (ui->name_lineEd->text().isEmpty()){
+        e_msg.arg(QObject::trUtf8("Имя шаблона"));
+        this->showInfo(e_msg);
+    }else{
+        fileName = QFileDialog::getSaveFileName(this, QObject::trUtf8("Сохранить шаблон как"),
+                                    new_templates_name,
+                                    tr("Шаблоны (*.tmpl *.TMPL)"));
+        if (!fileName.isEmpty()){
+            QDialog::accept();
+        }
+    }
 }
 
-QString AddTemplate::getTemplDesc()
+// ------------------------------------- protected
+void AddTemplate::showInfo(const QString & info)
 {
-
-}
-
-QString AddTemplate::getPageSize()
-{
-
-}
-
-QString AddTemplate::getCreationDate()
-{
-
-}
-
-qreal AddTemplate::getMarginTop()
-{
-
-}
-
-qreal AddTemplate::getMarginBottom()
-{
-
-}
-
-qreal AddTemplate::getMarginLeft()
-{
-
-}
-
-qreal AddTemplate::getMarginRight()
-{
-
-}
-
-bool AddTemplate::getPageOrient()
-{
-
+    QMessageBox msgBox;
+    QPushButton *abortButton;
+    msgBox.setIcon(QMessageBox::Information);
+    msgBox.setWindowTitle(QObject::trUtf8("Информационное сообщение"));
+    abortButton=msgBox.addButton(QObject::trUtf8("Выход"), QMessageBox::RejectRole);
+    msgBox.setText(info);
+    msgBox.exec();
 }
 
 // ------------------------------------- private slots
