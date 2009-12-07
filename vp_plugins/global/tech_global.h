@@ -68,6 +68,7 @@ typedef enum WorkStep {
         netPluginInit,
         authPluginInit,
         gsPluginInit,
+	tmplPluginInit,
         filledPrinterList,
         psToPdfConverted
 };
