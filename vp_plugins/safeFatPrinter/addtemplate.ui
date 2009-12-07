@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>460</width>
-    <height>463</height>
+    <height>455</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,9 +17,9 @@
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>60</y>
+     <y>57</y>
      <width>441</width>
-     <height>80</height>
+     <height>91</height>
     </rect>
    </property>
    <property name="title">
@@ -49,7 +49,7 @@
    <property name="geometry">
     <rect>
      <x>200</x>
-     <y>410</y>
+     <y>404</y>
      <width>251</width>
      <height>41</height>
     </rect>
@@ -98,7 +98,7 @@
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>340</y>
+     <y>337</y>
      <width>441</width>
      <height>61</height>
     </rect>
@@ -160,7 +160,7 @@
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>150</y>
+     <y>151</y>
      <width>141</width>
      <height>91</height>
     </rect>
@@ -193,6 +193,12 @@
          <height>32</height>
         </size>
        </property>
+       <property name="checkable">
+        <bool>true</bool>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
       </widget>
      </item>
      <item row="0" column="1">
@@ -210,17 +216,23 @@
          <height>32</height>
         </size>
        </property>
+       <property name="checkable">
+        <bool>true</bool>
+       </property>
+       <property name="autoRaise">
+        <bool>false</bool>
+       </property>
       </widget>
      </item>
      <item row="1" column="0">
-      <widget class="QLabel" name="label_7">
+      <widget class="QLabel" name="portret_label">
        <property name="text">
         <string>Книжная</string>
        </property>
       </widget>
      </item>
      <item row="1" column="1">
-      <widget class="QLabel" name="label_8">
+      <widget class="QLabel" name="landscape_label">
        <property name="text">
         <string>Альбомная</string>
        </property>
@@ -233,7 +245,7 @@
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>242</y>
+     <y>245</y>
      <width>441</width>
      <height>91</height>
     </rect>
@@ -310,7 +322,7 @@
    <property name="geometry">
     <rect>
      <x>160</x>
-     <y>150</y>
+     <y>151</y>
      <width>291</width>
      <height>91</height>
     </rect>
@@ -353,15 +365,40 @@
       </widget>
      </item>
      <item row="1" column="1">
-      <widget class="QSpinBox" name="p_heightSpBox"/>
+      <widget class="QSpinBox" name="p_heightSpBox">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+      </widget>
      </item>
      <item row="2" column="1">
-      <widget class="QSpinBox" name="p_widthSpBox"/>
+      <widget class="QSpinBox" name="p_widthSpBox">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+      </widget>
      </item>
     </layout>
    </widget>
   </widget>
  </widget>
+ <tabstops>
+  <tabstop>name_lineEd</tabstop>
+  <tabstop>descTextEdit</tabstop>
+  <tabstop>portretBtn</tabstop>
+  <tabstop>landscapeBtn</tabstop>
+  <tabstop>pageSizeCBox</tabstop>
+  <tabstop>margin_topSpBox</tabstop>
+  <tabstop>margin_leftSpBox</tabstop>
+  <tabstop>margin_bottomSBox</tabstop>
+  <tabstop>margin_rightSpBox</tabstop>
+  <tabstop>addBtn</tabstop>
+  <tabstop>cancelBtn</tabstop>
+  <tabstop>date_lineEd</tabstop>
+  <tabstop>author_lineEd</tabstop>
+  <tabstop>p_heightSpBox</tabstop>
+  <tabstop>p_widthSpBox</tabstop>
+ </tabstops>
  <resources>
   <include location="images.qrc"/>
  </resources>
@@ -395,6 +432,38 @@
     <hint type="destinationlabel">
      <x>229</x>
      <y>231</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>portretBtn</sender>
+   <signal>pressed()</signal>
+   <receiver>landscapeBtn</receiver>
+   <slot>toggle()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>42</x>
+     <y>185</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>93</x>
+     <y>185</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>landscapeBtn</sender>
+   <signal>pressed()</signal>
+   <receiver>portretBtn</receiver>
+   <slot>toggle()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>93</x>
+     <y>185</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>42</x>
+     <y>185</y>
     </hint>
    </hints>
   </connection>
