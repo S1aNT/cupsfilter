@@ -314,7 +314,7 @@
         <string>...</string>
        </property>
        <property name="icon">
-        <iconset resource="images.qrc">
+        <iconset>
          <normaloff>:/images/handbook.png</normaloff>:/images/handbook.png</iconset>
        </property>
       </widget>
@@ -322,13 +322,13 @@
      <item row="5" column="4">
       <widget class="QToolButton" name="addTemplatesTBtn">
        <property name="enabled">
-        <bool>false</bool>
+        <bool>true</bool>
        </property>
        <property name="text">
         <string>...</string>
        </property>
        <property name="icon">
-        <iconset resource="images.qrc">
+        <iconset>
          <normaloff>:/images/edit_add.png</normaloff>:/images/edit_add.png</iconset>
        </property>
       </widget>
@@ -342,7 +342,7 @@
         <string>...</string>
        </property>
        <property name="icon">
-        <iconset resource="images.qrc">
+        <iconset>
          <normaloff>:/images/edit_remove.png</normaloff>:/images/edit_remove.png</iconset>
        </property>
       </widget>
@@ -366,7 +366,7 @@
         <string>...</string>
        </property>
        <property name="icon">
-        <iconset resource="images.qrc">
+        <iconset>
          <normaloff>:/images/user-32.png</normaloff>:/images/user-32.png</iconset>
        </property>
        <property name="checkable">
@@ -645,9 +645,7 @@
    </layout>
   </widget>
  </widget>
- <resources>
-  <include location="images.qrc"/>
- </resources>
+ <resources/>
  <connections>
   <connection>
    <sender>lastPageGroupBoxChecked</sender>
