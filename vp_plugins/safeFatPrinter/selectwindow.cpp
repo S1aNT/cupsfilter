@@ -29,12 +29,43 @@ SelectWindow::SelectWindow(QWidget *parent) :
     connect (SpiderInTheMiddle,SIGNAL(error (QString )),this,SLOT(showCritError(QString)));
     connect (SpiderInTheMiddle,SIGNAL(pluginMessage(const QString &)),this,SLOT (showPluginMessage(const QString &)));
     connect (SpiderInTheMiddle,SIGNAL(needShowAuthWindow(QString &)),this,SLOT(showAuthWindow(QString&)));
-    connect (ui->printerCBox,SIGNAL(currentIndexChanged(QString)),SpiderInTheMiddle,SLOT(setCurrentPrinter(QString)));
+    connect (ui->printerCBox,
+             SIGNAL(currentIndexChanged(QString)),
+             SpiderInTheMiddle,
+             SLOT(setCurrentPrinter(QString))
+             );
 
-    connect (WorkDlg,SIGNAL(checkMBInBase(QString &, QString &,WorkMode)),SpiderInTheMiddle,SLOT(do_checkMBInBase(QString &, QString &,WorkMode )));
-    connect (WorkDlg,SIGNAL(needAuthUserToPrinter()),SpiderInTheMiddle,SLOT(do_needAuthUserToPrinter()));
-    connect (WorkDlg,SIGNAL(needCreateEmptyTemplates(QString,QString,QString,QString,QString,bool,QString,qreal,qreal,qreal,qreal)),
-             SpiderInTheMiddle,SLOT(do_needCreateEmptyTemplates(QString,QString,QString,QString,QString,bool,QString,qreal,qreal,qreal,qreal)));
+    connect (WorkDlg,
+             SIGNAL(checkMBInBase(QString &, QString &,WorkMode)),
+             SpiderInTheMiddle,
+             SLOT(do_checkMBInBase(QString &, QString &,WorkMode ))
+             );
+    connect (WorkDlg,
+             SIGNAL(needAuthUserToPrinter()),
+             SpiderInTheMiddle,
+             SLOT(do_needAuthUserToPrinter())
+             );
+    connect (WorkDlg,
+             SIGNAL(needCreateEmptyTemplates(QString,QString,QString,QString,
+                                             QString,bool,QString,qreal,qreal,
+                                             qreal,qreal)),
+             SpiderInTheMiddle,
+             SLOT(do_needCreateEmptyTemplates(QString,QString,QString,QString,
+                                              QString,bool,QString,qreal,qreal,
+                                              qreal,qreal)));
+
+    connect (WorkDlg,
+             SIGNAL(convertTemplatesToScenes(QString)),
+             SpiderInTheMiddle,
+             SLOT(do_convertTemplatesToScenes(QString)));
+
+    connect (SpiderInTheMiddle,
+             SIGNAL(allTemplatesPagesParsed(QGraphicsScene*,QGraphicsScene*,
+                                            QGraphicsScene*,QGraphicsScene*)),
+             WorkDlg,
+             SIGNAL(allTemplatesPagesParsed(QGraphicsScene*,QGraphicsScene*,
+                                            QGraphicsScene*,QGraphicsScene*))
+             );
 
     connect (qApp,SIGNAL(aboutToQuit()),this,SLOT(cleanUp()));
 
@@ -126,6 +157,7 @@ void SelectWindow::showCritError(QString e_msg)
     QMessageBox msgBox;
     QPushButton *abortButton;
     msgBox.setIcon(QMessageBox::Critical);
+    msgBox.setWindowTitle(QObject::trUtf8("Информационное сообщение"));
     msgBox.setInformativeText(QObject::trUtf8("Для решения этой проблемы обратитесь к администратору безопасности!"));
     abortButton=msgBox.addButton(QObject::trUtf8("Выход"), QMessageBox::RejectRole);
     msgBox.setText(e_msg);
