@@ -10,12 +10,19 @@ workField::workField(QWidget *parent) :
     mapper->setSubmitPolicy(QDataWidgetMapper::AutoSubmit);
     addTmplDlg = new AddTemplate(this);
     addTmplDlg->setWindowFlags(Qt::Dialog |  Qt::CustomizeWindowHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint | Qt::WindowSystemMenuHint);
+    teditorDlg = new TEditor(this);
+    teditorDlg->setWindowFlags(Qt::Dialog |  Qt::CustomizeWindowHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint | Qt::WindowSystemMenuHint);
 
+    connect (ui->editTemplatesTBtn,SIGNAL(clicked()),this,SLOT(showEditor()));
     connect (ui->paperAccountsOutSide,SIGNAL(toggled(bool)),this,SLOT(flipLabel(bool)));
     connect (ui->previewBtn,SIGNAL(clicked()),this,SLOT(checkData()));
     connect (ui->switch_Local_GlolbalBtn,SIGNAL(clicked(bool)),this,SLOT(selectTemplatesDir(bool)));
     connect (ui->templatesCbox,SIGNAL(currentIndexChanged(QString)),this,SLOT(setCurrentTemplates(QString)));
     connect (ui->addTemplatesTBtn,SIGNAL(clicked()),this,SLOT(do_addTemplates()));
+    connect (addTmplDlg,
+             SIGNAL(needCreateEmptyTemplates(QString,QString,QString,QString,QString,qreal,qreal,bool,QString,qreal,qreal,qreal,qreal)),
+             this,
+             SIGNAL(needCreateEmptyTemplates(QString,QString,QString,QString,QString,qreal,qreal,bool,QString,qreal,qreal,qreal,qreal)));
 }
 
 workField::~workField()
@@ -127,6 +134,11 @@ void workField::setModel (QStandardItemModel * model)
 
 }
 //********************************** public slots ******************************************
+void workField::showEditor()
+{
+
+}
+
 void workField::showInfoWindow(const QString &info)
 {
     QMessageBox msgBox;
@@ -154,10 +166,11 @@ void workField::do_addTemplates()
     int ret;
     addTmplDlg->setUserName(userName);
     addTmplDlg->setPageSize(p_size_mod);
+    addTmplDlg->setLocalTemplatesDir(local_templ_dir);
     ret = addTmplDlg->exec();
+
     if (ret == QDialog::Accepted){
-        // Возьмем данные о шаблоне
-        addTmplDlg->
+// TODO если успешно завершили создание пустого шаблона оо покажем редактор
     }
 }
 
@@ -172,6 +185,7 @@ void workField::setCurrentTemplates(QString temp)
                 break;
             }
         }
+        ui->editTemplatesTBtn->setEnabled(true);
     }else{
         for (int i=0;i<global_templates_path.size();i++){
             QFileInfo fi=global_templates_path.at(i);
@@ -180,11 +194,11 @@ void workField::setCurrentTemplates(QString temp)
                 break;
             }
         }
+        ui->editTemplatesTBtn->setEnabled(false);
     }
    currentTemplates = f_name; // Запомним выбор пользователя
 
 }
-
 
 void workField::selectTemplatesDir(bool mode)
 {
@@ -289,9 +303,6 @@ void workField::setEnableField(bool e)
     ui->reciversListGroupBoxChecked->setEnabled(e);
     ui->paperAccountsOutSide->setEnabled(e);
 }
-
-
-
 
 //*******************************************************************************************
 void workField::changeEvent(QEvent *e)

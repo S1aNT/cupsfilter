@@ -12,6 +12,7 @@
 #include <QFileDialog>
 
 #include "previewwnd.h"
+#include "teditor.h"
 #include "tech_global.h"
 #include "addtemplate.h"
 
@@ -41,6 +42,17 @@ signals:
     void needAuthUserToPrinter();
     void needPrintPage();
     void dontNeedPrintPage();
+    void needCreateEmptyTemplates(const QString & file_name,
+                                  const QString & t_author,
+                                  const QString & t_name,
+                                  const QString & t_desc,
+                                  const QString & p_size,
+                                  bool p_orient,
+                                  const QString & c_date,
+                                  qreal m_top,
+                                  qreal m_bottom,
+                                  qreal m_right,
+                                  qreal m_left);
 public slots:
     void showInfoWindow(const QString &info);
     void showPreviewPage(QPixmap &preview_page);
@@ -50,6 +62,7 @@ private slots:
     void selectTemplatesDir(bool mode); //Выбор локальный или глобальный каталог шаблонов
     void do_addTemplates(); // добавление пустого шаблона
     void setCurrentTemplates(QString temp);
+    void showEditor();
 protected:
     void changeEvent(QEvent *e);
 private:
@@ -58,6 +71,7 @@ private:
     QSignalMapper *signalMapper;
 
     AddTemplate *addTmplDlg;
+    TEditor * teditorDlg;
 
     QStringListModel *p_size_mod;
     QString userName;
