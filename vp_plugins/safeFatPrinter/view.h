@@ -15,7 +15,7 @@ class View : public QFrame
 public:
     View(const QString &name, QWidget *parent = 0);
 
-    QGraphicsView *view() const;
+    QGraphicsView *gr_view() const;
 
 private slots:
     void resetView();
