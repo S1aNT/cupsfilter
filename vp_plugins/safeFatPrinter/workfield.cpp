@@ -9,6 +9,7 @@ workField::workField(QWidget *parent) :
     mapper = new QDataWidgetMapper(this);
     mapper->setSubmitPolicy(QDataWidgetMapper::AutoSubmit);
     addTmplDlg = new AddTemplate(this);
+    addTmplDlg->setWindowFlags(Qt::Dialog |  Qt::CustomizeWindowHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint | Qt::WindowSystemMenuHint);
 
     connect (ui->paperAccountsOutSide,SIGNAL(toggled(bool)),this,SLOT(flipLabel(bool)));
     connect (ui->previewBtn,SIGNAL(clicked()),this,SLOT(checkData()));
@@ -151,7 +152,13 @@ void workField::showPreviewPage(QPixmap &preview_page)
 void workField::do_addTemplates()
 {
     int ret;
-    addTmplDlg
+    addTmplDlg->setUserName(userName);
+    addTmplDlg->setPageSize(p_size_mod);
+    ret = addTmplDlg->exec();
+    if (ret == QDialog::Accepted){
+        // Возьмем данные о шаблоне
+        addTmplDlg->
+    }
 }
 
 void workField::setCurrentTemplates(QString temp)
