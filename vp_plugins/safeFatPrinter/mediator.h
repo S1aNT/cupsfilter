@@ -46,10 +46,11 @@ public:
 
     int getPageCountInDoc(){return pagesInDocCount;};
 
-    QStandardItemModel *document_model () const {return doc_model;}
-    QStringListModel *stamp_model() const{ return stampModel;}
-    QStringListModel *mandat_model() const{ return mandatModel;}
-    QStringListModel *printers_model() const{ return printersModel;}
+    QStandardItemModel *getDocumentModel() const {return doc_model;}
+    QStringListModel *getStampModel() const{ return stampModel;}
+    QStringListModel *getMandatModel() const{ return mandatModel;}
+    QStringListModel *getPrintersModel() const{ return printersModel;}
+    QStringListModel *getPageSizeModel() const {return pageSizeModel;}
     // Сеттеры
     void setUserMandat(QString mnd);
 
@@ -63,12 +64,25 @@ signals:
     void needShowPreviewPage(const QPixmap &preview_page); // Требуется показать страницу документа
     void allTemplatesPagesParsed(); // успешый разбор всех страниц шаблона и запись их в сцены
     void needUpdatePage(int page); // Требование плагину обновить страницу шаблона номер
+
 public slots:
     // Сохранение выбранного пользователем принтера
     void setCurrentPrinter(const QString & printer);
     // авторизация текущего пользователя на предварительно выбранный принтер
     void do_needAuthUserToPrinter();
     void checkMBInBase(QString &mb_value, QString &copyNum_value,WorkMode w_mode);
+    // Требование к плагину создать пустой шаблон
+    void do_needCreateEmptyTemplates(const QString & file_name,
+                                  const QString & t_name,
+                                  const QString & t_author,
+                                  const QString & t_desc,
+                                  const QString & p_size,
+                                  bool p_orient,
+                                  const QString & c_date,
+                                  qreal m_top,
+                                  qreal m_bottom,
+                                  qreal m_right,
+                                  qreal m_left);
 private slots:
     void do_User_name_mandat(QString &userName,QString &userMandat);
     void parseServerResponse(QString &responce_msg);
@@ -97,6 +111,7 @@ private:
     QStringListModel *stampModel;
     QStringListModel *mandatModel;
     QStringListModel *printersModel;
+    QStringListModel *pageSizeModel;
 
     // Блок переменных из ini файла
     QString serverHostName;

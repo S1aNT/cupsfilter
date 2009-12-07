@@ -61,6 +61,13 @@ void Mediator::plugin_init()
             emit pluginMessage(msg);
         }
     }
+    if (tmpl_plugin){
+        tmpl_plugin->init(spoolDIR,sid);
+        this->pageSizeModel->setStringList(tmpl_plugin->getPageSizeList());
+        emit StateChanged (tmplPluginInit);
+        QString msg =QObject::trUtf8("Плагин: [Работы с шаблонами] успешно загружен.");
+        emit pluginMessage(msg);
+    }
 }
 
 void Mediator::loadPlugin(const QString &app_dir)
@@ -329,6 +336,27 @@ void  Mediator::parseServerResponse(QString &responce_msg)
 }
 
 //*************************************** public slots*******************************************
+void Mediator::do_needCreateEmptyTemplates(const QString & file_name,
+                            const QString & t_name,const QString & t_author,
+                              const QString & t_desc,
+                              const QString & p_size,
+
+                              bool p_orient,
+                              const QString & c_date,
+                              qreal m_top,
+                              qreal m_bottom,
+                              qreal m_right,
+                              qreal m_left)
+{
+    if (tmpl_plugin){
+        tmpl_plugin->createEmptyTemplate(file_name,t_author,t_name,t_desc,
+                                         p_size,
+                                         p_orient,c_date,
+                                         m_top,m_bottom,
+                                         m_right,m_left);
+    }
+}
+
 void Mediator::setCurrentPrinter(const QString & printer)
 {
     this->currentPrinter=printer;
@@ -366,10 +394,12 @@ QPixmap Mediator::formatPage(const QString &in_file,int pageNum)
 
 void Mediator::createModels()
 {
-    stampModel = new  QStringListModel(this);
-    doc_model = new QStandardItemModel(this);
-    mandatModel = new  QStringListModel(this);
-    printersModel = new  QStringListModel(this);
+    printersModel = new QStringListModel(this);
+    pageSizeModel = new QStringListModel(this);
+    mandatModel   = new QStringListModel(this);
+    stampModel    = new QStringListModel(this);
+    doc_model     = new QStandardItemModel(this);
+
     fillMap();
     doc_model->setHorizontalHeaderLabels(getAllElem());
 }
@@ -423,7 +453,7 @@ void Mediator::insertDocToModel(QString &item)
         QStringList itemList= item.split(";:;");
         if (itemList.size()>0){
             QList<QStandardItem *> cells;
-            int Pos;
+
 
             for (int i = 0; i <itemList.size() ; ++i) {
                 QStandardItem * cell_item= new QStandardItem();
