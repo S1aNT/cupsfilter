@@ -59,11 +59,11 @@ workField::workField(QWidget *parent) :
              );
     connect (addTmplDlg,
              SIGNAL(needCreateEmptyTemplates(QString,QString,QString,QString,
-                                             QString,qreal,qreal,bool,QString,
+                                             QString,bool,QString,
                                              qreal,qreal,qreal,qreal)),
              this,
              SIGNAL(needCreateEmptyTemplates(QString,QString,QString,QString,
-                                             QString,qreal,qreal,bool,QString,
+                                             QString,bool,QString,
                                              qreal,qreal,qreal,qreal))
              );
 }
@@ -190,10 +190,10 @@ void workField::showInfoWindow(const QString &info)
     QMessageBox msgBox;
     QPushButton *okButton;
 
-    QString info_txt = QObject::trUtf8("Сервер безопасности уполномочен заявить!");
+    //QString info_txt = QObject::trUtf8("Сервер безопасности уполномочен заявить!");
     msgBox.setIcon(QMessageBox::Information);
     msgBox.setWindowTitle(QObject::trUtf8("Информационное сообщение"));
-    msgBox.setInformativeText(info_txt);
+    //msgBox.setInformativeText(info_txt);
     okButton=msgBox.addButton(QObject::trUtf8("Выход"), QMessageBox::AcceptRole);
     msgBox.setText(info);
     msgBox.exec();
@@ -215,12 +215,15 @@ void workField::do_addTemplates()
     addTmplDlg->setPageSize(p_size_mod);
     addTmplDlg->setLocalTemplatesDir(local_templ_dir);
     ret = addTmplDlg->exec();
-
     if (ret == QDialog::Accepted){
-        // TODO если успешно завершили создание пустого шаблона оо покажем редактор
-
-        this->showEditor();
+        QString msg = QObject::trUtf8("Не забудьте отредактировать шаблон перед использованием");
+        this->showInfoWindow(msg);
     }
+
+    /*
+    Редактор показываем только когда пользователь выеберет этот шаблон
+    для редактирования
+    */
 }
 
 void workField::setCurrentTemplates(QString temp)
