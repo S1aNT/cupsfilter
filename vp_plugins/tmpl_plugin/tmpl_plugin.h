@@ -30,7 +30,7 @@ public:
     Tmpl_plugin(QObject *parent=0){};
     void init(const QString & spool,const QString & sid);
     void createEmptyTemplate();
-    // Р’РѕР·РІСЂР°С‰Р°РµС‚ РїРѕР»РЅС‹Р№ РїСѓС‚СЊ Рє СЃС„РѕСЂРјРёСЂРѕРІР°РЅРЅРѕРјСѓ РЅР° РѕСЃРЅРѕРІР°РЅРёРё С€Р°Р±Р»РѕРЅР° Рё РґР°РЅРЅС‹С… РјРѕРґРµР»Рё С„Р°Р№Р»Сѓ
+    // Возвращает полный путь к сформированному на основании шаблона и данных модели файлу
     void setTemplates(const QString & templates_in_file,QStandardItemModel * model);
     void printFormatingPageToFile(int pageNum);
     QGraphicsScene *getFirstPage(){return firstPage_tmpl;};
@@ -41,12 +41,13 @@ public:
 signals:
     void error(QString error_message);
     void allTemplatesPagesParsed();
+    void emptyTemplateCreate(const QString & t_name);
 public slots:
     void update_scene(int pageNum);
 protected:
     bool parse_templates(const QString & in_file);
-    // РС‰РµС‚ РІ РјРѕРґРµР»Рё РєРѕР»РѕРЅРєСѓ СЃ РЅР°Р·РІР°РЅРёРµРј [С‚СЌРі] РіРґРµ С‚СЌРі==РёРјРµРЅРё РєРѕР»РѕРЅРєРё
-    // Р РІРѕР·РІСЂР°С‰Р°РµС‚ РёР»Рё РёСЃС…РѕРґРЅСѓСЋ СЃС‚СЂРѕС‡РєСѓ РёР»Рё РїСЂРµРѕР±СЂР°Р·РѕРІР°РЅРЅСѓСЋ
+    // Ищет в модели колонку с названием [тэг] где тэг==имени колонки
+    // И возвращает или исходную строчку или преобразованную
     QString findFromModel(const QString &find_line);
     static const int version = 1;
 
@@ -55,6 +56,7 @@ protected:
     QString spool_dir;
     QString current_sid;
     QString currentTemplates;
+    QString emptyTemplate_file; // Файл содержащий пустой шаблон
 
     QString firstPage_tmpl_fn;
     QString secondPage_tmpl_fn;
@@ -67,12 +69,13 @@ protected:
     QGraphicsScene * fourthPage_tmpl;
 
 
-    // РўРµРєСѓС‰РёР№ С€Р°Р±Р»РѕРЅ
-    QDate date_time;               // РґР°С‚Р° Рё РІСЂРµРјСЏ СЃРѕР·РґР°РЅРёСЏ С€Р°Р±Р»РѕРЅР°
-    QString author;                  // Р°РІС‚РѕСЂ С€Р°Р±Р»РѕРЅР° (author [date_time]) РѕС‚РѕР±СЂР°Р·РёС‚СЊСЃСЏ РІ tooltipe
-    QString templates_name;          // РЅР°Р·РІР°РЅРёРµ С€Р°Р±Р»РѕРЅР°, С‚Рѕ С‡С‚Рѕ РїРѕРєР°Р¶РµРј РІ СЃРїРёСЃРєРµ С€Р°Р±Р»РѕРЅРѕРІ
-    QString description;             // РѕРїРёСЃР°РЅРёРµ С€Р°Р±Р»РѕРЅР°, РјРѕР¶РµС‚ Р±С‹С‚СЊ РїСѓСЃС‚С‹Рј
+    // Текущий шаблон
+    QDate date_time;               // дата и время создания шаблона
+    QString author;                  // автор шаблона (author [date_time]) отобразиться в tooltipe
+    QString templates_name;          // название шаблона, то что покажем в списке шаблонов
+    QString description;             // описание шаблона, может быть пустым
     QString paper_size;
+    QMap<QString, int> page_size;
     qreal page_height;               //
     qreal page_width;                //
     bool  page_orient;               //
