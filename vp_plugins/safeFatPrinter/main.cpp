@@ -31,9 +31,8 @@ int main(int argc, char *argv[])
         QString in_file=aList.at(1);
         SelectWindow window;
         window.setFileToWork(in_file);
-
         window.loadPlugin(qApp->applicationDirPath());
-        app.processEvents();
+        //app.processEvents();
         window.show();
         return app.exec();
     }
