@@ -16,8 +16,9 @@ public:
     View(const QString &name, QWidget *parent = 0);
 
     QGraphicsView *gr_view() const;
-
+    //void setPageNum(int p_num){pageNum = p_num;};
 private slots:
+    void addElemToPage(); // Добавим базовый элемент на страницу
     void resetView();
     void setResetButtonEnabled();
     void setupMatrix();
@@ -27,7 +28,9 @@ private slots:
     void zoomIn();
     void zoomOut();
 
-
+signals:
+    // Требование плагину добавить элемент на страницу
+    void addBaseElementToPage();
 private:
     QGraphicsView *graphicsView;
     QLabel *label;
@@ -35,8 +38,10 @@ private:
     QToolButton *antialiasButton;
     QToolButton *printButton;
     QToolButton *resetButton;
+    QToolButton *addElemButton;
     QSlider *zoomSlider;
 
+    //int PageNum;
 };
 
 #endif

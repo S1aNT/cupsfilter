@@ -1,10 +1,8 @@
-
 #include "view.h"
 
 #include <QtGui>
-
-
 #include <qmath.h>
+
 
 View::View(const QString &name, QWidget *parent)
     : QFrame(parent)
@@ -59,11 +57,18 @@ View::View(const QString &name, QWidget *parent)
     printButton = new QToolButton;
     printButton->setIcon(QIcon(QPixmap(":/images/fileprint.png")));
 
+    addElemButton = new QToolButton;
+    addElemButton->setIcon(QPixmap(":/images/edit_add.png"));
+    addElemButton->setIconSize(iconSize);
+
+    labelLayout->addWidget(addElemButton);
+    labelLayout->addStretch();
     labelLayout->addWidget(label);
     labelLayout->addStretch();
     labelLayout->addWidget(antialiasButton);
-
     labelLayout->addWidget(printButton);
+
+
 
     QGridLayout *topLayout = new QGridLayout;
     topLayout->addLayout(labelLayout, 0, 0);
@@ -83,6 +88,8 @@ View::View(const QString &name, QWidget *parent)
     connect(zoomInIcon, SIGNAL(clicked()), this, SLOT(zoomIn()));
     connect(zoomOutIcon, SIGNAL(clicked()), this, SLOT(zoomOut()));
     connect(printButton, SIGNAL(clicked()), this, SLOT(print()));
+
+    connect(addElemButton,SIGNAL(clicked()),this,SLOT(addBaseElementToPage()));
 
     setupMatrix();
 }
@@ -146,6 +153,11 @@ void View::zoomOut()
 {
     zoomSlider->setValue(zoomSlider->value() - 1);
 }
+// --------------------------- private slots ----------------------------------
 
+void View::addElemToPage()
+ {
+     //emit addBaseElementToPage(PageNum);
+ }
 
 
