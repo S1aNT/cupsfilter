@@ -238,6 +238,12 @@ void Mediator::getEnablePrinter()
 
 //*************************************** private slots *****************************************
 
+void Mediator::doError(QString msg)
+{
+    log_console.append(msg);
+    emit error(msg);
+}
+
 void Mediator::setPageCountInDoc(int p_count)
 {
     this->pagesInDocCount=p_count;
