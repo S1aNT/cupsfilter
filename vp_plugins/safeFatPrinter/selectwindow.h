@@ -3,7 +3,6 @@
 
 #include <QMainWindow>
 #include <QMessageBox>
-#include <QDesktopWidget>
 #include <QSignalMapper>
 
 
@@ -25,14 +24,14 @@ public:
     ~SelectWindow();
     void setFileToWork(QString &in_file);
     void loadPlugin(const QString &app_dir);
-    //int getCurrentMode(){return work_mode;};
+
 
 signals:
     void pluginMessage(const QString &message);
 
 protected:
     void changeEvent(QEvent *e);
-    QPoint SelectWindow::calcCenter();
+
 
 private slots:
     void setMode (int signal_mode);

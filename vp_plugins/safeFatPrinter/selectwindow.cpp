@@ -23,7 +23,7 @@ SelectWindow::SelectWindow(QWidget *parent) :
     WorkDlg->setStampModel(SpiderInTheMiddle->getStampModel());
 
     this->setWindowFlags(Qt::Dialog |  Qt::CustomizeWindowHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint | Qt::WindowSystemMenuHint);
-    this->move(calcCenter());
+    this->move(SpiderInTheMiddle->getDeskTopCenter(this->width(),this->height()));
 
     connect (SpiderInTheMiddle,SIGNAL(StateChanged(WorkStep)),this,SLOT(checkPoint(WorkStep)));
     connect (SpiderInTheMiddle,SIGNAL(error (QString )),this,SLOT(showCritError(QString)));
@@ -89,9 +89,9 @@ void SelectWindow::cleanUp()
     dir.setNameFilters(filters);
     QFileInfoList list = dir.entryInfoList();
     for (int i = 0; i < list.size(); ++i) {
-          QFileInfo fileInfo = list.at(i);
-          QFile::remove(fileInfo.absoluteFilePath());
-      }
+        QFileInfo fileInfo = list.at(i);
+        QFile::remove(fileInfo.absoluteFilePath());
+    }
 
 }
 
@@ -131,7 +131,7 @@ void SelectWindow::setMode (int signal_mode)
 {
     work_mode = signal_mode;
     QString title;
-    WorkDlg->move(calcCenter());
+    WorkDlg->move(SpiderInTheMiddle->getDeskTopCenter(WorkDlg->width(),WorkDlg->height()));
     WorkDlg->setPageSizeModel(SpiderInTheMiddle->getPageSizeModel());
     WorkDlg->setUserName(SpiderInTheMiddle->getUserName());
     switch (signal_mode){
@@ -171,7 +171,7 @@ void SelectWindow::showAuthWindow(QString &user_name)
     QString msg;
     UMDlg->setUserName(user_name);
     UMDlg->setMandatModel(SpiderInTheMiddle->getMandatModel());
-    UMDlg->move(this->calcCenter());
+    //UMDlg->move(SpiderInTheMiddle->getDeskTopCenter(UMDLg->width(),UMDLg->height()));
     int ret = UMDlg->exec();
     if (ret == QDialog::Accepted){
         SpiderInTheMiddle->setUserMandat(UMDlg->getCurrentMandat());
@@ -216,15 +216,4 @@ void SelectWindow::changeEvent(QEvent *e)
     }
 }
 
-QPoint SelectWindow::calcCenter()
-{
-    QDesktopWidget desktop;
-    QPoint centerWindow;
 
-    QRect rect = desktop.availableGeometry(desktop.primaryScreen());
-    //получаем прямоугольник с размерами как у экрана
-    centerWindow = rect.center(); //получаем координаты центра экрана
-    centerWindow.setX(centerWindow.x() - (this->width()/2));
-    centerWindow.setY(centerWindow.y() - (this->height()/2));
-    return centerWindow;
-}
