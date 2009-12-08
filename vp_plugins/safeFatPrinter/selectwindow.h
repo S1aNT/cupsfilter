@@ -7,14 +7,16 @@
 
 
 #include "mediator.h"
-#include "getusernamemandatdlg.h"
-#include "workfield.h"
+
+
 #include "tech_global.h"
 
 namespace Ui {
     class SelectWindow;
 }
 using namespace SafeVirtualPrinter;
+
+class getUserNameMandatDlg;
 
 class SelectWindow : public QMainWindow {
     Q_OBJECT
@@ -47,7 +49,6 @@ private:
 
     Mediator *SpiderInTheMiddle; // Центральный элемент который знает все о всех :)
     getUserNameMandatDlg *UMDlg;
-    workField *WorkDlg;
 
     QSignalMapper *signalMapper;
     int work_mode;

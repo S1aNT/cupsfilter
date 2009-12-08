@@ -2,6 +2,8 @@
 #include "ui_selectwindow.h"
 #include <QTimer>
 
+#include "getusernamemandatdlg.h"
+
 SelectWindow::SelectWindow(QWidget *parent) :
         QMainWindow(parent),
         ui(new Ui::SelectWindow)
@@ -17,10 +19,8 @@ SelectWindow::SelectWindow(QWidget *parent) :
 
     SpiderInTheMiddle = new Mediator(this);
     UMDlg = new getUserNameMandatDlg(this);
+
     signalMapper = new QSignalMapper(this);
-    WorkDlg = new workField(this);
-    WorkDlg->setWindowFlags(Qt::Dialog | Qt::CustomizeWindowHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint | Qt::WindowSystemMenuHint);
-    WorkDlg->setStampModel(SpiderInTheMiddle->getStampModel());
 
     this->setWindowFlags(Qt::Dialog |  Qt::CustomizeWindowHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint | Qt::WindowSystemMenuHint);
     this->move(SpiderInTheMiddle->getDeskTopCenter(this->width(),this->height()));
@@ -35,37 +35,6 @@ SelectWindow::SelectWindow(QWidget *parent) :
              SLOT(setCurrentPrinter(QString))
              );
 
-    connect (WorkDlg,
-             SIGNAL(checkMBInBase(QString &, QString &,WorkMode)),
-             SpiderInTheMiddle,
-             SLOT(do_checkMBInBase(QString &, QString &,WorkMode ))
-             );
-    connect (WorkDlg,
-             SIGNAL(needAuthUserToPrinter()),
-             SpiderInTheMiddle,
-             SLOT(do_needAuthUserToPrinter())
-             );
-    connect (WorkDlg,
-             SIGNAL(needCreateEmptyTemplates(QString,QString,QString,QString,
-                                             QString,bool,QString,qreal,qreal,
-                                             qreal,qreal)),
-             SpiderInTheMiddle,
-             SLOT(do_needCreateEmptyTemplates(QString,QString,QString,QString,
-                                              QString,bool,QString,qreal,qreal,
-                                              qreal,qreal)));
-
-    connect (WorkDlg,
-             SIGNAL(convertTemplatesToScenes(QString)),
-             SpiderInTheMiddle,
-             SLOT(do_convertTemplatesToScenes(QString)));
-
-    connect (SpiderInTheMiddle,
-             SIGNAL(allTemplatesPagesParsed(QGraphicsScene*,QGraphicsScene*,
-                                            QGraphicsScene*,QGraphicsScene*)),
-             WorkDlg,
-             SIGNAL(allTemplatesPagesParsed(QGraphicsScene*,QGraphicsScene*,
-                                            QGraphicsScene*,QGraphicsScene*))
-             );
 
     connect (qApp,SIGNAL(aboutToQuit()),this,SLOT(cleanUp()));
 
@@ -75,7 +44,7 @@ SelectWindow::SelectWindow(QWidget *parent) :
     signalMapper->setMapping(ui->printModeAccounting,0 );
     signalMapper->setMapping(ui->printFromAccountPaper,1);
     signalMapper->setMapping(ui->printWithAccountingPaper,2 );
-    connect(signalMapper, SIGNAL(mapped(int)),  this, SLOT(setMode(int)));
+    connect(signalMapper, SIGNAL(mapped(int)),  SpiderInTheMiddle, SLOT(setMode(int)));
 }
 
 
@@ -129,6 +98,7 @@ void SelectWindow::enableGUI()
 
 void SelectWindow::setMode (int signal_mode)
 {
+    /*
     work_mode = signal_mode;
     QString title;
     WorkDlg->move(SpiderInTheMiddle->getDeskTopCenter(WorkDlg->width(),WorkDlg->height()));
@@ -150,6 +120,7 @@ void SelectWindow::setMode (int signal_mode)
     if (ret == QDialog::Accepted){
         QTimer::singleShot(500,qApp,SLOT(quit()));
     }
+    */
 }
 
 void SelectWindow::showCritError(QString e_msg)
