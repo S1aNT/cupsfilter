@@ -1,5 +1,7 @@
 #include "mediator.h"
 
+#include <QDesktopWidget>
+
 Mediator::Mediator(QObject *parent) :
         QObject(parent)
 {
@@ -15,6 +17,18 @@ void Mediator::convert2pdf(QString &in_file)
     gs_plugin->convertPs2Pdf(in_file);
 }
 
+QPoint Mediator::getDeskTopCenter(int width,int height)
+{
+    QDesktopWidget desktop;
+    QPoint centerWindow;
+
+    QRect rect = desktop.availableGeometry(desktop.primaryScreen());
+    //получаем прямоугольник с размерами как у экрана
+    centerWindow = rect.center(); //получаем координаты центра экрана
+    centerWindow.setX(centerWindow.x() - (width/2));
+    centerWindow.setY(centerWindow.y() - (height/2));
+    return centerWindow;
+}
 //************************************************************************************
 
 void Mediator::do_User_name_mandat(QString &userName,QString &userMandat)
@@ -342,6 +356,11 @@ void  Mediator::parseServerResponse(QString &responce_msg)
 }
 
 //*************************************** public slots*******************************************
+void Mediator::doSaveToLog(const QString & log_msg)
+{
+    log_console.append(log_msg);
+}
+
 void Mediator::do_convertTemplatesToScenes(const QString & templ_filename)
 {
     if (tmpl_plugin){
