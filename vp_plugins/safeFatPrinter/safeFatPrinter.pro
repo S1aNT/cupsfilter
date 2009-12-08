@@ -12,7 +12,6 @@ LANGUAGE = C++
 PRECOMPILED_HEADER = ../global/pre_header.h
 HEADERS += ../global/pre_header.h \
     mediator.h \
-    firstask.h \
     getusernamemandatdlg.h \
     ../global/config.h \
     ../global/tech_global.h \
@@ -25,7 +24,6 @@ HEADERS += ../global/pre_header.h \
     view.h
 SOURCES += main.cpp \
     mediator.cpp \
-    firstask.cpp \
     getusernamemandatdlg.cpp \
     selectwindow.cpp \
     workfield.cpp \
@@ -34,8 +32,7 @@ SOURCES += main.cpp \
     addtemplate.cpp \
     teditor.cpp \
     view.cpp
-FORMS += firstask.ui \
-    getusernamemandatdlg.ui \
+FORMS += getusernamemandatdlg.ui \
     selectwindow.ui \
     workfield.ui \
     addelemdlg.ui \
