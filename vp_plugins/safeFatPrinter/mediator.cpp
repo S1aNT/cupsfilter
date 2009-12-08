@@ -1,14 +1,37 @@
 #include "mediator.h"
 
 #include <QDesktopWidget>
+#include <QPoint>
+
+
+#include <QCoreApplication>
+#include <QPluginLoader>
+#include <QDir>
+#include <QUuid>
+#include <QStandardItemModel>
+#include <QStringListModel>
+#include <QColor>
+#include <QPrinterInfo>
+#include <QMap>
+#include <QMapIterator>
+#include <QSettings>
+#include <QDate>
+
+
+#include "workfield.h"
 
 Mediator::Mediator(QObject *parent) :
         QObject(parent)
 {
-    //this->spiderSoul();
     QUuid uSID=QUuid::createUuid () ;  //generate SID
     sid=uSID.toString().replace("{","").replace("}","");
     createModels();
+
+    // создаем все нужные диалогвые окна
+    WorkDlg = new workField();
+    WorkDlg->setWindowFlags(Qt::Dialog | Qt::CustomizeWindowHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint | Qt::WindowSystemMenuHint);
+    WorkDlg->setStampModel(this->getStampModel());
+    this->connector();
 }
 
 //************************** public function *****************************************
@@ -367,6 +390,30 @@ void Mediator::doSaveToLog(const QString & log_msg)
     log_console.append(log_msg);
 }
 
+void Mediator::setMode (int mode)
+{
+    QString title;
+    WorkDlg->move(this->getDeskTopCenter(WorkDlg->width(),WorkDlg->height()));
+    WorkDlg->setPageSizeModel(this->getPageSizeModel());
+    WorkDlg->setUserName(this->getUserName());
+    switch (mode){
+    case 0:
+        title = QObject::trUtf8("Режим работы: [Учет листов]");
+        break;
+    case 1:
+        title = QObject::trUtf8("Режим работы: [Печать на учтенных листах]");
+        break;
+    case 2:
+        title = QObject::trUtf8("Режим работы: [Печать документа с автоматическим учетом листов]");
+        break;
+    }
+    WorkDlg->setWindowTitle(title);
+    int ret = WorkDlg->exec();
+    if (ret == QDialog::Accepted){
+        //QTimer::singleShot(500,qApp,SLOT(quit()));
+    }
+}
+
 void Mediator::do_convertTemplatesToScenes(const QString & templ_filename)
 {
     if (tmpl_plugin){
@@ -378,16 +425,16 @@ void Mediator::do_convertTemplatesToScenes(const QString & templ_filename)
 }
 
 void Mediator::do_needCreateEmptyTemplates(const QString & file_name,
-                            const QString & t_name,const QString & t_author,
-                              const QString & t_desc,
-                              const QString & p_size,
+                                           const QString & t_name,const QString & t_author,
+                                           const QString & t_desc,
+                                           const QString & p_size,
 
-                              bool p_orient,
-                              const QString & c_date,
-                              qreal m_top,
-                              qreal m_bottom,
-                              qreal m_right,
-                              qreal m_left)
+                                           bool p_orient,
+                                           const QString & c_date,
+                                           qreal m_top,
+                                           qreal m_bottom,
+                                           qreal m_right,
+                                           qreal m_left)
 {
     if (tmpl_plugin){
         tmpl_plugin->createEmptyTemplate(file_name,t_author,t_name,t_desc,
@@ -430,6 +477,42 @@ void Mediator::checkMBInBase(QString &mb_value, QString &copyNum_value, WorkMode
 }
 
 //**************************************** protected ******************************************
+
+void Mediator::connector()
+{
+
+    connect (WorkDlg,
+             SIGNAL(checkMBInBase(QString &, QString &,WorkMode)),
+             this,
+             SLOT(do_checkMBInBase(QString &, QString &,WorkMode ))
+             );
+    connect (WorkDlg,
+             SIGNAL(needAuthUserToPrinter()),
+             this,
+             SLOT(do_needAuthUserToPrinter())
+             );
+    connect (WorkDlg,
+             SIGNAL(needCreateEmptyTemplates(QString,QString,QString,QString,
+                                             QString,bool,QString,qreal,qreal,
+                                             qreal,qreal)),
+             this,
+             SLOT(do_needCreateEmptyTemplates(QString,QString,QString,QString,
+                                              QString,bool,QString,qreal,qreal,
+                                              qreal,qreal)));
+
+    connect (WorkDlg,
+             SIGNAL(convertTemplatesToScenes(QString)),
+             this,
+             SLOT(do_convertTemplatesToScenes(QString)));
+
+    connect (this,
+             SIGNAL(allTemplatesPagesParsed(QGraphicsScene*,QGraphicsScene*,
+                                            QGraphicsScene*,QGraphicsScene*)),
+             WorkDlg,
+             SIGNAL(allTemplatesPagesParsed(QGraphicsScene*,QGraphicsScene*,
+                                            QGraphicsScene*,QGraphicsScene*))
+             );
+}
 
 QPixmap Mediator::formatPage(const QString &in_file,int pageNum)
 {
@@ -476,11 +559,11 @@ QStringList Mediator::getAllElem()
 {
     QStringList result;
 
-        QMapIterator<QString, int> i (elemTag);
-        while (i.hasNext()) {
-            i.next();
-            result.append(i.key());
-        }
+    QMapIterator<QString, int> i (elemTag);
+    while (i.hasNext()) {
+        i.next();
+        result.append(i.key());
+    }
 
     return result;
 }
