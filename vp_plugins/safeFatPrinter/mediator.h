@@ -3,18 +3,6 @@
 
 #include <QDebug>
 #include <QObject>
-#include <QCoreApplication>
-#include <QPluginLoader>
-#include <QDir>
-#include <QUuid>
-#include <QStandardItemModel>
-#include <QStringListModel>
-#include <QColor>
-#include <QPrinterInfo>
-#include <QMap>
-#include <QMapIterator>
-#include <QSettings>
-#include <QDate>
 
 #include "tech_global.h"
 #include "inet_plugin.h"
@@ -24,6 +12,11 @@
 
 using namespace SafeVirtualPrinter;
 
+class QPoint;
+class QStandardItemModel;
+class QStringListModel;
+
+class workField;
 
 class Mediator: public QObject
 {
@@ -32,7 +25,12 @@ class Mediator: public QObject
     Q_ENUMS(WorkMode)
 public:
     Mediator(QObject *parent = 0);
-
+    //Геттеры
+    QStandardItemModel *getDocumentModel() const {return doc_model;}
+    QStringListModel *getStampModel() const{ return stampModel;}
+    QStringListModel *getMandatModel() const{ return mandatModel;}
+    QStringListModel *getPrintersModel() const{ return printersModel;}
+    QStringListModel *getPageSizeModel() const {return pageSizeModel;}
     void loadPlugin(const QString &app_dir);
     void plugin_init();
     void convert2pdf(QString &in_file);
@@ -50,11 +48,7 @@ public:
 
     int getPageCountInDoc(){return pagesInDocCount;};
 
-    QStandardItemModel *getDocumentModel() const {return doc_model;}
-    QStringListModel *getStampModel() const{ return stampModel;}
-    QStringListModel *getMandatModel() const{ return mandatModel;}
-    QStringListModel *getPrintersModel() const{ return printersModel;}
-    QStringListModel *getPageSizeModel() const {return pageSizeModel;}
+
     // Сеттеры
     void setUserMandat(QString mnd);
 
@@ -73,7 +67,8 @@ signals:
 public slots:
     // Сохранить данные в лог
     void doSaveToLog(const QString & log_msg);
-
+    // Выбор режима работы
+    void setMode (int mode);
     // Вызов функции плагина преобразующего шаблон в набор сцен
     void do_convertTemplatesToScenes(const QString & templ_filename);
     // Сохранение выбранного пользователем принтера
@@ -105,10 +100,19 @@ private:
     QStringList log_console;
     QString log_file;
 
+    /*
+       Указатели на плагины
+    */
     Inet_plugin *net_plugin;
     Igs_plugin *gs_plugin;
     Auth_plugin *auth_plugin;
     Itmpl_plugin *tmpl_plugin;
+    //-------------------------------------------------------------------------
+    /*
+       Указатели на диалоговые окна
+    */
+    workField *WorkDlg;
+    //-------------------------------------------------------------------------
 
     bool connect_state;
 
@@ -150,8 +154,9 @@ private:
 
     WorkMode work_mode;
 protected:
+    // Сердце всей программы соединяет сигналы от дилалогов со слотами
+    void connector();
 
-    //Геттеры
     QString getElemTagById(int elem_id);
     QStringList getAllElem();
     int getElemIdByName(const QString elem_name);
