@@ -25,8 +25,6 @@
 using namespace SafeVirtualPrinter;
 
 
-
-
 class Mediator: public QObject
 {
     Q_OBJECT
@@ -38,7 +36,13 @@ public:
     void loadPlugin(const QString &app_dir);
     void plugin_init();
     void convert2pdf(QString &in_file);
+    // Если в ini файле не установлен путь к логу то его и не сохраняем на диск
+    // но вести все равно ведем, как же без него.
+    bool isLogger(){return log_file.isEmpty();};
     // Геттеры
+    //Вычислим координаты для виджета который хоти разместить в центре
+    QPoint  getDeskTopCenter(int width,int height);
+
     QString getSpoolDir(){return spoolDIR;};
     QString getSeansSid(){return sid;};
     QString getUserName(){return user_name;};
@@ -67,6 +71,9 @@ signals:
     void needUpdatePage(int page); // Требование плагину обновить страницу шаблона номер
 
 public slots:
+    // Сохранить данные в лог
+    void doSaveToLog(const QString & log_msg);
+
     // Вызов функции плагина преобразующего шаблон в набор сцен
     void do_convertTemplatesToScenes(const QString & templ_filename);
     // Сохранение выбранного пользователем принтера
@@ -93,6 +100,8 @@ private slots:
     void parserGSMessage(TaskState state);
     void setPageCountInDoc(int p_count);
 private:
+    QStringList log_console;
+    QString log_file;
     Inet_plugin *net_plugin;
     Igs_plugin *gs_plugin;
     Auth_plugin *auth_plugin;
@@ -138,6 +147,7 @@ private:
 
     WorkMode work_mode;
 protected:
+
     //Геттеры
     QString getElemTagById(int elem_id);
     QStringList getAllElem();
