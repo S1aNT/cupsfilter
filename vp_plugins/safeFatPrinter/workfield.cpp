@@ -28,6 +28,7 @@ workField::workField(QWidget *parent) :
              SLOT(setScene(QGraphicsScene*,QGraphicsScene*,
                            QGraphicsScene*,QGraphicsScene*))
              );
+
     connect (ui->editTemplatesTBtn,
              SIGNAL(clicked()),
              this,
