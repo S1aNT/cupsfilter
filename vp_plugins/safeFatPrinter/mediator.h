@@ -99,9 +99,12 @@ private slots:
     void getMeMandatList(QString &userName);
     void parserGSMessage(TaskState state);
     void setPageCountInDoc(int p_count);
+     // Обработка ошибок (запись в лог перед передачей дальше)
+    void doError(QString msg);
 private:
     QStringList log_console;
     QString log_file;
+
     Inet_plugin *net_plugin;
     Igs_plugin *gs_plugin;
     Auth_plugin *auth_plugin;
