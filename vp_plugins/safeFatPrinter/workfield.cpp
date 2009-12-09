@@ -319,7 +319,8 @@ void workField::checkData()
             msg = QObject::trUtf8("Проверка наличия в БД документа с МБ=[%1] и номером экземпляра =[%2]").arg(mb).arg(copyNum);
             ui->AnsLabel->setText(msg);
             emit needAuthUserToPrinter();
-            emit checkMBInBase(mb,copyNum,this->mode);
+            //emit checkMBInBase(mb,copyNum,this->mode);
+            //Отправим на печать
         }else{
             e_msg = QObject::trUtf8("Номер экземпляра не может быть не заполнен!");
         }
