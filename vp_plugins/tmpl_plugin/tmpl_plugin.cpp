@@ -110,7 +110,7 @@ void Tmpl_plugin::createEmptyTemplate(const QString & file_name,
     QDataStream out(&new_tmpl_file);
     out.setVersion(QDataStream::Qt_4_5);
     // Запишем версию шаблона
-    out << version;
+    out << t_info.version;
     // Создаем общую часть шаблона
     out << c_date;      // дата и время создания шаблона
     out << t_author;    // автор шаблона
@@ -168,14 +168,7 @@ void Tmpl_plugin::doAddBaseElementToPage(int page)
         break;
     }
     if (scene){
-        // Поиск  указателя на бумагу
-        for (int i = 0; i < scene->items().size(); ++i){
-             item = scene->items().at(i);
-             if ( item->data(ObjectName).toString()=="Paper"){
-                     //labelGroup->setParentItem(item);
-                     break;
-             }
-         }
+        item = findPaperElem(scene);
 
         SimpleItem * pItem = new SimpleItem();
         pItem->setZValue(100);
@@ -228,44 +221,135 @@ void Tmpl_plugin::doSaveTemplates()
 {
     // Сохраняется текущий рабочий шаблон,
     // т.е тот который был выбран и показан пользователю
-     QString e_msg;
-     if (QFile::exists(t_info.file_name)){
-         QFile::rename(t_info.file_name,t_info.file_name+".bak");
-         // запись основных данных шаблона
-         QFile new_tmpl_file(t_info.file_name);
-         new_tmpl_file.open(QIODevice::WriteOnly);
-         QDataStream out(&new_tmpl_file);
-         out.setVersion(QDataStream::Qt_4_5);
-         // Запишем версию шаблона
-         out << t_info.version;
-         // Создаем общую часть шаблона
-         t_info.date_time = QDateTime::currentDateTime().toString("dd.MM.yyyy hh:mm:ss");
-         out <<  t_info.date_time;      // дата и время создания шаблона / модификации
-         out << t_info.t_author;    // автор шаблона
-         out << t_info.t_name;      // название шаблона, то что покажем в списке шаблонов
-         out << t_info.t_desc;      // описание шаблона, может быть пустым
-         out << t_info.p_size;      // размер бумаги
-         int p_s_id = this->getElemIdByName(p_size);
+    QString e_msg;
+    QGraphicsItem *paper_item;
+    QString elem_type;
+    int count;
+    if (QFile::exists(t_info.file_name)){
+        QFile::rename(t_info.file_name,t_info.file_name+".bak");
+        // запись основных данных шаблона
+        QFile new_tmpl_file(t_info.file_name);
+        new_tmpl_file.open(QIODevice::WriteOnly);
+        QDataStream out(&new_tmpl_file);
+        out.setVersion(QDataStream::Qt_4_5);
+        // Запишем версию шаблона
+        out << t_info.version;
+        // Создаем общую часть шаблона
+        t_info.date_time = QDateTime::currentDateTime().toString("dd.MM.yyyy hh:mm:ss");
+        out <<  t_info.date_time;      // дата и время создания шаблона / модификации
+        out << t_info.t_author;    // автор шаблона
+        out << t_info.t_name;      // название шаблона, то что покажем в списке шаблонов
+        out << t_info.t_desc;      // описание шаблона, может быть пустым
+        out << t_info.p_size;      // размер бумаги
+        int p_s_id = this->getElemIdByName(t_info.p_size);
 
-         out << this->findPageSize_H(p_s_id);    // высота листа
-         out << this->findPageSize_V(p_s_id);     // ширина листа
-         out << t_info.pages_orient;    // ориентация листа
-         out << t_info.m_top;       // отступ сверху
-         out << t_info.m_bottom;    // отступ снизу
-         out << t_info.m_left;      // отступ слева
-         out << t_info.m_right;     // отступ справа
-         out << elem_count; // первая страница шаблона 0 элементов
-         out << elem_count; // вторая страница шаблона 0 элементов
-         out << elem_count; // третья страница шаблона 0 элементов
-         out << elem_count; // четвертая страница шаблона 0 элементов
-         new_tmpl_file.close();
-     }
-     if (!e_msg.isEmpty()){
-         emit error(e_msg);
-     }
+        out << this->findPageSize_H(p_s_id);    // высота листа
+        out << this->findPageSize_V(p_s_id);     // ширина листа
+        out << t_info.page_orient;    // ориентация листа
+        out << t_info.m_top;       // отступ сверху
+        out << t_info.m_bottom;    // отступ снизу
+        out << t_info.m_left;      // отступ слева
+        out << t_info.m_right;     // отступ справа
+
+        count = getElemCount(firstPage_scene);
+        paper_item = findPaperElem(firstPage_scene);
+        out << count; // первая страница шаблона элементов
+        for (int i=0; i < count; ++i){
+            elem_type = paper_item->childItems().at(i)->data(ObjectName).toString();
+            out << elem_type; // Сохраним тип элемента
+            if (elem_type == "tElem"){
+                SimpleItem* pItem = (SimpleItem* )paper_item->childItems().at(i);
+
+                out << pItem->pos()
+                    << pItem->getFont()
+                    << pItem->getColor()
+                    << pItem->getText();
+            }
+        }
+
+        count = getElemCount(secondPage_scene);
+        paper_item = findPaperElem(secondPage_scene);
+        out << count; // вторая страница шаблона элементов
+        for (int i=0; i < count; ++i){
+            elem_type = paper_item->childItems().at(i)->data(ObjectName).toString();
+            if (elem_type == "tElem"){
+
+                SimpleItem* pItem = (SimpleItem* )paper_item->childItems().at(i);
+                out << pItem->pos()
+                        << pItem->getFont()
+                        << pItem->getColor()
+                        << pItem->getText();
+            }
+        }
+
+        count = getElemCount(thirdPage_scene);
+        paper_item = findPaperElem(thirdPage_scene);
+        out << count; // третья страница шаблона элементов
+        for (int i=0; i < count; ++i){
+            elem_type = paper_item->childItems().at(i)->data(ObjectName).toString();
+            if (elem_type == "tElem"){
+
+                SimpleItem* pItem = (SimpleItem* )paper_item->childItems().at(i);
+                out << pItem->pos()
+                        << pItem->getFont()
+                        << pItem->getColor()
+                        << pItem->getText();
+            }
+        }
+
+        count = getElemCount(fourthPage_scene);
+        paper_item = findPaperElem(fourthPage_scene);
+        out << count; // четвертая страница шаблона элементов
+        for (int i=0; i < count; ++i){
+            elem_type = paper_item->childItems().at(i)->data(ObjectName).toString();
+            if (elem_type == "tElem"){
+
+                SimpleItem* pItem = (SimpleItem* )paper_item->childItems().at(i);
+                out << pItem->pos()
+                        << pItem->getFont()
+                        << pItem->getColor()
+                        << pItem->getText();
+            }
+        }
+
+        new_tmpl_file.close();
+    }
+    if (!e_msg.isEmpty()){
+        emit error(e_msg);
+    }
 }
 
 //******************************************************************************
+void Tmpl_plugin::convertTemplatesToPdf(const QString & templates_in_file,QStandardItemModel * model)
+{
+    QString error_msg;
+    if (QFile::exists(templates_in_file)) {
+        if (model){
+            work_model = model;
+            if (parse_templates(templates_in_file)){
+               // создаем pdf файлы
+               // FIXME hardcore!!!!
+               printFormatingPageToFile(1);
+               printFormatingPageToFile(2);
+               printFormatingPageToFile(3);
+               printFormatingPageToFile(4);
+
+               emit allPageConverted(firstPage_tmpl_fn,secondPage_tmpl_fn,
+                                     thirdPage_tmpl_fn,fourthPage_tmpl_fn);
+            }else{
+                error_msg = QObject::trUtf8("ERROR: Ошибка разбора шаблона [%1]\n").arg(templates_in_file);
+            }
+        }else{
+            error_msg = QObject::trUtf8("ERROR: Модель [карточки документа] не существует\n");
+        }
+    }else{
+        error_msg = QObject::trUtf8("Файл [%1] шаблона не найден.").arg(templates_in_file);
+    }
+    if (!error_msg.isEmpty()) {
+        emit error(error_msg);
+    }
+}
+
 void Tmpl_plugin::update_scene(int pageNum)
 {
     // пользователь удалил или добавил элемент на сцену, требуется заново
@@ -331,20 +415,34 @@ void Tmpl_plugin::printFormatingPageToFile(int pageNum)
             //FIXME:
             // пройтись по всем элементам сцены и удалить границу
             // сцена к этому моменту уже создана и заполнена элементами
-
+            if (QFile::exists(firstPage_tmpl_fn)){
+                QFile::remove(firstPage_tmpl_fn);
+            }
             pdfprinter.setOutputFileName(firstPage_tmpl_fn);
             firstPage_scene->render(&painter);
 
             break;
         case 2:
+            if (QFile::exists(secondPage_tmpl_fn)){
+                QFile::remove(secondPage_tmpl_fn);
+            }
+
             pdfprinter.setOutputFileName(secondPage_tmpl_fn);
             secondPage_scene->render(&painter);
             break;
         case 3:
+            if (QFile::exists(thirdPage_tmpl_fn)){
+                QFile::remove(thirdPage_tmpl_fn);
+            }
+
             pdfprinter.setOutputFileName(thirdPage_tmpl_fn);
             thirdPage_scene->render(&painter);
             break;
         case 4:
+            if (QFile::exists(fourthPage_tmpl_fn)){
+                QFile::remove(fourthPage_tmpl_fn);
+            }
+
             pdfprinter.setOutputFileName(fourthPage_tmpl_fn);
             fourthPage_scene->render(&painter);
             break;
@@ -370,22 +468,22 @@ bool Tmpl_plugin::parse_templates(const QString & in_file)
             file.open(QIODevice::ReadOnly);
             QDataStream in(&file);
             in.setVersion(QDataStream::Qt_4_5);
-            // Запишем версию шаблона
+            // Получим версию шаблона
             in >> ver;
-            if (ver <= version ){
+            if (ver == t_info.version ){
                 // Читаем общую часть шаблона
                 in >> t_info.date_time;               // дата и время создания шаблона
-                in >> t_info.author;                  // автор шаблона отобразиться в tooltipe
-                in >> t_info.templates_name;          // название шаблона, то что покажем в списке шаблонов
-                in >> t_info.description;             // описание шаблона, может быть пустым
-                in >> t_info.paper_size;              // размер бумаги
+                in >> t_info.t_author;                  // автор шаблона отобразиться в tooltipe
+                in >> t_info.t_name;          // название шаблона, то что покажем в списке шаблонов
+                in >> t_info.t_desc;             // описание шаблона, может быть пустым
+                in >> t_info.p_size;              // размер бумаги
                 in >> t_info.page_height;             // высота листа
                 in >> t_info.page_width;              // ширина листа
                 in >> t_info.page_orient;             // ориентация листа
-                in >> t_info.margin_top;              // отступ сверху
-                in >> t_info.margin_bottom;           // отступ снизу
-                in >> t_info.margin_left;             // отступ слева
-                in >> t_info.margin_right;            // отступ справа
+                in >> t_info.m_top;              // отступ сверху
+                in >> t_info.m_bottom;           // отступ снизу
+                in >> t_info.m_left;             // отступ слева
+                in >> t_info.m_right;            // отступ справа
 
                 // создаем основное рабочее поле
                 firstPage_scene->setSceneRect(0, 0, t_info.page_width,t_info.page_height);
@@ -407,9 +505,9 @@ bool Tmpl_plugin::parse_templates(const QString & in_file)
                 firstPage_scene->addItem(paper_rect_1);
 
                 QGraphicsRectItem *border_rect_1 = new QGraphicsRectItem (
-                        QRectF(t_info.margin_left, t_info.margin_top,
-                               t_info.page_width-t_info.margin_left-t_info.margin_right,
-                               t_info.page_height-t_info.margin_top-t_info.margin_bottom));
+                        QRectF(t_info.m_left, t_info.m_top,
+                               t_info.page_width-t_info.m_left-t_info.m_right,
+                               t_info.page_height-t_info.m_top-t_info.m_bottom));
 
                 border_rect_1->setPen(QPen(Qt::black,2,Qt::DotLine));
                 border_rect_1->setBrush(QBrush(Qt::white));
@@ -417,6 +515,7 @@ bool Tmpl_plugin::parse_templates(const QString & in_file)
                 border_rect_1->setZValue(-900);
                 border_rect_1->setData(ObjectName, "Border");
                 border_rect_1->setParentItem(paper_rect_1);
+                //firstPage_scene->addItem(border_rect_1);
 
                 QGraphicsRectItem *paper_rect_2 =
                         new QGraphicsRectItem (QRectF(0,0, t_info.page_width,t_info.page_height));
@@ -427,9 +526,9 @@ bool Tmpl_plugin::parse_templates(const QString & in_file)
                 secondPage_scene->addItem(paper_rect_2);
 
                 QGraphicsRectItem *border_rect_2 = new QGraphicsRectItem (
-                        QRectF(t_info.margin_left, t_info.margin_top,
-                               t_info.page_width-t_info.margin_left-t_info.margin_right,
-                               t_info.page_height-t_info.margin_top-t_info.margin_bottom));
+                        QRectF(t_info.m_left, t_info.m_top,
+                               t_info.page_width-t_info.m_left-t_info.m_right,
+                               t_info.page_height-t_info.m_top-t_info.m_bottom));
 
                 border_rect_2->setPen(QPen(Qt::black,2,Qt::DotLine));
                 border_rect_2->setBrush(QBrush(Qt::white));
@@ -437,6 +536,7 @@ bool Tmpl_plugin::parse_templates(const QString & in_file)
                 border_rect_2->setZValue(-900);
                 border_rect_2->setData(ObjectName, "Border");
                 border_rect_2->setParentItem(paper_rect_2);
+                //secondPage_scene->addItem(border_rect_2);
 
                 QGraphicsRectItem *paper_rect_3 =
                         new QGraphicsRectItem (QRectF(0,0, t_info.page_width,t_info.page_height));
@@ -447,9 +547,9 @@ bool Tmpl_plugin::parse_templates(const QString & in_file)
                 thirdPage_scene->addItem(paper_rect_3);
 
                 QGraphicsRectItem *border_rect_3 = new QGraphicsRectItem (
-                        QRectF(t_info.margin_left, t_info.margin_top,
-                               t_info.page_width-t_info.margin_left-t_info.margin_right,
-                               t_info.page_height-t_info.margin_top-t_info.margin_bottom));
+                        QRectF(t_info.m_left, t_info.m_top,
+                               t_info.page_width-t_info.m_left-t_info.m_right,
+                               t_info.page_height-t_info.m_top-t_info.m_bottom));
 
                 border_rect_3->setPen(QPen(Qt::black,2,Qt::DotLine));
                 border_rect_3->setBrush(QBrush(Qt::white));
@@ -457,6 +557,7 @@ bool Tmpl_plugin::parse_templates(const QString & in_file)
                 border_rect_3->setZValue(-900);
                 border_rect_3->setData(ObjectName, "Border");
                 border_rect_3->setParentItem(paper_rect_3);
+                //thirdPage_scene->addItem(border_rect_3);
 
                 QGraphicsRectItem *paper_rect_4 =
                         new QGraphicsRectItem (QRectF(0,0, t_info.page_width,t_info.page_height));
@@ -467,9 +568,9 @@ bool Tmpl_plugin::parse_templates(const QString & in_file)
                 fourthPage_scene->addItem(paper_rect_4);
 
                 QGraphicsRectItem *border_rect_4 = new QGraphicsRectItem (
-                        QRectF(t_info.margin_left, t_info.margin_top,
-                               t_info.page_width-t_info.margin_left-t_info.margin_right,
-                               t_info.page_height-t_info.margin_top-t_info.margin_bottom));
+                        QRectF(t_info.m_left, t_info.m_top,
+                               t_info.page_width-t_info.m_left-t_info.m_right,
+                               t_info.page_height-t_info.m_top-t_info.m_bottom));
 
                 border_rect_4->setPen(QPen(Qt::black,2,Qt::DotLine));
                 border_rect_4->setBrush(QBrush(Qt::white));
@@ -477,7 +578,7 @@ bool Tmpl_plugin::parse_templates(const QString & in_file)
                 border_rect_4->setZValue(-900);
                 border_rect_4->setData(ObjectName, "Border");
                 border_rect_4->setParentItem(paper_rect_4);
-
+                //fourthPage_scene->addItem(border_rect_4);
 
                 QString elemType;
                 QPointF ps;
@@ -499,7 +600,7 @@ bool Tmpl_plugin::parse_templates(const QString & in_file)
                             filledList.append(findFromModel(pList.at(j)));
                         }
                         pItem->setPos(ps);
-                        pItem->setText(pList);
+                        pItem->setText(filledList);
                         pItem->setZValue(i);
                         pItem->setFlag(QGraphicsItem::ItemIsMovable);
                         pItem->setData(ObjectName, "tElem");
@@ -543,7 +644,7 @@ bool Tmpl_plugin::parse_templates(const QString & in_file)
                             filledList.append(findFromModel(pList.at(j)));
                         }
                         pItem->setPos(ps);
-                        pItem->setText(pList);
+                        pItem->setText(filledList);
                         pItem->setZValue(i);
                         pItem->setFlag(QGraphicsItem::ItemIsMovable);
                         pItem->setData(ObjectName, "tElem");
@@ -564,13 +665,18 @@ bool Tmpl_plugin::parse_templates(const QString & in_file)
                             filledList.append(findFromModel(pList.at(j)));
                         }
                         pItem->setPos(ps);
-                        pItem->setText(pList);
+                        pItem->setText(filledList);
                         pItem->setZValue(i);
                         pItem->setFlag(QGraphicsItem::ItemIsMovable);
                         pItem->setData(ObjectName, "tElem");
                         pItem->setParentItem(paper_rect_4);
                     }
                 }
+                firstPage_scene->update();
+                secondPage_scene->update();
+                thirdPage_scene->update();
+                fourthPage_scene->update();
+
                 flag = true;
             }else {
                 flag =  false; // Мой плагин работает с шаблоном только версии <= version
@@ -656,6 +762,30 @@ qreal Tmpl_plugin::findPageSize_V(int page_size_id)
     }
     return res;
 }
+
+// ------------------------- protected function -------------------------------
+int Tmpl_plugin::getElemCount(QGraphicsScene *scene)
+{
+    QGraphicsItem *item;
+    item = findPaperElem(scene);
+    return item->childItems().size();
+}
+QGraphicsItem *Tmpl_plugin::findPaperElem(QGraphicsScene *scene)
+{
+    QGraphicsItem *item;
+
+    // Поиск  указателя на бумагу
+    for (int i = 0; i < scene->items().size(); ++i){
+        item = scene->items().at(i);
+        if ( item->data(ObjectName).toString()=="Paper"){
+            //labelGroup->setParentItem(item);
+            break;
+        }
+    }
+    return item;
+}
+
+//*****************************************************************************
 
 Q_EXPORT_PLUGIN2(Itmpl_plugin, Tmpl_plugin)
 ;
