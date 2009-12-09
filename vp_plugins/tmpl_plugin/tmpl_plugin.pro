@@ -16,7 +16,7 @@ CONFIG(debug, debug|release) {
     OBJECTS_DIR = ../build/release/obj
 }
 CONFIG += plugin \
-	precompile_header
+        precompile_header
 
 INCLUDEPATH += ../interfaces \
                ../global
@@ -25,7 +25,7 @@ LANGUAGE  = C++
 # Use Precompiled headers (PCH)
 PRECOMPILED_HEADER  = ../global/pre_header.h
 HEADERS += ../global/pre_header.h \
-	tmpl_plugin.h \
+        tmpl_plugin.h \
         simpleitem.h \
     ../interfaces/itmpl_plugin.h \
     ../global/tech_global.h
