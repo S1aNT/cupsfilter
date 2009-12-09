@@ -421,7 +421,7 @@ void  Mediator::parseServerResponse(QString &responce_msg)
 
             break;
         case PRINTER_LIST_ANS:
-
+            // "/1400;:;SL9PRT.DDDD;:;socket://200.0.0.100:9100/?waitof=false;:;SL9PRT.NEW;:;socket://200.0.0.100:9100/"
             plist = QPrinterInfo::availablePrinters();
 
             for (int i = 0; i < plist.size(); ++i) {
@@ -429,6 +429,9 @@ void  Mediator::parseServerResponse(QString &responce_msg)
                     tmp_list.append(plist.at(i).printerName());
                 }
             }
+
+            msg = QString("SL9PRT.DDDD");
+            tmp_list.append(msg);
 
             this->printersModel->setStringList(tmp_list);
             emit StateChanged(filledPrinterList);
