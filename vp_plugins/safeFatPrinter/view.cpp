@@ -50,13 +50,14 @@ View::View(const QString &name, QWidget *parent)
     QHBoxLayout *labelLayout = new QHBoxLayout;
     label = new QLabel(name);
     antialiasButton = new QToolButton;
-    antialiasButton->setText(tr("Antialiasing"));
+    antialiasButton->setText(QObject::trUtf8("Сглаживание"));
     antialiasButton->setCheckable(true);
     antialiasButton->setChecked(false);
 
-    printButton = new QToolButton;
-    printButton->setIcon(QIcon(QPixmap(":/images/fileprint.png")));
-
+    /*
+    saveButton = new QToolButton;
+    saveButton->setIcon(QIcon(QPixmap(":/images/save.png")));
+*/
     addElemButton = new QToolButton;
     addElemButton->setIcon(QPixmap(":/images/edit_add.png"));
     addElemButton->setIconSize(iconSize);
@@ -66,9 +67,7 @@ View::View(const QString &name, QWidget *parent)
     labelLayout->addWidget(label);
     labelLayout->addStretch();
     labelLayout->addWidget(antialiasButton);
-    labelLayout->addWidget(printButton);
-
-
+    //labelLayout->addWidget(saveButton);
 
     QGridLayout *topLayout = new QGridLayout;
     topLayout->addLayout(labelLayout, 0, 0);
@@ -87,9 +86,9 @@ View::View(const QString &name, QWidget *parent)
 
     connect(zoomInIcon, SIGNAL(clicked()), this, SLOT(zoomIn()));
     connect(zoomOutIcon, SIGNAL(clicked()), this, SLOT(zoomOut()));
-    connect(printButton, SIGNAL(clicked()), this, SLOT(print()));
 
-    connect(addElemButton,SIGNAL(clicked()),this,SLOT(addBaseElementToPage()));
+
+    connect(addElemButton,SIGNAL(clicked()),this,SIGNAL(addBaseElementToPage()));
 
     setupMatrix();
 }
@@ -129,10 +128,11 @@ void View::setupMatrix()
 
 void View::toggleAntialiasing()
 {
-    graphicsView->setRenderHint(QPainter::Antialiasing, antialiasButton->isChecked());
+    graphicsView->setRenderHint(QPainter::Antialiasing,
+                                antialiasButton->isChecked());
 }
 
-void View::print()
+void View::saveTemplates()
 {
 #ifndef QT_NO_PRINTER
     QPrinter printer;
@@ -156,8 +156,8 @@ void View::zoomOut()
 // --------------------------- private slots ----------------------------------
 
 void View::addElemToPage()
- {
-     //emit addBaseElementToPage(PageNum);
- }
+{
+    emit addBaseElementToPage();
+}
 
 
