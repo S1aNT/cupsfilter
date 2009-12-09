@@ -21,7 +21,7 @@ HEADERS += ../global/pre_header.h \
     previewwnd.h \
     addtemplate.h \
     teditor.h \
-    view.h
+    view.h 
 SOURCES += main.cpp \
     mediator.cpp \
     getusernamemandatdlg.cpp \
@@ -31,7 +31,7 @@ SOURCES += main.cpp \
     previewwnd.cpp \
     addtemplate.cpp \
     teditor.cpp \
-    view.cpp
+    view.cpp 
 FORMS += getusernamemandatdlg.ui \
     selectwindow.ui \
     workfield.ui \
