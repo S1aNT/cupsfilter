@@ -14,20 +14,7 @@ workField::workField(QWidget *parent) :
                                Qt::WindowTitleHint |
                                Qt::WindowCloseButtonHint |
                                Qt::WindowSystemMenuHint);
-    teditorDlg = new TEditor(this);
-    teditorDlg->setWindowFlags(Qt::Dialog |
-                               Qt::CustomizeWindowHint |
-                               Qt::WindowTitleHint |
-                               Qt::WindowCloseButtonHint |
-                               Qt::WindowSystemMenuHint);
 
-    connect (this,
-             SIGNAL(allTemplatesPagesParsed(QGraphicsScene*,QGraphicsScene*,
-                                            QGraphicsScene*,QGraphicsScene*)),
-             teditorDlg,
-             SLOT(setScene(QGraphicsScene*,QGraphicsScene*,
-                           QGraphicsScene*,QGraphicsScene*))
-             );
 
     connect (ui->editTemplatesTBtn,
              SIGNAL(clicked()),
@@ -183,7 +170,7 @@ void workField::showEditor()
     //Отправим запрос на преобразование шаблона в набор сцен
     emit convertTemplatesToScenes(this->currentTemplates);
 
-    int ret = teditorDlg->exec();
+    //int ret = teditorDlg->exec();
 }
 
 void workField::showInfoWindow(const QString &info)
