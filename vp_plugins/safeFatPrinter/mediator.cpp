@@ -19,6 +19,7 @@
 
 
 #include "workfield.h"
+#include "teditor.h"
 
 Mediator::Mediator(QObject *parent) :
         QObject(parent)
@@ -29,8 +30,20 @@ Mediator::Mediator(QObject *parent) :
 
     // создаем все нужные диалогвые окна
     WorkDlg = new workField();
-    WorkDlg->setWindowFlags(Qt::Dialog | Qt::CustomizeWindowHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint | Qt::WindowSystemMenuHint);
+    WorkDlg->setWindowFlags(Qt::Dialog |
+                            Qt::CustomizeWindowHint |
+                            Qt::WindowTitleHint |
+                            Qt::WindowCloseButtonHint |
+                            Qt::WindowSystemMenuHint);
     WorkDlg->setStampModel(this->getStampModel());
+
+    teditorDlg = new TEditor(WorkDlg);
+    teditorDlg->setWindowFlags(Qt::Dialog |
+                               Qt::CustomizeWindowHint |
+                               Qt::WindowTitleHint |
+                               Qt::WindowCloseButtonHint |
+                               Qt::WindowSystemMenuHint);
+
     this->connector();
 }
 
@@ -155,6 +168,17 @@ void Mediator::loadPlugin(const QString &app_dir)
                                                         QGraphicsScene *,QGraphicsScene *))
                          );
                 connect (this,SIGNAL(needUpdatePage(int)),plugin,SLOT(update_scene(int)));
+
+                connect(teditorDlg,
+                        SIGNAL(addBaseElementToPage(int)),
+                        plugin,
+                        SLOT(doAddBaseElementToPage(int))
+                        );
+                connect (teditorDlg,
+                         SIGNAL(saveTemplates()),
+                         plugin,
+                         SLOT(doSaveTemplates())
+                        );
             }
             gs_plugin_Interface = qobject_cast<Igs_plugin *> (plugin);
             if (gs_plugin_Interface) {
@@ -176,67 +200,71 @@ void Mediator::loadPlugin(const QString &app_dir)
 void Mediator::readGlobal(const QString &app_dir)
 {
     // Читаем файл настроек
+    // TODO add emit log_message
+    QString l_msg = QString("[%1]").arg(QString::fromAscii(Q_FUNC_INFO));
+    QString e_msg;
+    QString ini_path =QString("%1/Technoserv/safe_printer.ini").arg(app_dir);
 
-    QString ini_path =QString(QObject::trUtf8("%1/Technoserv/safe_printer.ini")).arg(app_dir);
-    qDebug() << ini_path << endl;
-    QSettings settings (ini_path,QSettings::IniFormat);
-    qDebug() << "Status " << settings.status();
-    settings.setIniCodec("UTF-8");
+    if (QFile::exists(ini_path)){
+        QSettings settings (ini_path,QSettings::IniFormat);
 
-    settings.beginGroup("SERVICE");
-    serverHostName = settings.value("server","127.0.0.1").toString();
-    serverPort = settings.value("port",4242).toInt();
-    timeout_connect =settings.value("timeout_connect",5000).toInt();
-    timeout_read=settings.value("timeout_read",15000).toInt();
-    timeout_write=settings.value("timeout_write",15000).toInt();
-    settings.endGroup();
+        settings.setIniCodec("UTF-8");
 
-    settings.beginGroup("PERIOD");
-    end_date =settings.value("end_date",QDate::currentDate ()).toDate();
-    QDate begin(end_date.year(), 1,1);
-    begin_date =settings.value("begin_date",begin).toDate();
-    settings.endGroup();
+        settings.beginGroup("SERVICE");
+        serverHostName = settings.value("server","127.0.0.1").toString();
+        serverPort = settings.value("port",4242).toInt();
+        timeout_connect =settings.value("timeout_connect",5000).toInt();
+        timeout_read=settings.value("timeout_read",15000).toInt();
+        timeout_write=settings.value("timeout_write",15000).toInt();
+        settings.endGroup();
 
-#if defined(Q_OS_UNIX)
-    settings.beginGroup("POSTSCRIPT");
-    gsBin = settings.value("gs_bin","/usr/local/bin/gs").toString();
-    settings.endGroup();
-    settings.beginGroup("PDF");
-    pdftkBin = settings.value("pdfTK","/usr/local/bin/pdftk.py").toString();
-    settings.endGroup();
-    settings.beginGroup("USED_DIR_FILE");
-    spoolDIR = settings.value("spool_dir","/var/log/spool/cups/tmp/").toString();
-    rcp_file = settings.value("rcp_file","/opt/vprinter/pdf.rcp").toString();
-    ticket_fname=settings.value("session_ticket","/tmp/session_ticket").toString();
-    settings.endGroup();
+        settings.beginGroup("PERIOD");
+        end_date =settings.value("end_date",QDate::currentDate ()).toDate();
+        QDate begin(end_date.year(), 1,1);
+        begin_date =settings.value("begin_date",begin).toDate();
+        settings.endGroup();
 
-    settings.beginGroup("TEMPLATES");
-    localTemplates=settings.value("local_templates","/opt/vprinter/local_templates/").toString();
-    globalTemplates=settings.value("global_templates","/opt/vprinter/global_templates/").toString();
-    ftpTemplatesDir=settings.value("ftp_templates_dir","ftp://127.0.0.1/pub/templates/").toString();
-    settings.endGroup();
-#elif defined(Q_OS_WIN)
-    settings.beginGroup("POSTSCRIPT");
-    gsBin = settings.value("gs_bin","C:/Program Files/gs/gs8.70/bin/gswin32c.exe").toString();
-    settings.endGroup();
-    settings.beginGroup("PDF");
-    pdftkBin = settings.value("pdfTK","c:/Tools/pdftk.exe").toString();
-    settings.endGroup();
-    settings.beginGroup("USED_DIR_FILE");
-    spoolDIR = settings.value("spool_dir","c:/spool").toString();
-    rcp_file = settings.value("rcp_file","c:/gs/pdf.rcp").toString();
-    settings.endGroup();
+    #if defined(Q_OS_UNIX)
+        settings.beginGroup("POSTSCRIPT");
+        gsBin = settings.value("gs_bin","/usr/local/bin/gs").toString();
+        settings.endGroup();
+        settings.beginGroup("PDF");
+        pdftkBin = settings.value("pdfTK","/usr/local/bin/pdftk.py").toString();
+        settings.endGroup();
+        settings.beginGroup("USED_DIR_FILE");
+        spoolDIR = settings.value("spool_dir","/var/log/spool/cups/tmp/").toString();
+        rcp_file = settings.value("rcp_file","/opt/vprinter/pdf.rcp").toString();
+        ticket_fname=settings.value("session_ticket","/tmp/session_ticket").toString();
+        settings.endGroup();
 
-    settings.beginGroup("TEMPLATES");
-    localTemplates=settings.value("local_templates","local_templates/").toString();
-    globalTemplates=settings.value("global_templates","global_templates/").toString();
-    ftpTemplatesDir=settings.value("ftp_templates_dir","ftp://127.0.0.1/pub/templates/").toString();
-    settings.endGroup();
-#endif
+        settings.beginGroup("TEMPLATES");
+        localTemplates=settings.value("local_templates","/opt/vprinter/local_templates/").toString();
+        globalTemplates=settings.value("global_templates","/opt/vprinter/global_templates/").toString();
+        ftpTemplatesDir=settings.value("ftp_templates_dir","ftp://127.0.0.1/pub/templates/").toString();
+        settings.endGroup();
+    #elif defined(Q_OS_WIN)
+        settings.beginGroup("POSTSCRIPT");
+        gsBin = settings.value("gs_bin","C:/Program Files/gs/gs8.70/bin/gswin32c.exe").toString();
+        settings.endGroup();
+        settings.beginGroup("PDF");
+        pdftkBin = settings.value("pdfTK","c:/Tools/pdftk.exe").toString();
+        settings.endGroup();
+        settings.beginGroup("USED_DIR_FILE");
+        spoolDIR = settings.value("spool_dir","c:/spool").toString();
+        rcp_file = settings.value("rcp_file","c:/gs/pdf.rcp").toString();
+        settings.endGroup();
 
-    //mainPDF.append(spoolDIR).append("%1.pdf");
-    //outPDF.append(spoolDIR).append("%1_out.pdf");
+        settings.beginGroup("TEMPLATES");
+        localTemplates=settings.value("local_templates","local_templates/").toString();
+        globalTemplates=settings.value("global_templates","global_templates/").toString();
+        ftpTemplatesDir=settings.value("ftp_templates_dir","ftp://127.0.0.1/pub/templates/").toString();
+        settings.endGroup();
+    #endif
 
+    }else{
+        e_msg = QObject::trUtf8("Файл %1 не найден!").arg(ini_path);
+        emit error(e_msg);
+    }
 }
 
 void Mediator::getSecretLevelName()
@@ -500,18 +528,34 @@ void Mediator::connector()
                                               QString,bool,QString,qreal,qreal,
                                               qreal,qreal)));
 
+    // Отправим запрос на конвертацию шаблона в набор сцен
     connect (WorkDlg,
              SIGNAL(convertTemplatesToScenes(QString)),
              this,
-             SLOT(do_convertTemplatesToScenes(QString)));
+             SLOT(do_convertTemplatesToScenes(QString))
+             );
+    // Заоодно сохраним в редакторе полный путь к редактируеммому шаблону
+    connect (WorkDlg,
+             SIGNAL(convertTemplatesToScenes(QString)),
+             teditorDlg,
+             SLOT(setCurTemplFileName(QString))
+             );
 
     connect (this,
              SIGNAL(allTemplatesPagesParsed(QGraphicsScene*,QGraphicsScene*,
                                             QGraphicsScene*,QGraphicsScene*)),
-             WorkDlg,
-             SIGNAL(allTemplatesPagesParsed(QGraphicsScene*,QGraphicsScene*,
-                                            QGraphicsScene*,QGraphicsScene*))
+             teditorDlg,
+             SLOT(setScene(QGraphicsScene*,QGraphicsScene*,
+                           QGraphicsScene*,QGraphicsScene*))
              );
+/*
+    connect (this,
+             SIGNAL(allTemplatesPagesParsed(QGraphicsScene*,QGraphicsScene*,
+                                            QGraphicsScene*,QGraphicsScene*)),
+             teditorDlg,
+             SLOT(exec())
+             );
+*/
 }
 
 QPixmap Mediator::formatPage(const QString &in_file,int pageNum)
