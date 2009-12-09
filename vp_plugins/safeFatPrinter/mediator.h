@@ -96,6 +96,9 @@ private slots:
     void getMeMandatList(QString &userName);
     void parserGSMessage(TaskState state);
     void setPageCountInDoc(int p_count);
+    // Шаблон преобразован в pdf получим имена страниц
+    void mergeDocWithTemplate(QString &first,QString &second,
+                              QString &third,QString &fourth);
 
      // Обработка ошибок (запись в лог перед передачей дальше)
     void doError(QString msg);

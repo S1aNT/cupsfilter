@@ -51,6 +51,7 @@ Mediator::Mediator(QObject *parent) :
 void Mediator::convert2pdf(QString &in_file)
 {
     gs_plugin->convertPs2Pdf(in_file);
+
 }
 
 QPoint Mediator::getDeskTopCenter(int width,int height)
@@ -160,6 +161,13 @@ void Mediator::loadPlugin(const QString &app_dir)
             tmpl_plugin_Interface = qobject_cast<Itmpl_plugin *> (plugin);
             if (tmpl_plugin_Interface){
                 tmpl_plugin = tmpl_plugin_Interface;
+                connect (plugin,
+                         SIGNAL(allPagesConveted(QString &,QString &,
+                                                 QString &,QString &)),
+                         this,
+                         SLOT(mergeDocWithTemplate(QString &,QString &,
+                                                   QString &,QString &))
+                         );
                 connect (plugin,
                          SIGNAL(allTemplatesPagesParsed(QGraphicsScene *,QGraphicsScene *,
                                                         QGraphicsScene *,QGraphicsScene *)),
@@ -288,6 +296,37 @@ void Mediator::getEnablePrinter()
 }
 
 //*************************************** private slots *****************************************
+
+void Mediator::mergeDocWithTemplate(QString &first,QString &second,
+                          QString &third,QString &fourth)
+{
+    //FIXME Hardcode need fix!!!!
+    QString first_page;
+    QString other_page;
+    QString out_put_first;
+    QString out_put_other;
+    QString out_put_all_doc;
+    out_put_first = QString("%1/out_first_%1.pdf").arg(this->spoolDIR,this->sid);
+    if (this->pagesInDocCount =1){
+        first_page = gs_plugin->getFirstPages();
+
+        // Объединяем первую страницу и первую страницу шаблона
+        gs_plugin->merge2Pdf(first_page,first,out_put_first);
+        // Печатаем первую страницу
+        gs_plugin->printPdf(out_put_first,this->currentPrinter);
+    }else{
+        // Объединяем первую страницу и первую страницу шаблона
+        gs_plugin->merge2Pdf(first_page,first,out_put_first);
+        // Печатаем первую страницу
+        gs_plugin->printPdf(out_put_first,this->currentPrinter);
+        // Объединяем 2 страницу и 2 страницу шаблона
+        gs_plugin->merge2Pdf(other_page,second,out_put_other);
+        // Печатаем 2 страницу
+        gs_plugin->printPdf(out_put_other,this->currentPrinter);
+        // Печатаем последюю страницу
+        gs_plugin->printPdf(fourth,this->currentPrinter);
+    }
+}
 
 void Mediator::doError(QString msg)
 {
