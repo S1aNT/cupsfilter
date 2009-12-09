@@ -82,6 +82,8 @@ void Mediator::do_User_name_mandat(QString &userName,QString &userMandat)
 
         }else{
             this->getMeMandatList(userName);
+
+            //this->getMeMandatList(t);
         }
     }
 }
@@ -419,7 +421,7 @@ void  Mediator::parseServerResponse(QString &responce_msg)
 
             break;
         case PRINTER_LIST_ANS:
-            //TODO написать парсер разбирающий список принтеров отданый сервером
+
             plist = QPrinterInfo::availablePrinters();
 
             for (int i = 0; i < plist.size(); ++i) {
@@ -427,6 +429,7 @@ void  Mediator::parseServerResponse(QString &responce_msg)
                     tmp_list.append(plist.at(i).printerName());
                 }
             }
+
             this->printersModel->setStringList(tmp_list);
             emit StateChanged(filledPrinterList);
 
