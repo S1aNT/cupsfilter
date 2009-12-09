@@ -12,7 +12,7 @@
 #include <QFileDialog>
 
 #include "previewwnd.h"
-#include "teditor.h"
+
 #include "tech_global.h"
 #include "addtemplate.h"
 
@@ -40,8 +40,6 @@ public:
 signals:
     // Запрос на преобразование шаблона в набор из 4-х сцен
     void convertTemplatesToScenes(const QString &t_file_name);
-    void allTemplatesPagesParsed(QGraphicsScene *scene_1,QGraphicsScene *scene_2,
-                                 QGraphicsScene *scene_3,QGraphicsScene *scene_4); // успешый разбор всех страниц шаблона и запись их в сцены
 
     void checkMBInBase(const QString &mb_value,const QString &copyNum_value,WorkMode work_mode);
     void needAuthUserToPrinter(); // Требуется авторизовать пользователя на принтер
@@ -78,7 +76,7 @@ private:
     QSignalMapper *signalMapper;
 
     AddTemplate *addTmplDlg;
-    TEditor * teditorDlg;
+
 
     QStringListModel *p_size_mod;
     QString userName;
