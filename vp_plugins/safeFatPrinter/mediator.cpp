@@ -377,6 +377,10 @@ void  Mediator::parseServerResponse(QString &responce_msg)
         body = rx.cap(2);
         qDebug() <<Q_FUNC_INFO<< cmd<<body;
         switch (cmd.toInt()){
+        case PRINT_ALLOWED:
+            // Печать разрешена
+
+            break;
         case STAMP_LIST_ANS:
             this->stampModel->setStringList(QStringList() << body.split(";:;"));
             this->getEnablePrinter();
