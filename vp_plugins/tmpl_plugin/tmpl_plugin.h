@@ -11,6 +11,7 @@
 
 using namespace SafeVirtualPrinter;
 
+class QGraphicsItem;
 
 class Tmpl_plugin :public QObject, Itmpl_plugin
 {
@@ -47,7 +48,10 @@ signals:
     void allTemplatesPagesParsed(QGraphicsScene *scene_1,QGraphicsScene *scene_2,
                                  QGraphicsScene *scene_3,QGraphicsScene *scene_4);
     void emptyTemplateCreate(const QString & t_name);
+    void allPageConverted(QString &first,QString &second,
+                          QString &third,QString &fourth);
 public slots:
+    void convertTemplatesToPdf(const QString & templates_in_file,QStandardItemModel * model);
     void update_scene(int pageNum);
     void setTemplates(const QString & templates_in_file,QStandardItemModel * model);
     // Добавим базовый элемент на страницу page
@@ -60,9 +64,14 @@ protected:
     int getElemIdByName(const QString &elem_name);
     bool parse_templates(const QString & in_file);
     QString findFromModel(const QString &find_line);
+
+    // Возвращает число элементов в сцене
+    int getElemCount(QGraphicsScene *scene);
+    // Возвращает указатель на элемент paper  в сцене
+    QGraphicsItem *findPaperElem(QGraphicsScene *scene);
 private:
     templates_info_t t_info; // Информация о шаблоне
-    static const int version = 1;
+
 
     QStandardItemModel *work_model;
 
