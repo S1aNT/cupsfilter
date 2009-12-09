@@ -16,20 +16,20 @@ namespace SafeVirtualPrinter{
 #define INCH_TO_POINT(inch) ((inch)*72.0)
 
 typedef struct{
-    int version;            // версия шаблона
+    static const int version = 1; // версия шаблона
     QString file_name;      // имя файла шаблона
     QString date_time;      // дата и время создания
-    QString author;         // автор шаблона
-    QString templates_name; // имя шаблона
-    QString description;    // описание шаблона
-    QString paper_size;     // размер бумаги (Для человека)
+    QString t_author;         // автор шаблона
+    QString t_name; // имя шаблона
+    QString t_desc;    // описание шаблона
+    QString p_size;     // размер бумаги (Для человека)
     bool  page_orient;      // ориентация страницы Книжная/альбомная true/false
     qreal page_height;      // высота листа в  [мм -> point] (для компьютера)
     qreal page_width;       // ширина листа в  [мм -> point] (для компьютера)
-    qreal margin_top;       // отступ сверху в [мм -> point] (для компьютера)
-    qreal margin_bottom;    // отступ снизу в [мм -> point] (для компьютера)
-    qreal margin_left;      // отступ слева в [мм -> point] (для компьютера)
-    qreal margin_right;     // отступ справа в [мм -> point] (для компьютера)
+    qreal m_top;       // отступ сверху в [мм -> point] (для компьютера)
+    qreal m_bottom;    // отступ снизу в [мм -> point] (для компьютера)
+    qreal m_left;      // отступ слева в [мм -> point] (для компьютера)
+    qreal m_right;     // отступ справа в [мм -> point] (для компьютера)
     int firstPageElemCount;    // число элементов на первой странице шаблона
     int secondPageElemCount;   // число элементов на второй странице шаблона
     int thirdPageElemCount;    // число элементов на третьей странице шаблона
