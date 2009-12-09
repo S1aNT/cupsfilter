@@ -16,7 +16,9 @@ class QPoint;
 class QStandardItemModel;
 class QStringListModel;
 
+
 class workField;
+class TEditor;
 
 class Mediator: public QObject
 {
@@ -94,6 +96,7 @@ private slots:
     void getMeMandatList(QString &userName);
     void parserGSMessage(TaskState state);
     void setPageCountInDoc(int p_count);
+
      // Обработка ошибок (запись в лог перед передачей дальше)
     void doError(QString msg);
 private:
@@ -112,6 +115,7 @@ private:
        Указатели на диалоговые окна
     */
     workField *WorkDlg;
+    TEditor * teditorDlg;
     //-------------------------------------------------------------------------
 
     bool connect_state;
