@@ -8,6 +8,8 @@ TEditor::TEditor(QWidget *parent) :
     ui(new Ui::TEditor)
 {
     ui->setupUi(this);
+    signalMapper = new QSignalMapper(this);
+
     view_1 = new View("test");
     ui->tabWidget->addTab(view_1,QObject::trUtf8("1-я страница"));
     view_2 = new View("test");
@@ -16,6 +18,35 @@ TEditor::TEditor(QWidget *parent) :
     ui->tabWidget->addTab(view_3,QObject::trUtf8("3-я страница"));
     view_4 = new View("test");
     ui->tabWidget->addTab(view_4,QObject::trUtf8("4-я страница"));
+
+    connect(view_1, SIGNAL(addBaseElementToPage()), signalMapper, SLOT(map()));
+    connect(view_2, SIGNAL(addBaseElementToPage()), signalMapper, SLOT(map()));
+    connect(view_3, SIGNAL(addBaseElementToPage()), signalMapper, SLOT(map()));
+    connect(view_4, SIGNAL(addBaseElementToPage()), signalMapper, SLOT(map()));
+
+    signalMapper->setMapping(view_1,1 );
+    signalMapper->setMapping(view_2,2);
+    signalMapper->setMapping(view_3,3 );
+    signalMapper->setMapping(view_4,4 );
+
+    connect(signalMapper,
+            SIGNAL(mapped(int)),
+            this,
+            SIGNAL(addBaseElementToPage(int))
+            );
+
+    connect (ui->saveButton,
+             SIGNAL(clicked()),
+             this,
+             SIGNAL(saveTemplates())
+            );
+    connect (ui->saveButton,
+             SIGNAL(clicked()),
+             this,
+             SLOT(accept())
+            );
+
+
 }
 
 void TEditor::setScene(QGraphicsScene *scene_1,QGraphicsScene *scene_2,
@@ -25,7 +56,12 @@ void TEditor::setScene(QGraphicsScene *scene_1,QGraphicsScene *scene_2,
     view_2->gr_view()->setScene(scene_2);
     view_3->gr_view()->setScene(scene_3);
     view_4->gr_view()->setScene(scene_4);
+    this->exec(); // Покажем окно редактора
 }
+
+
+
+
 
 TEditor::~TEditor()
 {
