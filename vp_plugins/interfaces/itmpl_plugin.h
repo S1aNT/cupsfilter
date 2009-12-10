@@ -23,6 +23,7 @@ public:
                                      qreal m_right,
                                      qreal m_left)=0;
     virtual void setTemplates(const QString & templates_in_file,QStandardItemModel * model)=0;
+    virtual void convertTemplatesToPdf(const QString & templates_in_file,QStandardItemModel * model)=0;
     virtual void printFormatingPageToFile(int pageNum)=0;
     virtual QGraphicsScene *getFirstPage()=0;
     virtual QGraphicsScene *getSecondPage()=0;
