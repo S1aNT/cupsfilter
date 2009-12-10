@@ -386,6 +386,14 @@ void  Mediator::parseServerResponse(QString &responce_msg)
             // Печать разрешена
 
             break;
+        case PRINT_DENIED:
+            msg =QObject::trUtf8("Данному пользователю запрещена печать!");
+            emit error(msg);
+            break;
+        case PRINTER_NOT_FOUND:
+            msg =QObject::trUtf8("Данному пользователю не назначен ни один принтер!");
+            emit error(msg);
+            break;
         case STAMP_LIST_ANS:
             this->stampModel->setStringList(QStringList() << body.split(";:;"));
             this->getEnablePrinter();
