@@ -298,7 +298,16 @@ void Mediator::getEnablePrinter()
 }
 
 //*************************************** private slots *****************************************
-
+// Печать текущего документа использую шаблон
+void Mediator::do_needPrintPage(const QString & t_file_name)
+{
+    if (tmpl_plugin){
+        tmpl_plugin->convertTemplatesToPdf(t_file_name,doc_model);
+    }else{
+        QString e_msg  = QObject::trUtf8("Плагин работы с шаблонами не инициализирован или не загружен!");
+        emit error(e_msg);
+    }
+}
 void Mediator::mergeDocWithTemplate(QString &first,QString &second,
                           QString &third,QString &fourth)
 {
@@ -308,6 +317,18 @@ void Mediator::mergeDocWithTemplate(QString &first,QString &second,
     QString out_put_first;
     QString out_put_other;
     QString out_put_all_doc;
+    switch (currentMode){
+    case 0:
+        // Требуется печать только третьей страницы шаблона
+        gs_plugin->printPdf(third,this->currentPrinter);
+
+        break;
+    case 1:
+        break;
+    case 2:
+        break;
+    }
+/*
     out_put_first = QString("%1/out_first_%1.pdf").arg(this->spoolDIR,this->sid);
     if (this->pagesInDocCount =1){
         first_page = gs_plugin->getFirstPages();
@@ -328,6 +349,7 @@ void Mediator::mergeDocWithTemplate(QString &first,QString &second,
         // Печатаем последюю страницу
         gs_plugin->printPdf(fourth,this->currentPrinter);
     }
+    */
 }
 
 void Mediator::doError(QString msg)
@@ -384,7 +406,7 @@ void  Mediator::parseServerResponse(QString &responce_msg)
         switch (cmd.toInt()){
         case PRINT_ALLOWED:
             // Печать разрешена
-
+            emit print_allowed();
             break;
         case PRINT_DENIED:
             msg =QObject::trUtf8("Данному пользователю запрещена печать!");
@@ -498,6 +520,7 @@ void Mediator::doSaveToLog(const QString & log_msg)
 
 void Mediator::setMode (int mode)
 {
+    currentMode = mode;
     QString title;
     WorkDlg->move(this->getDeskTopCenter(WorkDlg->width(),WorkDlg->height()));
     WorkDlg->setPageSizeModel(this->getPageSizeModel());
@@ -619,6 +642,11 @@ void Mediator::connector()
              SLOT(do_needCreateEmptyTemplates(QString,QString,QString,QString,
                                               QString,bool,QString,qreal,qreal,
                                               qreal,qreal)));
+    connect (WorkDlg,
+             SIGNAL(needPrintPage(QString)),
+             this,
+             SLOT(do_needPrintPage(QString))
+            );
 
     // Отправим запрос на конвертацию шаблона в набор сцен
     connect (WorkDlg,
@@ -627,12 +655,18 @@ void Mediator::connector()
              SLOT(do_convertTemplatesToScenes(QString))
              );
     // Заоодно сохраним в редакторе полный путь к редактируеммому шаблону
+    /*
     connect (WorkDlg,
              SIGNAL(convertTemplatesToScenes(QString)),
              teditorDlg,
              SLOT(setCurTemplFileName(QString))
              );
-
+    */
+    connect (this,
+             SIGNAL(print_allowed()),
+             WorkDlg,
+             SLOT(doPrintAllowed())
+             );
     connect (this,
              SIGNAL(allTemplatesPagesParsed(QGraphicsScene*,QGraphicsScene*,
                                             QGraphicsScene*,QGraphicsScene*)),

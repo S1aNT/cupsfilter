@@ -96,6 +96,9 @@ private slots:
     void getMeMandatList(QString &userName);
     void parserGSMessage(TaskState state);
     void setPageCountInDoc(int p_count);
+    // Печать текущего документа использую шаблон
+    void do_needPrintPage(const QString & t_file_name);
+
     // Шаблон преобразован в pdf получим имена страниц
     void mergeDocWithTemplate(QString &first,QString &second,
                               QString &third,QString &fourth);
@@ -161,6 +164,7 @@ private:
     QString ftpTemplatesDir;
 
     WorkMode work_mode;
+    int currentMode;
 protected:
     // Сердце всей программы соединяет сигналы от дилалогов со слотами
     void connector();
