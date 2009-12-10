@@ -54,10 +54,10 @@ View::View(const QString &name, QWidget *parent)
     antialiasButton->setCheckable(true);
     antialiasButton->setChecked(false);
 
-    /*
-    saveButton = new QToolButton;
+
+    QToolButton *saveButton = new QToolButton;
     saveButton->setIcon(QIcon(QPixmap(":/images/save.png")));
-*/
+
     addElemButton = new QToolButton;
     addElemButton->setIcon(QPixmap(":/images/edit_add.png"));
     addElemButton->setIconSize(iconSize);
@@ -67,7 +67,8 @@ View::View(const QString &name, QWidget *parent)
     labelLayout->addWidget(label);
     labelLayout->addStretch();
     labelLayout->addWidget(antialiasButton);
-    //labelLayout->addWidget(saveButton);
+
+    labelLayout->addWidget(saveButton);
 
     QGridLayout *topLayout = new QGridLayout;
     topLayout->addLayout(labelLayout, 0, 0);
@@ -90,6 +91,11 @@ View::View(const QString &name, QWidget *parent)
 
     connect(addElemButton,SIGNAL(clicked()),this,SIGNAL(addBaseElementToPage()));
 
+    connect (saveButton,
+             SIGNAL(clicked()),
+             this,
+             SLOT(saveTemplates())
+             );
     setupMatrix();
 }
 
@@ -134,14 +140,13 @@ void View::toggleAntialiasing()
 
 void View::saveTemplates()
 {
-#ifndef QT_NO_PRINTER
-    QPrinter printer;
-    QPrintDialog dialog(&printer, this);
-    if (dialog.exec() == QDialog::Accepted) {
-        QPainter painter(&printer);
-        graphicsView->render(&painter);
-    }
-#endif
+    QPrinter pdfprinter;
+    pdfprinter.setOutputFormat(QPrinter::PdfFormat);
+    pdfprinter.setOutputFileName("d:/test.pdf");
+
+    QPainter painter(&pdfprinter);
+    graphicsView->scene()->render(&painter);
+
 }
 
 void View::zoomIn()
