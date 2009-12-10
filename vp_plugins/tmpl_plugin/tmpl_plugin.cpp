@@ -270,7 +270,7 @@ void Tmpl_plugin::doSaveTemplates()
         count = getElemCount(secondPage_scene);
         paper_item = findPaperElem(secondPage_scene);
         out << count; // вторая страница шаблона элементов
-        for (int i=0; i < count; ++i){
+        for (int i=0; i < count; i++){
             elem_type = paper_item->childItems().at(i)->data(ObjectName).toString();
             if (elem_type == "tElem"){
 
@@ -285,7 +285,7 @@ void Tmpl_plugin::doSaveTemplates()
         count = getElemCount(thirdPage_scene);
         paper_item = findPaperElem(thirdPage_scene);
         out << count; // третья страница шаблона элементов
-        for (int i=0; i < count; ++i){
+        for (int i=0; i < count; i++){
             elem_type = paper_item->childItems().at(i)->data(ObjectName).toString();
             if (elem_type == "tElem"){
 
@@ -300,7 +300,7 @@ void Tmpl_plugin::doSaveTemplates()
         count = getElemCount(fourthPage_scene);
         paper_item = findPaperElem(fourthPage_scene);
         out << count; // четвертая страница шаблона элементов
-        for (int i=0; i < count; ++i){
+        for (int i=0; i < count; i++){
             elem_type = paper_item->childItems().at(i)->data(ObjectName).toString();
             if (elem_type == "tElem"){
 
@@ -397,6 +397,8 @@ void Tmpl_plugin::update_scene(int pageNum)
 void Tmpl_plugin::printFormatingPageToFile(int pageNum)
 {
     QString error_msg;
+    QGraphicsScene *scene;
+
     // Печатает выбранную страницу текущего шаблона в pdf файл
     // страница формируется исходя из данных модели
     if (!t_info.file_name.isEmpty() && pageNum <= 4 && pageNum >=1){
@@ -407,46 +409,45 @@ void Tmpl_plugin::printFormatingPageToFile(int pageNum)
             pdfprinter.setOrientation(QPrinter::Landscape);
         }
         pdfprinter.setOutputFormat(QPrinter::PdfFormat);
-        //pdfprinter.setPageSize(paper_size);
-        QPainter painter(&pdfprinter);
-
-        switch (pageNum){
+        //FIXME:
+        // пройтись по всем элементам сцены и удалить границу
+        // сцена к этому моменту уже создана и заполнена элементами
+        switch(pageNum){
         case 1:
-            //FIXME:
-            // пройтись по всем элементам сцены и удалить границу
-            // сцена к этому моменту уже создана и заполнена элементами
+            scene = firstPage_scene;
             if (QFile::exists(firstPage_tmpl_fn)){
                 QFile::remove(firstPage_tmpl_fn);
             }
             pdfprinter.setOutputFileName(firstPage_tmpl_fn);
-            firstPage_scene->render(&painter);
-
             break;
         case 2:
+            scene = secondPage_scene;
             if (QFile::exists(secondPage_tmpl_fn)){
                 QFile::remove(secondPage_tmpl_fn);
             }
 
             pdfprinter.setOutputFileName(secondPage_tmpl_fn);
-            secondPage_scene->render(&painter);
+
             break;
         case 3:
+            scene = thirdPage_scene;
             if (QFile::exists(thirdPage_tmpl_fn)){
                 QFile::remove(thirdPage_tmpl_fn);
             }
 
             pdfprinter.setOutputFileName(thirdPage_tmpl_fn);
-            thirdPage_scene->render(&painter);
             break;
         case 4:
+            scene = fourthPage_scene;
             if (QFile::exists(fourthPage_tmpl_fn)){
                 QFile::remove(fourthPage_tmpl_fn);
             }
 
             pdfprinter.setOutputFileName(fourthPage_tmpl_fn);
-            fourthPage_scene->render(&painter);
             break;
         }
+       QPainter painter(&pdfprinter);
+       scene->render(&painter);
     }
 }
 
@@ -600,6 +601,8 @@ bool Tmpl_plugin::parse_templates(const QString & in_file)
                             filledList.append(findFromModel(pList.at(j)));
                         }
                         pItem->setPos(ps);
+                        pItem->setFont(fnt);
+                         pItem->setColor(col);
                         pItem->setText(filledList);
                         pItem->setZValue(i);
                         pItem->setFlag(QGraphicsItem::ItemIsMovable);
@@ -622,6 +625,8 @@ bool Tmpl_plugin::parse_templates(const QString & in_file)
                             filledList.append(findFromModel(pList.at(j)));
                         }
                         pItem->setPos(ps);
+                        pItem->setFont(fnt);
+                         pItem->setColor(col);
                         pItem->setText(pList);
                         pItem->setZValue(i);
                         pItem->setFlag(QGraphicsItem::ItemIsMovable);
@@ -644,6 +649,8 @@ bool Tmpl_plugin::parse_templates(const QString & in_file)
                             filledList.append(findFromModel(pList.at(j)));
                         }
                         pItem->setPos(ps);
+                        pItem->setFont(fnt);
+                         pItem->setColor(col);
                         pItem->setText(filledList);
                         pItem->setZValue(i);
                         pItem->setFlag(QGraphicsItem::ItemIsMovable);
@@ -665,6 +672,8 @@ bool Tmpl_plugin::parse_templates(const QString & in_file)
                             filledList.append(findFromModel(pList.at(j)));
                         }
                         pItem->setPos(ps);
+                        pItem->setFont(fnt);
+                         pItem->setColor(col);
                         pItem->setText(filledList);
                         pItem->setZValue(i);
                         pItem->setFlag(QGraphicsItem::ItemIsMovable);
