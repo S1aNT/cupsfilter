@@ -16,7 +16,7 @@ namespace SafeVirtualPrinter{
 #define INCH_TO_POINT(inch) ((inch)*72.0)
 
 typedef struct{
-    static const int version = 1; // версия шаблона
+    int version; 	// версия шаблона
     QString file_name;      // имя файла шаблона
     QString date_time;      // дата и время создания
     QString t_author;         // автор шаблона
