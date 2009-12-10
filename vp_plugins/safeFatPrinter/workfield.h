@@ -43,7 +43,7 @@ signals:
 
     void checkMBInBase(const QString &mb_value,const QString &copyNum_value,WorkMode work_mode);
     void needAuthUserToPrinter(); // Требуется авторизовать пользователя на принтер
-    void needPrintPage();
+    void needPrintPage(const QString &t_file_name);
     void dontNeedPrintPage();
     void needCreateEmptyTemplates(const QString & file_name,
                                   const QString & t_author,
@@ -60,6 +60,7 @@ public slots:
     void showInfoWindow(const QString &info);
     void showPreviewPage(QPixmap &preview_page);
     void setCurrentTemplates(QString temp);
+    void doPrintAllowed(); // Демон разрешил печать !
 private slots:
     void flipLabel(bool flip);
     void checkData(); // При нажатии на кнопку идет анализ введенных данных
