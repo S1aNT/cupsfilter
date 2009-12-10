@@ -199,3 +199,14 @@ QColor SimpleItem::getColor()
     return currentColor;
 }
 
+void SimpleItem::setColor(const QColor & col)
+{
+    this->currentColor = col;
+}
+
+void SimpleItem::setFont(const QFont &fnt)
+{
+    this->currentFont = fnt;
+
+}
+
