@@ -548,12 +548,26 @@ void Mediator::do_needCreateEmptyTemplates(const QString & file_name,
 
 void Mediator::setCurrentPrinter(const QString & printer)
 {
+
     this->currentPrinter=printer;
 }
 
 void Mediator::do_needAuthUserToPrinter()
 {
-    QString msg =QString("/cmd;:;%1;:;%2;:;%3;:;%4;:;%5").arg(sid).arg(AUTHOR_USER,0,10).arg(this->currentPrinter).arg(this->user_mandat).arg(this->user_name);
+    // поиск в списке принтеров нужный
+
+    QString auth_printer_name;
+    QString t_line;
+    QMapIterator<QString, QString> i (printer_device_list);
+    while (i.hasNext()) {
+        i.next();
+        t_line = i.key().section(".",1,1);
+        if (t_line == this->currentPrinter){
+            auth_printer_name = i.key();
+        }
+    }
+
+    QString msg =QString("/cmd;:;%1;:;%2;:;%3;:;%4;:;%5").arg(sid).arg(AUTHOR_USER,0,10).arg(auth_printer_name).arg(this->user_mandat).arg(this->user_name);
     qDebug() << Q_FUNC_INFO << msg;
     net_plugin->sendData(msg);
 }
