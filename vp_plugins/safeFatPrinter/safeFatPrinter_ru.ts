@@ -172,211 +172,222 @@
         <translation type="unfinished"></translation>
     </message>
     <message utf8="true">
-        <location filename="mediator.cpp" line="72"/>
+        <location filename="mediator.cpp" line="73"/>
         <source>Плагин: [Auth_User] успешно загружен.</source>
         <translation type="unfinished"></translation>
     </message>
     <message utf8="true">
-        <location filename="mediator.cpp" line="110"/>
+        <location filename="mediator.cpp" line="113"/>
         <source>Плагин: [Обработки ps и pdf документов] успешно загружен.</source>
         <translation type="unfinished"></translation>
     </message>
     <message utf8="true">
-        <location filename="mediator.cpp" line="118"/>
+        <location filename="mediator.cpp" line="121"/>
         <source>Плагин: [Работы с шаблонами] успешно загружен.</source>
         <translation type="unfinished"></translation>
     </message>
     <message utf8="true">
-        <location filename="mediator.cpp" line="157"/>
+        <location filename="mediator.cpp" line="160"/>
         <source>Плагин: [Работы с сетью] успешно загружен.</source>
         <translation type="unfinished"></translation>
     </message>
     <message utf8="true">
-        <location filename="mediator.cpp" line="265"/>
+        <location filename="mediator.cpp" line="275"/>
         <source>Файл %1 не найден!</source>
         <translation type="unfinished"></translation>
     </message>
     <message utf8="true">
-        <location filename="mediator.cpp" line="345"/>
+        <location filename="mediator.cpp" line="426"/>
         <source>Успешно соединились с сервером безопасности</source>
         <translation type="unfinished"></translation>
     </message>
     <message utf8="true">
-        <location filename="mediator.cpp" line="368"/>
+        <location filename="mediator.cpp" line="449"/>
         <source>Не выбран шаблон или отсутсвует файл шаблона</source>
         <translation type="unfinished"></translation>
     </message>
     <message utf8="true">
-        <location filename="mediator.cpp" line="396"/>
+        <location filename="mediator.cpp" line="497"/>
         <source>У данного пользователя нет ни одного разрешенного принтера</source>
         <translation type="unfinished"></translation>
     </message>
     <message utf8="true">
-        <location filename="mediator.cpp" line="405"/>
+        <location filename="mediator.cpp" line="506"/>
         <source>У данного пользователя нет ни одного мандата</source>
         <translation type="unfinished"></translation>
     </message>
     <message utf8="true">
-        <location filename="mediator.cpp" line="432"/>
+        <location filename="mediator.cpp" line="534"/>
         <source>Режим работы: [Печать на учтенных листах]</source>
         <translation type="unfinished"></translation>
     </message>
     <message utf8="true">
-        <location filename="mediator.cpp" line="435"/>
+        <location filename="mediator.cpp" line="537"/>
         <source>Режим работы: [Печать документа с автоматическим учетом листов]</source>
         <translation type="unfinished"></translation>
     </message>
     <message utf8="true">
-        <location filename="mediator.cpp" line="450"/>
-        <location filename="mediator.cpp" line="474"/>
+        <location filename="mediator.cpp" line="307"/>
+        <location filename="mediator.cpp" line="552"/>
+        <location filename="mediator.cpp" line="576"/>
         <source>Плагин работы с шаблонами не инициализирован или не загружен!</source>
         <translation type="unfinished"></translation>
     </message>
+    <message utf8="true">
+        <location filename="mediator.cpp" line="413"/>
+        <source>Данному пользователю запрещена печать!</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message utf8="true">
+        <location filename="mediator.cpp" line="417"/>
+        <source>Данному пользователю не назначен ни один принтер!</source>
+        <translation type="unfinished"></translation>
+    </message>
     <message>
-        <location filename="mediator.cpp" line="502"/>
+        <location filename="mediator.cpp" line="618"/>
         <source>%1;:;%2;:;%3;:;%4;:;%5</source>
         <translation type="unfinished"></translation>
     </message>
     <message utf8="true">
-        <location filename="mediator.cpp" line="656"/>
+        <location filename="mediator.cpp" line="783"/>
         <location filename="workfield.cpp" line="96"/>
         <source>МБ</source>
         <translation type="unfinished"></translation>
     </message>
     <message utf8="true">
-        <location filename="mediator.cpp" line="657"/>
+        <location filename="mediator.cpp" line="784"/>
         <location filename="workfield.cpp" line="100"/>
         <source>Название док-та</source>
         <translation type="unfinished"></translation>
     </message>
     <message utf8="true">
-        <location filename="mediator.cpp" line="658"/>
+        <location filename="mediator.cpp" line="785"/>
         <location filename="workfield.cpp" line="104"/>
         <source>Гриф</source>
         <translation type="unfinished"></translation>
     </message>
     <message utf8="true">
-        <location filename="mediator.cpp" line="659"/>
+        <location filename="mediator.cpp" line="786"/>
         <location filename="workfield.cpp" line="108"/>
         <source>Пункт перечня</source>
         <translation type="unfinished"></translation>
     </message>
     <message utf8="true">
-        <location filename="mediator.cpp" line="660"/>
+        <location filename="mediator.cpp" line="787"/>
         <location filename="workfield.cpp" line="112"/>
         <source>Номер копии</source>
         <translation type="unfinished"></translation>
     </message>
     <message utf8="true">
-        <location filename="mediator.cpp" line="661"/>
+        <location filename="mediator.cpp" line="788"/>
         <location filename="workfield.cpp" line="115"/>
         <source>Кол-во листов</source>
         <translation type="unfinished"></translation>
     </message>
     <message utf8="true">
-        <location filename="mediator.cpp" line="662"/>
+        <location filename="mediator.cpp" line="789"/>
         <location filename="workfield.cpp" line="123"/>
         <source>Исполнитель</source>
         <translation type="unfinished"></translation>
     </message>
     <message utf8="true">
-        <location filename="mediator.cpp" line="663"/>
+        <location filename="mediator.cpp" line="790"/>
         <location filename="workfield.cpp" line="126"/>
         <source>Отпечатал</source>
         <translation type="unfinished"></translation>
     </message>
     <message utf8="true">
-        <location filename="mediator.cpp" line="664"/>
+        <location filename="mediator.cpp" line="791"/>
         <location filename="workfield.cpp" line="129"/>
         <source>Телефон</source>
         <translation type="unfinished"></translation>
     </message>
     <message utf8="true">
-        <location filename="mediator.cpp" line="665"/>
+        <location filename="mediator.cpp" line="792"/>
         <location filename="workfield.cpp" line="132"/>
         <source>Инв. N</source>
         <translation type="unfinished"></translation>
     </message>
     <message utf8="true">
-        <location filename="mediator.cpp" line="666"/>
+        <location filename="mediator.cpp" line="793"/>
         <location filename="workfield.cpp" line="135"/>
         <source>Дата распечатки</source>
         <translation type="unfinished"></translation>
     </message>
     <message utf8="true">
-        <location filename="mediator.cpp" line="667"/>
+        <location filename="mediator.cpp" line="794"/>
         <location filename="workfield.cpp" line="142"/>
         <source>Получатель N1</source>
         <translation type="unfinished"></translation>
     </message>
     <message utf8="true">
-        <location filename="mediator.cpp" line="668"/>
+        <location filename="mediator.cpp" line="795"/>
         <location filename="workfield.cpp" line="145"/>
         <source>Получатель N2</source>
         <translation type="unfinished"></translation>
     </message>
     <message utf8="true">
-        <location filename="mediator.cpp" line="669"/>
+        <location filename="mediator.cpp" line="796"/>
         <location filename="workfield.cpp" line="148"/>
         <source>Получатель N3</source>
         <translation type="unfinished"></translation>
     </message>
     <message utf8="true">
-        <location filename="mediator.cpp" line="670"/>
+        <location filename="mediator.cpp" line="797"/>
         <location filename="workfield.cpp" line="151"/>
         <source>Получатель N4</source>
         <translation type="unfinished"></translation>
     </message>
     <message utf8="true">
-        <location filename="mediator.cpp" line="671"/>
+        <location filename="mediator.cpp" line="798"/>
         <location filename="workfield.cpp" line="154"/>
         <source>Получатель N5</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mediator.cpp" line="672"/>
+        <location filename="mediator.cpp" line="799"/>
         <location filename="workfield.cpp" line="119"/>
         <source>last_page_stamp</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mediator.cpp" line="673"/>
+        <location filename="mediator.cpp" line="800"/>
         <location filename="workfield.cpp" line="139"/>
         <source>recivers_list</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mediator.cpp" line="674"/>
+        <location filename="mediator.cpp" line="801"/>
         <source>doc_status</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mediator.cpp" line="675"/>
+        <location filename="mediator.cpp" line="802"/>
         <source>brak_pages</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mediator.cpp" line="676"/>
+        <location filename="mediator.cpp" line="803"/>
         <source>brak_doc</source>
         <translation type="unfinished"></translation>
     </message>
     <message utf8="true">
-        <location filename="selectwindow.cpp" line="17"/>
+        <location filename="selectwindow.cpp" line="18"/>
         <source>Выбери принтер и режим работы</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="selectwindow.cpp" line="56"/>
+        <location filename="selectwindow.cpp" line="57"/>
         <source>*%1*.*</source>
         <translation type="unfinished"></translation>
     </message>
     <message utf8="true">
-        <location filename="mediator.cpp" line="429"/>
+        <location filename="mediator.cpp" line="531"/>
         <source>Режим работы: [Учет листов]</source>
         <translation type="unfinished"></translation>
     </message>
     <message utf8="true">
-        <location filename="selectwindow.cpp" line="132"/>
+        <location filename="selectwindow.cpp" line="133"/>
         <source>Для решения этой проблемы обратитесь к администратору безопасности!</source>
         <translation type="unfinished"></translation>
     </message>
@@ -411,70 +422,87 @@
         <translation type="unfinished"></translation>
     </message>
     <message utf8="true">
+        <location filename="addtemplate.cpp" line="94"/>
+        <location filename="selectwindow.cpp" line="132"/>
+        <location filename="workfield.cpp" line="183"/>
+        <source>Информационное сообщение</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message utf8="true">
         <location filename="addtemplate.cpp" line="95"/>
-        <location filename="selectwindow.cpp" line="133"/>
+        <location filename="selectwindow.cpp" line="134"/>
         <location filename="workfield.cpp" line="185"/>
-        <location filename="workfield.cpp" line="333"/>
+        <location filename="workfield.cpp" line="353"/>
         <source>Выход</source>
         <translation type="unfinished"></translation>
     </message>
     <message utf8="true">
-        <location filename="selectwindow.cpp" line="149"/>
+        <location filename="selectwindow.cpp" line="150"/>
         <source>Авторизация с консоли</source>
         <translation type="unfinished"></translation>
     </message>
     <message utf8="true">
-        <location filename="workfield.cpp" line="207"/>
+        <location filename="workfield.cpp" line="201"/>
+        <source>Сервер безопастности разрешил печать.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message utf8="true">
+        <location filename="workfield.cpp" line="216"/>
         <source>Не забудьте отредактировать шаблон перед использованием</source>
         <translation type="unfinished"></translation>
     </message>
     <message utf8="true">
-        <location filename="workfield.cpp" line="251"/>
+        <location filename="workfield.cpp" line="265"/>
         <source>Личные шаблоны</source>
         <translation type="unfinished"></translation>
     </message>
     <message utf8="true">
-        <location filename="workfield.cpp" line="252"/>
+        <location filename="workfield.cpp" line="266"/>
         <source>Выберите ранее сохраненные индивидуальные шаблоны</source>
         <translation type="unfinished"></translation>
     </message>
     <message utf8="true">
-        <location filename="workfield.cpp" line="256"/>
+        <location filename="workfield.cpp" line="270"/>
         <source>Глобальные шаблоны</source>
         <translation type="unfinished"></translation>
     </message>
     <message utf8="true">
-        <location filename="workfield.cpp" line="257"/>
+        <location filename="workfield.cpp" line="271"/>
         <source>Выберите глобальные шаблоны</source>
         <translation type="unfinished"></translation>
     </message>
     <message utf8="true">
-        <location filename="workfield.cpp" line="295"/>
+        <location filename="workfield.cpp" line="309"/>
         <source>Сохранение в БД карточки документа</source>
         <translation type="unfinished"></translation>
     </message>
     <message utf8="true">
-        <location filename="workfield.cpp" line="297"/>
+        <location filename="workfield.cpp" line="311"/>
         <source>Печать учетной метки на обратной стороне листа</source>
         <translation type="unfinished"></translation>
     </message>
     <message utf8="true">
-        <location filename="workfield.cpp" line="319"/>
+        <location filename="workfield.cpp" line="334"/>
         <source>Проверка наличия в БД документа с МБ=[%1] и номером экземпляра =[%2]</source>
         <translation type="unfinished"></translation>
     </message>
     <message utf8="true">
-        <location filename="workfield.cpp" line="324"/>
+        <location filename="workfield.cpp" line="340"/>
+        <source>Шаблон документа должен быть выбран!</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message utf8="true">
+        <location filename="workfield.cpp" line="344"/>
         <source>Номер экземпляра не может быть не заполнен!</source>
         <translation type="unfinished"></translation>
     </message>
     <message utf8="true">
-        <location filename="workfield.cpp" line="327"/>
+        <location filename="workfield.cpp" line="347"/>
         <source>Поле МБ должно быть заполнено</source>
         <translation type="unfinished"></translation>
     </message>
     <message utf8="true">
-        <location filename="workfield.cpp" line="330"/>
+        <location filename="workfield.cpp" line="350"/>
         <source>Данное поле не может быть пустым</source>
         <translation type="unfinished"></translation>
     </message>
