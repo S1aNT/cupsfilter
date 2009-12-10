@@ -226,11 +226,13 @@ void workField::do_addTemplates()
 void workField::setCurrentTemplates(QString temp)
 {
     QString f_name;
+    QString t_name;
     if (localORglobal){
         for (int i=0;i<local_templates_path.size();i++){
             QFileInfo fi=local_templates_path.at(i);
             if (fi.fileName()==temp){
                 f_name = fi.absoluteFilePath();
+                t_name = fi.fileName();
                 break;
             }
         }
@@ -246,6 +248,9 @@ void workField::setCurrentTemplates(QString temp)
         ui->editTemplatesTBtn->setEnabled(false);
     }
     currentTemplates = f_name; // Запомним выбор пользователя
+    QString msg = QObject::trUtf8("Выбран шаблон %1").arg(t_name);
+    ui->AnsLabel->setText(msg);
+
 }
 
 void workField::selectTemplatesDir(bool mode)
@@ -332,7 +337,7 @@ void workField::checkData()
                 //emit checkMBInBase(mb,copyNum,this->mode);
 
             }else{
-                e_msg = QObject::trUtf8("Шаблон долкумента болжен быть выбран!");
+                e_msg = QObject::trUtf8("Шаблон документа должен быть выбран!");
             }
 
         }else{
