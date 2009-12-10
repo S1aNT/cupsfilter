@@ -48,7 +48,7 @@ signals:
     void allTemplatesPagesParsed(QGraphicsScene *scene_1,QGraphicsScene *scene_2,
                                  QGraphicsScene *scene_3,QGraphicsScene *scene_4);
     void emptyTemplateCreate(const QString & t_name);
-    void allPageConverted(QString &first,QString &second,
+    void allPagesConverted(QString &first,QString &second,
                           QString &third,QString &fourth);
 public slots:
     void convertTemplatesToPdf(const QString & templates_in_file,QStandardItemModel * model);

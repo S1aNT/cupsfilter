@@ -334,7 +334,7 @@ void Tmpl_plugin::convertTemplatesToPdf(const QString & templates_in_file,QStand
                printFormatingPageToFile(3);
                printFormatingPageToFile(4);
 
-               emit allPageConverted(firstPage_tmpl_fn,secondPage_tmpl_fn,
+               emit allPagesConverted(firstPage_tmpl_fn,secondPage_tmpl_fn,
                                      thirdPage_tmpl_fn,fourthPage_tmpl_fn);
             }else{
                 error_msg = QObject::trUtf8("ERROR: Ошибка разбора шаблона [%1]\n").arg(templates_in_file);
