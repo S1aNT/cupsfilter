@@ -65,7 +65,7 @@ signals:
     void allTemplatesPagesParsed(QGraphicsScene *scene_1,QGraphicsScene *scene_2,
                                  QGraphicsScene *scene_3,QGraphicsScene *scene_4); // успешый разбор всех страниц шаблона и запись их в сцены
     void needUpdatePage(int page); // Требование плагину обновить страницу шаблона номер
-
+    void print_allowed(); // Сообщение от демона что печать разрешена
 public slots:
     // Сохранить данные в лог
     void doSaveToLog(const QString & log_msg);
@@ -132,6 +132,7 @@ private:
     QString user_mandat;
 
     QMap <QString, int> elemTag;
+    QMap <QString,QString> printer_device_list;
     // Набор моделей [для сборки :)]
     QStandardItemModel *doc_model;
     QStringListModel *stampModel;
