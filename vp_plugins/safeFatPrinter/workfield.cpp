@@ -194,6 +194,15 @@ void workField::showPreviewPage(QPixmap &preview_page)
     connect (wnd,SIGNAL(dontNeedPrintPage()),this,SIGNAL(dontNeedPrintPage()));
     wnd->showPage(preview_page);
 }
+void workField::doPrintAllowed()
+{
+     this->setEnableField(true);
+     // Запишем данные в строку статуса
+     msg = QObject::trUtf8("Сервер безопастности разрешил печать.");
+     ui->AnsLabel->setText(msg);
+     // Требование распечатать документ используя выбранный шаблон
+     emit needPrintPage(this->currentTemplates);
+}
 
 //********************************** private slots ******************************************
 void workField::do_addTemplates()
