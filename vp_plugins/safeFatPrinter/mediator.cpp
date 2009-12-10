@@ -400,6 +400,7 @@ void  Mediator::parseServerResponse(QString &responce_msg)
 
     if(rx.indexIn(responce_msg) != -1)
     {
+        qApp->processEvents();
         cmd =rx.cap(1);
         body = rx.cap(2);
         qDebug() <<Q_FUNC_INFO<< cmd<<body;
