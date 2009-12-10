@@ -1,6 +1,7 @@
 #include "selectwindow.h"
 #include "ui_selectwindow.h"
 #include <QTimer>
+#include <QDir>
 
 #include "getusernamemandatdlg.h"
 
