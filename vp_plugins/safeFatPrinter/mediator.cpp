@@ -371,6 +371,11 @@ void  Mediator::parseServerResponse(QString &responce_msg)
     QList<QPrinterInfo> plist;
     QStringList tmp_list;
 
+    QStringList remote_printer;
+    QStringList devices_info;
+    QString pline;
+
+
     if(rx.indexIn(responce_msg) != -1)
     {
         cmd =rx.cap(1);
@@ -425,7 +430,23 @@ void  Mediator::parseServerResponse(QString &responce_msg)
 
             break;
         case PRINTER_LIST_ANS:
-            // "/1400;:;SL9PRT.DDDD;:;socket://200.0.0.100:9100/?waitof=false;:;SL9PRT.NEW;:;socket://200.0.0.100:9100/"
+            // "/1400;:;SL9PRT.DDDD;:;socket://200.0.0.100:9100/?waitof=false###;:;SL9PRT.NEW;:;socket://200.0.0.100:9100/###"
+            remote_printer = body.split("###;:;");
+            for (int i = 0; i < remote_printer.size(); ++i) {
+                devices_info.clear();
+                pline = remote_printer.at(i);
+                pline.replace("###","");
+                qDebug() << "pline " << pline;
+                devices_info = pline.split(";:;");
+                qDebug() << "device_info " << devices_info.at(0) << devices_info.at(1);
+                printer_device_list.insert(devices_info.at(0),devices_info.at(1));
+                pline = devices_info.at(0);
+                qDebug() << "pline section " << pline.section(".",1,1);
+                tmp_list.append(pline.section(".",1,1)); // Имя принтера после точки
+            }
+
+
+            /*
             plist = QPrinterInfo::availablePrinters();
 
             for (int i = 0; i < plist.size(); ++i) {
@@ -436,7 +457,7 @@ void  Mediator::parseServerResponse(QString &responce_msg)
 
             msg = QString("SL9PRT.DDDD");
             tmp_list.append(msg);
-
+            */
             this->printersModel->setStringList(tmp_list);
             emit StateChanged(filledPrinterList);
 
