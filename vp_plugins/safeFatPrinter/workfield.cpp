@@ -198,7 +198,7 @@ void workField::doPrintAllowed()
 {
      this->setEnableField(true);
      // Запишем данные в строку статуса
-     msg = QObject::trUtf8("Сервер безопастности разрешил печать.");
+     QString msg = QObject::trUtf8("Сервер безопастности разрешил печать.");
      ui->AnsLabel->setText(msg);
      // Требование распечатать документ используя выбранный шаблон
      emit needPrintPage(this->currentTemplates);
