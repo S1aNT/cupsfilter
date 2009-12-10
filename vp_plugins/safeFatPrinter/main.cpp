@@ -19,7 +19,7 @@ int main(int argc, char *argv[])
     //QTextCodec::setCodecForTr( QTextCodec::codecForName( "cp866" ) );
     QTextCodec::setCodecForCStrings(codec);
     QTextCodec::setCodecForLocale(codec);
-    //qInstallMsgHandler(myMessageOutput);
+    qInstallMsgHandler(myMessageOutput);
 
     QApplication app(argc, argv);
     QStringList aList=app.arguments();
