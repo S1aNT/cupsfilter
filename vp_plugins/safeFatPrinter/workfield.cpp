@@ -312,15 +312,20 @@ void workField::checkData()
 
     if (!mb.isEmpty()){
         if (!copyNum.isEmpty()){
-            // Запретим все элементы
-            this->setEnableField(false);
-            ui->previewBtn->setEnabled(false);
-            // Запишем данные в строку статуса
-            msg = QObject::trUtf8("Проверка наличия в БД документа с МБ=[%1] и номером экземпляра =[%2]").arg(mb).arg(copyNum);
-            ui->AnsLabel->setText(msg);
-            emit needAuthUserToPrinter();
-            //emit checkMBInBase(mb,copyNum,this->mode);
-            //Отправим на печать
+            if (!currentTemplates.isEmpty()){
+                // Запретим все элементы
+                this->setEnableField(false);
+                ui->previewBtn->setEnabled(false);
+                // Запишем данные в строку статуса
+                msg = QObject::trUtf8("Проверка наличия в БД документа с МБ=[%1] и номером экземпляра =[%2]").arg(mb).arg(copyNum);
+                ui->AnsLabel->setText(msg);
+                emit needAuthUserToPrinter();
+                //emit checkMBInBase(mb,copyNum,this->mode);
+
+            }else{
+                e_msg = QObject::trUtf8("Шаблон долкумента болжен быть выбран!");
+            }
+
         }else{
             e_msg = QObject::trUtf8("Номер экземпляра не может быть не заполнен!");
         }
