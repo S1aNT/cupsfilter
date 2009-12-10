@@ -72,6 +72,7 @@ void Tmpl_plugin::init(const QString &spool,const QString &sid)
             page_size.insert(QString("Letter (216 x 279 мм)"), QPrinter::Letter);
             page_size.insert(QString("Tabloid (279 x 432 мм)"), QPrinter::Tabloid);
 
+            page_marker = "templates_page"; // маркер страницы
 
         }else{
             error_msg = QObject::trUtf8("ERROR: каталог %1 не существует\n").arg(spool);
@@ -109,9 +110,62 @@ void Tmpl_plugin::createEmptyTemplate(const QString & file_name,
     new_tmpl_file.open(QIODevice::WriteOnly);
     QDataStream out(&new_tmpl_file);
     out.setVersion(QDataStream::Qt_4_5);
-    // Запишем версию шаблона
-    out << t_info.version;
+
+    templates_file_name = file_name;
+    int p_s_id = this->getElemIdByName(p_size);
+
     // Создаем общую часть шаблона
+    t_info.version = t_version;
+    t_info.t_author = t_author;    // автор шаблона
+    t_info.t_name = t_name;      // название шаблона, то что покажем в списке шаблонов
+    t_info.t_desc = t_desc;      // описание шаблона, может быть пустым
+    t_info.p_size = p_size;      // размер бумаги
+
+    t_info.page_height = this->findPageSize_H(p_s_id);    // высота листа
+    t_info.page_width = this->findPageSize_V(p_s_id);     // ширина листа
+    t_info.page_orient = pages_orient;    // ориентация листа
+    t_info.date_time = c_date; // дата и время создания шаблона
+
+    t_info.m_left = m_left;      // отступ слева
+    t_info.m_right = m_right;     // отступ справа
+    t_info.m_top = m_top;       // отступ сверху
+    t_info.m_bottom = m_bottom;    // отступ снизу
+
+    t_info.firstPageElemCount = 0;  // первая страница шаблона 0 элементов
+    t_info.secondPageElemCount = 0; // вторая страница шаблона 0 элементов
+    t_info.thirdPageElemCount = 0;  // третья страница шаблона 0 элементов
+    t_info.fourthPageElemCount = 0; // четвертая страница шаблона 0 элементов
+    // Запишем общую часть шаблона
+    out << t_info.version;
+    out << t_info.file_name;
+    out << t_info.date_time;
+    out << t_info.t_author;
+    out << t_info.t_name;
+    out << t_info.t_desc;
+    out << t_info.p_size;
+    out << t_info.page_orient;
+    out << t_info.page_height;
+    out << t_info.page_width;
+    out << t_info.m_top;
+    out << t_info.m_bottom;
+    out << t_info.m_left;
+    out << t_info.m_right;
+    out << t_info.firstPageElemCount;
+    out << t_info.secondPageElemCount;
+    out << t_info.thirdPageElemCount;
+    out << t_info.fourthPageElemCount;
+
+    // Начнем сохранение страниц
+    out << this->page_marker;
+    out << t_info.firstPageElemCount;  // первая страница шаблона 0 элементов
+    out << this->page_marker;
+    out << t_info.secondPageElemCount; // вторая страница шаблона 0 элементов
+    out << this->page_marker;
+    out << t_info.thirdPageElemCount;  // третья страница шаблона 0 элементов
+    out << this->page_marker;
+    out << t_info.fourthPageElemCount; // четвертая страница шаблона 0 элементов
+
+    /*
     out << c_date;      // дата и время создания шаблона
     out << t_author;    // автор шаблона
     out << t_name;      // название шаблона, то что покажем в списке шаблонов
@@ -131,6 +185,7 @@ void Tmpl_plugin::createEmptyTemplate(const QString & file_name,
     out << elem_count; // вторая страница шаблона 0 элементов
     out << elem_count; // третья страница шаблона 0 элементов
     out << elem_count; // четвертая страница шаблона 0 элементов
+    */
     new_tmpl_file.close();
     emit emptyTemplateCreate(file_name);
 
@@ -225,55 +280,66 @@ void Tmpl_plugin::doSaveTemplates()
     QGraphicsItem *paper_item;
     QString elem_type;
     int count;
-    if (QFile::exists(t_info.file_name)){
-        QFile::rename(t_info.file_name,t_info.file_name+".bak");
+    if (QFile::exists(templates_file_name)){
+        QFile::rename(templates_file_name,templates_file_name+".bak");
         // запись основных данных шаблона
-        QFile new_tmpl_file(t_info.file_name);
+        QFile new_tmpl_file(templates_file_name);
         new_tmpl_file.open(QIODevice::WriteOnly);
+
         QDataStream out(&new_tmpl_file);
         out.setVersion(QDataStream::Qt_4_5);
-        // Запишем версию шаблона
-        out << t_info.version;
-        // Создаем общую часть шаблона
+
+        // Обновим время модификации шаблона
         t_info.date_time = QDateTime::currentDateTime().toString("dd.MM.yyyy hh:mm:ss");
-        out <<  t_info.date_time;      // дата и время создания шаблона / модификации
-        out << t_info.t_author;    // автор шаблона
-        out << t_info.t_name;      // название шаблона, то что покажем в списке шаблонов
-        out << t_info.t_desc;      // описание шаблона, может быть пустым
-        out << t_info.p_size;      // размер бумаги
-        int p_s_id = this->getElemIdByName(t_info.p_size);
+        // Обновим данные о количестве страниц
+        t_info.firstPageElemCount = getElemCount(firstPage_scene);
+        t_info.secondPageElemCount = getElemCount(secondPage_scene);
+        t_info.thirdPageElemCount = getElemCount(thirdPage_scene);
+        t_info.fourthPageElemCount = getElemCount(fourthPage_scene);
+        // запись основных данных шаблона
+        out << t_info.version;
+        out << t_info.file_name;
+        out << t_info.date_time;
+        out << t_info.t_author;
+        out << t_info.t_name;
+        out << t_info.t_desc;
+        out << t_info.p_size;
+        out << t_info.page_orient;
+        out << t_info.page_height;
+        out << t_info.page_width;
+        out << t_info.m_top;
+        out << t_info.m_bottom;
+        out << t_info.m_left;
+        out << t_info.m_right;
+        out << t_info.firstPageElemCount;
+        out << t_info.secondPageElemCount;
+        out << t_info.thirdPageElemCount;
+        out << t_info.fourthPageElemCount;
+        //Запись маркера начало страницы
+        out << this->page_marker;
 
-        out << this->findPageSize_H(p_s_id);    // высота листа
-        out << this->findPageSize_V(p_s_id);     // ширина листа
-        out << t_info.page_orient;    // ориентация листа
-        out << t_info.m_top;       // отступ сверху
-        out << t_info.m_bottom;    // отступ снизу
-        out << t_info.m_left;      // отступ слева
-        out << t_info.m_right;     // отступ справа
-
-        count = getElemCount(firstPage_scene);
+        count = t_info.firstPageElemCount;
         paper_item = findPaperElem(firstPage_scene);
         out << count; // первая страница шаблона элементов
-        for (int i=0; i < count; ++i){
+        for (int i=0; i < count; i++){
             elem_type = paper_item->childItems().at(i)->data(ObjectName).toString();
             out << elem_type; // Сохраним тип элемента
             if (elem_type == "tElem"){
                 SimpleItem* pItem = (SimpleItem* )paper_item->childItems().at(i);
-
                 out << pItem->pos()
                     << pItem->getFont()
                     << pItem->getColor()
                     << pItem->getText();
+
             }
         }
-
-        count = getElemCount(secondPage_scene);
+        out << this->page_marker;
+        count = t_info.secondPageElemCount;
         paper_item = findPaperElem(secondPage_scene);
         out << count; // вторая страница шаблона элементов
         for (int i=0; i < count; i++){
             elem_type = paper_item->childItems().at(i)->data(ObjectName).toString();
             if (elem_type == "tElem"){
-
                 SimpleItem* pItem = (SimpleItem* )paper_item->childItems().at(i);
                 out << pItem->pos()
                         << pItem->getFont()
@@ -281,8 +347,8 @@ void Tmpl_plugin::doSaveTemplates()
                         << pItem->getText();
             }
         }
-
-        count = getElemCount(thirdPage_scene);
+        out << this->page_marker;
+        count = t_info.thirdPageElemCount;
         paper_item = findPaperElem(thirdPage_scene);
         out << count; // третья страница шаблона элементов
         for (int i=0; i < count; i++){
@@ -296,8 +362,8 @@ void Tmpl_plugin::doSaveTemplates()
                         << pItem->getText();
             }
         }
-
-        count = getElemCount(fourthPage_scene);
+        out << this->page_marker;
+        count = t_info.fourthPageElemCount;
         paper_item = findPaperElem(fourthPage_scene);
         out << count; // четвертая страница шаблона элементов
         for (int i=0; i < count; i++){
@@ -350,49 +416,6 @@ void Tmpl_plugin::convertTemplatesToPdf(const QString & templates_in_file,QStand
     }
 }
 
-void Tmpl_plugin::update_scene(int pageNum)
-{
-    // пользователь удалил или добавил элемент на сцену, требуется заново
-    // пройти по сцене и обновить содержимое элемента имеющего в качестве
-    // текста [some_text] проверка есть ли такой в модели и запись значения
-    QGraphicsScene *scene;
-    QString t_str;
-    QStringList old_list;
-    QStringList new_list;
-
-    switch(pageNum){
-    case 1:
-        scene = firstPage_scene;
-        break;
-    case 2:
-        scene = secondPage_scene;
-        break;
-    case 3:
-        scene = thirdPage_scene;
-        break;
-    case 4:
-        scene = fourthPage_scene;
-        break;
-    }
-
-    for (int i = 0; i < scene->items().size(); i++){
-        QGraphicsItem *item = scene->items().at(i);
-        t_str=item->data(ObjectName).toString();
-        if (t_str==QString("tElem")){
-            old_list.clear();
-            new_list.clear();
-
-            SimpleItem* item =(SimpleItem* )scene->items().at(i);
-            old_list = item->getText();
-            //Анализ old_list на предмет наличия [тег]
-            for (int j = 0; j <old_list.size();j++){
-                new_list.append(findFromModel(old_list.at(j)));
-            }
-            item->setText(new_list);
-        }
-    }
-
-}
 
 void Tmpl_plugin::printFormatingPageToFile(int pageNum)
 {
@@ -401,7 +424,7 @@ void Tmpl_plugin::printFormatingPageToFile(int pageNum)
 
     // Печатает выбранную страницу текущего шаблона в pdf файл
     // страница формируется исходя из данных модели
-    if (!t_info.file_name.isEmpty() && pageNum <= 4 && pageNum >=1){
+    if (!templates_file_name.isEmpty() && pageNum <= 4 && pageNum >=1){
         QPrinter pdfprinter;
         if (t_info.page_orient){
             pdfprinter.setOrientation(QPrinter::Portrait);
@@ -454,7 +477,18 @@ void Tmpl_plugin::printFormatingPageToFile(int pageNum)
 bool Tmpl_plugin::parse_templates(const QString & in_file)
 {
     bool flag;
-    int ver;
+
+    QString e_msg;
+
+    QString elemType;
+    QPointF ps;
+    QFont fnt;
+    QColor col;
+    QStringList pList;
+    QStringList filledList;
+    int page_count_elem;
+    QString marker;
+    QGraphicsItem  * parent;
 
     if (!in_file.isEmpty()){
         if (QFile::exists(in_file)){
@@ -464,29 +498,38 @@ bool Tmpl_plugin::parse_templates(const QString & in_file)
             fourthPage_scene->clear();
 
             // сохраним имя текущего файла шаблона
-            t_info.file_name = in_file;
+            templates_file_name = in_file;
             QFile file(in_file);
             file.open(QIODevice::ReadOnly);
+
+
             QDataStream in(&file);
             in.setVersion(QDataStream::Qt_4_5);
-            // Получим версию шаблона
-            in >> ver;
-            if (ver == t_info.version ){
-                // Читаем общую часть шаблона
-                in >> t_info.date_time;               // дата и время создания шаблона
-                in >> t_info.t_author;                  // автор шаблона отобразиться в tooltipe
-                in >> t_info.t_name;          // название шаблона, то что покажем в списке шаблонов
-                in >> t_info.t_desc;             // описание шаблона, может быть пустым
-                in >> t_info.p_size;              // размер бумаги
-                in >> t_info.page_height;             // высота листа
-                in >> t_info.page_width;              // ширина листа
-                in >> t_info.page_orient;             // ориентация листа
-                in >> t_info.m_top;              // отступ сверху
-                in >> t_info.m_bottom;           // отступ снизу
-                in >> t_info.m_left;             // отступ слева
-                in >> t_info.m_right;            // отступ справа
+
+            // Читаем общую часть шаблона
+            in >> t_info.version;
+            in >> t_info.file_name;
+            in >> t_info.date_time;
+            in >> t_info.t_author;
+            in >> t_info.t_name;
+            in >> t_info.t_desc;
+            in >> t_info.p_size;
+            in >> t_info.page_orient;
+            in >> t_info.page_height;
+            in >> t_info.page_width;
+            in >> t_info.m_top;
+            in >> t_info.m_bottom;
+            in >> t_info.m_left;
+            in >> t_info.m_right;
+            in >> t_info.firstPageElemCount;
+            in >> t_info.secondPageElemCount;
+            in >> t_info.thirdPageElemCount;
+            in >> t_info.fourthPageElemCount;
+
+            if (t_info.version == t_version){// Сравним версию шаблона
 
                 // создаем основное рабочее поле
+
                 firstPage_scene->setSceneRect(0, 0, t_info.page_width,t_info.page_height);
                 secondPage_scene->setSceneRect(0, 0, t_info.page_width,t_info.page_height);
                 thirdPage_scene->setSceneRect(0, 0, t_info.page_width,t_info.page_height);
@@ -495,6 +538,7 @@ bool Tmpl_plugin::parse_templates(const QString & in_file)
                 secondPage_scene->setBackgroundBrush(Qt::white);
                 thirdPage_scene->setBackgroundBrush(Qt::white);
                 fourthPage_scene->setBackgroundBrush(Qt::white);
+
                 // рисуем границы (при печати надо их убирать)
 
                 QGraphicsRectItem *paper_rect_1 =
@@ -581,106 +625,197 @@ bool Tmpl_plugin::parse_templates(const QString & in_file)
                 border_rect_4->setParentItem(paper_rect_4);
                 //fourthPage_scene->addItem(border_rect_4);
 
-                QString elemType;
-                QPointF ps;
-                QFont fnt;
-                QColor col;
-                QStringList pList;
-                QStringList filledList;
-                in >> t_info.firstPageElemCount;      // число элементов на первой странице
-                for (int i=0;i<t_info.firstPageElemCount;i++){
-                    // перебор всех элементов страницы
-                    in >> elemType;
-                    if (elemType=="tElem"){
-                        pList.clear();
-                        filledList.clear();
-                        SimpleItem * pItem = new SimpleItem;
-                        in >>ps >>fnt >> col >>pList;
-                        //Анализ pList на предмет наличия [тег]
-                        for (int j = 0; j <pList.size();j++){
-                            filledList.append(findFromModel(pList.at(j)));
+                in >> marker;
+                if (marker == this->page_marker){
+                    // Не сбились с позиционированием
+                    in >> page_count_elem;
+                    if (page_count_elem == t_info.firstPageElemCount){
+                        // Поиск предка
+                        parent = this->findPaperElem(firstPage_scene);
+
+                        // число элементов на первой странице совпадает с заголовком
+                        for (int i=0;i<t_info.firstPageElemCount;i++){
+                            // перебор всех элементов страницы
+                            in >> elemType;
+                            if (elemType=="tElem"){
+                                in >>ps >>fnt >> col >>pList;
+                                this->create_SimpleItem(parent,ps,fnt,col,pList);
+
+//                                pList.clear();
+//                                filledList.clear();
+//                                SimpleItem * pItem = new SimpleItem;
+//                                in >>ps >>fnt >> col >>pList;
+//                                //Анализ pList на предмет наличия [тег]
+//                                for (int j = 0; j <pList.size();j++){
+//                                    filledList.append(findFromModel(pList.at(j)));
+//                                }
+//                                pItem->setPos(ps);
+//                                pItem->setFont(fnt);
+//                                pItem->setColor(col);
+//                                pItem->setText(filledList);
+//                                pItem->setZValue(i);
+//                                pItem->setFlag(QGraphicsItem::ItemIsMovable);
+//                                pItem->setData(ObjectName, "tElem");
+//                                pItem->setParentItem(paper_rect_1);
+                            }
                         }
-                        pItem->setPos(ps);
-                        pItem->setFont(fnt);
-                         pItem->setColor(col);
-                        pItem->setText(filledList);
-                        pItem->setZValue(i);
-                        pItem->setFlag(QGraphicsItem::ItemIsMovable);
-                        pItem->setData(ObjectName, "tElem");
-                        pItem->setParentItem(paper_rect_1);
+
+                    }else{
+                        e_msg = QObject::trUtf8("Ошибка:Кол-во элементов [%1] в заголовке первой страницы не совпадает с записанным в блоке %2")
+                                    .arg(t_info.firstPageElemCount,0,10)
+                                    .arg(page_count_elem);
+                        emit error(e_msg);
+                        return false;
                     }
+                }else{
+                    e_msg = QObject::trUtf8("Ошибка:Не найден маркер начала страницы");
+                    emit error(e_msg);
+                    return false;
                 }
 
-                in >> t_info.secondPageElemCount;      // число элементов на второй странице
-                for (int i=0;i<t_info.secondPageElemCount;i++){
-                    // перебор всех элементов страницы
-                    in >> elemType;
-                    if (elemType=="tElem"){
-                        pList.clear();
-                        filledList.clear();
-                        SimpleItem * pItem = new SimpleItem;
-                        in >>ps >>fnt >> col >>pList;
-                        //Анализ pList на предмет наличия [тег]
-                        for (int j = 0; j <pList.size();j++){
-                            filledList.append(findFromModel(pList.at(j)));
+                in >> marker;
+                if (marker == this->page_marker){
+                    // Не сбились с позиционированием
+                    in >> page_count_elem;
+                    if (page_count_elem == t_info.secondPageElemCount){
+                        // Поиск предка
+                        parent = this->findPaperElem(secondPage_scene);
+
+                        // число элементов на 2 странице совпадает с заголовком
+                        for (int i=0;i<t_info.secondPageElemCount;i++){
+                            // перебор всех элементов страницы
+                            in >> elemType;
+                            if (elemType=="tElem"){
+                                in >>ps >>fnt >> col >>pList;
+                                this->create_SimpleItem(parent,ps,fnt,col,pList);
+
+//                                pList.clear();
+//                                filledList.clear();
+//                                SimpleItem * pItem = new SimpleItem;
+//                                in >>ps >>fnt >> col >>pList;
+//                                //Анализ pList на предмет наличия [тег]
+//                                for (int j = 0; j <pList.size();j++){
+//                                    filledList.append(findFromModel(pList.at(j)));
+//                                }
+//                                pItem->setPos(ps);
+//                                pItem->setFont(fnt);
+//                                pItem->setColor(col);
+//                                pItem->setText(filledList);
+//                                pItem->setZValue(i);
+//                                pItem->setFlag(QGraphicsItem::ItemIsMovable);
+//                                pItem->setData(ObjectName, "tElem");
+//                                pItem->setParentItem(paper_rect_2);
+                            }
                         }
-                        pItem->setPos(ps);
-                        pItem->setFont(fnt);
-                         pItem->setColor(col);
-                        pItem->setText(pList);
-                        pItem->setZValue(i);
-                        pItem->setFlag(QGraphicsItem::ItemIsMovable);
-                        pItem->setData(ObjectName, "tElem");
-                        pItem->setParentItem(paper_rect_2);
+
+                    }else{
+                        e_msg = QObject::trUtf8("Ошибка:Кол-во элементов [%1] в заголовке второй страницы не совпадает с записанным в блоке %2")
+                                    .arg(t_info.secondPageElemCount,0,10)
+                                    .arg(page_count_elem);
+                        emit error(e_msg);
+                        return false;
                     }
+                }else{
+                    e_msg = QObject::trUtf8("Ошибка:Не найден маркер начала страницы");
+                    emit error(e_msg);
+                    return false;
                 }
 
-                in >> t_info.thirdPageElemCount;      // число элементов на третьей странице
-                for (int i=0;i<t_info.thirdPageElemCount;i++){
-                    // перебор всех элементов страницы
-                    in >> elemType;
-                    if (elemType=="tElem"){
-                        pList.clear();
-                        filledList.clear();
-                        SimpleItem * pItem = new SimpleItem;
-                        in >>ps >>fnt >> col >>pList;
-                        //Анализ pList на предмет наличия [тег]
-                        for (int j = 0; j <pList.size();j++){
-                            filledList.append(findFromModel(pList.at(j)));
+                in >> marker;
+                if (marker == this->page_marker){
+                    // Не сбились с позиционированием
+                    in >> page_count_elem;
+                    if (page_count_elem == t_info.thirdPageElemCount){
+                        // Поиск предка
+                        parent = this->findPaperElem(thirdPage_scene);
+
+                        // число элементов на 3 странице совпадает с заголовком
+                        for (int i=0;i<t_info.thirdPageElemCount;i++){
+                            // перебор всех элементов страницы
+                            in >> elemType;
+                            if (elemType=="tElem"){
+                                in >>ps >>fnt >> col >>pList;
+                                this->create_SimpleItem(parent,ps,fnt,col,pList);
+
+//                                pList.clear();
+//                                filledList.clear();
+//                                SimpleItem * pItem = new SimpleItem;
+//                                in >>ps >>fnt >> col >>pList;
+//                                //Анализ pList на предмет наличия [тег]
+//                                for (int j = 0; j <pList.size();j++){
+//                                    filledList.append(findFromModel(pList.at(j)));
+//                                }
+//                                pItem->setPos(ps);
+//                                pItem->setFont(fnt);
+//                                pItem->setColor(col);
+//                                pItem->setText(filledList);
+//                                pItem->setZValue(i);
+//                                pItem->setFlag(QGraphicsItem::ItemIsMovable);
+//                                pItem->setData(ObjectName, "tElem");
+//                                pItem->setParentItem(paper_rect_3);
+                            }
                         }
-                        pItem->setPos(ps);
-                        pItem->setFont(fnt);
-                         pItem->setColor(col);
-                        pItem->setText(filledList);
-                        pItem->setZValue(i);
-                        pItem->setFlag(QGraphicsItem::ItemIsMovable);
-                        pItem->setData(ObjectName, "tElem");
-                        pItem->setParentItem(paper_rect_3);
+
+                    }else{
+                        e_msg = QObject::trUtf8("Ошибка:Кол-во элементов [%1] в заголовке третьей страницы не совпадает с записанным в блоке %2")
+                                    .arg(t_info.thirdPageElemCount,0,10)
+                                    .arg(page_count_elem);
+                        emit error(e_msg);
+                        return false;
                     }
+                }else{
+                    e_msg = QObject::trUtf8("Ошибка:Не найден маркер начала страницы");
+                    emit error(e_msg);
+                    return false;
                 }
-                in >> t_info.fourthPageElemCount;      // число элементов на четвертой странице
-                for (int i=0;i<t_info.fourthPageElemCount;i++){
-                    // перебор всех элементов страницы
-                    in >> elemType;
-                    if (elemType=="tElem"){
-                        pList.clear();
-                        filledList.clear();
-                        SimpleItem * pItem = new SimpleItem;
-                        in >>ps >>fnt >> col >>pList;
-                        //Анализ pList на предмет наличия [тег]
-                        for (int j = 0; j <pList.size();j++){
-                            filledList.append(findFromModel(pList.at(j)));
+                in >> marker;
+                if (marker == this->page_marker){
+                    // Не сбились с позиционированием
+                    in >> page_count_elem;
+                    if (page_count_elem == t_info.fourthPageElemCount){
+                        // Поиск предка
+                        parent = this->findPaperElem(fourthPage_scene);
+
+                        // число элементов на 4 странице совпадает с заголовком
+                        for (int i=0;i<t_info.fourthPageElemCount;i++){
+                            // перебор всех элементов страницы
+                            in >> elemType;
+                            if (elemType=="tElem"){
+                                in >>ps >>fnt >> col >>pList;
+                                this->create_SimpleItem(parent,ps,fnt,col,pList);
+//                                pList.clear();
+//                                SimpleItem * pItem = new SimpleItem;
+//                                filledList.clear();
+//                                //Анализ pList на предмет наличия [тег]
+//                                for (int j = 0; j <pList.size();j++){
+//                                    filledList.append(findFromModel(pList.at(j)));
+//                                }
+//                                pItem->setPos(ps);
+//                                pItem->setFont(fnt);
+//                                pItem->setColor(col);
+//                                pItem->setText(filledList);
+//                                pItem->setZValue(i);
+//                                pItem->setFlag(QGraphicsItem::ItemIsMovable);
+//                                pItem->setData(ObjectName, "tElem");
+//                                pItem->setParentItem(paper_rect_4);
+//
+                            }
                         }
-                        pItem->setPos(ps);
-                        pItem->setFont(fnt);
-                         pItem->setColor(col);
-                        pItem->setText(filledList);
-                        pItem->setZValue(i);
-                        pItem->setFlag(QGraphicsItem::ItemIsMovable);
-                        pItem->setData(ObjectName, "tElem");
-                        pItem->setParentItem(paper_rect_4);
+
+                    }else{
+                        e_msg = QObject::trUtf8("Ошибка:Кол-во элементов [%1] в заголовке четвертой страницы не совпадает с записанным в блоке %2")
+                                    .arg(t_info.fourthPageElemCount,0,10)
+                                    .arg(page_count_elem);
+                        emit error(e_msg);
+                        return false;
                     }
+                }else{
+                    e_msg = QObject::trUtf8("Ошибка:Не найден маркер начала страницы");
+                    emit error(e_msg);
+                    return false;
                 }
+                file.close();
+
                 firstPage_scene->update();
                 secondPage_scene->update();
                 thirdPage_scene->update();
@@ -690,7 +825,7 @@ bool Tmpl_plugin::parse_templates(const QString & in_file)
             }else {
                 flag =  false; // Мой плагин работает с шаблоном только версии <= version
             }
-            file.close();
+
         }
     }
     return flag;
@@ -776,8 +911,13 @@ qreal Tmpl_plugin::findPageSize_V(int page_size_id)
 int Tmpl_plugin::getElemCount(QGraphicsScene *scene)
 {
     QGraphicsItem *item;
+    int count = 0;
     item = findPaperElem(scene);
-    return item->childItems().size();
+    if (item){
+        count = item->childItems().size();
+        count--; // Так элементы считаются с 0 то уменьшим на один
+    }
+    return count;
 }
 QGraphicsItem *Tmpl_plugin::findPaperElem(QGraphicsScene *scene)
 {
@@ -787,14 +927,78 @@ QGraphicsItem *Tmpl_plugin::findPaperElem(QGraphicsScene *scene)
     for (int i = 0; i < scene->items().size(); ++i){
         item = scene->items().at(i);
         if ( item->data(ObjectName).toString()=="Paper"){
-            //labelGroup->setParentItem(item);
             break;
         }
     }
     return item;
 }
 
+void Tmpl_plugin::create_SimpleItem(QGraphicsItem *parent,
+                       QPointF &ps, QFont &fnt,
+                       QColor &col,QStringList &pList)
+{
+    QStringList filledList;
+
+    SimpleItem * pItem = new SimpleItem;
+
+    //Анализ pList на предмет наличия [тег]
+    for (int j = 0; j <pList.size();j++){
+        filledList.append(findFromModel(pList.at(j)));
+    }
+    pItem->setPos(ps);
+    pItem->setFont(fnt);
+    pItem->setColor(col);
+    pItem->setText(filledList);
+    pItem->setZValue(100);
+    pItem->setFlag(QGraphicsItem::ItemIsMovable);
+    pItem->setData(ObjectName, "tElem");
+    pItem->setParentItem(parent);
+}
+
 //*****************************************************************************
+void Tmpl_plugin::update_scene(int pageNum)
+{
+    // пользователь удалил или добавил элемент на сцену, требуется заново
+    // пройти по сцене и обновить содержимое элемента имеющего в качестве
+    // текста [some_text] проверка есть ли такой в модели и запись значения
+    QGraphicsScene *scene;
+    QString t_str;
+    QStringList old_list;
+    QStringList new_list;
+
+    switch(pageNum){
+    case 1:
+        scene = firstPage_scene;
+        break;
+    case 2:
+        scene = secondPage_scene;
+        break;
+    case 3:
+        scene = thirdPage_scene;
+        break;
+    case 4:
+        scene = fourthPage_scene;
+        break;
+    }
+
+    for (int i = 0; i < scene->items().size(); i++){
+        QGraphicsItem *item = scene->items().at(i);
+        t_str=item->data(ObjectName).toString();
+        if (t_str==QString("tElem")){
+            old_list.clear();
+            new_list.clear();
+
+            SimpleItem* item =(SimpleItem* )scene->items().at(i);
+            old_list = item->getText();
+            //Анализ old_list на предмет наличия [тег]
+            for (int j = 0; j <old_list.size();j++){
+                new_list.append(findFromModel(old_list.at(j)));
+            }
+            item->setText(new_list);
+        }
+    }
+
+}
 
 Q_EXPORT_PLUGIN2(Itmpl_plugin, Tmpl_plugin)
 ;

@@ -12,6 +12,12 @@
 using namespace SafeVirtualPrinter;
 
 class QGraphicsItem;
+class QPointF;
+class QFont;
+class QColor;
+class QStringList;
+
+class SimpleItem;
 
 class Tmpl_plugin :public QObject, Itmpl_plugin
 {
@@ -71,7 +77,14 @@ protected:
     QGraphicsItem *findPaperElem(QGraphicsScene *scene);
 private:
     templates_info_t t_info; // Информация о шаблоне
+    static const int t_version = 2; // версия шаблона
+    QString page_marker; // маркер страницы
+    QString templates_file_name; //Имя шаблона с которым работаем
 
+    // Создает новый базовый элемент
+    void create_SimpleItem(QGraphicsItem *parent,
+                           QPointF &ps, QFont &fnt,
+                           QColor &col,QStringList &pList);
 
     QStandardItemModel *work_model;
 
