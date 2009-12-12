@@ -46,8 +46,10 @@ public:
     QGraphicsScene *getThirdPage(){return thirdPage_scene;};
     QGraphicsScene *getFourthPage(){return fourthPage_scene;};
     QStringList getPageSizeList();
-
-
+    // Возвращает текущую ориентацию шаблона
+    bool getPageOrientation();
+    // Изменяет текущую ориентацию
+    void setPageOrientation(bool p_orient);
 signals:
     void error(QString error_message);
     void toLog(QString log_message);
@@ -81,6 +83,10 @@ private:
     QString page_marker; // маркер страницы
     QString templates_file_name; //Имя шаблона с которым работаем
 
+    // Создает основу страницы
+    void create_page(QGraphicsScene * scene,qreal &height,qreal &width,
+                     qreal &m_top,qreal &m_bottom,
+                     qreal &m_right,qreal &m_left);
     // Создает новый базовый элемент
     void create_SimpleItem(QGraphicsItem *parent,
                            QPointF &ps, QFont &fnt,
