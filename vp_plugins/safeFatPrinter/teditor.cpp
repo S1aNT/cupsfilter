@@ -10,13 +10,13 @@ TEditor::TEditor(QWidget *parent) :
     ui->setupUi(this);
     signalMapper = new QSignalMapper(this);
 
-    view_1 = new View("test");
+    view_1 = new View(QObject::trUtf8("Лицевая сторона 1-го листа"));
     ui->tabWidget->addTab(view_1,QObject::trUtf8("1-я страница"));
-    view_2 = new View("test");
+    view_2 = new View(QObject::trUtf8("Лицевая сторона 2-го листа"));
     ui->tabWidget->addTab(view_2,QObject::trUtf8("2-я страница"));
-    view_3 = new View("test");
+    view_3 = new View(QObject::trUtf8("Обратная сторона 2-го листа"));
     ui->tabWidget->addTab(view_3,QObject::trUtf8("3-я страница"));
-    view_4 = new View("test");
+    view_4 = new View(QObject::trUtf8("Фонарик"));
     ui->tabWidget->addTab(view_4,QObject::trUtf8("4-я страница"));
 
     connect(view_1, SIGNAL(addBaseElementToPage()), signalMapper, SLOT(map()));
