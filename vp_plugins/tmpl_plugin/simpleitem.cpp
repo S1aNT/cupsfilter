@@ -26,7 +26,7 @@ SimpleItem::SimpleItem(QGraphicsItem * parent)
     currentFont = QFont("Times", 10, QFont::Bold);
     //textList << QObject::trUtf8(" old Шаблон ") << QObject::trUtf8(" Шаблон 2 ");
     printFrame=false;
-    currentColor =Qt::blue;
+    currentColor =Qt::black;
 
     changeFontAction = new QAction(QObject::trUtf8("Изменить шрифт"),0);
     changeFontAction->setStatusTip(QObject::trUtf8("Выбор нового шрифта для элемента шаблона"));
