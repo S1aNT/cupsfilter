@@ -32,12 +32,31 @@ AddTemplate::AddTemplate(QWidget *parent) :
 
     page_orient = true;
 
-    connect (ui->portretBtn,SIGNAL(clicked()),this,SLOT(set_portret()));
-    connect (ui->landscapeBtn,SIGNAL(clicked()),this,SLOT(set_landscape()));
-    connect (ui->pageSizeCBox,SIGNAL(currentIndexChanged(QString)),
-                         this,SLOT(setCurrentPageSize(QString)));
-    connect (ui->name_lineEd,SIGNAL(textChanged(QString)),this,SLOT(setTemplatesName(QString)));
-    connect (ui->descTextEdit,SIGNAL(textChanged()),this,SLOT(setTemplatesDesc()));
+    connect (ui->portretBtn,
+             SIGNAL(clicked()),
+             this,
+             SLOT(set_portret())
+             );
+    connect (ui->landscapeBtn,
+             SIGNAL(clicked()),
+             this,
+             SLOT(set_landscape())
+             );
+    connect (ui->pageSizeCBox,
+             SIGNAL(currentIndexChanged(QString)),
+             this,
+             SLOT(setCurrentPageSize(QString))
+             );
+    connect (ui->name_lineEd,
+             SIGNAL(textChanged(QString)),
+             this,
+             SLOT(setTemplatesName(QString))
+             );
+    connect (ui->descTextEdit,
+             SIGNAL(textChanged()),
+             this,
+             SLOT(setTemplatesDesc())
+             );
 
 }
 
