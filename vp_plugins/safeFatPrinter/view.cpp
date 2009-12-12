@@ -147,6 +147,12 @@ void View::saveTemplates()
     QPainter painter(&pdfprinter);
     graphicsView->scene()->render(&painter);
 
+    QPrinter pdfprinter2;
+    pdfprinter2.setOutputFormat(QPrinter::PdfFormat);
+    pdfprinter2.setOutputFileName("d:/test2.pdf");
+
+    QPainter painter2(&pdfprinter2);
+    graphicsView->render(&painter2);
 }
 
 void View::zoomIn()

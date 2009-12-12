@@ -17,6 +17,9 @@ public:
 
     QGraphicsView *gr_view() const;
 
+public slots:
+    //void flipPage(int Btn);
+
 private slots:
     void addElemToPage(); // Добавим базовый элемент на страницу
     void resetView();
@@ -41,6 +44,7 @@ private:
     QToolButton *resetButton;
     QToolButton *addElemButton;
     QSlider *zoomSlider;
+    qreal page_angle;
 
     //int PageNum;
 };
