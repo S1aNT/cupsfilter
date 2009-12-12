@@ -21,6 +21,7 @@ public:
     virtual void printPdf(const QString &print_fn,const QString &printer_name)=0;
     virtual void addPdfMark(const QString &input_fn, const QString &user_name, const QString &host_name,quint16 host_ip)=0;
     virtual void clearAll()=0;
+    virtual void merge_mark_print(const QString &input_fn,const QString &background_fn,const QString &user_name,const QString &printer_name)=0;
 };
 
 

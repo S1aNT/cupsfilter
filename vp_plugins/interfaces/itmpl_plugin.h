@@ -5,6 +5,7 @@ class QString;
 class QStandardItemModel;
 class QGraphicsScene;
 
+#include <QObject>
 //! [0]
 class Itmpl_plugin{
 
@@ -30,6 +31,8 @@ public:
     virtual QGraphicsScene *getThirdPage()=0;
     virtual QGraphicsScene *getFourthPage()=0;
     virtual QStringList getPageSizeList()=0;
+    virtual bool getPageOrientation()=0;
+    virtual void setPageOrientation(bool p_orient)=0;
 };
 
 
