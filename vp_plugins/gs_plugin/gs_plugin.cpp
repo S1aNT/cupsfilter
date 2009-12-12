@@ -24,6 +24,8 @@ bool GS_plugin::init(const QString &gs_bin, const QString &pdftk_bin, const QStr
     QFile new_file;
     const QString startnow = QDir::currentPath();
 
+
+
     if (QFile::exists(gs_bin)) {
         // Проверим факт существования по указанному пути бинарника ghostscript
         gsBin = gs_bin;
@@ -32,6 +34,9 @@ bool GS_plugin::init(const QString &gs_bin, const QString &pdftk_bin, const QStr
             if (dir.cd(temp_folder) && !temp_folder.isEmpty()) {
                 // Проверим факт существования временного каталога
                 tempPath = temp_folder;
+                // Заполним мои переменные среды
+                qDebug() << Q_FUNC_INFO << QObject::trUtf8("TMPDIR=%1").arg(temp_folder);
+                myEnv << QObject::trUtf8("TMPDIR=%1").arg(temp_folder);
                 // Формируем пути для файлов
                 mainPDF = QObject::trUtf8("%1/%2_main.pdf").arg(this->tempPath, this->Sid);
                 firstPage_fn = QObject::trUtf8("%1/%2_first.pdf").arg(this->tempPath, this->Sid);
@@ -40,6 +45,7 @@ bool GS_plugin::init(const QString &gs_bin, const QString &pdftk_bin, const QStr
                 if (QFile::exists(pdftk_bin)) {
                     // Проверим факт существования по указанному пути бинарника grep
                     pdftkBin = pdftk_bin;
+
                     if (!QFile::exists(gs_rcp_file)){
                         // Файл не существует но он мне нужен значит создаем его
                         gs_rcp=QString("%1/%2.rcp").arg(temp_folder,sid);
@@ -94,6 +100,7 @@ bool GS_plugin::init(const QString &gs_bin, const QString &pdftk_bin, const QStr
 }
 void GS_plugin::convertPs2Pdf(const QString &input_fn)
 {
+
     /*
       Конвертация происходит в 3 этапа:
       1 - перевод файла в pdf
@@ -116,7 +123,9 @@ void GS_plugin::convertPs2Pdf(const QString &input_fn)
         args.append(".setpdfwrite");
         args.append("-f");
         args.append(input_fn);
+        proc->addToEnv(myEnv);
         proc->execute(gsBin, args,QProcess::MergedChannels);
+
     }else {
         QString e_msg = QObject::trUtf8("ERROR : Файл %1 не найден\n").arg(input_fn);
         emit error(e_msg);
@@ -160,6 +169,7 @@ void GS_plugin::getPageCount(const QString &input_fn)
     ProcessT *proc = new ProcessT();
     // Обработчик сообщений файлового потока
     connect(proc,SIGNAL(commandOutput(int,QString)),this,SLOT(parsePageCountThread(int,QString)));
+    proc->addToEnv(myEnv);
     proc->execute(pdftkBin, args,QProcess::MergedChannels);
 }
 void GS_plugin::merge2Pdf(const QString &input_fn, const QString &background_fn,const QString &output_fn)
@@ -180,6 +190,7 @@ void GS_plugin::merge2Pdf(const QString &input_fn, const QString &background_fn,
         ProcessT *proc = new ProcessT();
         // Обработчик сообщений файлового потока
         connect(proc,SIGNAL(commandOutput(int,QString)),this,SLOT(parseMergeThread(int,QString)));
+        proc->addToEnv(myEnv);
         proc->execute(pdftkBin, args,QProcess::MergedChannels);
     }
 
@@ -187,6 +198,58 @@ void GS_plugin::merge2Pdf(const QString &input_fn, const QString &background_fn,
         emit error (e_msg);
     }
 }
+void GS_plugin::merge_mark_print(const QString &input_fn,const QString &background_fn,
+                                 const QString &user_name,const QString &printer_name)
+{
+    // Объеденить наложить маркер отправить на печать
+    this->printer ="Prt707o";
+    //pdftk.exe in.pdf background back.pdf output - | pdftk.exe - update_info pdfmark output 2.pdf
+    QString output_fn = QObject::trUtf8("%1/%2_%3_out.pdf")
+                     .arg(this->tempPath, this->Sid)
+                     .arg(QDateTime::currentDateTime ().toString("mm.ss.z"));
+
+    this->currentPrintPage =  output_fn;
+    // создаем файл pdfMark
+    QTemporaryFile file_pdfMark;
+
+    if (file_pdfMark.open()) {
+        QTextStream out(&file_pdfMark);
+        out << QObject::trUtf8("[ /Title (Title)\n")
+                << QObject::trUtf8("/Author (%1)\n").arg(user_name)
+                << QObject::trUtf8("/Subject (%1)\n")//.arg(Sid)
+                << QObject::trUtf8("/Keywords (comma, separated, keywords)\n")
+                << QObject::trUtf8("/ModDate (D:%1)\n").arg(QDateTime::currentDateTime().toString("dd.mm.yyyy hh:mm:ss"))
+                << QObject::trUtf8("/CreationDate (D:%1)\n").arg(QDateTime::currentDateTime().toString("dd.mm.yyyy hh:mm:ss"))
+                << QObject::trUtf8("/Creator (Virtual Safe Printer)\n")
+                << QObject::trUtf8("/Producer (Hostname %1, IP:")//.arg(host_name) << host_ip << ")\n"
+                << QObject::trUtf8("/DOCINFO pdfmark\n");
+        file_pdfMark.close();
+
+    args.clear();
+    args.append(input_fn);
+    args.append("background");
+    args.append(background_fn);
+
+    /*
+    args.append("output");
+    args.append("-");
+    args.append("|");
+    args.append(pdftkBin);
+    args.append("-");
+    args.append("update_info");
+    args.append(file_pdfMark.fileName());
+    */
+    args.append("output");
+    args.append(output_fn);
+
+    ProcessT *proc = new ProcessT();
+    // Обработчик сообщений файлового потока
+    connect(proc,SIGNAL(commandOutput(int,QString)),this,SLOT(parseMergeToPrint(int,QString)));
+    proc->addToEnv(myEnv);
+    proc->execute(pdftkBin, args,QProcess::MergedChannels);
+   }
+}
+
 void GS_plugin::addPdfMark(const QString &input_fn,const QString &user_name,const QString &host_name,quint16 host_ip )
 {
     QString e_msg;
@@ -194,7 +257,7 @@ void GS_plugin::addPdfMark(const QString &input_fn,const QString &user_name,cons
     QTemporaryFile file_pdfMark;
     QFile file_in;
     if (!QFile::exists(input_fn)){
-       e_msg =QObject::trUtf8("ERROR : Файл % не существует\n").arg(input_fn);
+        e_msg =QObject::trUtf8("ERROR : Файл % не существует\n").arg(input_fn);
     }else{
         if (user_name.isEmpty()){
             e_msg=QObject::trUtf8("ERROR :Имя пользователя не может быть пустым");
@@ -207,14 +270,14 @@ void GS_plugin::addPdfMark(const QString &input_fn,const QString &user_name,cons
             if (file_pdfMark.open()) {
                 QTextStream out(&file_pdfMark);
                 out << QObject::trUtf8("[ /Title (Title)\n")
-                    << QObject::trUtf8("/Author (%1)\n").arg(user_name)
-                    << QObject::trUtf8("/Subject (%1)\n").arg(Sid)
-                    << QObject::trUtf8("/Keywords (comma, separated, keywords)\n")
-                    << QObject::trUtf8("/ModDate (D:%1)\n").arg(QDateTime::currentDateTime().toString("dd.mm.yyyy hh:mm:ss"))
-                    << QObject::trUtf8("/CreationDate (D:%1)\n").arg(QDateTime::currentDateTime().toString("dd.mm.yyyy hh:mm:ss"))
-                    << QObject::trUtf8("/Creator (Virtual Safe Printer)\n")
-                    << QObject::trUtf8("/Producer (Hostname %1, IP:").arg(host_name) << host_ip << ")\n"
-                    << QObject::trUtf8("/DOCINFO pdfmark\n");
+                        << QObject::trUtf8("/Author (%1)\n").arg(user_name)
+                        << QObject::trUtf8("/Subject (%1)\n").arg(Sid)
+                        << QObject::trUtf8("/Keywords (comma, separated, keywords)\n")
+                        << QObject::trUtf8("/ModDate (D:%1)\n").arg(QDateTime::currentDateTime().toString("dd.mm.yyyy hh:mm:ss"))
+                        << QObject::trUtf8("/CreationDate (D:%1)\n").arg(QDateTime::currentDateTime().toString("dd.mm.yyyy hh:mm:ss"))
+                        << QObject::trUtf8("/Creator (Virtual Safe Printer)\n")
+                        << QObject::trUtf8("/Producer (Hostname %1, IP:").arg(host_name) << host_ip << ")\n"
+                        << QObject::trUtf8("/DOCINFO pdfmark\n");
                 file_pdfMark.close();
 
                 // объединим два документа
@@ -228,6 +291,7 @@ void GS_plugin::addPdfMark(const QString &input_fn,const QString &user_name,cons
                 ProcessT *proc = new ProcessT();
                 // Обработчик сообщений файлового потока
                 connect(proc,SIGNAL(commandOutput(int,QString)),this,SLOT(parseAddPdfMarkThread(int,QString)));
+                proc->addToEnv(myEnv);
                 proc->execute(pdftkBin, args,QProcess::MergedChannels);
             }else{
                 e_msg=QObject::trUtf8("Не могу создать файл %1 мета данных").arg(file_pdfMark.fileName());
@@ -240,12 +304,13 @@ void GS_plugin::addPdfMark(const QString &input_fn,const QString &user_name,cons
 }
 void GS_plugin::printPdf(const QString &print_fn, const QString &printer_name)
 { //-q -dQUIET -dNOPAUSE -dPARANOIDSAFER -dBATCH -r300 -sDEVICE=pdfwrite -sOutputFile="%%printer%%pdfcreator" -c .setpdfwrite -f %1
-
+    /*
     args.clear();
     args.append("-q");
     args.append("-dQUIET");
     args.append("-dNOPAUSE");
     args.append("-dBATCH");
+    args.append("-dPARANOIDSAFER");
     args.append("-r600");
     args.append("-sDEVICE=pdfwrite");
     args.append(QString("-sOutputFile=\"\%printer\%%1\"").arg(printer_name));
@@ -253,14 +318,48 @@ void GS_plugin::printPdf(const QString &print_fn, const QString &printer_name)
     args.append(".setpdfwrite");
     args.append("-f");
     args.append(print_fn);
+*/
     ProcessT *proc = new ProcessT();
     // Обработчик сообщений файлового потока
-    //connect(proc,SIGNAL(commandOutput(int,QString)),this,SLOT(parsePrintThread(int,QString)));
-    proc->execute(gsBin, args,QProcess::MergedChannels);
+    connect(proc,SIGNAL(commandOutput(int,QString)),this,SLOT(parsePrintThread(int,QString)));
+    //proc->addToEnv(myEnv);
+    //proc->execute(gsBin, args,QProcess::MergedChannels);
+
+    QString  fr;
+    qDebug() << Q_FUNC_INFO << printer_name;
+    args.clear();
+    args.append(printer_name);
+    args.append(print_fn);
+
+    fr =QString("c:\\tools\\p.bat");
+    proc->execute(fr, args,QProcess::MergedChannels);
 
 }
 
 // ********************* Private SLOTS *******************************************************
+
+void GS_plugin::parsePrintThread(int Code,QString output)
+{
+    QString msg;
+    if (Code != QProcess::NormalExit) {
+        msg =QObject::trUtf8("Ошибка предпечатной подготовки.\n%1:\nКод %2").arg(output).arg(Code,0,10);
+        emit error(msg);
+    }else{
+        // Файл успешно отправлен на печать
+        emit taskStateChanged(printed);
+    }
+}
+void GS_plugin::parseMergeToPrint(int Code,QString output )
+{
+    QString msg;
+    if (Code != QProcess::NormalExit) {
+        msg =QObject::trUtf8("Ошибка предпечатной подготовки.\n%1:\nКод %2").arg(output).arg(Code,0,10);
+        emit error(msg);
+    }else{
+        //hardcode
+       this->printPdf(this->currentPrintPage,this->printer);
+    }
+}
 
 void GS_plugin::parseCnvThread(int Code,QString output )
 {
@@ -418,6 +517,7 @@ void GS_plugin::convertPdf2Png(const QString &fn, int convertedPage)
     ProcessT *proc = new ProcessT();
     // Обработчик сообщений файлового потока
     connect(proc,SIGNAL(commandOutput(int,QString)),this,SLOT(parseCnv2PngThread(int,QString)));
+    proc->addToEnv(myEnv);
     proc->execute(gsBin, args,QProcess::MergedChannels);
 }
 
