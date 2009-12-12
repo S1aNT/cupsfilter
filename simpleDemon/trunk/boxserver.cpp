@@ -40,6 +40,28 @@ void BoxServer::doCommand(const QString &user,int command,const QString &body)
                 QRegExp rx;
                 QString message;
                 switch (command) {
+		    case AUTHOR_USER:
+                        qsrand(QDateTime::currentDateTime().toTime_t());
+                        switch (qrand() % 2) {
+                                case 0: // печать разрешена
+                                    qDebug("Wrote: /1100;:;");
+                                    message= QString(QObject::trUtf8("/1100;:;"));
+                                    break;
+                                case 1: // печать запрещена
+                                    qDebug("Wrote: /1101;:;");
+                                    message = QString(QObject::trUtf8("/1100;:;"));
+                                    break;
+
+                                case 2: //  принтер не найден
+                                    qDebug("Wrote: /1102;:;");
+                                    message = "/1100;:;";
+                                    break;
+                            }
+
+                        client->write(message.toUtf8()+"\n");
+                        qDebug() << message;
+
+			break;
                     case GET_MANDAT_LIST_CMD:
                         message=QString(QObject::trUtf8("/%1;:;Несекретно;:;Секретно;:;Совершенно секретно\n")).arg(STAMP_LIST_ANS,0,10);
                         qsrand(QDateTime::currentDateTime().toTime_t());
@@ -144,7 +166,7 @@ void BoxServer::doCommand(const QString &user,int command,const QString &body)
                                 break;
                               }
                               */
-                                message=QString("/%1;:;Testprinter1,TestPrinter2,TestPrinter3,TestPrinter4\n").arg(PRINTER_LIST_ANS,0,10);
+                                message=QString("/%1;:;SL9PRT.DDDD;:;socket://200.0.0.100:9100/?waitof=false###;:;SL9PRT.NEW;:;socket://200.0.0.100:9100/###\n").arg(PRINTER_LIST_ANS,0,10);
                                 client->write(message.toUtf8());
                                 qDebug() << "Send to client "<< message <<"\n";
 
@@ -172,7 +194,10 @@ void BoxServer::readyRead()
 
         if(meRegex.indexIn(line) != -1)
         {
-            QString cUID = meRegex.cap(2);
+
+            QString cUID = meRegex.cap(1);
+            QString reg_cmd = meRegex.cap(2);
+
             qDebug() << QString("Connected new client with UID: %1 ").arg(cUID) << "\n";
 
             clientsUID[client] = cUID;
