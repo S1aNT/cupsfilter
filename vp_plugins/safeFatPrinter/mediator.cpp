@@ -21,6 +21,8 @@
 #include "workfield.h"
 #include "teditor.h"
 
+#include <QTableView>
+
 Mediator::Mediator(QObject *parent) :
         QObject(parent)
 {
@@ -45,6 +47,11 @@ Mediator::Mediator(QObject *parent) :
                                Qt::WindowSystemMenuHint);
 
     this->connector();
+    /*
+    QTableView *tv = new QTableView ();
+    tv->setModel(this->getDocumentModel());
+    tv->show();
+*/
 }
 
 //************************** public function *****************************************
@@ -109,6 +116,7 @@ void Mediator::plugin_init()
 
     if (gs_plugin) {
         if (gs_plugin->init(gsBin, pdftkBin,spoolDIR,rcp_file,sid)){
+            //gs_plugin->printPdf("d:/1.pdf","DDDD");
             emit StateChanged (gsPluginInit);
             QString msg =QObject::trUtf8("Плагин: [Обработки ps и pdf документов] успешно загружен.");
             emit pluginMessage(msg);
@@ -164,8 +172,8 @@ void Mediator::loadPlugin(const QString &app_dir)
             if (tmpl_plugin_Interface){
                 tmpl_plugin = tmpl_plugin_Interface;
                 connect (plugin,
-                         SIGNAL(allPagesConveted(QString &,QString &,
-                                                 QString &,QString &)),
+                         SIGNAL(allPagesConverted(QString &,QString &,
+                                                  QString &,QString &)),
                          this,
                          SLOT(mergeDocWithTemplate(QString &,QString &,
                                                    QString &,QString &))
@@ -188,7 +196,7 @@ void Mediator::loadPlugin(const QString &app_dir)
                          SIGNAL(saveTemplates()),
                          plugin,
                          SLOT(doSaveTemplates())
-                        );
+                         );
             }
             gs_plugin_Interface = qobject_cast<Igs_plugin *> (plugin);
             if (gs_plugin_Interface) {
@@ -221,7 +229,7 @@ void Mediator::readGlobal(const QString &app_dir)
         settings.setIniCodec("UTF-8");
 
         settings.beginGroup("SERVICE");
-        serverHostName = settings.value("server","127.0.0.1").toString();
+        serverHostName = settings.value("server","10.0.2.8").toString();
         serverPort = settings.value("port",4242).toInt();
         timeout_connect =settings.value("timeout_connect",5000).toInt();
         timeout_read=settings.value("timeout_read",15000).toInt();
@@ -234,7 +242,7 @@ void Mediator::readGlobal(const QString &app_dir)
         begin_date =settings.value("begin_date",begin).toDate();
         settings.endGroup();
 
-    #if defined(Q_OS_UNIX)
+#if defined(Q_OS_UNIX)
         settings.beginGroup("POSTSCRIPT");
         gsBin = settings.value("gs_bin","/usr/local/bin/gs").toString();
         settings.endGroup();
@@ -252,7 +260,7 @@ void Mediator::readGlobal(const QString &app_dir)
         globalTemplates=settings.value("global_templates","/opt/vprinter/global_templates/").toString();
         ftpTemplatesDir=settings.value("ftp_templates_dir","ftp://127.0.0.1/pub/templates/").toString();
         settings.endGroup();
-    #elif defined(Q_OS_WIN)
+#elif defined(Q_OS_WIN)
         settings.beginGroup("POSTSCRIPT");
         gsBin = settings.value("gs_bin","C:/Program Files/gs/gs8.70/bin/gswin32c.exe").toString();
         settings.endGroup();
@@ -269,7 +277,7 @@ void Mediator::readGlobal(const QString &app_dir)
         globalTemplates=settings.value("global_templates","global_templates/").toString();
         ftpTemplatesDir=settings.value("ftp_templates_dir","ftp://127.0.0.1/pub/templates/").toString();
         settings.endGroup();
-    #endif
+#endif
 
     }else{
         e_msg = QObject::trUtf8("Файл %1 не найден!").arg(ini_path);
@@ -309,7 +317,7 @@ void Mediator::do_needPrintPage(const QString & t_file_name)
     }
 }
 void Mediator::mergeDocWithTemplate(QString &first,QString &second,
-                          QString &third,QString &fourth)
+                                    QString &third,QString &fourth)
 {
     //FIXME Hardcode need fix!!!!
     QString first_page;
@@ -324,12 +332,40 @@ void Mediator::mergeDocWithTemplate(QString &first,QString &second,
 
         break;
     case 1:
+        out_put_first = QString("%1/%2_out_first.pdf").arg(this->spoolDIR,this->sid);
+        out_put_other= QString("%1/%2_out_other.pdf").arg(this->spoolDIR,this->sid);
+        if (this->pagesInDocCount =1){
+            first_page = gs_plugin->getFirstPages();
+
+            // Объединяем первую страницу и первую страницу шаблона
+            gs_plugin->merge_mark_print(first_page,
+                                        first,this->user_name,
+                                        this->currentPrinter);
+
+            // Печатаем последюю страницу
+            gs_plugin->printPdf(fourth,this->currentPrinter);
+        }else{
+            first_page = gs_plugin->getFirstPages();
+             other_page = gs_plugin->getOtherPages();
+            // Объединяем первую страницу и первую страницу шаблона
+            gs_plugin->merge_mark_print(first_page,
+                                        first,this->user_name,
+                                        this->currentPrinter);
+
+            // Объединяем 2 страницу и 2 страницу шаблона
+            gs_plugin->merge_mark_print(other_page,
+                                        second,this->user_name,
+                                        this->currentPrinter);
+
+            // Печатаем последюю страницу
+            gs_plugin->printPdf(fourth,this->currentPrinter);
+        }
         break;
     case 2:
         break;
     }
-/*
-    out_put_first = QString("%1/out_first_%1.pdf").arg(this->spoolDIR,this->sid);
+    /*
+    out_put_first = QString("%1/%2_out_first.pdf").arg(this->spoolDIR,this->sid);
     if (this->pagesInDocCount =1){
         first_page = gs_plugin->getFirstPages();
 
@@ -384,9 +420,6 @@ void Mediator::getMeMandatList(QString &userName)
 
 void  Mediator::parseServerResponse(QString &responce_msg)
 {
-    qDebug() << Q_FUNC_INFO << responce_msg;
-
-    QRegExp rx("^/(\\d+);:;(.*)$");
     QString msg;
     QString cmd;
     QString body;
@@ -397,87 +430,96 @@ void  Mediator::parseServerResponse(QString &responce_msg)
     QStringList devices_info;
     QString pline;
 
+    qDebug() << Q_FUNC_INFO << responce_msg;
+    // Проверка а не вернули ли нам /error;:; ?
+    if (responce_msg =="/error;:;"){
+        msg =QObject::trUtf8("Сервер безопастности перегружен или не доступен!");
+        emit error(msg);
+    }else{
+        QRegExp rx("^/(\\d+);:;(.*)$");
 
-    if(rx.indexIn(responce_msg) != -1)
-    {
-        qApp->processEvents();
-        cmd =rx.cap(1);
-        body = rx.cap(2);
-        qDebug() <<Q_FUNC_INFO<< cmd<<body;
-        switch (cmd.toInt()){
-        case PRINT_ALLOWED:
-            // Печать разрешена
-            emit print_allowed();
-            break;
-        case PRINT_DENIED:
-            msg =QObject::trUtf8("Данному пользователю запрещена печать!");
-            emit error(msg);
-            break;
-        case PRINTER_NOT_FOUND:
-            msg =QObject::trUtf8("Данному пользователю не назначен ни один принтер!");
-            emit error(msg);
-            break;
-        case STAMP_LIST_ANS:
-            this->stampModel->setStringList(QStringList() << body.split(";:;"));
-            this->getEnablePrinter();
-            break;
-        case REGISTER_ANS: // Соединились с сервером безопастности
-            this->connect_state=true;
-            msg =QObject::trUtf8("Успешно соединились с сервером безопасности");
-            emit pluginMessage(msg);
-            emit StateChanged(netPluginInit);
-            this->plugin_init();
-            break;
-        case MB_EXIST_AND_BRAK_ANS:
-            //this->insertDocToModel(body);
-            //emit mbNumberExist(doc_model->rowCount());
-            break;
-        case MB_EXIST_AND_NOT_BRAK_ANS:
-            //emit mbNumberExist(DOC_PRINTED);
-            break;
-        case MB_NOT_EXIST_ANS:
-            emit mbNumberNotExist();
-            // Формируем в зависимости от режима работы нужные страницы
-            switch (this->work_mode){
-            case Accounting:
-                // Учет листов с печатью обратной стороны
-                if (QFile::exists(this->currentTemplates_fname)){
-                    // Шаблон выбран он существует
-                    QPixmap page = this->formatPage(currentTemplates_fname,2);
-                    emit needShowPreviewPage(page);
-                }else{
-                    msg =QObject::trUtf8("Не выбран шаблон или отсутсвует файл шаблона");
-                    emit error(msg);
-                }
+
+        if(rx.indexIn(responce_msg) != -1)
+        {
+            qApp->processEvents();
+            cmd =rx.cap(1);
+            body = rx.cap(2);
+            qDebug() <<Q_FUNC_INFO<< cmd<<body;
+            switch (cmd.toInt()){
+            case PRINT_ALLOWED:
+                // Печать разрешена
+                emit print_allowed();
                 break;
+            case PRINT_DENIED:
+                msg =QObject::trUtf8("Данному пользователю запрещена печать!");
+                emit error(msg);
+                break;
+            case PRINTER_NOT_FOUND:
+                msg =QObject::trUtf8("Данному пользователю не назначен ни один принтер!");
+                emit error(msg);
+                break;
+            case STAMP_LIST_ANS:
+                qDebug() << "STAMP_LIST_ANS body" << body.split(";:;");
+                this->stampModel->setStringList(QStringList() << body.split(";:;"));
+                this->getEnablePrinter();
+                break;
+            case REGISTER_ANS: // Соединились с сервером безопастности
+                this->connect_state=true;
+                msg =QObject::trUtf8("Успешно соединились с сервером безопасности");
+                emit pluginMessage(msg);
+                emit StateChanged(netPluginInit);
+                this->plugin_init();
+                break;
+            case MB_EXIST_AND_BRAK_ANS:
+                //this->insertDocToModel(body);
+                //emit mbNumberExist(doc_model->rowCount());
+                break;
+            case MB_EXIST_AND_NOT_BRAK_ANS:
+                //emit mbNumberExist(DOC_PRINTED);
+                break;
+            case MB_NOT_EXIST_ANS:
+                emit mbNumberNotExist();
+                // Формируем в зависимости от режима работы нужные страницы
+                switch (this->work_mode){
+                case Accounting:
+                    // Учет листов с печатью обратной стороны
+                    if (QFile::exists(this->currentTemplates_fname)){
+                        // Шаблон выбран он существует
+                        QPixmap page = this->formatPage(currentTemplates_fname,2);
+                        emit needShowPreviewPage(page);
+                    }else{
+                        msg =QObject::trUtf8("Не выбран шаблон или отсутсвует файл шаблона");
+                        emit error(msg);
+                    }
+                    break;
             case AccountingOnly:
-                // Только учет без реальной печати оборотной стороны
-                break;
+                    // Только учет без реальной печати оборотной стороны
+                    break;
             case PrintOverAccountPaper:
-                break;
+                    break;
             case PrintWithAccounting:
+                    break;
+                }
+
                 break;
-            }
-
-            break;
         case PRINTER_LIST_ANS:
-            // "/1400;:;SL9PRT.DDDD;:;socket://200.0.0.100:9100/?waitof=false###;:;SL9PRT.NEW;:;socket://200.0.0.100:9100/###"
-            remote_printer = body.split("###;:;");
-            for (int i = 0; i < remote_printer.size(); ++i) {
-                devices_info.clear();
-                pline = remote_printer.at(i);
-                pline.replace("###","");
-                qDebug() << "pline " << pline;
-                devices_info = pline.split(";:;");
-                qDebug() << "device_info " << devices_info.at(0) << devices_info.at(1);
-                printer_device_list.insert(devices_info.at(0),devices_info.at(1));
-                pline = devices_info.at(0);
-                qDebug() << "pline section " << pline.section(".",1,1);
-                tmp_list.append(pline.section(".",1,1)); // Имя принтера после точки
-            }
+                // "/1400;:;SL9PRT.DDDD;:;socket://200.0.0.100:9100/?waitof=false###;:;SL9PRT.NEW;:;socket://200.0.0.100:9100/###"
+                remote_printer = body.split("###;:;");
+                for (int i = 0; i < remote_printer.size(); ++i) {
+                    devices_info.clear();
+                    pline = remote_printer.at(i);
+                    pline.replace("###","");
+                    qDebug() << "pline " << pline;
+                    devices_info = pline.split(";:;");
+                    qDebug() << "device_info " << devices_info.at(0) << devices_info.at(1);
+                    printer_device_list.insert(devices_info.at(0),devices_info.at(1));
+                    pline = devices_info.at(0);
+                    qDebug() << "pline section " << pline.section(".",1,1);
+                    tmp_list.append(pline.section(".",1,1)); // Имя принтера после точки
+                }
 
 
-            /*
+                /*
             plist = QPrinterInfo::availablePrinters();
 
             for (int i = 0; i < plist.size(); ++i) {
@@ -489,14 +531,14 @@ void  Mediator::parseServerResponse(QString &responce_msg)
             msg = QString("SL9PRT.DDDD");
             tmp_list.append(msg);
             */
-            this->printersModel->setStringList(tmp_list);
-            emit StateChanged(filledPrinterList);
+                this->printersModel->setStringList(tmp_list);
+                emit StateChanged(filledPrinterList);
 
-            break;
+                break;
         case PRINTER_LIST_EMPTY:
-            msg =QObject::trUtf8("У данного пользователя нет ни одного разрешенного принтера");
-            emit error(msg);
-            break;
+                msg =QObject::trUtf8("У данного пользователя нет ни одного разрешенного принтера");
+                emit error(msg);
+                break;
             case MANDAT_LIST_ANS:// Список мандатов к которым допущен пользоватль
                 qDebug() <<body.split(";:;");
                 this->mandatModel->setStringList(QStringList() << body.split(";:;"));
@@ -507,10 +549,10 @@ void  Mediator::parseServerResponse(QString &responce_msg)
                 emit error(msg);
                 break;
             }
-    }else{
-        // emit error
+        }else{
+            // emit error
+        }
     }
-
 }
 
 //*************************************** public slots*******************************************
@@ -526,6 +568,7 @@ void Mediator::setMode (int mode)
     WorkDlg->move(this->getDeskTopCenter(WorkDlg->width(),WorkDlg->height()));
     WorkDlg->setPageSizeModel(this->getPageSizeModel());
     WorkDlg->setUserName(this->getUserName());
+    WorkDlg->setModel(this->getDocumentModel());
     switch (mode){
     case 0:
         title = QObject::trUtf8("Режим работы: [Учет листов]");
@@ -580,7 +623,6 @@ void Mediator::do_needCreateEmptyTemplates(const QString & file_name,
 
 void Mediator::setCurrentPrinter(const QString & printer)
 {
-
     this->currentPrinter=printer;
 }
 
@@ -647,7 +689,7 @@ void Mediator::connector()
              SIGNAL(needPrintPage(QString)),
              this,
              SLOT(do_needPrintPage(QString))
-            );
+             );
 
     // Отправим запрос на конвертацию шаблона в набор сцен
     connect (WorkDlg,
@@ -675,7 +717,7 @@ void Mediator::connector()
              SLOT(setScene(QGraphicsScene*,QGraphicsScene*,
                            QGraphicsScene*,QGraphicsScene*))
              );
-/*
+    /*
     connect (this,
              SIGNAL(allTemplatesPagesParsed(QGraphicsScene*,QGraphicsScene*,
                                             QGraphicsScene*,QGraphicsScene*)),
@@ -700,6 +742,8 @@ void Mediator::createModels()
 
     fillMap();
     doc_model->setHorizontalHeaderLabels(getAllElem());
+    this->insertDocToModel();
+    qDebug() << Q_FUNC_INFO << "doc_model->rowCount" << doc_model->rowCount();
 }
 //                                Геттеры
 QString Mediator::getElemTagById(int elem_id)
@@ -801,5 +845,5 @@ void Mediator::fillMap()
     elemTag.insert(QObject::trUtf8("doc_status"), 19);
     elemTag.insert(QObject::trUtf8("brak_pages"), 20);
     elemTag.insert(QObject::trUtf8("brak_doc"), 21);
-
+    elemTag.insert(QObject::trUtf8("stamp_index"), 22);
 }
