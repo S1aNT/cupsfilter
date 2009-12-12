@@ -48,7 +48,9 @@ void  Auth::init ()
         user_name =QString::fromUtf16((ushort*)pluginGetUSER());
         user_mandat =QString::fromUtf16((ushort*)pluginGetCurrentSecLabel());
         //qDebug() << "Name " << user_name <<" Mandat " << user_mandat;
-        emit get_User_name_mandat(user_name,user_mandat);
+        if (!user_name.isEmpty() && !user_mandat.isEmpty()){
+            emit get_User_name_mandat(user_name,user_mandat);
+        }
     }else{
         // Нет у меня другого выхода спросим у системы
         // определим из реестра путь к Logon User Name
@@ -59,7 +61,7 @@ void  Auth::init ()
         //user_name="usr1";
         //emit needShowAuthWindow(user_name);
         user_mandat="";
-        user_name = QString("usr2");
+        user_name = QString("u707on1");
         emit get_User_name_mandat(user_name,user_mandat);
     }
 }
