@@ -6,6 +6,9 @@ workField::workField(QWidget *parent) :
         ui(new Ui::workField)
 {
     ui->setupUi(this);
+    //hide_stamp = new QLineEdit(this);
+
+    //hide_stamp->setVisible(false);
     mapper = new QDataWidgetMapper(this);
     mapper->setSubmitPolicy(QDataWidgetMapper::AutoSubmit);
     addTmplDlg = new AddTemplate(this);
@@ -15,7 +18,11 @@ workField::workField(QWidget *parent) :
                                Qt::WindowCloseButtonHint |
                                Qt::WindowSystemMenuHint);
 
-
+    connect (ui->secretCBox,
+             SIGNAL(currentIndexChanged(QString)),
+             this,
+             SLOT(setStampField(QString))
+             );
     connect (ui->editTemplatesTBtn,
              SIGNAL(clicked()),
              this,
@@ -82,10 +89,27 @@ void workField::setMode(WorkMode mode_value)
     mode = mode_value;
 }
 
+void workField::setStampField(QString field)
+{
+    int col;
+    for (int i = 0; i < w_model->columnCount(); i++)
+    {
+
+        QStandardItem * header_item = w_model->horizontalHeaderItem(i);
+        QString header = header_item->data(Qt::EditRole).toString();
+        if (header.compare(QObject::trUtf8("Гриф"))==0){
+            col = i;
+        }
+    }
+    QModelIndex index =w_model->index(0, col, QModelIndex());
+    w_model->setData(index,QVariant(field),Qt::EditRole);
+}
+
 void workField::setModel (QStandardItemModel * model)
 {
+    w_model =model;
     //Свяжем  элементы диалогового окна с моделью через mapper
-    mapper->setModel(model);
+    mapper->setModel(w_model);
     mapper->toLast();
 
     for (int i = 0; i < model->columnCount(); i++)
@@ -101,9 +125,11 @@ void workField::setModel (QStandardItemModel * model)
         {
             mapper->addMapping(ui->docName_plainTextEdit, i);
         }
-        else if (header.compare(QObject::trUtf8("Гриф")) == 0)
+        else if (header.compare(QObject::trUtf8("stamp_index")) == 0)
         {
             mapper->addMapping(ui->secretCBox, i, "currentIndex");
+            //mapper->addMapping(ui->secretCBox->lineEdit(), i);
+
         }
         else if (header.compare(QObject::trUtf8("Пункт перечня"))==0)
         {
@@ -154,13 +180,13 @@ void workField::setModel (QStandardItemModel * model)
         }else if (header.compare(QObject::trUtf8("Получатель N5"))==0)
         {
             mapper->addMapping(ui->reciverFive_lineEd, i);
-        }
-        /*else if (header.compare(QObject::trUtf8("doc_status"))==0)
+        }/*
+        else if (header.compare(QObject::trUtf8("Гриф"))==0)
          {
-             // Мапим скрытое поле статус документа
-             mapper->addMapping(&documentStatus, i);
+             // Мапим скрытое поле
+             mapper->addMapping(hide_stamp, i);
          }
-         */
+*/
     }
 
 }
@@ -198,7 +224,7 @@ void workField::doPrintAllowed()
 {
      this->setEnableField(true);
      // Запишем данные в строку статуса
-     QString msg = QObject::trUtf8("Сервер безопастности разрешил печать.");
+     QString msg = QObject::trUtf8("Статус: Сервер безопастности разрешил печать.");
      ui->AnsLabel->setText(msg);
      // Требование распечатать документ используя выбранный шаблон
      emit needPrintPage(this->currentTemplates);
@@ -248,9 +274,8 @@ void workField::setCurrentTemplates(QString temp)
         ui->editTemplatesTBtn->setEnabled(false);
     }
     currentTemplates = f_name; // Запомним выбор пользователя
-    QString msg = QObject::trUtf8("Выбран шаблон %1").arg(t_name);
+    QString msg = QObject::trUtf8("Статус: Выбран шаблон %1").arg(t_name);
     ui->AnsLabel->setText(msg);
-
 }
 
 void workField::selectTemplatesDir(bool mode)

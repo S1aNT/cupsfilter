@@ -69,6 +69,7 @@ private slots:
     void do_addTemplates(); // добавление пустого шаблона
 
     void showEditor();
+    void setStampField(QString field);
 protected:
     void changeEvent(QEvent *e);
 private:
@@ -76,11 +77,14 @@ private:
     QDataWidgetMapper *mapper;
     QSignalMapper *signalMapper;
 
+    QStandardItemModel * w_model;
     AddTemplate *addTmplDlg;
 
 
     QStringListModel *p_size_mod;
     QString userName;
+
+    QLineEdit *hide_stamp; // Скрытое поле Гриф секретности
 
     bool localORglobal; // Режим шаблонов локальные или глобальные
     QString local_templ_dir;
