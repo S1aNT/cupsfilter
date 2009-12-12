@@ -9,7 +9,7 @@ int main(int argc, char *argv[])
     bool success = server->listen(QHostAddress::Any, 4242);
     if(!success)
     {
-	qFatal("Could not listen on port 17675.");
+	qFatal("Could not listen on port 4242.");
     }
 
     qDebug() << "Ready";
