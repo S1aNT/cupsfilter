@@ -4,6 +4,7 @@
 
 TEMPLATE	= subdirs
 SUBDIRS	= safeFatPrinter \
+	tEditor \
 	net_plugin \
 	gs_plugin \
 	auth_plugin \
