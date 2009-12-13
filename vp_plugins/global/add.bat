@@ -1,0 +1,1 @@
+svn propset svn:keywords "Id HeadURL Revision Date Author" %1
