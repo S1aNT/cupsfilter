@@ -1,5 +1,6 @@
 QT += network
 CONFIG += warn_on \
+    console \
     qt \
     precompile_header
 TEMPLATE = app
@@ -13,14 +14,17 @@ PRECOMPILED_HEADER = ../global/pre_header.h
 HEADERS += ../global/pre_header.h \
     ../global/config.h \
     ../global/tech_global.h \
-    teditor.h \
-    view.h 
+    addtemplate.h \
+    view.h \
+    mainwindow.h \
+    commandbar.h \
+    ../interfaces/itmpl_plugin.h
 SOURCES += main.cpp \
     addtemplate.cpp \
-    teditor.cpp \
-    view.cpp 
-FORMS += getusernamemandatdlg.ui \
-    addtemplate.ui \
+    view.cpp \
+    mainwindow.cpp \
+    commandbar.cpp
+FORMS += addtemplate.ui \
     teditor.ui
 RESOURCES += images.qrc
 TRANSLATIONS = tEditor_ru.ts
