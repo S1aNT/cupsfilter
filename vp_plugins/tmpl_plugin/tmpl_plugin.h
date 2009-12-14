@@ -26,6 +26,11 @@ class Tmpl_plugin :public QObject, Itmpl_plugin
 public:
     Tmpl_plugin(QObject *parent=0){};
     void init(const QString & spool,const QString & sid);
+    // Просто загрузим шаблон и преобразуем его в набор сцен
+    // так как модель не передали то и преобразование не производим
+    // нужна отдельная функция при установке модели произвести обновление
+    // каждой сцены в соответствии с моделью
+    void loadTemplates(const QString & templates_in_file);
     void createEmptyTemplate(const QString & file_name,
                              const QString & t_author,
                              const QString & t_name,
@@ -62,6 +67,7 @@ public slots:
     void convertTemplatesToPdf(const QString & templates_in_file,QStandardItemModel * model);
     void update_scene(int pageNum);
     void setTemplates(const QString & templates_in_file,QStandardItemModel * model);
+    
     // Добавим базовый элемент на страницу page
     void doAddBaseElementToPage(int page);
     // сохраним текущий набор сцен в файл шаблона

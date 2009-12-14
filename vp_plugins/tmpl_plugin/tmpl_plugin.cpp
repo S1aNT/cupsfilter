@@ -97,6 +97,21 @@ void Tmpl_plugin::setPageOrientation(bool p_orient)
 }
 
 
+void Tmpl_plugin::loadTemplates(const QString & templates_in_file)
+{
+    QString error_msg;
+    if (QFile::exists(templates_in_file)){
+	
+    }else {
+        e_msg = QObject::trUtf8("Ошибка: Файл %1 шаблона не существует или не не верного формата!")
+                .arg(page,0,10);
+
+     }
+    if (!error_msg.isEmpty()) {
+        emit error(error_msg);
+    }
+ 
+}
 void Tmpl_plugin::createEmptyTemplate(const QString & file_name,
                                       const QString & t_author,
                                       const QString & t_name,
