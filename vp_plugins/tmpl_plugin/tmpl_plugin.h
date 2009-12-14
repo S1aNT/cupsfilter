@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <QMap>
+#include <QMetaType>
 #include "itmpl_plugin.h"
 #include "tech_global.h"
 
@@ -10,6 +11,72 @@
 #define MM_TO_POINT(mm) ((mm)*2.83465058)
 
 using namespace SafeVirtualPrinter;
+
+struct tInfo
+{
+    int version; 	// версия шаблона
+    QString date_time;  // дата и время создания
+    QString t_author;   // автор шаблона
+    QString t_name;     // имя шаблона
+    QString t_desc;     // описание шаблона
+    QString p_size;     // размер бумаги (Для человека)
+    bool  page_orient;  // ориентация страницы Книжная/альбомная true/false
+    qreal page_height;  // высота листа в  [мм -> point] (для компьютера)
+    qreal page_width;   // ширина листа в  [мм -> point] (для компьютера)
+    qreal m_top;        // отступ сверху в [мм -> point] (для компьютера)
+    qreal m_bottom;     // отступ снизу в [мм -> point] (для компьютера)
+    qreal m_left;       // отступ слева в [мм -> point] (для компьютера)
+    qreal m_right;      // отступ справа в [мм -> point] (для компьютера)
+    int firstPageElemCount;    // число элементов на первой странице шаблона
+    int secondPageElemCount;   // число элементов на второй странице шаблона
+    int thirdPageElemCount;    // число элементов на третьей странице шаблона
+    int fourthPageElemCount;   // число элементов на четвертой странице шаблона
+};
+Q_DECLARE_METATYPE(tInfo);
+
+inline QDataStream &operator<<( QDataStream &out, const tInfo& save )
+{
+    out << save.version;
+    out << save.date_time;
+    out << save.t_author;
+    out << save.t_name;
+    out << save.t_desc;
+    out << save.p_size;
+    out << save.page_orient;
+    out << save.page_height;
+    out << save.page_width;
+    out << save.m_top;
+    out << save.m_bottom;
+    out << save.m_left;
+    out << save.m_right;
+    out << save.firstPageElemCount;
+    out << save.secondPageElemCount;
+    out << save.thirdPageElemCount;
+    out << save.fourthPageElemCount;
+    return out;
+}
+
+inline QDataStream &operator>>( QDataStream &in, tInfo& load)
+{
+    in >> load.version;
+    in >> load.date_time;
+    in >> load.t_author;
+    in >> load.t_name;
+    in >> load.t_desc;
+    in >> load.p_size;
+    in >> load.page_orient;
+    in >> load.page_height;
+    in >> load.page_width;
+    in >> load.m_top;
+    in >> load.m_bottom;
+    in >> load.m_left;
+    in >> load.m_right;
+    in >> load.firstPageElemCount;
+    in >> load.secondPageElemCount;
+    in >> load.thirdPageElemCount;
+    in >> load.fourthPageElemCount;
+    return in;
+}
 
 class QGraphicsItem;
 class QPointF;
@@ -24,7 +91,7 @@ class Tmpl_plugin :public QObject, Itmpl_plugin
     Q_OBJECT
     Q_INTERFACES(Itmpl_plugin)
 public:
-    Tmpl_plugin(QObject *parent=0){};
+    Tmpl_plugin(QObject *parent=0);
     void init(const QString & spool,const QString & sid);
     // Просто загрузим шаблон и преобразуем его в набор сцен
     // так как модель не передали то и преобразование не производим
@@ -67,7 +134,7 @@ public slots:
     void convertTemplatesToPdf(const QString & templates_in_file,QStandardItemModel * model);
     void update_scene(int pageNum);
     void setTemplates(const QString & templates_in_file,QStandardItemModel * model);
-    
+
     // Добавим базовый элемент на страницу page
     void doAddBaseElementToPage(int page);
     // сохраним текущий набор сцен в файл шаблона
@@ -84,7 +151,7 @@ protected:
     // Возвращает указатель на элемент paper  в сцене
     QGraphicsItem *findPaperElem(QGraphicsScene *scene);
 private:
-    templates_info_t t_info; // Информация о шаблоне
+    tInfo t_info; // Информация о шаблоне
     static const int t_version = 2; // версия шаблона
     QString page_marker; // маркер страницы
     QString templates_file_name; //Имя шаблона с которым работаем
