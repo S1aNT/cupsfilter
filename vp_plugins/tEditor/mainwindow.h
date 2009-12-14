@@ -8,11 +8,13 @@ class QAction;
 class QListWidget;
 class QMenu;
 class QTextEdit;
+class QStringListModel;
 QT_END_NAMESPACE
 
 class View;
 
 #include "itmpl_plugin.h"
+#include "auth_plugin.h"
 
 class MainWindow : public QMainWindow
 {
@@ -26,6 +28,12 @@ private slots:
     void pageSelect(int page);
     void toggleAntialiasing();
     void loadTemplates();
+    void createEmptyTemplates();
+
+    void saveUserName(QString & u_name);
+
+    void setPages(QGraphicsScene *first, QGraphicsScene *second,
+                  QGraphicsScene *third, QGraphicsScene *fourth);
 
     void errorA(QString e_msg); // Ошибка А типа - админ безопастности
     void errorB(QString e_msg); // Ошибка Б типа - сисадмин
@@ -38,7 +46,9 @@ private:
     void loadPlugins();
     void error(QString e_msg,bool admin);
 
-
+    //Inet_plugin *net_plugin;
+    //Igs_plugin *gs_plugin;
+    Auth_plugin *auth_plugin;
     Itmpl_plugin *tmpl_plugin;
 
     QTabWidget * tabWidget;
@@ -61,6 +71,10 @@ private:
     QAction *aboutQtAct;
     QAction *quitAct;
     int currentPage;
+    QString userName;
+
+    QStringListModel *page_size_model;
+
     // Переменные из установок
     QString local_path; // Путь к локальным шаблонам пользователя
 

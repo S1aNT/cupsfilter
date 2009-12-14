@@ -3,8 +3,11 @@
 #include <QDesktopWidget>
 #include <QTabWidget>
 #include <QFileDialog>
+#include <QStringListModel>
+
 #include "mainwindow.h"
 #include "view.h"
+#include "addtemplate.h"
 
 MainWindow::MainWindow()
 {
@@ -40,8 +43,13 @@ MainWindow::MainWindow()
     createDockWindows();
     setWindowTitle(tr("Редактор шаблонов"));
     setUnifiedTitleAndToolBarOnMac(true);
+    loadPlugins();
+    // Создадим модель
+    page_size_model = new QStringListModel(this);
 
 }
+
+
 
 void MainWindow::loadPlugins()
 {
@@ -52,7 +60,7 @@ void MainWindow::loadPlugins()
     Auth_plugin *auth_plugin_Interface;
 */
     Itmpl_plugin *tmpl_plugin_Interface;
-
+     Auth_plugin *auth_plugin_Interface;
 #if defined(Q_OS_WIN)
     if (pluginsDir.dirName().toLower() == "debug" || pluginsDir.dirName().toLower() == "release")
         pluginsDir.cdUp();
@@ -70,10 +78,53 @@ void MainWindow::loadPlugins()
         QPluginLoader pluginMessageer(pluginsDir.absoluteFilePath(fileName));
         QObject *plugin = pluginMessageer.instance();
         if (plugin) {
-            connect(plugin, SIGNAL(error(QString )), this, SLOT (errorA(QString )));
+            connect(plugin,
+                    SIGNAL(error(QString )),
+                    this,
+                    SLOT (errorA(QString ))
+                    );
+            // Загрузка плагина авторизации
+            auth_plugin_Interface = qobject_cast<Auth_plugin *>(plugin);
+            if (auth_plugin_Interface){
+                auth_plugin =auth_plugin_Interface;
+                connect(plugin,
+                        SIGNAL(get_User_name_mandat(QString &,QString &)),
+                        this,
+                        SLOT(saveUserName(QString&)) // Мне нужно только имя
+                        );
+
+#if defined(Q_OS_UNIX)
+                //FIXME
+                QString ticket_name = "/tmp/session_ticket";
+
+                auth_plugin->init(ticket_name);
+#elif defined(Q_OS_WIN)
+                auth_plugin->init();
+#endif
+                //emit StateChanged (authPluginInit);
+
+            }
+
             tmpl_plugin_Interface = qobject_cast<Itmpl_plugin *> (plugin);
             if (tmpl_plugin_Interface){
                 tmpl_plugin = tmpl_plugin_Interface;
+                //FIXME
+                QString spool ="c:/spool/";
+                QString sid = "ewqfrieie";
+                tmpl_plugin->init(spool,sid);
+                // Получим список размеров страниц
+                page_size_model->setStringList(tmpl_plugin->getPageSizeList());
+                connect (plugin,
+                         SIGNAL(allTemplatesPagesParsed(QGraphicsScene *,
+                                                        QGraphicsScene *,
+                                                        QGraphicsScene *,
+                                                        QGraphicsScene *)),
+                         this,
+                         SLOT(setPages(QGraphicsScene *,
+                                       QGraphicsScene *,
+                                       QGraphicsScene *,
+                                       QGraphicsScene *))
+                         );
                 /*
                 connect (plugin,
                          SIGNAL(allPagesConverted(QString &,QString &,
@@ -82,13 +133,7 @@ void MainWindow::loadPlugins()
                          SLOT(mergeDocWithTemplate(QString &,QString &,
                                                    QString &,QString &))
                          );
-                connect (plugin,
-                         SIGNAL(allTemplatesPagesParsed(QGraphicsScene *,QGraphicsScene *,
-                                                        QGraphicsScene *,QGraphicsScene *)),
-                         this,
-                         SIGNAL(allTemplatesPagesParsed(QGraphicsScene *,QGraphicsScene *,
-                                                        QGraphicsScene *,QGraphicsScene *))
-                         );
+
                 connect (this,SIGNAL(needUpdatePage(int)),plugin,SLOT(update_scene(int)));
 
                 connect(teditorDlg,
@@ -110,6 +155,54 @@ void MainWindow::loadPlugins()
 
 
 // ----------------------------- Private slots
+void MainWindow::saveUserName(QString & u_name)
+{
+    userName = u_name;
+}
+
+void MainWindow::createEmptyTemplates()
+{
+    // Покажем дилоговое окошко с вводом параметров шаблона
+
+    AddTemplate * TProperDlg = new AddTemplate(this);
+    TProperDlg->setAttribute(Qt::WA_DeleteOnClose);
+    TProperDlg->setUserName(userName);
+    TProperDlg->setPageSize(page_size_model);
+    //FIXME
+    QString local_templ_dir ="c:/local_templ_dir/";
+    TProperDlg->setLocalTemplatesDir(local_templ_dir);
+
+    int ret = TProperDlg->exec();
+    if (ret == QDialog::Accepted){
+        //Создадим новый шаблончик
+
+    }
+}
+
+void MainWindow::setPages(QGraphicsScene *first,
+                          QGraphicsScene *second,
+                          QGraphicsScene *third,
+                          QGraphicsScene *fourth)
+{
+    View * vPage  = (View *)tabWidget->widget(0);
+    if (vPage){
+        vPage->gr_view()->setScene(first);
+    }
+    vPage  = (View *)tabWidget->widget(1);
+    if (vPage){
+        vPage->gr_view()->setScene(second);
+    }
+    vPage  = (View *)tabWidget->widget(2);
+    if (vPage){
+        vPage->gr_view()->setScene(third);
+    }
+    vPage  = (View *)tabWidget->widget(3);
+    if (vPage){
+        vPage->gr_view()->setScene(fourth);
+    }
+
+}
+
 void MainWindow::loadTemplates()
 {
     QString title_str;
@@ -118,10 +211,10 @@ void MainWindow::loadTemplates()
         local_path = qApp->applicationDirPath();
     }
     QString templ_fn = QFileDialog::getOpenFileName(this,
-                                                      title_str,
-                                                      local_path,
-                                                      tr("Шаблоны (*.tmpl *.TMPL)")
-                                                      );
+                                                    title_str,
+                                                    local_path,
+                                                    tr("Шаблоны (*.tmpl *.TMPL)")
+                                                    );
     if (!templ_fn.isEmpty()){
         if (tmpl_plugin){
             tmpl_plugin->loadTemplates(templ_fn);
@@ -194,6 +287,11 @@ void MainWindow::createActions()
                          tr("Создание шаблона ..."),this);
     newAct->setShortcut(QKeySequence::New);
     newAct->setStatusTip(tr("Создание пустого шаблона"));
+    connect (newAct,
+             SIGNAL(triggered()),
+             this,
+             SLOT(createEmptyTemplates())
+             );
 
     loadAct = new QAction(QIcon(":/t_open.png"),
                           tr("Загрузка шаблона ..."),this);
