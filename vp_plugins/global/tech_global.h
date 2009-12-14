@@ -17,7 +17,6 @@ namespace SafeVirtualPrinter{
 
 typedef struct{
     int version; 	// версия шаблона
-    QString file_name;      // имя файла шаблона
     QString date_time;      // дата и время создания
     QString t_author;         // автор шаблона
     QString t_name; // имя шаблона
