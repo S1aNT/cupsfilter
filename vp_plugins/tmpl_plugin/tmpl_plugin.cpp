@@ -19,6 +19,13 @@
 
 using namespace SafeVirtualPrinter;
 
+Tmpl_plugin::Tmpl_plugin(QObject *parent)
+{
+    // Регистрируем типаы
+    qRegisterMetaType<tInfo>("tInfo");
+    qRegisterMetaTypeStreamOperators<tInfo>("tInfo");
+
+};
 
 void Tmpl_plugin::init(const QString &spool,const QString &sid)
 {
@@ -99,18 +106,20 @@ void Tmpl_plugin::setPageOrientation(bool p_orient)
 
 void Tmpl_plugin::loadTemplates(const QString & templates_in_file)
 {
-    QString error_msg;
+    QString e_msg;
     if (QFile::exists(templates_in_file)){
-	
+        if (parse_templates(templates_in_file)){
+            emit allTemplatesPagesParsed(firstPage_scene, secondPage_scene, thirdPage_scene, fourthPage_scene);
+        }else{
+            e_msg = QObject::trUtf8("ERROR: Ошибка разбора шаблона [%1]\n").arg(templates_in_file);
+        }
     }else {
-        e_msg = QObject::trUtf8("Ошибка: Файл %1 шаблона не существует или не не верного формата!")
-                .arg(page,0,10);
-
+        e_msg = QObject::trUtf8("Ошибка: Файл %1 шаблона не существует или не не верного формата!");
      }
-    if (!error_msg.isEmpty()) {
-        emit error(error_msg);
+    if (!e_msg.isEmpty()) {
+        emit error(e_msg);
     }
- 
+
 }
 void Tmpl_plugin::createEmptyTemplate(const QString & file_name,
                                       const QString & t_author,
@@ -162,24 +171,7 @@ void Tmpl_plugin::createEmptyTemplate(const QString & file_name,
     t_info.thirdPageElemCount = 0;  // третья страница шаблона 0 элементов
     t_info.fourthPageElemCount = 0; // четвертая страница шаблона 0 элементов
     // Запишем общую часть шаблона
-    out << t_info.version;
-    out << t_info.file_name;
-    out << t_info.date_time;
-    out << t_info.t_author;
-    out << t_info.t_name;
-    out << t_info.t_desc;
-    out << t_info.p_size;
-    out << t_info.page_orient;
-    out << t_info.page_height;
-    out << t_info.page_width;
-    out << t_info.m_top;
-    out << t_info.m_bottom;
-    out << t_info.m_left;
-    out << t_info.m_right;
-    out << t_info.firstPageElemCount;
-    out << t_info.secondPageElemCount;
-    out << t_info.thirdPageElemCount;
-    out << t_info.fourthPageElemCount;
+    out << t_info;
 
     // Начнем сохранение страниц
     out << this->page_marker;
@@ -302,24 +294,9 @@ void Tmpl_plugin::doSaveTemplates()
         t_info.thirdPageElemCount = getElemCount(thirdPage_scene);
         t_info.fourthPageElemCount = getElemCount(fourthPage_scene);
         // запись основных данных шаблона
-        out << t_info.version;
-        out << t_info.file_name;
-        out << t_info.date_time;
-        out << t_info.t_author;
-        out << t_info.t_name;
-        out << t_info.t_desc;
-        out << t_info.p_size;
-        out << t_info.page_orient;
-        out << t_info.page_height;
-        out << t_info.page_width;
-        out << t_info.m_top;
-        out << t_info.m_bottom;
-        out << t_info.m_left;
-        out << t_info.m_right;
-        out << t_info.firstPageElemCount;
-        out << t_info.secondPageElemCount;
-        out << t_info.thirdPageElemCount;
-        out << t_info.fourthPageElemCount;
+
+        out << t_info;
+
         //Запись маркера начало страницы
         out << this->page_marker;
         out << t_info.firstPageElemCount; // первая страница шаблона элементов
@@ -526,7 +503,7 @@ bool Tmpl_plugin::parse_templates(const QString & in_file)
             secondPage_scene->clear();
             thirdPage_scene->clear();
             fourthPage_scene->clear();
-
+            //t_info.
             // сохраним имя текущего файла шаблона
             templates_file_name = in_file;
             QFile file(in_file);
@@ -536,24 +513,7 @@ bool Tmpl_plugin::parse_templates(const QString & in_file)
             in.setVersion(QDataStream::Qt_4_5);
 
             // Читаем общую часть шаблона
-            in >> t_info.version;
-            in >> t_info.file_name;
-            in >> t_info.date_time;
-            in >> t_info.t_author;
-            in >> t_info.t_name;
-            in >> t_info.t_desc;
-            in >> t_info.p_size;
-            in >> t_info.page_orient;
-            in >> t_info.page_height;
-            in >> t_info.page_width;
-            in >> t_info.m_top;
-            in >> t_info.m_bottom;
-            in >> t_info.m_left;
-            in >> t_info.m_right;
-            in >> t_info.firstPageElemCount;
-            in >> t_info.secondPageElemCount;
-            in >> t_info.thirdPageElemCount;
-            in >> t_info.fourthPageElemCount;
+            in >> t_info;
 
             if (t_info.version == t_version){// Сравним версию шаблона
 
