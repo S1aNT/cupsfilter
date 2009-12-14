@@ -16,37 +16,22 @@ public:
     View(const QString &name, QWidget *parent = 0);
 
     QGraphicsView *gr_view() const;
-
+    QString &getPageName(){return pageName;};
 public slots:
     //void flipPage(int Btn);
 
 private slots:
-    void addElemToPage(); // Добавим базовый элемент на страницу
     void resetView();
     void setResetButtonEnabled();
     void setupMatrix();
     void toggleAntialiasing();
-    void saveTemplates();
-
     void zoomIn();
     void zoomOut();
-
-signals:
-    // Требование плагину добавить элемент на страницу
-    void addBaseElementToPage();
-
 private:
     QGraphicsView *graphicsView;
     QLabel *label;
-
-    QToolButton *antialiasButton;
-
-    QToolButton *resetButton;
-    QToolButton *addElemButton;
     QSlider *zoomSlider;
-    qreal page_angle;
-
-    //int PageNum;
+    QString pageName;
 };
 
 #endif
