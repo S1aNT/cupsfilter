@@ -1,6 +1,5 @@
 QT += network
 CONFIG += warn_on \
-    console \
     qt \
     precompile_header
 TEMPLATE = app
@@ -17,14 +16,11 @@ HEADERS += ../global/pre_header.h \
     addtemplate.h \
     view.h \
     mainwindow.h \
-    commandbar.h \
     ../interfaces/itmpl_plugin.h
 SOURCES += main.cpp \
     addtemplate.cpp \
     view.cpp \
-    mainwindow.cpp \
-    commandbar.cpp
-FORMS += addtemplate.ui \
-    teditor.ui
+    mainwindow.cpp
+FORMS += addtemplate.ui
 RESOURCES += images.qrc
 TRANSLATIONS = tEditor_ru.ts
