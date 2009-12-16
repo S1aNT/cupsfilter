@@ -34,7 +34,7 @@
         <file>../safeFatPrinter/images/savetmpl.png</file>
         <file>../safeFatPrinter/images/face_page.png</file>
         <file>../safeFatPrinter/images/over_face_page.png</file>
-        <file>../safeFatPrinter/images/portret.png</file>
-        <file>../safeFatPrinter/images/landscape.png</file>
+        <file alias="portret.png">../safeFatPrinter/images/portret.png</file>
+        <file alias="landscape.png">../safeFatPrinter/images/landscape.png</file>
     </qresource>
 </RCC>
