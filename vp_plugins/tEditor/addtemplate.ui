@@ -2,6 +2,9 @@
 <ui version="4.0">
  <class>AddTemplate</class>
  <widget class="QDialog" name="AddTemplate">
+  <property name="windowModality">
+   <enum>Qt::WindowModal</enum>
+  </property>
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -12,6 +15,9 @@
   </property>
   <property name="windowTitle">
    <string>Создание нового пользовательского шаблона</string>
+  </property>
+  <property name="modal">
+   <bool>true</bool>
   </property>
   <widget class="QGroupBox" name="groupBox_3">
    <property name="geometry">
@@ -177,7 +183,7 @@
       <height>71</height>
      </rect>
     </property>
-    <layout class="QFormLayout" name="formLayout">
+    <layout class="QGridLayout" name="gridLayout_2">
      <item row="0" column="0">
       <widget class="QToolButton" name="portretBtn">
        <property name="text">
@@ -185,7 +191,7 @@
        </property>
        <property name="icon">
         <iconset resource="images.qrc">
-         <normaloff>:/images/portret.png</normaloff>:/images/portret.png</iconset>
+         <normaloff>:/portret.png</normaloff>:/portret.png</iconset>
        </property>
        <property name="iconSize">
         <size>
@@ -208,7 +214,7 @@
        </property>
        <property name="icon">
         <iconset resource="images.qrc">
-         <normaloff>:/images/landscape.png</normaloff>:/images/landscape.png</iconset>
+         <normaloff>:/landscape.png</normaloff>:/landscape.png</iconset>
        </property>
        <property name="iconSize">
         <size>
