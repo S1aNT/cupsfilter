@@ -7,7 +7,7 @@
 
 #include "mainwindow.h"
 #include "view.h"
-#include "addtemplate.h"
+
 
 MainWindow::MainWindow()
 {
@@ -43,9 +43,32 @@ MainWindow::MainWindow()
     createDockWindows();
     setWindowTitle(tr("Редактор шаблонов"));
     setUnifiedTitleAndToolBarOnMac(true);
-    loadPlugins();
+
     // Создадим модель
     page_size_model = new QStringListModel(this);
+
+    //Все структуры созданы - грузим апельсины бочками
+    loadPlugins();
+
+    // Создаем нужные окошки
+    TProperDlg = new AddTemplate();
+    //TProperDlg->setAttribute(Qt::WA_DeleteOnClose);
+    TProperDlg->setWindowFlags(Qt::Dialog |
+                               Qt::CustomizeWindowHint |
+                               Qt::WindowTitleHint |
+                               Qt::WindowCloseButtonHint |
+                               Qt::WindowSystemMenuHint);
+    // свяжем сигналы и слоты
+    QObject::connect (TProperDlg,
+                      SIGNAL(needCreateEmptyTemplates(QString,QString,QString,QString,
+                                                      QString,bool,QString,
+                                                      qreal,qreal,qreal,qreal)),
+                      this,
+                      SLOT(createEmptyTemplate(QString,QString,QString,QString,
+                                               QString,bool,QString,
+                                               qreal,qreal,qreal,qreal))
+                      );
+
 
 }
 
@@ -60,7 +83,7 @@ void MainWindow::loadPlugins()
     Auth_plugin *auth_plugin_Interface;
 */
     Itmpl_plugin *tmpl_plugin_Interface;
-     Auth_plugin *auth_plugin_Interface;
+    Auth_plugin *auth_plugin_Interface;
 #if defined(Q_OS_WIN)
     if (pluginsDir.dirName().toLower() == "debug" || pluginsDir.dirName().toLower() == "release")
         pluginsDir.cdUp();
@@ -113,6 +136,7 @@ void MainWindow::loadPlugins()
                 QString sid = "ewqfrieie";
                 tmpl_plugin->init(spool,sid);
                 // Получим список размеров страниц
+
                 page_size_model->setStringList(tmpl_plugin->getPageSizeList());
                 connect (plugin,
                          SIGNAL(allTemplatesPagesParsed(QGraphicsScene *,
@@ -160,12 +184,33 @@ void MainWindow::saveUserName(QString & u_name)
     userName = u_name;
 }
 
+void MainWindow::createEmptyTemplate(const QString & file_name,
+                                     const QString & t_author,
+                                     const QString & t_name,
+                                     const QString & t_desc,
+                                     const QString & p_size,
+
+                                     bool pages_orient,
+                                     const QString & c_date,
+                                     qreal m_top,
+                                     qreal m_bottom,
+                                     qreal m_right,
+                                     qreal m_left)
+{
+    if (tmpl_plugin){
+        tmpl_plugin->createEmptyTemplate(file_name,t_author,t_name,
+                                         t_desc, p_size, pages_orient,c_date,
+                                         m_top,m_bottom,m_right,m_left);
+        this->statusBar()->showMessage(QObject::tr("Шаблон [%1] создан")
+                                       .arg(file_name)
+                                       );
+    }
+}
+
 void MainWindow::createEmptyTemplates()
 {
     // Покажем дилоговое окошко с вводом параметров шаблона
 
-    AddTemplate * TProperDlg = new AddTemplate(this);
-    TProperDlg->setAttribute(Qt::WA_DeleteOnClose);
     TProperDlg->setUserName(userName);
     TProperDlg->setPageSize(page_size_model);
     //FIXME

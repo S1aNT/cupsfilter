@@ -15,6 +15,7 @@ class View;
 
 #include "itmpl_plugin.h"
 #include "auth_plugin.h"
+#include "addtemplate.h"
 
 class MainWindow : public QMainWindow
 {
@@ -34,6 +35,18 @@ private slots:
 
     void setPages(QGraphicsScene *first, QGraphicsScene *second,
                   QGraphicsScene *third, QGraphicsScene *fourth);
+    void createEmptyTemplate(const QString & file_name,
+                             const QString & t_author,
+                             const QString & t_name,
+                             const QString & t_desc,
+                             const QString & p_size,
+
+                             bool pages_orient,
+                             const QString & c_date,
+                             qreal m_top,
+                             qreal m_bottom,
+                             qreal m_right,
+                             qreal m_left);
 
     void errorA(QString e_msg); // Ошибка А типа - админ безопастности
     void errorB(QString e_msg); // Ошибка Б типа - сисадмин
@@ -74,6 +87,8 @@ private:
     QString userName;
 
     QStringListModel *page_size_model;
+
+    AddTemplate *TProperDlg;
 
     // Переменные из установок
     QString local_path; // Путь к локальным шаблонам пользователя
