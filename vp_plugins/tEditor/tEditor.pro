@@ -16,11 +16,14 @@ HEADERS += ../global/pre_header.h \
     addtemplate.h \
     view.h \
     mainwindow.h \
-    ../interfaces/itmpl_plugin.h
+    ../interfaces/itmpl_plugin.h \
+    cmdframe.h \
+    ../global/config.h
 SOURCES += main.cpp \
     addtemplate.cpp \
     view.cpp \
-    mainwindow.cpp
+    mainwindow.cpp \
+    cmdframe.cpp
 FORMS += addtemplate.ui
 RESOURCES += images.qrc
 TRANSLATIONS = tEditor_ru.ts
