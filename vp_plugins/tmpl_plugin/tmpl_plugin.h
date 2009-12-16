@@ -21,8 +21,8 @@ struct tInfo
     QString t_desc;     // описание шаблона
     QString p_size;     // размер бумаги (Для человека)
     bool  page_orient;  // ориентация страницы Книжная/альбомная true/false
-    qreal page_height;  // высота листа в  [мм -> point] (для компьютера)
     qreal page_width;   // ширина листа в  [мм -> point] (для компьютера)
+    qreal page_height;  // высота листа в  [мм -> point] (для компьютера)
     qreal m_top;        // отступ сверху в [мм -> point] (для компьютера)
     qreal m_bottom;     // отступ снизу в [мм -> point] (для компьютера)
     qreal m_left;       // отступ слева в [мм -> point] (для компьютера)
@@ -43,8 +43,8 @@ inline QDataStream &operator<<( QDataStream &out, const tInfo& save )
     out << save.t_desc;
     out << save.p_size;
     out << save.page_orient;
-    out << save.page_height;
     out << save.page_width;
+    out << save.page_height;
     out << save.m_top;
     out << save.m_bottom;
     out << save.m_left;
@@ -65,8 +65,8 @@ inline QDataStream &operator>>( QDataStream &in, tInfo& load)
     in >> load.t_desc;
     in >> load.p_size;
     in >> load.page_orient;
-    in >> load.page_height;
     in >> load.page_width;
+    in >> load.page_height;
     in >> load.m_top;
     in >> load.m_bottom;
     in >> load.m_left;
@@ -111,13 +111,15 @@ public:
                              qreal m_right,
                              qreal m_left);
 
-
     void printFormatingPageToFile(int pageNum);
     QGraphicsScene *getFirstPage(){return firstPage_scene;};
     QGraphicsScene *getSecondPage(){return secondPage_scene;};
     QGraphicsScene *getThirdPage(){return thirdPage_scene;};
     QGraphicsScene *getFourthPage(){return fourthPage_scene;};
+
     QStringList getPageSizeList();
+
+    QSize getPageSizeFromString(QString & page_str);
     // Возвращает текущую ориентацию шаблона
     bool getPageOrientation();
     // Изменяет текущую ориентацию
@@ -131,6 +133,8 @@ signals:
     void allPagesConverted(QString &first,QString &second,
                           QString &third,QString &fourth);
 public slots:
+
+
     void convertTemplatesToPdf(const QString & templates_in_file,QStandardItemModel * model);
     void update_scene(int pageNum);
     void setTemplates(const QString & templates_in_file,QStandardItemModel * model);
@@ -140,8 +144,8 @@ public slots:
     // сохраним текущий набор сцен в файл шаблона
     void doSaveTemplates();
 protected:
-    qreal findPageSize_H(int page_size_id);
-    qreal findPageSize_V(int page_size_id);
+    qreal findPageSize_H(int page_size_id);// Высота
+    qreal findPageSize_W(int page_size_id);// Ширина
     int getElemIdByName(const QString &elem_name);
     bool parse_templates(const QString & in_file);
     QString findFromModel(const QString &find_line);
@@ -150,6 +154,8 @@ protected:
     int getElemCount(QGraphicsScene *scene);
     // Возвращает указатель на элемент paper  в сцене
     QGraphicsItem *findPaperElem(QGraphicsScene *scene);
+    // Создает Qmap размеров страниц
+    void createHW_Map();
 private:
     tInfo t_info; // Информация о шаблоне
     static const int t_version = 2; // версия шаблона
@@ -157,7 +163,7 @@ private:
     QString templates_file_name; //Имя шаблона с которым работаем
 
     // Создает основу страницы
-    void create_page(QGraphicsScene * scene,qreal &height,qreal &width,
+    void create_page(QGraphicsScene * scene,qreal &width,qreal &height,
                      qreal &m_top,qreal &m_bottom,
                      qreal &m_right,qreal &m_left);
     // Создает новый базовый элемент
@@ -179,7 +185,10 @@ private:
     QGraphicsScene * secondPage_scene;
     QGraphicsScene * thirdPage_scene;
     QGraphicsScene * fourthPage_scene;
-    QMap<QString, int> page_size;
+    QMap<QString, int> page_size_map;
+    QStringList page_name_QSL;
+    QMap<QString,QSize> page_WH_map;
+
 
 };
 

@@ -17,6 +17,9 @@
 #include "tech_global.h"
 #include "simpleitem.h"
 
+#include <iostream>
+using namespace std;
+
 using namespace SafeVirtualPrinter;
 
 Tmpl_plugin::Tmpl_plugin(QObject *parent)
@@ -26,6 +29,7 @@ Tmpl_plugin::Tmpl_plugin(QObject *parent)
     qRegisterMetaTypeStreamOperators<tInfo>("tInfo");
 
 };
+
 
 void Tmpl_plugin::init(const QString &spool,const QString &sid)
 {
@@ -48,38 +52,41 @@ void Tmpl_plugin::init(const QString &spool,const QString &sid)
             secondPage_scene = new QGraphicsScene(this);
             thirdPage_scene  = new QGraphicsScene(this);
             fourthPage_scene = new QGraphicsScene(this);
-
-            page_size.insert(QString("A4 (210 x 297 мм)"), QPrinter::A4);
-            page_size.insert(QString("A3 (297 x 420 мм)"), QPrinter::A3);
-            page_size.insert(QString("A0 (841 x 1189 мм)"), QPrinter::A0);
-            page_size.insert(QString("A1 (594 x 841 мм)"), QPrinter::A1);
-            page_size.insert(QString("A2 (420 x 594 мм)"), QPrinter::A2);
-            page_size.insert(QString("A5 (148 x 210 мм)"), QPrinter::A5);
-            page_size.insert(QString("A6 (105 x 148 мм)"), QPrinter::A6);
-            page_size.insert(QString("A7 (74 x 105 мм)"), QPrinter::A7);
-            page_size.insert(QString("A8 (52 x 74 мм)"), QPrinter::A8);
-            page_size.insert(QString("A9 (37 x 52 мм)"), QPrinter::A9);
-            page_size.insert(QString("B0 (1000 x 1414 мм)"), QPrinter::B0);
-            page_size.insert(QString("B1 (707 x 1000 мм)"), QPrinter::B1);
-            page_size.insert(QString("B2 (500 x 707 мм)"), QPrinter::B2);
-            page_size.insert(QString("B3 (353 x 500 мм)"), QPrinter::B3);
-            page_size.insert(QString("B4 (250 x 353 мм)"), QPrinter::B4);
-            page_size.insert(QString("B5 (176 x 250 мм)"), QPrinter::B5);
-            page_size.insert(QString("B6 (125 x 176 мм)"), QPrinter::B6);
-            page_size.insert(QString("B7 (88 x 125 мм)"), QPrinter::B7);
-            page_size.insert(QString("B8 (62 x 88 мм)"), QPrinter::B8);
-            page_size.insert(QString("B9 (44 x 62 мм)"), QPrinter::B9);
-            page_size.insert(QString("B10 (31 x 44 мм)"), QPrinter::B10);
-            page_size.insert(QString("C5E (163 x 229 мм)"), QPrinter::C5E);
-            page_size.insert(QString("DLE (110 x 220 мм)"), QPrinter::DLE);
-            page_size.insert(QString("Executive (191 x 254 мм)"), QPrinter::Executive);
-            page_size.insert(QString("Folio (210 x 330 мм)"), QPrinter::Folio);
-            page_size.insert(QString("Ledger (432 x 279 мм)"), QPrinter::Ledger);
-            page_size.insert(QString("Legal (216 x 356 мм)"), QPrinter::Legal);
-            page_size.insert(QString("Letter (216 x 279 мм)"), QPrinter::Letter);
-            page_size.insert(QString("Tabloid (279 x 432 мм)"), QPrinter::Tabloid);
+            page_size_map.insert(QString("A4 (210 x 297 мм)"), QPrinter::A4);
+            page_size_map.insert(QString("A3 (297 x 420 мм)"), QPrinter::A3);
+            page_size_map.insert(QString("A0 (841 x 1189 мм)"), QPrinter::A0);
+            page_size_map.insert(QString("A1 (594 x 841 мм)"), QPrinter::A1);
+            page_size_map.insert(QString("A2 (420 x 594 мм)"), QPrinter::A2);
+            page_size_map.insert(QString("A5 (148 x 210 мм)"), QPrinter::A5);
+            page_size_map.insert(QString("A6 (105 x 148 мм)"), QPrinter::A6);
+            page_size_map.insert(QString("A7 (74 x 105 мм)"), QPrinter::A7);
+            page_size_map.insert(QString("A8 (52 x 74 мм)"), QPrinter::A8);
+            page_size_map.insert(QString("A9 (37 x 52 мм)"), QPrinter::A9);
+            page_size_map.insert(QString("B0 (1000 x 1414 мм)"), QPrinter::B0);
+            page_size_map.insert(QString("B1 (707 x 1000 мм)"), QPrinter::B1);
+            page_size_map.insert(QString("B2 (500 x 707 мм)"), QPrinter::B2);
+            page_size_map.insert(QString("B3 (353 x 500 мм)"), QPrinter::B3);
+            page_size_map.insert(QString("B4 (250 x 353 мм)"), QPrinter::B4);
+            page_size_map.insert(QString("B5 (176 x 250 мм)"), QPrinter::B5);
+            page_size_map.insert(QString("B6 (125 x 176 мм)"), QPrinter::B6);
+            page_size_map.insert(QString("B7 (88 x 125 мм)"), QPrinter::B7);
+            page_size_map.insert(QString("B8 (62 x 88 мм)"), QPrinter::B8);
+            page_size_map.insert(QString("B9 (44 x 62 мм)"), QPrinter::B9);
+            page_size_map.insert(QString("B10 (31 x 44 мм)"), QPrinter::B10);
+            page_size_map.insert(QString("C5E (163 x 229 мм)"), QPrinter::C5E);
+            page_size_map.insert(QString("DLE (110 x 220 мм)"), QPrinter::DLE);
+            page_size_map.insert(QString("Executive (191 x 254 мм)"), QPrinter::Executive);
+            page_size_map.insert(QString("Folio (210 x 330 мм)"), QPrinter::Folio);
+            page_size_map.insert(QString("Ledger (432 x 279 мм)"), QPrinter::Ledger);
+            page_size_map.insert(QString("Legal (216 x 356 мм)"), QPrinter::Legal);
+            page_size_map.insert(QString("Letter (216 x 279 мм)"), QPrinter::Letter);
+            page_size_map.insert(QString("Tabloid (279 x 432 мм)"), QPrinter::Tabloid);
 
             page_marker = "templates_page"; // маркер страницы
+            // Создаем списки
+            page_name_QSL = QStringList(page_size_map.keys());
+            // Создаем QMap размеров страниц
+
 
         }else{
             error_msg = QObject::trUtf8("ERROR: каталог %1 не существует\n").arg(spool);
@@ -104,6 +111,11 @@ void Tmpl_plugin::setPageOrientation(bool p_orient)
 }
 
 
+QStringList Tmpl_plugin::getPageSizeList()
+{
+    return page_name_QSL;
+}
+
 void Tmpl_plugin::loadTemplates(const QString & templates_in_file)
 {
     QString e_msg;
@@ -121,6 +133,7 @@ void Tmpl_plugin::loadTemplates(const QString & templates_in_file)
     }
 
 }
+
 void Tmpl_plugin::createEmptyTemplate(const QString & file_name,
                                       const QString & t_author,
                                       const QString & t_name,
@@ -156,8 +169,9 @@ void Tmpl_plugin::createEmptyTemplate(const QString & file_name,
     t_info.t_desc = t_desc;      // описание шаблона, может быть пустым
     t_info.p_size = p_size;      // размер бумаги
 
+    t_info.page_width = this->findPageSize_W(p_s_id);     // ширина листа
     t_info.page_height = this->findPageSize_H(p_s_id);    // высота листа
-    t_info.page_width = this->findPageSize_V(p_s_id);     // ширина листа
+    
     t_info.page_orient = pages_orient;    // ориентация листа
     t_info.date_time = c_date; // дата и время создания шаблона
 
@@ -448,12 +462,12 @@ void Tmpl_plugin::printFormatingPageToFile(int pageNum)
     }
 }
 
-void Tmpl_plugin::create_page(QGraphicsScene * scene,qreal &height,qreal &width,
+void Tmpl_plugin::create_page(QGraphicsScene * scene,
+                              qreal &width,qreal &height,
                               qreal &m_top,qreal &m_bottom,
                               qreal &m_right,qreal &m_left)
 {
     if (scene){
-
         scene->setSceneRect(0, 0, width,height);
         scene->setBackgroundBrush(Qt::white);
         // рисуем границы (при печати надо их убирать)
@@ -516,7 +530,10 @@ bool Tmpl_plugin::parse_templates(const QString & in_file)
             in >> t_info;
 
             if (t_info.version == t_version){// Сравним версию шаблона
-
+                if (!t_info.page_orient){
+                    // Меняем местами высоту и ширину
+                    swap(t_info.page_width,t_info.page_height);
+                }
                 // создаем основное рабочее поле
                 this->create_page(firstPage_scene,
                                   t_info.page_width,t_info.page_height,
@@ -705,28 +722,34 @@ QString Tmpl_plugin::findFromModel(const QString &find_line)
     return local_find;
 }
 
-QStringList Tmpl_plugin::getPageSizeList()
-{
-    QStringList result;
 
-    QMapIterator<QString, int> i (page_size);
-    while (i.hasNext()) {
-        i.next();
-        result.append(i.key());
+
+QSize Tmpl_plugin::getPageSizeFromString(QString & page_str)
+{
+    QSize p_size;
+    switch (getElemIdByName(page_str)){
+    case QPrinter::A4:
+        p_size = QSize(210,297);
+        break;
+    case QPrinter::A3:
+        p_size = QSize(420,297);
+        break;
+        //FixMe
+
     }
 
-    return result;
+    return p_size;
 }
-
 int Tmpl_plugin::getElemIdByName(const QString &elem_name)
 {
     int result=0; // Если в списке запрошенного элемента нет то возвращаем 0
-    if (!elem_name.isEmpty() && page_size.contains(elem_name)){
-        result= page_size.value(elem_name);
+    if (!elem_name.isEmpty() && page_size_map.contains(elem_name)){
+        result= page_size_map.value(elem_name);
     }
     return result;
 }
 
+// Всегда возвращает для портетной ориентации
 qreal Tmpl_plugin::findPageSize_H(int page_size_id)
 {
     qreal res;
@@ -735,14 +758,14 @@ qreal Tmpl_plugin::findPageSize_H(int page_size_id)
         res=MM_TO_POINT(297);
         break;
     case QPrinter::A3:
-        res=MM_TO_POINT(420);
+        res=MM_TO_POINT(297);
         break;
         //FixMe
     }
     return res;
 }
 
-qreal Tmpl_plugin::findPageSize_V(int page_size_id)
+qreal Tmpl_plugin::findPageSize_W(int page_size_id)
 {
     qreal res;
     switch (page_size_id){
@@ -751,7 +774,7 @@ qreal Tmpl_plugin::findPageSize_V(int page_size_id)
 
         break;
     case QPrinter::A3:
-        res=MM_TO_POINT(297);
+        res=MM_TO_POINT(420);
 
         break;
         //FixMe
@@ -760,6 +783,8 @@ qreal Tmpl_plugin::findPageSize_V(int page_size_id)
 }
 
 // ------------------------- protected function -------------------------------
+
+
 int Tmpl_plugin::getElemCount(QGraphicsScene *scene)
 {
     qDebug() <<Q_FUNC_INFO<< "scene count = " << scene->items().size();
