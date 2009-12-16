@@ -1,6 +1,6 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
-
+#include <QDebug>
 #include <QMainWindow>
 
 QT_BEGIN_NAMESPACE
@@ -12,7 +12,7 @@ class QStringListModel;
 QT_END_NAMESPACE
 
 class View;
-
+class cmdFrame;
 #include "itmpl_plugin.h"
 #include "auth_plugin.h"
 #include "addtemplate.h"
@@ -50,6 +50,11 @@ private slots:
 
     void errorA(QString e_msg); // Ошибка А типа - админ безопастности
     void errorB(QString e_msg); // Ошибка Б типа - сисадмин
+    void do_CmdButtonClick(const QString &line);// Нажали командную кнопку
+    void test_slot();
+signals:
+    void addBaseElementToPage(int, QStringList & line);
+    void addImgElementToPage(int , QString &templ_fn);
 private:
     void createActions();
     void createMenus();
@@ -83,13 +88,16 @@ private:
     QAction *aboutAct;
     QAction *aboutQtAct;
     QAction *quitAct;
+    QAction *flipAction;
+    QAction *addBaseElem;
     int currentPage;
     QString userName;
 
     QStringListModel *page_size_model;
-
+    QStringList elemList;
+    bool templ_load; // Признак что шаблон загружен
     AddTemplate *TProperDlg;
-
+    cmdFrame * CmdButtonBox;
     // Переменные из установок
     QString local_path; // Путь к локальным шаблонам пользователя
 

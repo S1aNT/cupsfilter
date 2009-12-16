@@ -1,5 +1,6 @@
 #include <QDebug>
 #include <QtGui>
+#include <QtGui/QFrame>
 #include <QDesktopWidget>
 #include <QTabWidget>
 #include <QFileDialog>
@@ -7,10 +8,22 @@
 
 #include "mainwindow.h"
 #include "view.h"
-
+#include "cmdFrame.h"
 
 MainWindow::MainWindow()
 {
+    templ_load = false;
+    // Создаем нужные окошки
+    CmdButtonBox = new cmdFrame(this);
+
+    TProperDlg  = new AddTemplate(this);
+    //TProperDlg->setAttribute(Qt::WA_DeleteOnClose);
+    TProperDlg->setWindowFlags(Qt::Dialog |
+                               Qt::CustomizeWindowHint |
+                               Qt::WindowTitleHint |
+                               Qt::WindowCloseButtonHint |
+                               Qt::WindowSystemMenuHint);
+    //
     this->resize(800,600);
 
     tabWidget = new QTabWidget;
@@ -50,14 +63,8 @@ MainWindow::MainWindow()
     //Все структуры созданы - грузим апельсины бочками
     loadPlugins();
 
-    // Создаем нужные окошки
-    TProperDlg = new AddTemplate();
-    //TProperDlg->setAttribute(Qt::WA_DeleteOnClose);
-    TProperDlg->setWindowFlags(Qt::Dialog |
-                               Qt::CustomizeWindowHint |
-                               Qt::WindowTitleHint |
-                               Qt::WindowCloseButtonHint |
-                               Qt::WindowSystemMenuHint);
+    // Создадим кнопки
+    CmdButtonBox->setCmdButton(elemList);
     // свяжем сигналы и слоты
     QObject::connect (TProperDlg,
                       SIGNAL(needCreateEmptyTemplates(QString,QString,QString,QString,
@@ -68,11 +75,23 @@ MainWindow::MainWindow()
                                                QString,bool,QString,
                                                qreal,qreal,qreal,qreal))
                       );
+    QObject::connect(CmdButtonBox,
+                     SIGNAL(clicked(const QString &)),
+                     this,
+                     SLOT(do_CmdButtonClick(const QString &))
+                     );
 
 
 }
 
 
+void MainWindow::test_slot()
+{
+    QMessageBox msgBox;
+    msgBox.setText("The  1111.");
+    msgBox.exec();
+
+}
 
 void MainWindow::loadPlugins()
 {
@@ -135,8 +154,11 @@ void MainWindow::loadPlugins()
                 QString spool ="c:/spool/";
                 QString sid = "ewqfrieie";
                 tmpl_plugin->init(spool,sid);
-                // Получим список размеров страниц
 
+                // Получим названия стандартных кнопок для шаблона
+                elemList = tmpl_plugin->getElemNameList();
+
+                // Получим список размеров страниц
                 page_size_model->setStringList(tmpl_plugin->getPageSizeList());
                 connect (plugin,
                          SIGNAL(allTemplatesPagesParsed(QGraphicsScene *,
@@ -149,6 +171,17 @@ void MainWindow::loadPlugins()
                                        QGraphicsScene *,
                                        QGraphicsScene *))
                          );
+                connect(this,
+                        SIGNAL(addBaseElementToPage(int,QStringList &)),
+                        plugin,
+                        SLOT(doAddBaseElementToPage(int,QStringList &))
+                        );
+                connect(this,
+                        SIGNAL(addImgElementToPage(int,QString &)),
+                        plugin,
+                        SLOT(doAddImgElementToPage(int,QString &))
+                        );
+
                 /*
                 connect (plugin,
                          SIGNAL(allPagesConverted(QString &,QString &,
@@ -160,11 +193,6 @@ void MainWindow::loadPlugins()
 
                 connect (this,SIGNAL(needUpdatePage(int)),plugin,SLOT(update_scene(int)));
 
-                connect(teditorDlg,
-                        SIGNAL(addBaseElementToPage(int)),
-                        plugin,
-                        SLOT(doAddBaseElementToPage(int))
-                        );
                 connect (teditorDlg,
                          SIGNAL(saveTemplates()),
                          plugin,
@@ -179,6 +207,31 @@ void MainWindow::loadPlugins()
 
 
 // ----------------------------- Private slots
+void MainWindow::do_CmdButtonClick(const QString &line)
+{
+    if (templ_load){
+        if (line==tr("Изображение")){
+            QString templ_fn = QFileDialog::getOpenFileName(this,
+                                                            tr("Выберите картинку"),
+                                                            ".",
+                                                            tr("Картинки (*.jpg *.png *.bmp *.JPG *.PNG *.BMP)")
+                                                            );
+            if (!templ_fn.isEmpty()){
+                //добавим картинку
+                emit addImgElementToPage(this->currentPage+1,templ_fn);
+            }
+        }else{
+            QStringList list;
+            list << line;
+            emit addBaseElementToPage(this->currentPage+1,list);
+        }
+    }else{
+        QString e_msg = tr("Необходимо предварительно загрузить шаблон!");
+        this->errorA(e_msg);
+    }
+
+}
+
 void MainWindow::saveUserName(QString & u_name)
 {
     userName = u_name;
@@ -266,6 +319,7 @@ void MainWindow::loadTemplates()
             this->statusBar()->showMessage(QObject::tr("Шаблон [%1]загружен")
                                            .arg(templ_fn)
                                            );
+            this->templ_load = true;
         }
 
 
@@ -328,6 +382,9 @@ void MainWindow::pageSelect(int page)
 
 void MainWindow::createActions()
 {
+    printAct = new QAction(QIcon(":/t_print.png"),
+                           tr("Пробная печать шаблона"),this);
+
     newAct = new QAction(QIcon(":/t_new.png"),
                          tr("Создание шаблона ..."),this);
     newAct->setShortcut(QKeySequence::New);
@@ -404,11 +461,12 @@ void MainWindow::createStatusBar()
 
 void MainWindow::createDockWindows()
 {
-
     QDockWidget *dock = new QDockWidget(tr("Элементы"), this);
     dock->setMinimumWidth(100);
+    //dock->setMinimumWidth(200);
+    //FIX проблема зафиксировать размер кнопок
     dock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
-    //dock->setWidget(paragraphsList);
+    dock->setWidget(CmdButtonBox);
     addDockWidget(Qt::RightDockWidgetArea, dock);
     viewMenu->addAction(dock->toggleViewAction());
 }
