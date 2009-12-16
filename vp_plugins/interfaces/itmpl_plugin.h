@@ -34,6 +34,7 @@ public:
     virtual QGraphicsScene *getThirdPage()=0;
     virtual QGraphicsScene *getFourthPage()=0;
     virtual QStringList    getPageSizeList()=0;
+    virtual QStringList getElemNameList()=0;
     virtual QSize getPageSizeFromString(QString & page_str)=0;
     virtual bool getPageOrientation()=0;
     virtual void setPageOrientation(bool p_orient)=0;
