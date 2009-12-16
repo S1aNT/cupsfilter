@@ -118,7 +118,7 @@ public:
     QGraphicsScene *getFourthPage(){return fourthPage_scene;};
 
     QStringList getPageSizeList();
-
+    QStringList getElemNameList();
     QSize getPageSizeFromString(QString & page_str);
     // Возвращает текущую ориентацию шаблона
     bool getPageOrientation();
@@ -140,7 +140,10 @@ public slots:
     void setTemplates(const QString & templates_in_file,QStandardItemModel * model);
 
     // Добавим базовый элемент на страницу page
-    void doAddBaseElementToPage(int page);
+    void doAddBaseElementToPage(int page,QStringList &text_list);
+    // Добавим img элемент на страницу page
+    void doAddImgElementToPage(int page,QString &file_img);
+
     // сохраним текущий набор сцен в файл шаблона
     void doSaveTemplates();
 protected:
@@ -162,6 +165,10 @@ private:
     QString page_marker; // маркер страницы
     QString templates_file_name; //Имя шаблона с которым работаем
 
+    //  Заполняет список базовых элементов шаблона
+    void fillElemMap();
+    // Заполняет список размеров страниц
+    void fillPageMap();
     // Создает основу страницы
     void create_page(QGraphicsScene * scene,qreal &width,qreal &height,
                      qreal &m_top,qreal &m_bottom,
@@ -187,8 +194,10 @@ private:
     QGraphicsScene * fourthPage_scene;
     QMap<QString, int> page_size_map;
     QStringList page_name_QSL;
+    QStringList elem_name_QSL;
     QMap<QString,QSize> page_WH_map;
-
+    // Список базовых элементов шаблона
+    QMap <QString, int> elem_name_map;
 
 };
 

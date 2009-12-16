@@ -24,7 +24,7 @@ using namespace SafeVirtualPrinter;
 
 Tmpl_plugin::Tmpl_plugin(QObject *parent)
 {
-    // Регистрируем типаы
+    //  егистрируем типаы
     qRegisterMetaType<tInfo>("tInfo");
     qRegisterMetaTypeStreamOperators<tInfo>("tInfo");
 
@@ -52,39 +52,17 @@ void Tmpl_plugin::init(const QString &spool,const QString &sid)
             secondPage_scene = new QGraphicsScene(this);
             thirdPage_scene  = new QGraphicsScene(this);
             fourthPage_scene = new QGraphicsScene(this);
-            page_size_map.insert(QString("A4 (210 x 297 мм)"), QPrinter::A4);
-            page_size_map.insert(QString("A3 (297 x 420 мм)"), QPrinter::A3);
-            page_size_map.insert(QString("A0 (841 x 1189 мм)"), QPrinter::A0);
-            page_size_map.insert(QString("A1 (594 x 841 мм)"), QPrinter::A1);
-            page_size_map.insert(QString("A2 (420 x 594 мм)"), QPrinter::A2);
-            page_size_map.insert(QString("A5 (148 x 210 мм)"), QPrinter::A5);
-            page_size_map.insert(QString("A6 (105 x 148 мм)"), QPrinter::A6);
-            page_size_map.insert(QString("A7 (74 x 105 мм)"), QPrinter::A7);
-            page_size_map.insert(QString("A8 (52 x 74 мм)"), QPrinter::A8);
-            page_size_map.insert(QString("A9 (37 x 52 мм)"), QPrinter::A9);
-            page_size_map.insert(QString("B0 (1000 x 1414 мм)"), QPrinter::B0);
-            page_size_map.insert(QString("B1 (707 x 1000 мм)"), QPrinter::B1);
-            page_size_map.insert(QString("B2 (500 x 707 мм)"), QPrinter::B2);
-            page_size_map.insert(QString("B3 (353 x 500 мм)"), QPrinter::B3);
-            page_size_map.insert(QString("B4 (250 x 353 мм)"), QPrinter::B4);
-            page_size_map.insert(QString("B5 (176 x 250 мм)"), QPrinter::B5);
-            page_size_map.insert(QString("B6 (125 x 176 мм)"), QPrinter::B6);
-            page_size_map.insert(QString("B7 (88 x 125 мм)"), QPrinter::B7);
-            page_size_map.insert(QString("B8 (62 x 88 мм)"), QPrinter::B8);
-            page_size_map.insert(QString("B9 (44 x 62 мм)"), QPrinter::B9);
-            page_size_map.insert(QString("B10 (31 x 44 мм)"), QPrinter::B10);
-            page_size_map.insert(QString("C5E (163 x 229 мм)"), QPrinter::C5E);
-            page_size_map.insert(QString("DLE (110 x 220 мм)"), QPrinter::DLE);
-            page_size_map.insert(QString("Executive (191 x 254 мм)"), QPrinter::Executive);
-            page_size_map.insert(QString("Folio (210 x 330 мм)"), QPrinter::Folio);
-            page_size_map.insert(QString("Ledger (432 x 279 мм)"), QPrinter::Ledger);
-            page_size_map.insert(QString("Legal (216 x 356 мм)"), QPrinter::Legal);
-            page_size_map.insert(QString("Letter (216 x 279 мм)"), QPrinter::Letter);
-            page_size_map.insert(QString("Tabloid (279 x 432 мм)"), QPrinter::Tabloid);
+            // Заполним список базовых элементов шаблона
+            fillElemMap();
+            // Создаем списки
+            elem_name_QSL = QStringList(elem_name_map.keys());
 
-            page_marker = "templates_page"; // маркер страницы
+            // Заполним список размеров страниц
+            fillPageMap();
             // Создаем списки
             page_name_QSL = QStringList(page_size_map.keys());
+
+            page_marker = "templates_page"; // маркер страницы
             // Создаем QMap размеров страниц
 
 
@@ -116,6 +94,11 @@ QStringList Tmpl_plugin::getPageSizeList()
     return page_name_QSL;
 }
 
+QStringList Tmpl_plugin::getElemNameList()
+{
+    return elem_name_QSL;
+}
+
 void Tmpl_plugin::loadTemplates(const QString & templates_in_file)
 {
     QString e_msg;
@@ -127,7 +110,7 @@ void Tmpl_plugin::loadTemplates(const QString & templates_in_file)
         }
     }else {
         e_msg = QObject::trUtf8("Ошибка: Файл %1 шаблона не существует или не не верного формата!");
-     }
+    }
     if (!e_msg.isEmpty()) {
         emit error(e_msg);
     }
@@ -171,7 +154,7 @@ void Tmpl_plugin::createEmptyTemplate(const QString & file_name,
 
     t_info.page_width = this->findPageSize_W(p_s_id);     // ширина листа
     t_info.page_height = this->findPageSize_H(p_s_id);    // высота листа
-    
+
     t_info.page_orient = pages_orient;    // ориентация листа
     t_info.date_time = c_date; // дата и время создания шаблона
 
@@ -205,7 +188,64 @@ void Tmpl_plugin::createEmptyTemplate(const QString & file_name,
     }
 }
 
-void Tmpl_plugin::doAddBaseElementToPage(int page)
+void Tmpl_plugin::doAddImgElementToPage(int page,QString &file_img)
+{
+    QString e_msg;
+    QGraphicsScene *scene;
+    QGraphicsItem *item;
+    QGraphicsPixmapItem * imgItem;
+    QPixmap pixMapItem;
+    switch(page){
+    case 1:
+        scene = firstPage_scene;
+        break;
+    case 2:
+        scene = secondPage_scene;
+        break;
+    case 3:
+        scene = thirdPage_scene;
+        break;
+    case 4:
+        scene = fourthPage_scene;
+        break;
+    default:
+        e_msg = QObject::trUtf8("Ошибка: Такой страницы %2 в шаблоне не существует")
+                .arg(page,0,10);
+        emit error(e_msg);
+        //emit toLog(l_msg+e_msg);
+        break;
+    }
+    if (scene){
+        item = findPaperElem(scene);
+        if (QFile::exists(file_img)){
+
+            if (pixMapItem.load(file_img)){
+                imgItem = new QGraphicsPixmapItem();
+                imgItem->setData(ObjectName, "tPixMap");
+                imgItem->setFlag(QGraphicsItem::ItemIsMovable);
+                if( pixMapItem.width() >320 ||
+                    pixMapItem.height() >320){
+                    imgItem->setPixmap(pixMapItem.scaled(QSize(320,320)));
+                }else{
+                  imgItem->setPixmap(pixMapItem);
+                }
+                imgItem->setParentItem(item);
+                scene->update();
+            }else{
+                e_msg = QObject::trUtf8("Ошибка: Формат файла %1 не известен!").arg(file_img);
+            }
+
+        }else{
+            e_msg = QObject::trUtf8("Ошибка: Файл %1 изображения не существует!").arg(file_img);
+        }
+
+    }
+    if (!e_msg.isEmpty()) {
+        emit error(e_msg);
+    }
+
+}
+void Tmpl_plugin::doAddBaseElementToPage(int page,QStringList &text_list)
 {
     QString e_msg;
     QString l_msg = QString(" [%1] ").arg(QString::fromAscii(Q_FUNC_INFO));
@@ -238,7 +278,8 @@ void Tmpl_plugin::doAddBaseElementToPage(int page)
         SimpleItem * pItem = new SimpleItem();
         pItem->setZValue(100);
         pItem->setPos(100.0,100.0);
-        pItem->setText(QStringList()<<QObject::trUtf8("Элемент"));
+        //pItem->setText(QStringList()<<QObject::trUtf8("Элемент"));
+        pItem->setText(text_list);
         pItem->setFlag(QGraphicsItem::ItemIsMovable);
         pItem->setData(ObjectName, "tElem");
         pItem->setParentItem(item);
@@ -322,7 +363,7 @@ void Tmpl_plugin::doSaveTemplates()
             if (elem_type == "tElem"){
                 tElem =(SimpleItem* )firstPage_scene->items().at(i);
                 out << tElem->pos() << tElem->getFont() << tElem->getColor()
-                    << tElem->getText();
+                        << tElem->getText();
             }
         }
 
@@ -335,7 +376,7 @@ void Tmpl_plugin::doSaveTemplates()
             if (elem_type == "tElem"){
                 tElem =(SimpleItem* )secondPage_scene->items().at(i);
                 out << tElem->pos() << tElem->getFont() << tElem->getColor()
-                    << tElem->getText();
+                        << tElem->getText();
             }
         }
 
@@ -348,7 +389,7 @@ void Tmpl_plugin::doSaveTemplates()
             if (elem_type == "tElem"){
                 tElem =(SimpleItem* )thirdPage_scene->items().at(i);
                 out << tElem->pos() << tElem->getFont() << tElem->getColor()
-                    << tElem->getText();
+                        << tElem->getText();
             }
         }
 
@@ -361,7 +402,7 @@ void Tmpl_plugin::doSaveTemplates()
             if (elem_type == "tElem"){
                 tElem =(SimpleItem* )fourthPage_scene->items().at(i);
                 out << tElem->pos() << tElem->getFont() << tElem->getColor()
-                    << tElem->getText();
+                        << tElem->getText();
             }
         }
 
@@ -711,7 +752,7 @@ QString Tmpl_plugin::findFromModel(const QString &find_line)
                     //QStandardItem * cell_item = work_model->item(work_model->rowCount(), i);
                     QStandardItem * cell_item = work_model->item(0, i);
                     if (cell_item){
-                       local_find = cell_item->data(Qt::EditRole).toString();
+                        local_find = cell_item->data(Qt::EditRole).toString();
                     }
 
                     break;
@@ -750,6 +791,103 @@ int Tmpl_plugin::getElemIdByName(const QString &elem_name)
 }
 
 // Всегда возвращает для портетной ориентации
+
+qreal Tmpl_plugin::findPageSize_W(int page_size_id)
+{
+    qreal res;
+    switch (page_size_id){
+    case QPrinter::A4:
+        res=MM_TO_POINT(210);
+        break;
+    case QPrinter::A3:
+        res=MM_TO_POINT(297);
+        break;
+    case QPrinter::A0:
+        res = MM_TO_POINT(841);
+        break;
+    case QPrinter::A1:
+        res = MM_TO_POINT(594);
+        break;
+    case QPrinter::A2:
+        res = MM_TO_POINT(420);
+        break;
+    case QPrinter::A5:
+        res = MM_TO_POINT(148);
+        break;
+    case QPrinter::A6:
+        res = MM_TO_POINT(105);
+        break;
+    case QPrinter::A7:
+        res = MM_TO_POINT(74);
+        break;
+    case QPrinter::A8:
+        res = MM_TO_POINT(52);
+        break;
+    case QPrinter::A9:
+        res = MM_TO_POINT(37);
+        break;
+    case QPrinter::B0:
+        res = MM_TO_POINT(1000);
+        break;
+    case QPrinter::B1:
+        res = MM_TO_POINT(707);
+        break;
+    case QPrinter::B2:
+        res = MM_TO_POINT(500);
+        break;
+    case QPrinter::B3:
+        res = MM_TO_POINT(353);
+        break;
+    case QPrinter::B4:
+        res = MM_TO_POINT(250);
+        break;
+    case QPrinter::B5:
+        res = MM_TO_POINT(176);
+        break;
+    case QPrinter::B6:
+        res = MM_TO_POINT(125);
+        break;
+    case QPrinter::B7:
+        res = MM_TO_POINT(88);
+        break;
+    case QPrinter::B8:
+        res = MM_TO_POINT(62);
+        break;
+    case QPrinter::B9:
+        res = MM_TO_POINT(44);
+        break;
+    case QPrinter::B10:
+        res = MM_TO_POINT(31);
+        break;
+    case QPrinter::C5E:
+        res = MM_TO_POINT(163);
+        break;
+    case QPrinter::DLE:
+        res = MM_TO_POINT(110);
+        break;
+    case QPrinter::Executive:
+        res = MM_TO_POINT(191);
+        break;
+    case QPrinter::Folio:
+        res = MM_TO_POINT(210);
+        break;
+    case QPrinter::Ledger:
+        res = MM_TO_POINT(432);
+        break;
+    case QPrinter::Legal:
+        res = MM_TO_POINT(216);
+        break;
+    case QPrinter::Letter:
+        res = MM_TO_POINT(216);
+        break;
+    case QPrinter::Tabloid:
+        res = MM_TO_POINT(279);
+        break;
+
+    }
+    return res;
+}
+
 qreal Tmpl_plugin::findPageSize_H(int page_size_id)
 {
     qreal res;
@@ -758,26 +896,90 @@ qreal Tmpl_plugin::findPageSize_H(int page_size_id)
         res=MM_TO_POINT(297);
         break;
     case QPrinter::A3:
-        res=MM_TO_POINT(297);
-        break;
-        //FixMe
-    }
-    return res;
-}
-
-qreal Tmpl_plugin::findPageSize_W(int page_size_id)
-{
-    qreal res;
-    switch (page_size_id){
-    case QPrinter::A4:
-        res=MM_TO_POINT(210);
-
-        break;
-    case QPrinter::A3:
         res=MM_TO_POINT(420);
-
         break;
-        //FixMe
+    case QPrinter::A0:
+        res = MM_TO_POINT(1189);
+        break;
+    case QPrinter::A1:
+        res = MM_TO_POINT(841);
+        break;
+    case QPrinter::A2:
+        res = MM_TO_POINT(594);
+        break;
+    case QPrinter::A5:
+        res = MM_TO_POINT(210);
+        break;
+    case QPrinter::A6:
+        res = MM_TO_POINT(148);
+        break;
+    case QPrinter::A7:
+        res = MM_TO_POINT(105);
+        break;
+    case QPrinter::A8:
+        res = MM_TO_POINT(74);
+        break;
+    case QPrinter::A9:
+        res = MM_TO_POINT(52);
+        break;
+    case QPrinter::B0:
+        res = MM_TO_POINT(1414);
+        break;
+    case QPrinter::B1:
+        res = MM_TO_POINT(1000);
+        break;
+    case QPrinter::B2:
+        res = MM_TO_POINT(707);
+        break;
+    case QPrinter::B3:
+        res = MM_TO_POINT(500);
+        break;
+    case QPrinter::B4:
+        res = MM_TO_POINT(353);
+        break;
+    case QPrinter::B5:
+        res = MM_TO_POINT(250);
+        break;
+    case QPrinter::B6:
+        res = MM_TO_POINT(176);
+        break;
+    case QPrinter::B7:
+        res = MM_TO_POINT(125);
+        break;
+    case QPrinter::B8:
+        res = MM_TO_POINT(88);
+        break;
+    case QPrinter::B9:
+        res = MM_TO_POINT(62);
+        break;
+    case QPrinter::B10:
+        res = MM_TO_POINT(44);
+        break;
+    case QPrinter::C5E:
+        res = MM_TO_POINT(229);
+        break;
+    case QPrinter::DLE:
+        res = MM_TO_POINT(220);
+        break;
+    case QPrinter::Executive:
+        res = MM_TO_POINT(254);
+        break;
+    case QPrinter::Folio:
+        res = MM_TO_POINT(330);
+        break;
+    case QPrinter::Ledger:
+        res = MM_TO_POINT(279);
+        break;
+    case QPrinter::Legal:
+        res = MM_TO_POINT(356);
+        break;
+    case QPrinter::Letter:
+        res = MM_TO_POINT(279);
+        break;
+    case QPrinter::Tabloid:
+        res = MM_TO_POINT(432);
+        break;
+
     }
     return res;
 }
@@ -816,6 +1018,67 @@ QGraphicsItem *Tmpl_plugin::findPaperElem(QGraphicsScene *scene)
     return item;
 }
 
+void Tmpl_plugin::fillElemMap()
+{
+    elem_name_map.insert(QObject::trUtf8("МБ"),1 );
+    elem_name_map.insert(QObject::trUtf8("Название док-та"),2 );
+    elem_name_map.insert(QObject::trUtf8("Гриф"), 3);
+    elem_name_map.insert(QObject::trUtf8("Пункт перечня"),4 );
+    elem_name_map.insert(QObject::trUtf8("Номер копии"), 5);
+    elem_name_map.insert(QObject::trUtf8("Кол-во листов"),6 );
+    elem_name_map.insert(QObject::trUtf8("Исполнитель"), 7);
+    elem_name_map.insert(QObject::trUtf8("Отпечатал"), 8);
+    elem_name_map.insert(QObject::trUtf8("Телефон"), 9);
+    elem_name_map.insert(QObject::trUtf8("Инв. N"), 10);
+    elem_name_map.insert(QObject::trUtf8("Дата распечатки"), 11);
+    elem_name_map.insert(QObject::trUtf8("Получатель N1"), 12);
+    elem_name_map.insert(QObject::trUtf8("Получатель N2"), 13);
+    elem_name_map.insert(QObject::trUtf8("Получатель N3"), 14);
+    elem_name_map.insert(QObject::trUtf8("Получатель N4"), 15);
+    elem_name_map.insert(QObject::trUtf8("Получатель N5"), 16);
+    /*
+    elem_name_map.insert(QObject::trUtf8("last_page_stamp"), 17);
+    elem_name_map.insert(QObject::trUtf8("recivers_list"), 18);
+    elem_name_map.insert(QObject::trUtf8("doc_status"), 19);
+    elem_name_map.insert(QObject::trUtf8("brak_pages"), 20);
+    elem_name_map.insert(QObject::trUtf8("brak_doc"), 21);
+    elem_name_map.insert(QObject::trUtf8("stamp_index"), 22);
+*/
+}
+
+void Tmpl_plugin::fillPageMap()
+{
+
+    page_size_map.insert(QString("A4 (210 x 297 мм)"), QPrinter::A4);
+    page_size_map.insert(QString("A3 (297 x 420 мм)"), QPrinter::A3);
+    page_size_map.insert(QString("A0 (841 x 1189 мм)"), QPrinter::A0);
+    page_size_map.insert(QString("A1 (594 x 841 мм)"), QPrinter::A1);
+    page_size_map.insert(QString("A2 (420 x 594 мм)"), QPrinter::A2);
+    page_size_map.insert(QString("A5 (148 x 210 мм)"), QPrinter::A5);
+    page_size_map.insert(QString("A6 (105 x 148 мм)"), QPrinter::A6);
+    page_size_map.insert(QString("A7 (74 x 105 мм)"), QPrinter::A7);
+    page_size_map.insert(QString("A8 (52 x 74 мм)"), QPrinter::A8);
+    page_size_map.insert(QString("A9 (37 x 52 мм)"), QPrinter::A9);
+    page_size_map.insert(QString("B0 (1000 x 1414 мм)"), QPrinter::B0);
+    page_size_map.insert(QString("B1 (707 x 1000 мм)"), QPrinter::B1);
+    page_size_map.insert(QString("B2 (500 x 707 мм)"), QPrinter::B2);
+    page_size_map.insert(QString("B3 (353 x 500 мм)"), QPrinter::B3);
+    page_size_map.insert(QString("B4 (250 x 353 мм)"), QPrinter::B4);
+    page_size_map.insert(QString("B5 (176 x 250 мм)"), QPrinter::B5);
+    page_size_map.insert(QString("B6 (125 x 176 мм)"), QPrinter::B6);
+    page_size_map.insert(QString("B7 (88 x 125 мм)"), QPrinter::B7);
+    page_size_map.insert(QString("B8 (62 x 88 мм)"), QPrinter::B8);
+    page_size_map.insert(QString("B9 (44 x 62 мм)"), QPrinter::B9);
+    page_size_map.insert(QString("B10 (31 x 44 мм)"), QPrinter::B10);
+    page_size_map.insert(QString("C5E (163 x 229 мм)"), QPrinter::C5E);
+    page_size_map.insert(QString("DLE (110 x 220 мм)"), QPrinter::DLE);
+    page_size_map.insert(QString("Executive (191 x 254 мм)"), QPrinter::Executive);
+    page_size_map.insert(QString("Folio (210 x 330 мм)"), QPrinter::Folio);
+    page_size_map.insert(QString("Ledger (432 x 279 мм)"), QPrinter::Ledger);
+    page_size_map.insert(QString("Legal (216 x 356 мм)"), QPrinter::Legal);
+    page_size_map.insert(QString("Letter (216 x 279 мм)"), QPrinter::Letter);
+    page_size_map.insert(QString("Tabloid (279 x 432 мм)"), QPrinter::Tabloid);
+}
 void Tmpl_plugin::create_SimpleItem(QGraphicsItem *parent,
                                     QPointF &ps, QFont &fnt,
                                     QColor &col,QStringList &pList)
