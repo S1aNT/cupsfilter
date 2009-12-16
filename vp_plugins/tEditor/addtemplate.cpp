@@ -18,6 +18,7 @@ AddTemplate::AddTemplate(QWidget *parent) :
     boldFont = QFont("Times", 14, QFont::Bold);
     normalFont = QFont("Times", 14, QFont::Normal);
 
+    /*
     // Значения по умолчанию
     page_size = QString("A4 (210 x 297 mm)");
     templ_name = QObject::trUtf8("Новый шаблон");
@@ -31,7 +32,7 @@ AddTemplate::AddTemplate(QWidget *parent) :
     margin_right  = MM_TO_POINT(15);
 
     page_orient = true;
-
+*/
     connect (ui->portretBtn,
              SIGNAL(clicked()),
              this,
@@ -58,7 +59,29 @@ AddTemplate::AddTemplate(QWidget *parent) :
              SLOT(setTemplatesDesc())
              );
 
+    connect (ui->margin_topSpBox,
+             SIGNAL(editingFinished()),
+             this,
+             SLOT(setMarginTop())
+             );
+    connect (ui->margin_bottomSBox,
+             SIGNAL(editingFinished()),
+             this,
+             SLOT(setMarginBottom())
+             );
+    connect (ui->margin_leftSpBox,
+             SIGNAL(editingFinished()),
+             this,
+             SLOT(setMarginLeft())
+             );
+    connect (ui->margin_rightSpBox,
+             SIGNAL(editingFinished()),
+             this,
+             SLOT(setMarginRight())
+             );
+
 }
+
 
 
 
@@ -77,6 +100,22 @@ void AddTemplate::setPageSize(QStringListModel *page_size_model)
 }
 
 //-------------------------------------- protected slots
+void AddTemplate::setMarginTop()
+{
+    margin_top = MM_TO_POINT(ui->margin_topSpBox->value());
+}
+void AddTemplate::setMarginBottom()
+{
+    margin_bottom = MM_TO_POINT(ui->margin_bottomSBox->value());
+}
+void AddTemplate::setMarginLeft()
+{
+    margin_left = MM_TO_POINT(ui->margin_leftSpBox->value());
+}
+void AddTemplate::setMarginRight()
+{
+    margin_right = MM_TO_POINT(ui->margin_rightSpBox->value());
+}
 void AddTemplate::accept()
 {
     QString fileName;

@@ -17,6 +17,8 @@ public:
     void setUserName(const QString & name);
     void setPageSize(QStringListModel *page_size_model);
     void setLocalTemplatesDir(const QString &l_dir){local_dir = l_dir;};
+
+
 signals:
     void needCreateEmptyTemplates(const QString & file_name,
                                   const QString & t_author,
@@ -35,6 +37,10 @@ private slots:
     void setCurrentPageSize(const QString &psize);
     void setTemplatesName(const QString & name);
     void setTemplatesDesc();
+    void setMarginTop();
+    void setMarginBottom();
+    void setMarginLeft();
+    void setMarginRight();
 protected:
     void changeEvent(QEvent *e);
     void showInfo(const QString & info);
@@ -46,6 +52,7 @@ private:
     QFont normalFont;
     QString local_dir;
     bool page_orient;
+    QRect page_margin;
     QString page_size;
     QString templ_name;
     QString templ_desc;
