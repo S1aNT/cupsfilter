@@ -12,7 +12,7 @@
         <file>../safeFatPrinter/images/exit.png</file>
         <file>../safeFatPrinter/images/forward.png</file>
         <file>../safeFatPrinter/images/incoming.png</file>
-        <file>../safeFatPrinter/images/info.png</file>
+        <file alias="t_info.png">../safeFatPrinter/images/info.png</file>
         <file>../safeFatPrinter/images/log.png</file>
         <file>../safeFatPrinter/images/ok.png</file>
         <file>../safeFatPrinter/images/outgoing.png</file>
