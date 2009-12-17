@@ -16,40 +16,26 @@ class cmdFrame;
 #include "itmpl_plugin.h"
 #include "auth_plugin.h"
 #include "addtemplate.h"
+#include "templ_info.h"
 
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
-
 public:
     MainWindow();
-
-
 private slots:
+    void showTemplatesInfo();
     void pageSelect(int page);
     void toggleAntialiasing();
     void loadTemplates();
-    void createEmptyTemplates();
-
+    void do_createEmptyTemplate();
     void saveUserName(QString & u_name);
-
     void setPages(QGraphicsScene *first, QGraphicsScene *second,
                   QGraphicsScene *third, QGraphicsScene *fourth);
-    void createEmptyTemplate(const QString & file_name,
-                             const QString & t_author,
-                             const QString & t_name,
-                             const QString & t_desc,
-                             const QString & p_size,
 
-                             bool pages_orient,
-                             const QString & c_date,
-                             qreal m_top,
-                             qreal m_bottom,
-                             qreal m_right,
-                             qreal m_left);
-
-    void errorA(QString e_msg); // Ошибка А типа - админ безопастности
-    void errorB(QString e_msg); // Ошибка Б типа - сисадмин
+    void do_needCreateEmptyTemplates(QString &file_name);
+    void errorA(QString e_msg); // Ошибка А типа - завершать рабту
+    void errorB(QString e_msg); // Ошибка Б типа -  не  завершить работу
     void do_CmdButtonClick(const QString &line);// Нажали командную кнопку
     void test_slot();
 signals:
@@ -83,6 +69,8 @@ private:
     QAction *newAct;
     QAction *loadAct;
     QAction *saveAct;
+    QAction *showInfoAct;
+
     QAction *printAct;
     QAction *undoAct;
     QAction *aboutAct;
@@ -90,12 +78,15 @@ private:
     QAction *quitAct;
     QAction *flipAction;
     QAction *addBaseElem;
+    // Приватные данные
+    Templ_info tInfo;
     int currentPage;
     QString userName;
 
     QStringListModel *page_size_model;
     QStringList elemList;
     bool templ_load; // Признак что шаблон загружен
+
     AddTemplate *TProperDlg;
     cmdFrame * CmdButtonBox;
     // Переменные из установок

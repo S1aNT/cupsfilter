@@ -67,14 +67,11 @@ MainWindow::MainWindow()
     CmdButtonBox->setCmdButton(elemList);
     // свяжем сигналы и слоты
     QObject::connect (TProperDlg,
-                      SIGNAL(needCreateEmptyTemplates(QString,QString,QString,QString,
-                                                      QString,bool,QString,
-                                                      qreal,qreal,qreal,qreal)),
-                      this,
-                      SLOT(createEmptyTemplate(QString,QString,QString,QString,
-                                               QString,bool,QString,
-                                               qreal,qreal,qreal,qreal))
-                      );
+                      SIGNAL(needCreateEmptyTemplates(QString &)),
+                     this,
+                     SLOT(do_needCreateEmptyTemplates(QString &))
+                     );
+
     QObject::connect(CmdButtonBox,
                      SIGNAL(clicked(const QString &)),
                      this,
@@ -160,6 +157,9 @@ void MainWindow::loadPlugins()
 
                 // Получим список размеров страниц
                 page_size_model->setStringList(tmpl_plugin->getPageSizeList());
+                // Получим информацию о шаблоне
+                tInfo = tmpl_plugin->getTemplInfo();
+
                 connect (plugin,
                          SIGNAL(allTemplatesPagesParsed(QGraphicsScene *,
                                                         QGraphicsScene *,
@@ -207,6 +207,17 @@ void MainWindow::loadPlugins()
 
 
 // ----------------------------- Private slots
+void MainWindow::showTemplatesInfo()
+{
+    if (this->templ_load && tmpl_plugin){
+        // Покажем информацию о шаблоне
+        TProperDlg->setTemplatesInfo(&tInfo);
+        TProperDlg->setPageSize(page_size_model);
+        TProperDlg->setEnableGUI(false);
+        TProperDlg->exec();
+    }
+}
+
 void MainWindow::do_CmdButtonClick(const QString &line)
 {
     if (templ_load){
@@ -227,54 +238,45 @@ void MainWindow::do_CmdButtonClick(const QString &line)
         }
     }else{
         QString e_msg = tr("Необходимо предварительно загрузить шаблон!");
-        this->errorA(e_msg);
+        this->errorB(e_msg);
     }
 
 }
 
 void MainWindow::saveUserName(QString & u_name)
 {
+    //FIXME запись в tInfo.setT_author()!!!
     userName = u_name;
 }
 
-void MainWindow::createEmptyTemplate(const QString & file_name,
-                                     const QString & t_author,
-                                     const QString & t_name,
-                                     const QString & t_desc,
-                                     const QString & p_size,
-
-                                     bool pages_orient,
-                                     const QString & c_date,
-                                     qreal m_top,
-                                     qreal m_bottom,
-                                     qreal m_right,
-                                     qreal m_left)
+void MainWindow::do_needCreateEmptyTemplates(QString &file_name)
 {
     if (tmpl_plugin){
-        tmpl_plugin->createEmptyTemplate(file_name,t_author,t_name,
-                                         t_desc, p_size, pages_orient,c_date,
-                                         m_top,m_bottom,m_right,m_left);
+        tmpl_plugin->setTemplInfo(tInfo);
+        tmpl_plugin->createEmptyTemplate(file_name);
         this->statusBar()->showMessage(QObject::tr("Шаблон [%1] создан")
-                                       .arg(file_name)
-                                       );
+                                       .arg(file_name));
     }
 }
 
-void MainWindow::createEmptyTemplates()
+void MainWindow::do_createEmptyTemplate()
 {
     // Покажем дилоговое окошко с вводом параметров шаблона
+    if (tmpl_plugin){
+        // Покажем информацию о шаблоне
+        tInfo.setT_author(userName);// Сохраним имя пользователя
 
-    TProperDlg->setUserName(userName);
-    TProperDlg->setPageSize(page_size_model);
-    //FIXME
-    QString local_templ_dir ="c:/local_templ_dir/";
-    TProperDlg->setLocalTemplatesDir(local_templ_dir);
+        TProperDlg->setTemplatesInfo(&tInfo);
+        TProperDlg->setPageSize(page_size_model);
 
-    int ret = TProperDlg->exec();
-    if (ret == QDialog::Accepted){
-        //Создадим новый шаблончик
 
+        //FIXME
+        QString local_templ_dir ="c:/local_templ_dir/";
+        TProperDlg->setLocalTemplatesDir(local_templ_dir);
+        TProperDlg->setEnableGUI(true);
+        TProperDlg->exec();
     }
+
 }
 
 void MainWindow::setPages(QGraphicsScene *first,
@@ -316,10 +318,14 @@ void MainWindow::loadTemplates()
     if (!templ_fn.isEmpty()){
         if (tmpl_plugin){
             tmpl_plugin->loadTemplates(templ_fn);
+
+            tInfo = tmpl_plugin->getTemplInfo();
+
             this->statusBar()->showMessage(QObject::tr("Шаблон [%1]загружен")
                                            .arg(templ_fn)
                                            );
             this->templ_load = true;
+            showInfoAct->setEnabled(templ_load);
         }
 
 
@@ -356,15 +362,14 @@ void MainWindow::error(QString e_msg,bool admin)
     QString info_txt;
     msgBox.setIcon(QMessageBox::Critical);
     msgBox.setWindowTitle(QObject::trUtf8("Информационное сообщение"));
+    info_txt =QObject::trUtf8("Для решения этой проблемы обратитесь к системному администратору!");
     if (admin){
-        info_txt =QObject::trUtf8("Для решения этой проблемы обратитесь к системному администратору!");
-    }else{
-        info_txt =QObject::trUtf8("Для решения этой проблемы обратитесь к администратору безопасности!");
+        QObject::connect(&msgBox,SIGNAL(rejected()),qApp,SLOT(quit()));
     }
     msgBox.setInformativeText(info_txt);
     abortButton=msgBox.addButton(QObject::trUtf8("Выход"), QMessageBox::RejectRole);
     msgBox.setText(e_msg);
-    QObject::connect(&msgBox,SIGNAL(rejected()),qApp,SLOT(quit()));
+
     msgBox.exec();
 
 }
@@ -382,6 +387,18 @@ void MainWindow::pageSelect(int page)
 
 void MainWindow::createActions()
 {
+
+    showInfoAct = new  QAction (QIcon(":/t_info.png"),
+                                tr("Показать свойства шаблона"),this);
+    showInfoAct->setShortcut(QKeySequence(tr("Ctrl+I")));
+    showInfoAct->setStatusTip(tr("Показать свойства текущего шаблона [CTRL+I]"));
+    showInfoAct->setEnabled(templ_load);
+    connect(showInfoAct,
+            SIGNAL(triggered()),
+            this,
+            SLOT(showTemplatesInfo())
+
+            );
     printAct = new QAction(QIcon(":/t_print.png"),
                            tr("Пробная печать шаблона"),this);
 
@@ -392,7 +409,7 @@ void MainWindow::createActions()
     connect (newAct,
              SIGNAL(triggered()),
              this,
-             SLOT(createEmptyTemplates())
+             SLOT(do_createEmptyTemplate())
              );
 
     loadAct = new QAction(QIcon(":/t_open.png"),
@@ -428,6 +445,7 @@ void MainWindow::createMenus()
     templatesMenu = menuBar()->addMenu(tr("&Шаблоны"));
     templatesMenu->addAction(newAct);
     templatesMenu->addAction(loadAct);
+    templatesMenu->addAction(showInfoAct);
     templatesMenu->addSeparator();
 
     templatesMenu->addAction(quitAct);
@@ -452,6 +470,7 @@ void MainWindow::createToolBars()
     //editToolBar->addAction(saveAct);
     toolsToolBar = addToolBar(tr("Утилиты"));
     toolsToolBar->addAction(antialiasAct);
+    toolsToolBar->addAction(showInfoAct);
 }
 
 void MainWindow::createStatusBar()
