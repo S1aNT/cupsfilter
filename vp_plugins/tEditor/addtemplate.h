@@ -4,6 +4,7 @@
 #include <QDialog>
 #include <QStringListModel>
 #include <QFont>
+#include "templ_info.h"
 
 namespace Ui {
     class AddTemplate;
@@ -14,12 +15,16 @@ class AddTemplate : public QDialog {
 public:
     AddTemplate(QWidget *parent = 0);
     ~AddTemplate();
-    void setUserName(const QString & name);
+    //void setUserName(const QString & name);
     void setPageSize(QStringListModel *page_size_model);
     void setLocalTemplatesDir(const QString &l_dir){local_dir = l_dir;};
-
+    void setTemplatesInfo(Templ_info &templ_Info);
+    void setEnableGUI(bool mode);
 
 signals:
+
+    void needCreateEmptyTemplates(QString &fileName);
+    /*
     void needCreateEmptyTemplates(const QString & file_name,
                                   const QString & t_author,
                                   const QString & t_name,
@@ -31,6 +36,7 @@ signals:
                                   qreal m_bottom,
                                   qreal m_right,
                                   qreal m_left);
+                                  */
 private slots:
     void set_portret();
     void set_landscape();
@@ -51,18 +57,10 @@ private:
     QFont boldFont;
     QFont normalFont;
     QString local_dir;
-    bool page_orient;
-    QRect page_margin;
-    QString page_size;
-    QString templ_name;
-    QString templ_desc;
-    QString creation_date;      //  Дата создания шаблона
-    qreal page_height;               //
-    qreal page_width;                //
-    qreal margin_top;                //
-    qreal margin_bottom;             //
-    qreal margin_left;               //
-    qreal margin_right;
+
+    bool work_mode;
+    Templ_info *tInfo;
+
 };
 
 #endif // ADDTEMPLATE_H
