@@ -10,75 +10,9 @@
 #include "tech_global.h"
 
 
-#define MM_TO_POINT(mm) ((mm)*2.83465058)
 
 using namespace SafeVirtualPrinter;
 
-struct tInfo
-{
-    int version; 	// версия шаблона
-    QString date_time;  // дата и время создания
-    QString t_author;   // автор шаблона
-    QString t_name;     // имя шаблона
-    QString t_desc;     // описание шаблона
-    QString p_size;     // размер бумаги (Для человека)
-    bool  page_orient;  // ориентация страницы Книжная/альбомная true/false
-    qreal page_width;   // ширина листа в  [мм -> point] (для компьютера)
-    qreal page_height;  // высота листа в  [мм -> point] (для компьютера)
-    qreal m_top;        // отступ сверху в [мм -> point] (для компьютера)
-    qreal m_bottom;     // отступ снизу в [мм -> point] (для компьютера)
-    qreal m_left;       // отступ слева в [мм -> point] (для компьютера)
-    qreal m_right;      // отступ справа в [мм -> point] (для компьютера)
-    int firstPageElemCount;    // число элементов на первой странице шаблона
-    int secondPageElemCount;   // число элементов на второй странице шаблона
-    int thirdPageElemCount;    // число элементов на третьей странице шаблона
-    int fourthPageElemCount;   // число элементов на четвертой странице шаблона
-};
-Q_DECLARE_METATYPE(tInfo);
-
-inline QDataStream &operator<<( QDataStream &out, const tInfo& save )
-{
-    out << save.version;
-    out << save.date_time;
-    out << save.t_author;
-    out << save.t_name;
-    out << save.t_desc;
-    out << save.p_size;
-    out << save.page_orient;
-    out << save.page_width;
-    out << save.page_height;
-    out << save.m_top;
-    out << save.m_bottom;
-    out << save.m_left;
-    out << save.m_right;
-    out << save.firstPageElemCount;
-    out << save.secondPageElemCount;
-    out << save.thirdPageElemCount;
-    out << save.fourthPageElemCount;
-    return out;
-}
-
-inline QDataStream &operator>>( QDataStream &in, tInfo& load)
-{
-    in >> load.version;
-    in >> load.date_time;
-    in >> load.t_author;
-    in >> load.t_name;
-    in >> load.t_desc;
-    in >> load.p_size;
-    in >> load.page_orient;
-    in >> load.page_width;
-    in >> load.page_height;
-    in >> load.m_top;
-    in >> load.m_bottom;
-    in >> load.m_left;
-    in >> load.m_right;
-    in >> load.firstPageElemCount;
-    in >> load.secondPageElemCount;
-    in >> load.thirdPageElemCount;
-    in >> load.fourthPageElemCount;
-    return in;
-}
 
 class QGraphicsItem;
 class QPointF;
@@ -102,6 +36,8 @@ public:
     // нужна отдельная функция при установке модели произвести обновление
     // каждой сцены в соответствии с моделью
     void loadTemplates(const QString & templates_in_file);
+
+    void createEmptyTemplate(const QString & file_name);
     void createEmptyTemplate(const QString & file_name,
                              const QString & t_author,
                              const QString & t_name,
@@ -129,6 +65,7 @@ public:
     // Изменяет текущую ориентацию
     void setPageOrientation(bool p_orient);
     Templ_info getTemplInfo(){return templ_info;};
+    void setTemplInfo(Templ_info &tInfo){ templ_info = tInfo;};
 signals:
     void error(QString error_message);
     void toLog(QString log_message);

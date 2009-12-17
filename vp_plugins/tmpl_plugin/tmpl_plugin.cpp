@@ -26,8 +26,10 @@ using namespace SafeVirtualPrinter;
 Tmpl_plugin::Tmpl_plugin(QObject *parent)
 {
     //  Регистрируем типаы
-    qRegisterMetaType<tInfo>("tInfo");
-    qRegisterMetaTypeStreamOperators<tInfo>("tInfo");
+    //qRegisterMetaType<tInfo>("tInfo");
+    //qRegisterMetaTypeStreamOperators<tInfo>("tInfo");
+    qRegisterMetaType<Templ_info>("Templ_info");
+    qRegisterMetaTypeStreamOperators<Templ_info>("Templ_info");
 
 };
 
@@ -65,7 +67,8 @@ void Tmpl_plugin::init(const QString &spool,const QString &sid)
 
             page_marker = "templates_page"; // маркер страницы
             // Создаем QMap размеров страниц
-
+            // Заполним описание шаблона версией шаблона
+            templ_info.setT_ver(t_version);
 
         }else{
             error_msg = QObject::trUtf8("ERROR: каталог %1 не существует\n").arg(spool);
@@ -115,6 +118,56 @@ void Tmpl_plugin::loadTemplates(const QString & templates_in_file)
     if (!e_msg.isEmpty()) {
         emit error(e_msg);
     }
+
+}
+
+void Tmpl_plugin::createEmptyTemplate(const QString & file_name)
+{
+    QString e_msg;
+
+    // Проверка что функция была вызвана верно, т.е вначале были
+    // заполненны данные о шаблоне
+    if (templ_info.t_ver() == t_version){
+    const QString startnow = QDir::currentPath();
+    // Создаем пустой шаблон документа
+
+    if (QFile::exists(file_name)){
+        QFile::remove(file_name);
+    }
+    QFile new_tmpl_file(file_name);
+    new_tmpl_file.open(QIODevice::WriteOnly);
+    QDataStream out(&new_tmpl_file);
+    out.setVersion(QDataStream::Qt_4_5);
+
+    // Основные данные уже переданны в плагин вызовом setTemplInfo(tInfo)
+
+    templ_info.setFirstPageElemCount(0);  // первая страница шаблона 0 элементов
+    templ_info.setSecondPageElemCount(0); // вторая страница шаблона 0 элементов
+    templ_info.setThirdPageElemCount (0);  // третья страница шаблона 0 элементов
+    templ_info.setFourthPageElemCount (0); // четвертая страница шаблона 0 элементов
+
+    // Запишем общую часть шаблона
+     out << templ_info;
+    // Начнем сохранение страниц
+    out << this->page_marker;
+    out << templ_info.firstPageElemCount();  // первая страница шаблона 0 элементов
+    out << this->page_marker;
+    out << templ_info.secondPageElemCount(); // вторая страница шаблона 0 элементов
+    out << this->page_marker;
+    out << templ_info.thirdPageElemCount();  // третья страница шаблона 0 элементов
+    out << this->page_marker;
+    out << templ_info.fourthPageElemCount(); // четвертая страница шаблона 0 элементов
+
+    new_tmpl_file.close();
+    emit emptyTemplateCreate(file_name);
+
+    }else{
+       e_msg = QObject::trUtf8("ERROR: Ошибка создания пустого шаблона [%1]\n").arg(file_name);
+    }
+    if (!e_msg.isEmpty()) {
+        emit error(e_msg);
+    }
+
 
 }
 
