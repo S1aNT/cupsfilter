@@ -232,22 +232,22 @@ QDebug operator << ( QDebug &out, const Templ_info& save )
 }
 QDataStream &operator>>( QDataStream &in, Templ_info& load)
 {
-    int t_ver; 	        // âåðñèÿ øàáëîíà
-    QString date_time;  // äàòà è âðåìÿ ñîçäàíèÿ
-    QString t_author;   // àâòîð øàáëîíà
-    QString t_name;     // èìÿ øàáëîíà
-    QString t_desc;     // îïèñàíèå øàáëîíà
-    QString p_size;     // ðàçìåð áóìàãè (Äëÿ ÷åëîâåêà)
-    bool  page_orient;  // îðèåíòàöèÿ ñòðàíèöû Êíèæíàÿ/àëüáîìíàÿ true/false
-    qreal page_width;   // øèðèíà ëèñòà â  [ìì -> point] (äëÿ êîìïüþòåðà)
-    qreal page_height;  // âûñîòà ëèñòà â  [ìì -> point] (äëÿ êîìïüþòåðà)
-    qreal m_top;        // îòñòóï ñâåðõó â [ìì -> point] (äëÿ êîìïüþòåðà)
-    qreal m_bottom;     // îòñòóï ñíèçó â [ìì -> point] (äëÿ êîìïüþòåðà)
-    qreal m_left;       // îòñòóï ñëåâà â [ìì -> point] (äëÿ êîìïüþòåðà)
-    qreal m_right;      // îòñòóï ñïðàâà â [ìì -> point] (äëÿ êîìïüþòåðà)
-    int firstPageElemCount;    // ÷èñëî ýëåìåíòîâ íà ïåðâîé ñòðàíèöå øàáëîíà
-    int secondPageElemCount;   // ÷èñëî ýëåìåíòîâ íà âòîðîé ñòðàíèöå øàáëîíà
-    int thirdPageElemCount;    // ÷èñëî ýëåìåíòîâ íà òðåòüåé ñòðàíèöå øàáëîíà
+    int t_ver; 	        // Ð²ÐµÑ€ÑÐ¸Ñ ÑˆÐ°Ð±Ð»Ð¾Ð½Ð°
+    QString date_time;  // Ð´Ð°Ñ‚Ð° Ð¸ Ð²Ñ€ÐµÐ¼Ñ ÑÐ¾Ð·Ð´Ð°Ð½Ð¸Ñ
+    QString t_author;   // Ð°Ð²Ñ‚Ð¾Ñ€ ÑˆÐ°Ð±Ð»Ð¾Ð½Ð°
+    QString t_name;     // Ð¸Ð¼Ñ ÑˆÐ°Ð±Ð»Ð¾Ð½Ð°
+    QString t_desc;     // Ð¾Ð¿Ð¸ÑÐ°Ð½Ð¸Ðµ ÑˆÐ°Ð±Ð»Ð¾Ð½Ð°
+    QString p_size;     // Ñ€Ð°Ð·Ð¼ÐµÑ€ Ð±ÑƒÐ¼Ð°Ð³Ð¸ (Ð”Ð»Ñ Ñ‡ÐµÐ»Ð¾Ð²ÐµÐºÐ°)
+    bool  page_orient;  // Ð¾Ñ€Ð¸ÐµÐ½Ñ‚Ð°Ñ†Ð¸Ñ ÑÑ‚Ñ€Ð°Ð½Ð¸Ñ†Ñ‹ ÐšÐ½Ð¸Ð¶Ð½Ð°Ñ/Ð°Ð»ÑŒÐ±Ð¾Ð¼Ð½Ð°Ñ true/false
+    qreal page_width;   // ÑˆÐ¸Ñ€Ð¸Ð½Ð° Ð»Ð¸ÑÑ‚Ð° Ð²  [Ð¼Ð¼ -> point] (Ð´Ð»Ñ ÐºÐ¾Ð¼Ð¿ÑŒÑŽÑ‚ÐµÑ€Ð°)
+    qreal page_height;  // Ð²Ñ‹ÑÐ¾Ñ‚Ð° Ð»Ð¸ÑÑ‚Ð° Ð²  [Ð¼Ð¼ -> point] (Ð´Ð»Ñ ÐºÐ¾Ð¼Ð¿ÑŒÑŽÑ‚ÐµÑ€Ð°)
+    qreal m_top;        // Ð¾Ñ‚ÑÑ‚ÑƒÐ¿ ÑÐ²ÐµÑ€Ñ…Ñƒ Ð² [Ð¼Ð¼ -> point] (Ð´Ð»Ñ ÐºÐ¾Ð¼Ð¿ÑŒÑŽÑ‚ÐµÑ€Ð°)
+    qreal m_bottom;     // Ð¾Ñ‚ÑÑ‚ÑƒÐ¿ ÑÐ½Ð¸Ð·Ñƒ Ð² [Ð¼Ð¼ -> point] (Ð´Ð»Ñ ÐºÐ¾Ð¼Ð¿ÑŒÑŽÑ‚ÐµÑ€Ð°)
+    qreal m_left;       // Ð¾Ñ‚ÑÑ‚ÑƒÐ¿ ÑÐ»ÐµÐ²Ð° Ð² [Ð¼Ð¼ -> point] (Ð´Ð»Ñ ÐºÐ¾Ð¼Ð¿ÑŒÑŽÑ‚ÐµÑ€Ð°)
+    qreal m_right;      // Ð¾Ñ‚ÑÑ‚ÑƒÐ¿ ÑÐ¿Ñ€Ð°Ð²Ð° Ð² [Ð¼Ð¼ -> point] (Ð´Ð»Ñ ÐºÐ¾Ð¼Ð¿ÑŒÑŽÑ‚ÐµÑ€Ð°)
+    int firstPageElemCount;    // Ñ‡Ð¸ÑÐ»Ð¾ ÑÐ»ÐµÐ¼ÐµÐ½Ñ‚Ð¾Ð² Ð½Ð° Ð¿ÐµÑ€Ð²Ð¾Ð¹ ÑÑ‚Ñ€Ð°Ð½Ð¸Ñ†Ðµ ÑˆÐ°Ð±Ð»Ð¾Ð½Ð°
+    int secondPageElemCount;   // Ñ‡Ð¸ÑÐ»Ð¾ ÑÐ»ÐµÐ¼ÐµÐ½Ñ‚Ð¾Ð² Ð½Ð° Ð²Ñ‚Ð¾Ñ€Ð¾Ð¹ ÑÑ‚Ñ€Ð°Ð½Ð¸Ñ†Ðµ ÑˆÐ°Ð±Ð»Ð¾Ð½Ð°
+    int thirdPageElemCount;    // Ñ‡Ð¸ÑÐ»Ð¾ ÑÐ»ÐµÐ¼ÐµÐ½Ñ‚Ð¾Ð² Ð½Ð° Ñ‚Ñ€ÐµÑ‚ÑŒÐµÐ¹ ÑÑ‚Ñ€Ð°Ð½Ð¸Ñ†Ðµ ÑˆÐ°Ð±Ð»Ð¾Ð½Ð°
     int fourthPageElemCount;
 
     in >> t_ver;
