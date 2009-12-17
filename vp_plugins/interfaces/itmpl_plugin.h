@@ -4,6 +4,7 @@
 class QString;
 class QStandardItemModel;
 class QGraphicsScene;
+class QSize;
 class Templ_info;
 
 #include <QObject>
@@ -14,6 +15,7 @@ public:
     virtual ~Itmpl_plugin() {}
     virtual void init(const QString & spool,const QString & sid)=0;
     virtual void loadTemplates(const QString & templates_in_file)=0;
+    virtual void createEmptyTemplate(const QString & file_name) = 0;
     virtual void createEmptyTemplate(const QString & file_name,
                              const QString & t_author,
                              const QString & t_name,
@@ -40,6 +42,8 @@ public:
     virtual bool getPageOrientation()=0;
     virtual void setPageOrientation(bool p_orient)=0;
     virtual Templ_info getTemplInfo() =0;
+    virtual void setTemplInfo(Templ_info &tInfo) =0;
+
 };
 
 
