@@ -17,6 +17,7 @@
 #include "tech_global.h"
 #include "simpleitem.h"
 
+
 #include <iostream>
 using namespace std;
 
@@ -24,7 +25,7 @@ using namespace SafeVirtualPrinter;
 
 Tmpl_plugin::Tmpl_plugin(QObject *parent)
 {
-    //  егистрируем типаы
+    //  Регистрируем типаы
     qRegisterMetaType<tInfo>("tInfo");
     qRegisterMetaTypeStreamOperators<tInfo>("tInfo");
 
@@ -80,12 +81,12 @@ void Tmpl_plugin::init(const QString &spool,const QString &sid)
 
 bool Tmpl_plugin::getPageOrientation()
 {
-    return t_info.page_orient;
+    return templ_info.page_orient();
 }
 
 void Tmpl_plugin::setPageOrientation(bool p_orient)
 {
-    t_info.page_orient = p_orient;
+    templ_info.setPage_orient(p_orient);
 }
 
 
@@ -146,6 +147,32 @@ void Tmpl_plugin::createEmptyTemplate(const QString & file_name,
     int p_s_id = this->getElemIdByName(p_size);
 
     // Создаем общую часть шаблона
+    templ_info.setT_ver(t_version);
+
+    templ_info.setT_author(t_author);    // автор шаблона
+    templ_info.setT_name(t_name);      // название шаблона, то что покажем в списке шаблонов
+    templ_info.setT_desc(t_desc);      // описание шаблона, может быть пустым
+    templ_info.setP_size(p_size);      // размер бумаги
+
+    templ_info.setPage_width(this->findPageSize_W(p_s_id));     // ширина листа
+    templ_info.setPage_height(this->findPageSize_H(p_s_id));    // высота листа
+
+    templ_info.setPage_orient(pages_orient);    // ориентация листа
+    templ_info.setDate_time(c_date); // дата и время создания шаблона
+
+    templ_info.setM_left(m_left);      // отступ слева
+    templ_info.setM_right(m_right);     // отступ справа
+    templ_info.setM_top(m_top);       // отступ сверху
+    templ_info.setM_bottom(m_bottom);    // отступ снизу
+
+    templ_info.setFirstPageElemCount(0);  // первая страница шаблона 0 элементов
+    templ_info.setSecondPageElemCount(0); // вторая страница шаблона 0 элементов
+    templ_info.setThirdPageElemCount (0);  // третья страница шаблона 0 элементов
+    templ_info.setFourthPageElemCount (0); // четвертая страница шаблона 0 элементов
+    // Запишем общую часть шаблона
+     out << templ_info;
+    /*
+    // Создаем общую часть шаблона
     t_info.version = t_version;
     t_info.t_author = t_author;    // автор шаблона
     t_info.t_name = t_name;      // название шаблона, то что покажем в списке шаблонов
@@ -169,16 +196,18 @@ void Tmpl_plugin::createEmptyTemplate(const QString & file_name,
     t_info.fourthPageElemCount = 0; // четвертая страница шаблона 0 элементов
     // Запишем общую часть шаблона
     out << t_info;
+*/
+
 
     // Начнем сохранение страниц
     out << this->page_marker;
-    out << t_info.firstPageElemCount;  // первая страница шаблона 0 элементов
+    out << templ_info.firstPageElemCount();  // первая страница шаблона 0 элементов
     out << this->page_marker;
-    out << t_info.secondPageElemCount; // вторая страница шаблона 0 элементов
+    out << templ_info.secondPageElemCount(); // вторая страница шаблона 0 элементов
     out << this->page_marker;
-    out << t_info.thirdPageElemCount;  // третья страница шаблона 0 элементов
+    out << templ_info.thirdPageElemCount();  // третья страница шаблона 0 элементов
     out << this->page_marker;
-    out << t_info.fourthPageElemCount; // четвертая страница шаблона 0 элементов
+    out << templ_info.fourthPageElemCount(); // четвертая страница шаблона 0 элементов
 
     new_tmpl_file.close();
     emit emptyTemplateCreate(file_name);
@@ -342,19 +371,20 @@ void Tmpl_plugin::doSaveTemplates()
         out.setVersion(QDataStream::Qt_4_5);
 
         // Обновим время модификации шаблона
-        t_info.date_time = QDateTime::currentDateTime().toString("dd.MM.yyyy hh:mm:ss");
+        templ_info.setDate_time(QDateTime::currentDateTime()
+                                .toString("dd.MM.yyyy hh:mm:ss"));
         // Обновим данные о количестве страниц
-        t_info.firstPageElemCount = getElemCount(firstPage_scene);
-        t_info.secondPageElemCount = getElemCount(secondPage_scene);
-        t_info.thirdPageElemCount = getElemCount(thirdPage_scene);
-        t_info.fourthPageElemCount = getElemCount(fourthPage_scene);
+        templ_info.setFirstPageElemCount(getElemCount(firstPage_scene));
+        templ_info.setSecondPageElemCount(getElemCount(secondPage_scene));
+        templ_info.setThirdPageElemCount (getElemCount(thirdPage_scene));
+        templ_info.setFourthPageElemCount (getElemCount(fourthPage_scene));
         // запись основных данных шаблона
 
-        out << t_info;
+        out << templ_info;
 
         //Запись маркера начало страницы
         out << this->page_marker;
-        out << t_info.firstPageElemCount; // первая страница шаблона элементов
+        out << templ_info.firstPageElemCount(); // первая страница шаблона элементов
 
         for (int i = 0; i < firstPage_scene->items().size(); ++i){
             item = firstPage_scene->items().at(i);
@@ -368,7 +398,7 @@ void Tmpl_plugin::doSaveTemplates()
         }
 
         out << this->page_marker; // вторая страница шаблона элементов
-        out << t_info.secondPageElemCount;
+        out << templ_info.secondPageElemCount();
         for (int i = 0; i < secondPage_scene->items().size(); ++i){
             item = secondPage_scene->items().at(i);
             elem_type=item->data(ObjectName).toString();
@@ -381,7 +411,7 @@ void Tmpl_plugin::doSaveTemplates()
         }
 
         out << this->page_marker; // третья страница шаблона элементов
-        out << t_info.thirdPageElemCount;
+        out << templ_info.thirdPageElemCount();
         for (int i = 0; i < thirdPage_scene->items().size(); ++i){
             item = thirdPage_scene->items().at(i);
             elem_type=item->data(ObjectName).toString();
@@ -394,7 +424,7 @@ void Tmpl_plugin::doSaveTemplates()
         }
 
         out << this->page_marker; // четвертая страница шаблона элементов
-        out << t_info.fourthPageElemCount;
+        out << templ_info.fourthPageElemCount();
         for (int i = 0; i < fourthPage_scene->items().size(); ++i){
             item = fourthPage_scene->items().at(i);
             elem_type=item->data(ObjectName).toString();
@@ -454,7 +484,7 @@ void Tmpl_plugin::printFormatingPageToFile(int pageNum)
     // страница формируется исходя из данных модели
     if (!templates_file_name.isEmpty() && pageNum <= 4 && pageNum >=1){
         QPrinter pdfprinter;
-        if (!t_info.page_orient){
+        if (!templ_info.page_orient()){
             pdfprinter.setOrientation(QPrinter::Landscape);
         }else{
             pdfprinter.setOrientation(QPrinter::Portrait);
@@ -504,9 +534,9 @@ void Tmpl_plugin::printFormatingPageToFile(int pageNum)
 }
 
 void Tmpl_plugin::create_page(QGraphicsScene * scene,
-                              qreal &width,qreal &height,
-                              qreal &m_top,qreal &m_bottom,
-                              qreal &m_right,qreal &m_left)
+                              qreal width,qreal height,
+                              qreal m_top,qreal m_bottom,
+                              qreal m_right,qreal m_left)
 {
     if (scene){
         scene->setSceneRect(0, 0, width,height);
@@ -568,33 +598,35 @@ bool Tmpl_plugin::parse_templates(const QString & in_file)
             in.setVersion(QDataStream::Qt_4_5);
 
             // Читаем общую часть шаблона
-            in >> t_info;
+            in >> templ_info;
 
-            if (t_info.version == t_version){// Сравним версию шаблона
-                if (!t_info.page_orient){
+            if (templ_info.t_ver() == t_version){// Сравним версию шаблона
+                if (!templ_info.page_orient()){
                     // Меняем местами высоту и ширину
-                    swap(t_info.page_width,t_info.page_height);
+                    qreal tmp =templ_info.page_width();
+                    templ_info.setPage_width(templ_info.page_height());
+                    templ_info.setPage_height(tmp);
                 }
                 // создаем основное рабочее поле
                 this->create_page(firstPage_scene,
-                                  t_info.page_width,t_info.page_height,
-                                  t_info.m_top,t_info.m_bottom,
-                                  t_info.m_right,t_info.m_left
+                                  templ_info.page_width(),templ_info.page_height(),
+                                  templ_info.m_top(),templ_info.m_bottom(),
+                                  templ_info.m_right(),templ_info.m_left()
                                   );
                 this->create_page(secondPage_scene,
-                                  t_info.page_width,t_info.page_height,
-                                  t_info.m_top,t_info.m_bottom,
-                                  t_info.m_right,t_info.m_left
+                                  templ_info.page_width(),templ_info.page_height(),
+                                  templ_info.m_top(),templ_info.m_bottom(),
+                                  templ_info.m_right(),templ_info.m_left()
                                   );
                 this->create_page(thirdPage_scene,
-                                  t_info.page_width,t_info.page_height,
-                                  t_info.m_top,t_info.m_bottom,
-                                  t_info.m_right,t_info.m_left
+                                  templ_info.page_width(),templ_info.page_height(),
+                                  templ_info.m_top(),templ_info.m_bottom(),
+                                  templ_info.m_right(),templ_info.m_left()
                                   );
                 this->create_page(fourthPage_scene,
-                                  t_info.page_width,t_info.page_height,
-                                  t_info.m_top,t_info.m_bottom,
-                                  t_info.m_right,t_info.m_left
+                                  templ_info.page_width(),templ_info.page_height(),
+                                  templ_info.m_top(),templ_info.m_bottom(),
+                                  templ_info.m_right(),templ_info.m_left()
                                   );
 
 
@@ -602,12 +634,12 @@ bool Tmpl_plugin::parse_templates(const QString & in_file)
                 if (marker == this->page_marker){
                     // Не сбились с позиционированием
                     in >> page_count_elem;
-                    if (page_count_elem == t_info.firstPageElemCount){
+                    if (page_count_elem == templ_info.firstPageElemCount()){
                         // Поиск предка
                         parent = this->findPaperElem(firstPage_scene);
 
                         // число элементов на первой странице совпадает с заголовком
-                        for (int i=0;i<t_info.firstPageElemCount;i++){
+                        for (int i=0;i<templ_info.firstPageElemCount();i++){
                             // перебор всех элементов страницы
                             in >> elemType;
                             if (elemType=="tElem"){
@@ -617,7 +649,7 @@ bool Tmpl_plugin::parse_templates(const QString & in_file)
                         }
                     }else{
                         e_msg = QObject::trUtf8("Ошибка:Кол-во элементов [%1] в заголовке первой страницы не совпадает с записанным в блоке %2")
-                                .arg(t_info.firstPageElemCount,0,10)
+                                .arg(templ_info.firstPageElemCount(),0,10)
                                 .arg(page_count_elem);
                         emit error(e_msg);
                         return false;
@@ -632,12 +664,12 @@ bool Tmpl_plugin::parse_templates(const QString & in_file)
                 if (marker == this->page_marker){
                     // Не сбились с позиционированием
                     in >> page_count_elem;
-                    if (page_count_elem == t_info.secondPageElemCount){
+                    if (page_count_elem == templ_info.secondPageElemCount()){
                         // Поиск предка
                         parent = this->findPaperElem(secondPage_scene);
 
                         // число элементов на 2 странице совпадает с заголовком
-                        for (int i=0;i<t_info.secondPageElemCount;i++){
+                        for (int i=0;i<templ_info.secondPageElemCount();i++){
                             // перебор всех элементов страницы
                             in >> elemType;
                             if (elemType=="tElem"){
@@ -648,7 +680,7 @@ bool Tmpl_plugin::parse_templates(const QString & in_file)
 
                     }else{
                         e_msg = QObject::trUtf8("Ошибка:Кол-во элементов [%1] в заголовке второй страницы не совпадает с записанным в блоке %2")
-                                .arg(t_info.secondPageElemCount,0,10)
+                                .arg(templ_info.secondPageElemCount(),0,10)
                                 .arg(page_count_elem);
                         emit error(e_msg);
                         return false;
@@ -663,12 +695,12 @@ bool Tmpl_plugin::parse_templates(const QString & in_file)
                 if (marker == this->page_marker){
                     // Не сбились с позиционированием
                     in >> page_count_elem;
-                    if (page_count_elem == t_info.thirdPageElemCount){
+                    if (page_count_elem == templ_info.thirdPageElemCount()){
                         // Поиск предка
                         parent = this->findPaperElem(thirdPage_scene);
 
                         // число элементов на 3 странице совпадает с заголовком
-                        for (int i=0;i<t_info.thirdPageElemCount;i++){
+                        for (int i=0;i<templ_info.thirdPageElemCount();i++){
                             // перебор всех элементов страницы
                             in >> elemType;
                             if (elemType=="tElem"){
@@ -679,7 +711,7 @@ bool Tmpl_plugin::parse_templates(const QString & in_file)
 
                     }else{
                         e_msg = QObject::trUtf8("Ошибка:Кол-во элементов [%1] в заголовке третьей страницы не совпадает с записанным в блоке %2")
-                                .arg(t_info.thirdPageElemCount,0,10)
+                                .arg(templ_info.thirdPageElemCount(),0,10)
                                 .arg(page_count_elem);
                         emit error(e_msg);
                         return false;
@@ -693,12 +725,12 @@ bool Tmpl_plugin::parse_templates(const QString & in_file)
                 if (marker == this->page_marker){
                     // Не сбились с позиционированием
                     in >> page_count_elem;
-                    if (page_count_elem == t_info.fourthPageElemCount){
+                    if (page_count_elem == templ_info.fourthPageElemCount()){
                         // Поиск предка
                         parent = this->findPaperElem(fourthPage_scene);
 
                         // число элементов на 4 странице совпадает с заголовком
-                        for (int i=0;i<t_info.fourthPageElemCount;i++){
+                        for (int i=0;i<templ_info.fourthPageElemCount();i++){
                             // перебор всех элементов страницы
                             in >> elemType;
                             if (elemType=="tElem"){
@@ -709,7 +741,7 @@ bool Tmpl_plugin::parse_templates(const QString & in_file)
 
                     }else{
                         e_msg = QObject::trUtf8("Ошибка:Кол-во элементов [%1] в заголовке четвертой страницы не совпадает с записанным в блоке %2")
-                                .arg(t_info.fourthPageElemCount,0,10)
+                                .arg(templ_info.fourthPageElemCount(),0,10)
                                 .arg(page_count_elem);
                         emit error(e_msg);
                         return false;

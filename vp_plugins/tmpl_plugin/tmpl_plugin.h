@@ -4,6 +4,8 @@
 #include <QObject>
 #include <QMap>
 #include <QMetaType>
+#include "templ_info.h"
+
 #include "itmpl_plugin.h"
 #include "tech_global.h"
 
@@ -86,6 +88,8 @@ class QStringList;
 
 class SimpleItem;
 
+class Templ_Info;
+
 class Tmpl_plugin :public QObject, Itmpl_plugin
 {
     Q_OBJECT
@@ -124,6 +128,7 @@ public:
     bool getPageOrientation();
     // Изменяет текущую ориентацию
     void setPageOrientation(bool p_orient);
+    Templ_info getTemplInfo(){return templ_info;};
 signals:
     void error(QString error_message);
     void toLog(QString log_message);
@@ -160,7 +165,8 @@ protected:
     // Создает Qmap размеров страниц
     void createHW_Map();
 private:
-    tInfo t_info; // Информация о шаблоне
+    Templ_info templ_info;
+    //tInfo t_info; // Информация о шаблоне
     static const int t_version = 2; // версия шаблона
     QString page_marker; // маркер страницы
     QString templates_file_name; //Имя шаблона с которым работаем
@@ -170,9 +176,9 @@ private:
     // Заполняет список размеров страниц
     void fillPageMap();
     // Создает основу страницы
-    void create_page(QGraphicsScene * scene,qreal &width,qreal &height,
-                     qreal &m_top,qreal &m_bottom,
-                     qreal &m_right,qreal &m_left);
+    void create_page(QGraphicsScene * scene,qreal width,qreal height,
+                     qreal m_top,qreal m_bottom,
+                     qreal m_right,qreal m_left);
     // Создает новый базовый элемент
     void create_SimpleItem(QGraphicsItem *parent,
                            QPointF &ps, QFont &fnt,
