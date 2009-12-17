@@ -28,6 +28,11 @@ HEADERS += ../global/pre_header.h \
         tmpl_plugin.h \
         simpleitem.h \
     ../interfaces/itmpl_plugin.h \
-    ../global/tech_global.h
+    ../global/tech_global.h \
+    ../global/templ_info.h \
+    ../global/templ_info_d.h
+
 SOURCES = tmpl_plugin.cpp \
-         simpleitem.cpp
+         simpleitem.cpp \
+         ../global/templ_info.cpp \
+         ../global/templ_info_d.cpp
