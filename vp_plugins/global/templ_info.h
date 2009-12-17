@@ -70,8 +70,8 @@ public:
     void setFourthPageElemCount(int fourthPageElemCount);
 
 private:
-    QSharedDataPointer<Templ_info_d> d;
-
+    //QSharedDataPointer<Templ_info_d> d;
+    QExplicitlySharedDataPointer <Templ_info_d> d;
     friend QDataStream &operator >> (QDataStream &in, Templ_info& load);
     friend QDataStream &operator << (QDataStream &out, const Templ_info& save);
     friend QDebug      operator <<  (QDebug &out, const Templ_info& save);
