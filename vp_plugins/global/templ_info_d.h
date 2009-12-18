@@ -12,7 +12,6 @@ public:
     Templ_info_d();
     Templ_info_d (const Templ_info_d& other);
     ~Templ_info_d() {};
-
     int t_ver; 	        // версия шаблона
     QString date_time;  // дата и время создания
     QString t_author;   // автор шаблона
@@ -31,6 +30,7 @@ public:
     int thirdPageElemCount;    // число элементов на третьей странице шаблона
     int fourthPageElemCount;   // число элементов на четвертой странице шаблона
 };
+
 
 
 #endif
