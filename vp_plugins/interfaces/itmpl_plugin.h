@@ -15,6 +15,7 @@ public:
     virtual ~Itmpl_plugin() {}
     virtual void init(const QString & spool,const QString & sid)=0;
     virtual void loadTemplates(const QString & templates_in_file)=0;
+    virtual void saveTemplatesAs(const QString & save_file)=0;
     virtual void createEmptyTemplate(const QString & file_name) = 0;
     virtual void createEmptyTemplate(const QString & file_name,
                              const QString & t_author,
@@ -39,8 +40,8 @@ public:
     virtual QStringList    getPageSizeList()=0;
     virtual QStringList getElemNameList()=0;
     virtual QSize getPageSizeFromString(QString & page_str)=0;
-    virtual bool getPageOrientation()=0;
-    virtual void setPageOrientation(bool p_orient)=0;
+//    virtual bool getPageOrientation()=0;
+//    virtual void setPageOrientation(bool p_orient)=0;
     virtual Templ_info getTemplInfo() =0;
     virtual void setTemplInfo(Templ_info tInfo) =0;
 
