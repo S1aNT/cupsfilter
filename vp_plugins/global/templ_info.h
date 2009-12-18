@@ -4,6 +4,7 @@
 #include <QString>
 #include <QSharedDataPointer>
 #include <QDataStream>
+#include<QMetaType>
 #include "templ_info_d.h"
 
 class Templ_info
@@ -69,13 +70,19 @@ public:
     int fourthPageElemCount() const;
     void setFourthPageElemCount(int fourthPageElemCount);
 
+    Templ_info clone() const;	
 private:
+
+
     //QSharedDataPointer<Templ_info_d> d;
     QExplicitlySharedDataPointer <Templ_info_d> d;
+
+
     friend QDataStream &operator >> (QDataStream &in, Templ_info& load);
     friend QDataStream &operator << (QDataStream &out, const Templ_info& save);
     friend QDebug      operator <<  (QDebug &out, const Templ_info& save);
 };
+
 
 
 Q_DECLARE_METATYPE(Templ_info);

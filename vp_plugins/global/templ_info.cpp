@@ -187,6 +187,13 @@ void Templ_info::setFourthPageElemCount(int fourthPageElemCount)
     d->fourthPageElemCount = fourthPageElemCount;
 }
 
+
+Templ_info Templ_info::clone() const {
+  Templ_info copy(*this);
+  copy.d.detach();
+  return copy;
+}
+
 QDataStream &operator<<( QDataStream &out, const Templ_info& save )
 {
     out << save.t_ver();
