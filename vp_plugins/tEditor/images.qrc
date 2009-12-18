@@ -20,7 +20,7 @@
         <file>../safeFatPrinter/images/reload.png</file>
         <file>../safeFatPrinter/images/restart.png</file>
         <file>../safeFatPrinter/images/run.png</file>
-        <file>../safeFatPrinter/images/save.png</file>
+        <file alias="t_save.png">../safeFatPrinter/images/save.png</file>
         <file>../safeFatPrinter/images/settings.png</file>
         <file>../safeFatPrinter/images/stop.png</file>
         <file>../safeFatPrinter/images/kontact_journal.png</file>
