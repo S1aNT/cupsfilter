@@ -87,7 +87,7 @@ void AddTemplate::setEnableGUI(bool mode)
     ui->cancelBtn->setText(text);
 }
 
-void AddTemplate::setTemplatesInfo(Templ_info &templ_Info)
+void AddTemplate::setTemplatesInfo(Templ_info templ_Info)
 {
     tInfo = templ_Info;
     // Получили информацию о шаблоне загоним ее в нужные поля
@@ -183,9 +183,9 @@ void AddTemplate::showInfo(const QString & info)
 
 void AddTemplate::setTemplatesDesc()
 {
-    if (tInfo){
+   // if (tInfo){
         tInfo.setT_desc(ui->descTextEdit->toPlainText());
-    }
+   // }
 
 }
 
@@ -193,35 +193,35 @@ void AddTemplate::setTemplatesName(const QString & name)
 {
 
     if (!name.isEmpty()){
-        if (tInfo){
+        //if (tInfo){
             tInfo.setT_name(name);
-        }
+        //}
     }
 }
 
 void AddTemplate::setCurrentPageSize(const QString &psize)
 {
-    if (tInfo){
+    //if (tInfo){
         tInfo.setP_size(psize);
-    }
+    //}
 }
 
 void AddTemplate::set_portret()
 {
     ui->portretBtn->setFont(boldFont);
     ui->landscapeBtn->setFont(normalFont);
-    if (tInfo){
+    //if (tInfo){
         tInfo.setPage_orient(true);
-    }
+    //}
 }
 
 void AddTemplate::set_landscape()
 {
     ui->portretBtn->setFont(normalFont);
     ui->landscapeBtn->setFont(boldFont);
-    if (tInfo){
+    //if (tInfo){
         tInfo.setPage_orient(false);
-    }
+    //}
 }
 
 AddTemplate::~AddTemplate()

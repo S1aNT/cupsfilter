@@ -18,7 +18,7 @@ public:
     //void setUserName(const QString & name);
     void setPageSize(QStringListModel *page_size_model);
     void setLocalTemplatesDir(const QString &l_dir){local_dir = l_dir;};
-    void setTemplatesInfo(Templ_info &templ_Info);
+    void setTemplatesInfo(Templ_info templ_Info);
     void setEnableGUI(bool mode);
 
 signals:
@@ -59,7 +59,7 @@ private:
     QString local_dir;
 
     bool work_mode;
-    Templ_info *tInfo;
+    Templ_info tInfo;
 
 };
 
