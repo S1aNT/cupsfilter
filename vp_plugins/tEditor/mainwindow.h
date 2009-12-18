@@ -9,6 +9,7 @@ class QListWidget;
 class QMenu;
 class QTextEdit;
 class QStringListModel;
+class QStandardItemModel;
 QT_END_NAMESPACE
 
 class View;
@@ -28,6 +29,7 @@ private slots:
     void pageSelect(int page);
     void toggleAntialiasing();
     void loadTemplates();
+    void saveTemplatesAs();
     void do_createEmptyTemplate();
     void saveUserName(QString & u_name);
     void setPages(QGraphicsScene *first, QGraphicsScene *second,
@@ -48,6 +50,12 @@ private:
     void createStatusBar();
     void createDockWindows();
     void loadPlugins();
+    // Рабта с моделью
+    void insertDocToModel();
+    void insertDocToModel(QString &item);
+
+    //Директор по такелажу :) - т.е грузчик !(Грузит шаблон из файла)
+    bool loadFromFile(QString &file_name);
     void error(QString e_msg,bool admin);
 
     //Inet_plugin *net_plugin;
@@ -69,6 +77,7 @@ private:
     QAction *newAct;
     QAction *loadAct;
     QAction *saveAct;
+    QAction *saveAsAct;
     QAction *showInfoAct;
 
     QAction *printAct;
@@ -91,7 +100,8 @@ private:
     cmdFrame * CmdButtonBox;
     // Переменные из установок
     QString local_path; // Путь к локальным шаблонам пользователя
-
+    // Модель данных
+    QStandardItemModel *doc_model; // Перейти на модель !!!!!
 };
 
 #endif
