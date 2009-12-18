@@ -65,7 +65,7 @@ void Tmpl_plugin::init(const QString &spool,const QString &sid)
             // Создаем списки
             page_name_QSL = QStringList(page_size_map.keys());
 
-            page_marker = "templates_page"; // маркер страницы
+            //page_marker = "templates_page"; // маркер страницы
             // Создаем QMap размеров страниц
             // Заполним описание шаблона версией шаблона
             //templ_info = new Templ_info();
@@ -82,7 +82,7 @@ void Tmpl_plugin::init(const QString &spool,const QString &sid)
         emit error(error_msg);
     }
 }
-
+/*
 bool Tmpl_plugin::getPageOrientation()
 {
     return templ_info.page_orient();
@@ -92,7 +92,7 @@ void Tmpl_plugin::setPageOrientation(bool p_orient)
 {
     templ_info.setPage_orient(p_orient);
 }
-
+*/
 
 QStringList Tmpl_plugin::getPageSizeList()
 {
@@ -129,45 +129,45 @@ void Tmpl_plugin::createEmptyTemplate(const QString & file_name)
     // Проверка что функция была вызвана верно, т.е вначале были
     // заполненны данные о шаблоне
     if (templ_info.t_ver() == t_version){
-    const QString startnow = QDir::currentPath();
-    // Создаем пустой шаблон документа
+        const QString startnow = QDir::currentPath();
+        // Создаем пустой шаблон документа
 
-    if (QFile::exists(file_name)){
-        QFile::remove(file_name);
-    }
-    QFile new_tmpl_file(file_name);
-    new_tmpl_file.open(QIODevice::WriteOnly);
-    QDataStream out(&new_tmpl_file);
-    out.setVersion(QDataStream::Qt_4_5);
+        if (QFile::exists(file_name)){
+            QFile::remove(file_name);
+        }
+        QFile new_tmpl_file(file_name);
+        new_tmpl_file.open(QIODevice::WriteOnly);
+        QDataStream out(&new_tmpl_file);
+        out.setVersion(QDataStream::Qt_4_5);
 
-    // Основные данные уже переданны в плагин вызовом setTemplInfo(tInfo)
-    int p_s_id = this->getElemIdByName(templ_info.p_size());
-    // Заполним размеры страницы зная только строковый индетиф. размера
-    templ_info.setPage_width(this->findPageSize_W(p_s_id));     // ширина листа
-    templ_info.setPage_height(this->findPageSize_H(p_s_id));    // высота листа
+        // Основные данные уже переданны в плагин вызовом setTemplInfo(tInfo)
+        int p_s_id = this->getElemIdByName(templ_info.p_size());
+        // Заполним размеры страницы зная только строковый индетиф. размера
+        templ_info.setPage_width(this->findPageSize_W(p_s_id));     // ширина листа
+        templ_info.setPage_height(this->findPageSize_H(p_s_id));    // высота листа
 
-    templ_info.setFirstPageElemCount(0);  // первая страница шаблона 0 элементов
-    templ_info.setSecondPageElemCount(0); // вторая страница шаблона 0 элементов
-    templ_info.setThirdPageElemCount (0);  // третья страница шаблона 0 элементов
-    templ_info.setFourthPageElemCount (0); // четвертая страница шаблона 0 элементов
+        templ_info.setFirstPageElemCount(0);  // первая страница шаблона 0 элементов
+        templ_info.setSecondPageElemCount(0); // вторая страница шаблона 0 элементов
+        templ_info.setThirdPageElemCount (0);  // третья страница шаблона 0 элементов
+        templ_info.setFourthPageElemCount (0); // четвертая страница шаблона 0 элементов
 
-    // Запишем общую часть шаблона
-     out << templ_info;
-    // Начнем сохранение страниц
-    out << this->page_marker;
-    out << templ_info.firstPageElemCount();  // первая страница шаблона 0 элементов
-    out << this->page_marker;
-    out << templ_info.secondPageElemCount(); // вторая страница шаблона 0 элементов
-    out << this->page_marker;
-    out << templ_info.thirdPageElemCount();  // третья страница шаблона 0 элементов
-    out << this->page_marker;
-    out << templ_info.fourthPageElemCount(); // четвертая страница шаблона 0 элементов
+        // Запишем общую часть шаблона
+        out << templ_info;
+        // Начнем сохранение страниц
+        out << page_marker;
+        out << templ_info.firstPageElemCount();  // первая страница шаблона 0 элементов
+        out << page_marker;
+        out << templ_info.secondPageElemCount(); // вторая страница шаблона 0 элементов
+        out << page_marker;
+        out << templ_info.thirdPageElemCount();  // третья страница шаблона 0 элементов
+        out << page_marker;
+        out << templ_info.fourthPageElemCount(); // четвертая страница шаблона 0 элементов
 
-    new_tmpl_file.close();
-    emit emptyTemplateCreate(file_name);
+        new_tmpl_file.close();
+        emit emptyTemplateCreate(file_name);
 
     }else{
-       e_msg = QObject::trUtf8("ERROR: Ошибка создания пустого шаблона [%1]\n").arg(file_name);
+        e_msg = QObject::trUtf8("ERROR: Ошибка создания пустого шаблона [%1]\n").arg(file_name);
     }
     if (!e_msg.isEmpty()) {
         emit error(e_msg);
@@ -228,7 +228,7 @@ void Tmpl_plugin::createEmptyTemplate(const QString & file_name,
     templ_info.setThirdPageElemCount (0);  // третья страница шаблона 0 элементов
     templ_info.setFourthPageElemCount (0); // четвертая страница шаблона 0 элементов
     // Запишем общую часть шаблона
-     out << templ_info;
+    out << templ_info;
     /*
     // Создаем общую часть шаблона
     t_info.version = t_version;
@@ -258,13 +258,13 @@ void Tmpl_plugin::createEmptyTemplate(const QString & file_name,
 
 
     // Начнем сохранение страниц
-    out << this->page_marker;
+    out << page_marker;
     out << templ_info.firstPageElemCount();  // первая страница шаблона 0 элементов
-    out << this->page_marker;
+    out << page_marker;
     out << templ_info.secondPageElemCount(); // вторая страница шаблона 0 элементов
-    out << this->page_marker;
+    out << page_marker;
     out << templ_info.thirdPageElemCount();  // третья страница шаблона 0 элементов
-    out << this->page_marker;
+    out << page_marker;
     out << templ_info.fourthPageElemCount(); // четвертая страница шаблона 0 элементов
 
     new_tmpl_file.close();
@@ -314,7 +314,7 @@ void Tmpl_plugin::doAddImgElementToPage(int page,QString &file_img)
                     pixMapItem.height() >320){
                     imgItem->setPixmap(pixMapItem.scaled(QSize(320,320)));
                 }else{
-                  imgItem->setPixmap(pixMapItem);
+                    imgItem->setPixmap(pixMapItem);
                 }
                 imgItem->setParentItem(item);
                 scene->update();
@@ -409,6 +409,58 @@ void Tmpl_plugin::setTemplates(const QString & templates_in_file,
     }
 }
 
+void Tmpl_plugin::saveTemplatesAs(const QString & save_file)
+{
+    QString e_msg;
+
+    if (QFile::exists(save_file)){
+        QFile::rename(save_file,save_file+".bak");
+    }
+    //Сцены уже показы пользователю их и сохраняем
+    if (firstPage_scene && secondPage_scene &&
+        thirdPage_scene && fourthPage_scene){
+        // TODO Обновим время модификации шаблона
+        // Обновим данные о количестве страниц
+        templ_info.setFirstPageElemCount(getElemCount(firstPage_scene));
+        templ_info.setSecondPageElemCount(getElemCount(secondPage_scene));
+        templ_info.setThirdPageElemCount (getElemCount(thirdPage_scene));
+        templ_info.setFourthPageElemCount (getElemCount(fourthPage_scene));
+        // запись основных данных шаблона
+        QFile new_tmpl_file(save_file);
+        new_tmpl_file.open(QIODevice::WriteOnly);
+
+        QDataStream out(&new_tmpl_file);
+        out.setVersion(QDataStream::Qt_4_5);
+
+        // запись основных данных шаблона
+        out << templ_info;
+        //Запись маркера начало страницы
+        out << page_marker;
+        out << templ_info.firstPageElemCount();
+        // первая страница шаблона элементов
+        out << firstPage_scene;
+
+        out << page_marker;
+        out << templ_info.secondPageElemCount();
+        // вторая страница шаблона элементов
+        out << secondPage_scene;
+
+        out << page_marker;
+        out << templ_info.thirdPageElemCount();
+        // третья страница шаблона элементов
+        out << thirdPage_scene;
+
+        out << page_marker;
+        out << templ_info.fourthPageElemCount();
+        // четвертая страница шаблона элементов
+        out << fourthPage_scene;
+        new_tmpl_file.close();
+    }
+
+    if (!e_msg.isEmpty()){
+        emit error(e_msg);
+    }
+}
 //----------------------- public slots -----------------------------------------
 void Tmpl_plugin::doSaveTemplates()
 {
@@ -441,7 +493,7 @@ void Tmpl_plugin::doSaveTemplates()
         out << templ_info;
 
         //Запись маркера начало страницы
-        out << this->page_marker;
+        out << page_marker;
         out << templ_info.firstPageElemCount(); // первая страница шаблона элементов
 
         for (int i = 0; i < firstPage_scene->items().size(); ++i){
@@ -455,7 +507,7 @@ void Tmpl_plugin::doSaveTemplates()
             }
         }
 
-        out << this->page_marker; // вторая страница шаблона элементов
+        out << page_marker; // вторая страница шаблона элементов
         out << templ_info.secondPageElemCount();
         for (int i = 0; i < secondPage_scene->items().size(); ++i){
             item = secondPage_scene->items().at(i);
@@ -468,7 +520,7 @@ void Tmpl_plugin::doSaveTemplates()
             }
         }
 
-        out << this->page_marker; // третья страница шаблона элементов
+        out << page_marker; // третья страница шаблона элементов
         out << templ_info.thirdPageElemCount();
         for (int i = 0; i < thirdPage_scene->items().size(); ++i){
             item = thirdPage_scene->items().at(i);
@@ -481,7 +533,7 @@ void Tmpl_plugin::doSaveTemplates()
             }
         }
 
-        out << this->page_marker; // четвертая страница шаблона элементов
+        out << page_marker; // четвертая страница шаблона элементов
         out << templ_info.fourthPageElemCount();
         for (int i = 0; i < fourthPage_scene->items().size(); ++i){
             item = fourthPage_scene->items().at(i);
@@ -689,7 +741,7 @@ bool Tmpl_plugin::parse_templates(const QString & in_file)
 
 
                 in >> marker;
-                if (marker == this->page_marker){
+                if (marker == page_marker){
                     // Не сбились с позиционированием
                     in >> page_count_elem;
                     if (page_count_elem == templ_info.firstPageElemCount()){
@@ -719,7 +771,7 @@ bool Tmpl_plugin::parse_templates(const QString & in_file)
                 }
 
                 in >> marker;
-                if (marker == this->page_marker){
+                if (marker == page_marker){
                     // Не сбились с позиционированием
                     in >> page_count_elem;
                     if (page_count_elem == templ_info.secondPageElemCount()){
@@ -750,7 +802,7 @@ bool Tmpl_plugin::parse_templates(const QString & in_file)
                 }
 
                 in >> marker;
-                if (marker == this->page_marker){
+                if (marker == page_marker){
                     // Не сбились с позиционированием
                     in >> page_count_elem;
                     if (page_count_elem == templ_info.thirdPageElemCount()){
@@ -780,7 +832,7 @@ bool Tmpl_plugin::parse_templates(const QString & in_file)
                     return false;
                 }
                 in >> marker;
-                if (marker == this->page_marker){
+                if (marker == page_marker){
                     // Не сбились с позиционированием
                     in >> page_count_elem;
                     if (page_count_elem == templ_info.fourthPageElemCount()){
@@ -853,8 +905,6 @@ QString Tmpl_plugin::findFromModel(const QString &find_line)
     return local_find;
 }
 
-
-
 QSize Tmpl_plugin::getPageSizeFromString(QString & page_str)
 {
     QSize p_size;
@@ -871,6 +921,7 @@ QSize Tmpl_plugin::getPageSizeFromString(QString & page_str)
 
     return p_size;
 }
+
 int Tmpl_plugin::getElemIdByName(const QString &elem_name)
 {
     int result=0; // Если в списке запрошенного элемента нет то возвращаем 0
@@ -1178,13 +1229,15 @@ void Tmpl_plugin::create_SimpleItem(QGraphicsItem *parent,
     SimpleItem * pItem = new SimpleItem;
 
     //Анализ pList на предмет наличия [тег]
+    /*
     for (int j = 0; j <pList.size();j++){
         filledList.append(findFromModel(pList.at(j)));
     }
+    */
     pItem->setPos(ps);
     pItem->setFont(fnt);
     pItem->setColor(col);
-    pItem->setText(filledList);
+    pItem->setText(pList);
     pItem->setZValue(100);
     pItem->setFlag(QGraphicsItem::ItemIsMovable);
     pItem->setData(ObjectName, "tElem");
@@ -1235,6 +1288,38 @@ void Tmpl_plugin::update_scene(int pageNum)
     }
 
 }
+
+
+
+QDataStream &operator << (QDataStream &out,const QGraphicsScene * scene)
+{
+    QGraphicsItem * item;
+    QString elem_type;
+
+    for (int i = 0; i < scene->items().size(); ++i){
+        item = scene->items().at(i);
+        elem_type=item->data(ObjectName).toString();
+        out << elem_type; // Сохраним тип элемента
+        if (elem_type == "tElem"){
+            SimpleItem* tElem =(SimpleItem* )scene->items().at(i);
+            out << tElem->pos();
+            out << tElem->getFont();
+            out << tElem->getColor();
+            out << tElem->getText();
+        }
+    }
+    return out;
+}
+/*
+QDebug       operator << (QDebug &out, const QGraphicsScene * scene)
+{
+
+}
+QDataStream &operator >> (QDataStream &in, QGraphicsScene *scene)
+{
+
+}
+*/
 
 Q_EXPORT_PLUGIN2(Itmpl_plugin, Tmpl_plugin)
 ;

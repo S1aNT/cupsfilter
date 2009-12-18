@@ -10,6 +10,7 @@
 #include "tech_global.h"
 
 
+static const  QString page_marker = "PAGE_MARKER"; // маркер страницы
 
 using namespace SafeVirtualPrinter;
 
@@ -36,7 +37,7 @@ public:
     // нужна отдельная функция при установке модели произвести обновление
     // каждой сцены в соответствии с моделью
     void loadTemplates(const QString & templates_in_file);
-
+    void saveTemplatesAs(const QString & save_file);
     void createEmptyTemplate(const QString & file_name);
     void createEmptyTemplate(const QString & file_name,
                              const QString & t_author,
@@ -61,9 +62,10 @@ public:
     QStringList getElemNameList();
     QSize getPageSizeFromString(QString & page_str);
     // Возвращает текущую ориентацию шаблона
-    bool getPageOrientation();
+    //bool getPageOrientation();
     // Изменяет текущую ориентацию
-    void setPageOrientation(bool p_orient);
+    //void setPageOrientation(bool p_orient);
+
     Templ_info getTemplInfo(){return templ_info;};
     void setTemplInfo(Templ_info tInfo){ templ_info = tInfo;};
 signals:
@@ -102,10 +104,16 @@ protected:
     // Создает Qmap размеров страниц
     void createHW_Map();
 private:
+
+    //friend QDataStream &operator >> (QDataStream &in,QGraphicsScene *scene);
+    friend QDataStream &operator << (QDataStream &out,
+                                     const QGraphicsScene * scene);
+    //friend QDebug       operator << (QDebug &out,const QGraphicsScene * scene);
+
     Templ_info templ_info;
     //tInfo t_info; // Информация о шаблоне
     static const int t_version = 2; // версия шаблона
-    QString page_marker; // маркер страницы
+
     QString templates_file_name; //Имя шаблона с которым работаем
 
     //  Заполняет список базовых элементов шаблона
