@@ -42,7 +42,7 @@ public:
     virtual bool getPageOrientation()=0;
     virtual void setPageOrientation(bool p_orient)=0;
     virtual Templ_info getTemplInfo() =0;
-    virtual void setTemplInfo(Templ_info &tInfo) =0;
+    virtual void setTemplInfo(Templ_info tInfo) =0;
 
 };
 
