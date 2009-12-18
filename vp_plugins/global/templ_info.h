@@ -70,7 +70,7 @@ public:
     int fourthPageElemCount() const;
     void setFourthPageElemCount(int fourthPageElemCount);
 
-    Templ_info clone() const;	
+//    Templ_info clone() const;	
 private:
 
 
