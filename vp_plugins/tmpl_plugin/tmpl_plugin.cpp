@@ -68,6 +68,7 @@ void Tmpl_plugin::init(const QString &spool,const QString &sid)
             page_marker = "templates_page"; // маркер страницы
             // Создаем QMap размеров страниц
             // Заполним описание шаблона версией шаблона
+            //templ_info = new Templ_info();
             templ_info.setT_ver(t_version);
 
         }else{
@@ -140,6 +141,10 @@ void Tmpl_plugin::createEmptyTemplate(const QString & file_name)
     out.setVersion(QDataStream::Qt_4_5);
 
     // Основные данные уже переданны в плагин вызовом setTemplInfo(tInfo)
+    int p_s_id = this->getElemIdByName(templ_info.p_size());
+    // Заполним размеры страницы зная только строковый индетиф. размера
+    templ_info.setPage_width(this->findPageSize_W(p_s_id));     // ширина листа
+    templ_info.setPage_height(this->findPageSize_H(p_s_id));    // высота листа
 
     templ_info.setFirstPageElemCount(0);  // первая страница шаблона 0 элементов
     templ_info.setSecondPageElemCount(0); // вторая страница шаблона 0 элементов

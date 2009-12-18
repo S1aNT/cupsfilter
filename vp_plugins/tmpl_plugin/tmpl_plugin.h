@@ -65,7 +65,7 @@ public:
     // Изменяет текущую ориентацию
     void setPageOrientation(bool p_orient);
     Templ_info getTemplInfo(){return templ_info;};
-    void setTemplInfo(Templ_info &tInfo){ templ_info = tInfo;};
+    void setTemplInfo(Templ_info tInfo){ templ_info = tInfo;};
 signals:
     void error(QString error_message);
     void toLog(QString log_message);
