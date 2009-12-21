@@ -61,7 +61,8 @@ void  Auth::init ()
         //user_name="usr1";
         //emit needShowAuthWindow(user_name);
         user_mandat="";
-        user_name = QString("u707on1");
+//        user_name = QString("u707on1");
+        user_name = QString("usr1");
         emit get_User_name_mandat(user_name,user_mandat);
     }
 }
