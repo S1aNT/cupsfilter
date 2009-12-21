@@ -14,6 +14,11 @@ class Itmpl_plugin{
 public:
     virtual ~Itmpl_plugin() {}
     virtual void init(const QString & spool,const QString & sid)=0;
+    // сохранение текущей модели в xml файл
+    virtual QString saveModel2Xml() = 0;
+    //Загрузка модели из xml файла
+    virtual void loadModel4Xml(const QString &in_file) = 0;
+
     virtual void loadTemplates(const QString & templates_in_file)=0;
     virtual void saveTemplatesAs(const QString & save_file)=0;
     virtual void createEmptyTemplate(const QString & file_name) = 0;
