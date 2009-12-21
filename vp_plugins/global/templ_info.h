@@ -4,7 +4,7 @@
 #include <QString>
 #include <QSharedDataPointer>
 #include <QDataStream>
-#include<QMetaType>
+#include <QMetaType>
 #include "templ_info_d.h"
 
 class Templ_info
