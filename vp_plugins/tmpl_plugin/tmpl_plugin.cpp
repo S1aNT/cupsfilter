@@ -12,6 +12,8 @@
 #include <QGraphicsScene>
 #include <QGraphicsRectItem>
 #include <QStandardItem>
+#include <QXmlStreamWriter>
+#include <QXmlStreamReader>
 
 #include "tmpl_plugin.h"
 #include "tech_global.h"
@@ -34,9 +36,88 @@ Tmpl_plugin::Tmpl_plugin(QObject *parent)
 };
 
 
+// сохранение текущей модели в xml файл
+QString Tmpl_plugin::saveModel2Xml()
+{
+    QString e_msg;
+    QString out_file;
+    // Формируем имя файла
+    out_file = QObject::trUtf8("%1/%2_model_data.xml").arg(spool_dir, current_sid);
+    // Запись пользовательских данных в xml файл
+    QFile file(out_file);
+    if ( file.open(QIODevice::WriteOnly)){
+        // open an xml stream writer and write simulation data
+        QXmlStreamWriter stream(&file);
+        stream.setAutoFormatting(true);
+        stream.writeStartDocument();
+        stream.writeStartElement("t_date");
+        stream.writeAttribute("version", "0.1" );
+        stream.writeAttribute("user", QString(getenv("USERNAME")) );
+        stream.writeAttribute("when", QDateTime::currentDateTime().toString(Qt::ISODate) );
+        //m_scene->writeStream( &stream );
+        // Запись модели в файл
+        if (doc_model){
+            qDebug() << Q_FUNC_INFO << "rowCount" << doc_model->rowCount();
+            for (int i=0;i<doc_model->columnCount();i++){
+                QStandardItem * header_item = doc_model->horizontalHeaderItem(i);
+                QString header = header_item->data(Qt::EditRole).toString().toUpper();
+                for (int j=0;j<doc_model->rowCount();j++){
+                    QStandardItem * cell_item = doc_model->item(j, i);
+                    QString c_data = cell_item->data(Qt::EditRole).toString();
+                    stream.writeEmptyElement("model_elem");
+                    stream.writeAttribute("header",header);
+                    stream.writeAttribute("c_data",c_data);
+                }
+            }
+        }
+        stream.writeEndDocument();
+        // close the file
+        file.close();
+    }else{
+        e_msg = tr("Ошибка создания файла %1").arg(out_file);
+    }
+    if (!e_msg.isEmpty()) {
+        emit error(e_msg);
+    }
+    return out_file;
+}
+//Загрузка модели из xml файла
+void Tmpl_plugin::loadModel4Xml(const QString &in_file)
+{
+    QString e_msg;
+    QFile file( in_file );
+    if ( file.open( QIODevice::ReadOnly ) ){
+        QXmlStreamReader  stream( &file );
+        doc_model->clear();
+        while ( !stream.atEnd() ){
+            stream.readNext();
+            if ( stream.isStartElement() ) {
+                if ( stream.name() == "model_elem" ){
+                    // Читаем элемент
+
+
+                }else{
+                    stream.raiseError( QString("Unrecognised element '%1'").arg(stream.name().toString()) );
+                }
+            }
+        }
+        file.close();
+
+        // check if error occured
+        if ( stream.hasError() ){
+            e_msg = QString("Ошибка загрузки '%1' (%2)").arg(in_file).arg(stream.errorString()) ;
+        }
+    }else{
+        e_msg = tr("Ошибка открытия файла с данными %1").arg(in_file);
+    }
+    if (!e_msg.isEmpty()) {
+        emit error(e_msg);
+    }
+}
+
 void Tmpl_plugin::init(const QString &spool,const QString &sid)
 {
-    QString error_msg;
+    QString e_msg;
     QDir dir;
 
     if (!sid.isEmpty()) {
@@ -70,16 +151,17 @@ void Tmpl_plugin::init(const QString &spool,const QString &sid)
             // Заполним описание шаблона версией шаблона
             //templ_info = new Templ_info();
             templ_info.setT_ver(t_version);
-
+            // Создадим модель данных для шаблона
+            createModel();
         }else{
-            error_msg = QObject::trUtf8("ERROR: каталог %1 не существует\n").arg(spool);
+            e_msg = QObject::trUtf8("ERROR: каталог %1 не существует\n").arg(spool);
         }
 
     }else{
-        error_msg = QObject::trUtf8("ERROR: Неверный SID для документа\n").arg(sid);
+        e_msg = QObject::trUtf8("ERROR: Неверный SID для документа\n").arg(sid);
     }
-    if (!error_msg.isEmpty()) {
-        emit error(error_msg);
+    if (!e_msg.isEmpty()) {
+        emit error(e_msg);
     }
 }
 /*
@@ -189,7 +271,7 @@ void Tmpl_plugin::createEmptyTemplate(const QString & file_name,
                                       qreal m_right,
                                       qreal m_left)
 {
-    QString error_msg;
+    QString e_msg;
     const QString startnow = QDir::currentPath();
     // Создаем пустой шаблон документа
 
@@ -270,8 +352,8 @@ void Tmpl_plugin::createEmptyTemplate(const QString & file_name,
     new_tmpl_file.close();
     emit emptyTemplateCreate(file_name);
 
-    if (!error_msg.isEmpty()) {
-        emit error(error_msg);
+    if (!e_msg.isEmpty()) {
+        emit error(e_msg);
     }
 }
 
@@ -373,13 +455,11 @@ void Tmpl_plugin::doAddBaseElementToPage(int page,QStringList &text_list)
         scene->update();
     }
 }
-void Tmpl_plugin::setTemplates(const QString & templates_in_file,
-                               QStandardItemModel * model)
+void Tmpl_plugin::setTemplates(const QString & templates_in_file)
 {
-    QString error_msg;
+    QString e_msg;
     if (QFile::exists(templates_in_file)) {
-        if (model){
-            work_model = model;
+        if (doc_model){
             if (QFile::exists(firstPage_tmpl_fn)){
                 QFile::remove(firstPage_tmpl_fn);
             }
@@ -396,16 +476,16 @@ void Tmpl_plugin::setTemplates(const QString & templates_in_file,
             if (parse_templates(templates_in_file)){
                 emit allTemplatesPagesParsed(firstPage_scene, secondPage_scene, thirdPage_scene, fourthPage_scene);
             }else{
-                error_msg = QObject::trUtf8("ERROR: Ошибка разбора шаблона [%1]\n").arg(templates_in_file);
+                e_msg = QObject::trUtf8("ERROR: Ошибка разбора шаблона [%1]\n").arg(templates_in_file);
             }
         }else{
-            error_msg = QObject::trUtf8("ERROR: Модель [карточки документа] не существует\n");
+            e_msg = QObject::trUtf8("ERROR: Модель [карточки документа] не существует\n");
         }
     }else{
-        error_msg = QObject::trUtf8("Файл [%1] шаблона не найден.").arg(templates_in_file);
+        e_msg = QObject::trUtf8("Файл [%1] шаблона не найден.").arg(templates_in_file);
     }
-    if (!error_msg.isEmpty()) {
-        emit error(error_msg);
+    if (!e_msg.isEmpty()) {
+        emit error(e_msg);
     }
 }
 
@@ -554,12 +634,10 @@ void Tmpl_plugin::doSaveTemplates()
 }
 
 //******************************************************************************
-void Tmpl_plugin::convertTemplatesToPdf(const QString & templates_in_file,QStandardItemModel * model)
+void Tmpl_plugin::convertTemplatesToPdf(const QString & templates_in_file)
 {
-    QString error_msg;
+    QString e_msg;
     if (QFile::exists(templates_in_file)) {
-        if (model){
-            work_model = model;
             if (parse_templates(templates_in_file)){
                 // создаем pdf файлы
                 // FIXME hardcore!!!!
@@ -571,34 +649,30 @@ void Tmpl_plugin::convertTemplatesToPdf(const QString & templates_in_file,QStand
                 emit allPagesConverted(firstPage_tmpl_fn,secondPage_tmpl_fn,
                                        thirdPage_tmpl_fn,fourthPage_tmpl_fn);
             }else{
-                error_msg = QObject::trUtf8("ERROR: Ошибка разбора шаблона [%1]\n").arg(templates_in_file);
+                e_msg = QObject::trUtf8("ERROR: Ошибка разбора шаблона [%1]\n").arg(templates_in_file);
             }
-        }else{
-            error_msg = QObject::trUtf8("ERROR: Модель [карточки документа] не существует\n");
-        }
     }else{
-        error_msg = QObject::trUtf8("Файл [%1] шаблона не найден.").arg(templates_in_file);
+        e_msg = QObject::trUtf8("Файл [%1] шаблона не найден.").arg(templates_in_file);
     }
-    if (!error_msg.isEmpty()) {
-        emit error(error_msg);
+    if (!e_msg.isEmpty()) {
+        emit error(e_msg);
     }
 }
 
 
 void Tmpl_plugin::printFormatingPageToFile(int pageNum)
 {
-    QString error_msg;
+    QString e_msg;
     QGraphicsScene *scene;
 
     // Печатает выбранную страницу текущего шаблона в pdf файл
     // страница формируется исходя из данных модели
     if (!templates_file_name.isEmpty() && pageNum <= 4 && pageNum >=1){
         QPrinter pdfprinter;
-        if (!templ_info.page_orient()){
-            pdfprinter.setOrientation(QPrinter::Landscape);
-        }else{
+        if (templ_info.page_orient()){
             pdfprinter.setOrientation(QPrinter::Portrait);
-
+        }else{
+            pdfprinter.setOrientation(QPrinter::Landscape);
         }
         pdfprinter.setOutputFormat(QPrinter::PdfFormat);
         //FIXME:
@@ -607,13 +681,16 @@ void Tmpl_plugin::printFormatingPageToFile(int pageNum)
         switch(pageNum){
         case 1:
             scene = firstPage_scene;
+            update_scene(scene);
             if (QFile::exists(firstPage_tmpl_fn)){
                 QFile::remove(firstPage_tmpl_fn);
             }
+
             pdfprinter.setOutputFileName(firstPage_tmpl_fn);
             break;
         case 2:
             scene = secondPage_scene;
+            update_scene(scene);
             if (QFile::exists(secondPage_tmpl_fn)){
                 QFile::remove(secondPage_tmpl_fn);
             }
@@ -623,6 +700,7 @@ void Tmpl_plugin::printFormatingPageToFile(int pageNum)
             break;
         case 3:
             scene = thirdPage_scene;
+            update_scene(scene);
             if (QFile::exists(thirdPage_tmpl_fn)){
                 QFile::remove(thirdPage_tmpl_fn);
             }
@@ -631,6 +709,7 @@ void Tmpl_plugin::printFormatingPageToFile(int pageNum)
             break;
         case 4:
             scene = fourthPage_scene;
+            update_scene(scene);
             if (QFile::exists(fourthPage_tmpl_fn)){
                 QFile::remove(fourthPage_tmpl_fn);
             }
@@ -675,6 +754,16 @@ void Tmpl_plugin::create_page(QGraphicsScene * scene,
     }
 }
 
+void Tmpl_plugin::createModel()
+{
+   doc_model     = new QStandardItemModel(this);
+   doc_model->setHorizontalHeaderLabels(elem_name_QSL);
+   doc_model->insertRow(doc_model->rowCount());
+   qDebug() << Q_FUNC_INFO
+            << "doc_model->rowCount" << doc_model->rowCount()
+            << "doc_model->colCount" << doc_model->columnCount();
+}
+
 bool Tmpl_plugin::parse_templates(const QString & in_file)
 {
     bool flag;
@@ -699,6 +788,8 @@ bool Tmpl_plugin::parse_templates(const QString & in_file)
             thirdPage_scene->clear();
             fourthPage_scene->clear();
             //t_info.
+            // Сохраним текущее состояние модели в файл xml
+
             // сохраним имя текущего файла шаблона
             templates_file_name = in_file;
             QFile file(in_file);
@@ -881,29 +972,42 @@ bool Tmpl_plugin::parse_templates(const QString & in_file)
 QString Tmpl_plugin::findFromModel(const QString &find_line)
 {
     QString local_find;
-    local_find = find_line;
+    QString find_rep;
+    local_find = find_line.toUpper();
+    find_rep = find_line;
+
     if (find_line.contains("[") && find_line.contains("]")){
+
         local_find.replace("[","").replace("]","");
-        if (work_model){
-            qDebug() << Q_FUNC_INFO << "rowCount" << work_model->rowCount();
-            for (int i=0;i<work_model->columnCount();i++){
-                QStandardItem * header_item = work_model->horizontalHeaderItem(i);
+
+        qDebug() << Q_FUNC_INFO << "local_find" << local_find;
+        if (doc_model){
+            qDebug() << Q_FUNC_INFO << "rowCount" << doc_model->rowCount();
+            for (int i=0;i<doc_model->columnCount();i++){
+                QStandardItem * header_item = doc_model->horizontalHeaderItem(i);
                 QString header = header_item->data(Qt::EditRole).toString().toUpper();
                 if (header.compare(local_find) == 0){
                     // В модели всегда две строчки заголовок и данные,работаю со второй строчкой
-                    //QStandardItem * cell_item = work_model->item(work_model->rowCount(), i);
-                    QStandardItem * cell_item = work_model->item(0, i);
+                    //QStandardItem * cell_item = doc_model->item(doc_model->rowCount(), i);
+                    QStandardItem * cell_item = doc_model->item(0, i);
                     if (cell_item){
-                        local_find = cell_item->data(Qt::EditRole).toString();
+                        qDebug() << "cell " << cell_item->data(Qt::EditRole).toString()
+                                   << "find_rep "<< find_rep;
+                        find_rep.replace(QRegExp("\\[(.+)\\]"),cell_item->data(Qt::EditRole).toString() );
+                        qDebug() << Q_FUNC_INFO << find_rep;
                     }
 
                     break;
                 }
             }
         }
+        // Теперь надо заменить [**] на  найденное значение
+
+
     }
-    return local_find;
+    return find_rep;
 }
+
 
 QSize Tmpl_plugin::getPageSizeFromString(QString & page_str)
 {
@@ -1245,30 +1349,15 @@ void Tmpl_plugin::create_SimpleItem(QGraphicsItem *parent,
 }
 
 //*****************************************************************************
-void Tmpl_plugin::update_scene(int pageNum)
+void Tmpl_plugin::update_scene(QGraphicsScene *scene)
 {
     // пользователь удалил или добавил элемент на сцену, требуется заново
     // пройти по сцене и обновить содержимое элемента имеющего в качестве
     // текста [some_text] проверка есть ли такой в модели и запись значения
-    QGraphicsScene *scene;
+
     QString t_str;
     QStringList old_list;
     QStringList new_list;
-
-    switch(pageNum){
-    case 1:
-        scene = firstPage_scene;
-        break;
-    case 2:
-        scene = secondPage_scene;
-        break;
-    case 3:
-        scene = thirdPage_scene;
-        break;
-    case 4:
-        scene = fourthPage_scene;
-        break;
-    }
 
     for (int i = 0; i < scene->items().size(); i++){
         QGraphicsItem *item = scene->items().at(i);

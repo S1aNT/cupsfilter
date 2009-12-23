@@ -22,7 +22,6 @@ class QColor;
 class QStringList;
 
 class SimpleItem;
-
 class Templ_Info;
 
 class Tmpl_plugin :public QObject, Itmpl_plugin
@@ -32,6 +31,13 @@ class Tmpl_plugin :public QObject, Itmpl_plugin
 public:
     Tmpl_plugin(QObject *parent=0);
     void init(const QString & spool,const QString & sid);
+    // Возвращаем указатеь на модель
+    QStandardItemModel * getModel(){return doc_model;};
+    // сохранение текущей модели в xml файл возвращает имя файла
+    QString saveModel2Xml();
+    //Загрузка модели из xml файла
+    void loadModel4Xml(const QString &in_file);
+
     // Просто загрузим шаблон и преобразуем его в набор сцен
     // так как модель не передали то и преобразование не производим
     // нужна отдельная функция при установке модели произвести обновление
@@ -53,6 +59,7 @@ public:
                              qreal m_left);
 
     void printFormatingPageToFile(int pageNum);
+    void convertTemplatesToPdf(const QString & templates_in_file);
     QGraphicsScene *getFirstPage(){return firstPage_scene;};
     QGraphicsScene *getSecondPage(){return secondPage_scene;};
     QGraphicsScene *getThirdPage(){return thirdPage_scene;};
@@ -79,9 +86,9 @@ signals:
 public slots:
 
 
-    void convertTemplatesToPdf(const QString & templates_in_file,QStandardItemModel * model);
-    void update_scene(int pageNum);
-    void setTemplates(const QString & templates_in_file,QStandardItemModel * model);
+
+    void update_scene(QGraphicsScene *scene);
+    void setTemplates(const QString & templates_in_file);
 
     // Добавим базовый элемент на страницу page
     void doAddBaseElementToPage(int page,QStringList &text_list);
@@ -91,6 +98,7 @@ public slots:
     // сохраним текущий набор сцен в файл шаблона
     void doSaveTemplates();
 protected:
+    void createModel();
     qreal findPageSize_H(int page_size_id);// Высота
     qreal findPageSize_W(int page_size_id);// Ширина
     int getElemIdByName(const QString &elem_name);
@@ -129,8 +137,6 @@ private:
                            QPointF &ps, QFont &fnt,
                            QColor &col,QStringList &pList);
 
-    QStandardItemModel *work_model;
-
     QString spool_dir;
     QString current_sid;
 
@@ -143,13 +149,16 @@ private:
     QGraphicsScene * secondPage_scene;
     QGraphicsScene * thirdPage_scene;
     QGraphicsScene * fourthPage_scene;
+
+    QStandardItemModel * doc_model;
+
     QMap<QString, int> page_size_map;
     QStringList page_name_QSL;
     QStringList elem_name_QSL;
     QMap<QString,QSize> page_WH_map;
     // Список базовых элементов шаблона
     QMap <QString, int> elem_name_map;
-
+    //QMap <QString, int> elemTag;
 };
 
 #endif
