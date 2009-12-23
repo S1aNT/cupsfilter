@@ -332,7 +332,7 @@ void MainWindow::loadTemplates()
     if (templ_load){
         this->statusBar()->showMessage(QObject::tr("Шаблон [%1] загружен")
                                        .arg(file_name),1000);
-
+        this->currentTemplates = file_name;
     }else{
         this->statusBar()->showMessage(QObject::tr("Ошибка загрузки шаблона [%1]")
                                        .arg(file_name),1000);
@@ -485,6 +485,12 @@ void MainWindow::createActions()
 
     printAct = new QAction(QIcon(":/t_print.png"),
                            tr("Пробная печать шаблона"),this);
+    connect(printAct,
+            SIGNAL(triggered()),
+            this,
+            SLOT(printTempl())
+
+            );
 
     newAct = new QAction(QIcon(":/t_new.png"),
                          tr("Создание шаблона ..."),this);
@@ -540,6 +546,8 @@ void MainWindow::createMenus()
     templatesMenu->addAction(loadAct);
     templatesMenu->addAction(saveAsAct);
     templatesMenu->addAction(showInfoAct);
+    templatesMenu->addAction(printAct);
+
     templatesMenu->addSeparator();
 
     templatesMenu->addAction(quitAct);
@@ -586,4 +594,11 @@ void MainWindow::createDockWindows()
     viewMenu->addAction(dock->toggleViewAction());
 }
 
+void MainWindow::printTempl()
+{
+  if (tmpl_plugin ){
+       tmpl_plugin->convertTemplatesToPdf(currentTemplates);
+  }
+
+}
 //******************************************************************************

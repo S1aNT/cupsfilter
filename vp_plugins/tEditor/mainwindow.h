@@ -57,7 +57,7 @@ private:
     //Директор по такелажу :) - т.е грузчик !(Грузит шаблон из файла)
     bool loadFromFile(QString &file_name);
     void error(QString e_msg,bool admin);
-
+     void printTempl();
     //Inet_plugin *net_plugin;
     //Igs_plugin *gs_plugin;
     Auth_plugin *auth_plugin;
@@ -92,6 +92,7 @@ private:
     int currentPage;
     QString userName;
 
+    QString currentTemplates;
     QStringListModel *page_size_model;
     QStringList elemList;
     bool templ_load; // Признак что шаблон загружен
