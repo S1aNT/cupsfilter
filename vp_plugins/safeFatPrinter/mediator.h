@@ -3,6 +3,7 @@
 
 #include <QDebug>
 #include <QObject>
+#include <QList>
 
 #include "tech_global.h"
 #include "inet_plugin.h"
@@ -12,13 +13,18 @@
 
 using namespace SafeVirtualPrinter;
 
+QT_BEGIN_NAMESPACE
 class QPoint;
 class QStandardItemModel;
 class QStringListModel;
+class QDate;
+class QFileInfo;
+
+QT_END_NAMESPACE
 
 
 class workField;
-class TEditor;
+class tEditor;
 
 class Mediator: public QObject
 {
@@ -28,11 +34,12 @@ class Mediator: public QObject
 public:
     Mediator(QObject *parent = 0);
     //Геттеры
-    QStandardItemModel *getDocumentModel() const {return doc_model;}
+    //QStandardItemModel *getDocumentModel() const {return doc_model;}
     QStringListModel *getStampModel() const{ return stampModel;}
     QStringListModel *getMandatModel() const{ return mandatModel;}
     QStringListModel *getPrintersModel() const{ return printersModel;}
     QStringListModel *getPageSizeModel() const {return pageSizeModel;}
+
     void loadPlugin(const QString &app_dir);
     void plugin_init();
     void convert2pdf(QString &in_file);
@@ -49,8 +56,6 @@ public:
     QString getUserMandat(){return user_mandat;};
 
     int getPageCountInDoc(){return pagesInDocCount;};
-
-
     // Сеттеры
     void setUserMandat(QString mnd);
 
@@ -77,7 +82,7 @@ public slots:
     void setCurrentPrinter(const QString & printer);
     // авторизация текущего пользователя на предварительно выбранный принтер
     void do_needAuthUserToPrinter();
-    void checkMBInBase(QString &mb_value, QString &copyNum_value,WorkMode w_mode);
+    void checkMBInBase(QString &mb_value, QString &copyNum_value,int w_mode);
     // Требование к плагину создать пустой шаблон
     void do_needCreateEmptyTemplates(const QString & file_name,
                                   const QString & t_name,
@@ -121,7 +126,7 @@ private:
        Указатели на диалоговые окна
     */
     workField *WorkDlg;
-    TEditor * teditorDlg;
+    tEditor * teditorDlg;
     //-------------------------------------------------------------------------
 
     bool connect_state;
@@ -134,14 +139,15 @@ private:
     QString user_name;
     QString user_mandat;
 
-    QMap <QString, int> elemTag;
+
     QMap <QString,QString> printer_device_list;
     // Набор моделей [для сборки :)]
-    QStandardItemModel *doc_model;
     QStringListModel *stampModel;
     QStringListModel *mandatModel;
     QStringListModel *printersModel;
     QStringListModel *pageSizeModel;
+    QStringListModel *localTModel;
+    QStringListModel *globalTModel;
 
     // Блок переменных из ini файла
     QString serverHostName;
@@ -159,28 +165,42 @@ private:
     QString ticket_fname;
     QString rcp_file;
 
-    QString localTemplates;
-    QString globalTemplates;
+    QString local_t_path;
+    QString global_t_path;
+
+    QList <QFileInfo> local_fileInfoList;
+    QList <QFileInfo> global_fileInfoList;
+
     QString ftpTemplatesDir;
 
-    WorkMode work_mode;
+    //WorkMode work_mode;
     int currentMode;
 protected:
     // Сердце всей программы соединяет сигналы от дилалогов со слотами
     void connector();
 
     QString getElemTagById(int elem_id);
-    QStringList getAllElem();
-    int getElemIdByName(const QString elem_name);
+    //QStringList getAllElem();
+    //int getElemIdByName(const QString elem_name);
 
     /**
      * Read global settings from Application Dir
      */
     void readGlobal(const QString &app_dir);
+
     void createModels();
-    void insertDocToModel();
-    void insertDocToModel(QString &item);
-    void fillMap(); // Заполним список значениями
+    /**
+     * Заполним список содержимого локальных и глобальных каталогов
+     */
+    QStringListModel *getFolderModel(bool mode);
+
+    /**
+     * Преобразует имя шаблона в полный путь к файлу
+     */
+    QString fileNameToFullPath(const QString &in_name);
+    //void insertDocToModel();
+    //void insertDocToModel(QString &item);
+    //void fillMap(); // Заполним список значениями
 
     void getSecretLevelName(); //
     void getEnablePrinter();

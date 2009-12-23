@@ -1,9 +1,5 @@
-#include "mediator.h"
-
 #include <QDesktopWidget>
 #include <QPoint>
-
-
 #include <QCoreApplication>
 #include <QPluginLoader>
 #include <QDir>
@@ -16,12 +12,14 @@
 #include <QMapIterator>
 #include <QSettings>
 #include <QDate>
+#include <QXmlStreamWriter>
+#include <QXmlStreamReader>
+#include <QFileInfo>
 
-
+#include "mediator.h"
 #include "workfield.h"
 #include "teditor.h"
 
-#include <QTableView>
 
 Mediator::Mediator(QObject *parent) :
         QObject(parent)
@@ -39,7 +37,7 @@ Mediator::Mediator(QObject *parent) :
                             Qt::WindowSystemMenuHint);
     WorkDlg->setStampModel(this->getStampModel());
 
-    teditorDlg = new TEditor(WorkDlg);
+    teditorDlg = new tEditor(WorkDlg);
     teditorDlg->setWindowFlags(Qt::Dialog |
                                Qt::CustomizeWindowHint |
                                Qt::WindowTitleHint |
@@ -60,6 +58,7 @@ void Mediator::convert2pdf(QString &in_file)
     gs_plugin->convertPs2Pdf(in_file);
 
 }
+
 
 QPoint Mediator::getDeskTopCenter(int width,int height)
 {
@@ -186,12 +185,13 @@ void Mediator::loadPlugin(const QString &app_dir)
                                                         QGraphicsScene *,QGraphicsScene *))
                          );
                 connect (this,SIGNAL(needUpdatePage(int)),plugin,SLOT(update_scene(int)));
-
+                /*
                 connect(teditorDlg,
                         SIGNAL(addBaseElementToPage(int)),
                         plugin,
                         SLOT(doAddBaseElementToPage(int))
                         );
+*/
                 connect (teditorDlg,
                          SIGNAL(saveTemplates()),
                          plugin,
@@ -229,11 +229,11 @@ void Mediator::readGlobal(const QString &app_dir)
         settings.setIniCodec("UTF-8");
 
         settings.beginGroup("SERVICE");
-        serverHostName = settings.value("server","10.0.2.8").toString();
-        serverPort = settings.value("port",4242).toInt();
-        timeout_connect =settings.value("timeout_connect",5000).toInt();
-        timeout_read=settings.value("timeout_read",15000).toInt();
-        timeout_write=settings.value("timeout_write",15000).toInt();
+        serverHostName = settings.value("server").toString();
+        serverPort = settings.value("port").toInt();
+        timeout_connect =settings.value("timeout_connect").toInt();
+        timeout_read=settings.value("timeout_read").toInt();
+        timeout_write=settings.value("timeout_write").toInt();
         settings.endGroup();
 
         settings.beginGroup("PERIOD");
@@ -244,38 +244,38 @@ void Mediator::readGlobal(const QString &app_dir)
 
 #if defined(Q_OS_UNIX)
         settings.beginGroup("POSTSCRIPT");
-        gsBin = settings.value("gs_bin","/usr/local/bin/gs").toString();
+        gsBin = settings.value("gs_bin").toString();
         settings.endGroup();
         settings.beginGroup("PDF");
-        pdftkBin = settings.value("pdfTK","/usr/local/bin/pdftk.py").toString();
+        pdftkBin = settings.value("pdfTK").toString();
         settings.endGroup();
         settings.beginGroup("USED_DIR_FILE");
-        spoolDIR = settings.value("spool_dir","/var/log/spool/cups/tmp/").toString();
-        rcp_file = settings.value("rcp_file","/opt/vprinter/pdf.rcp").toString();
-        ticket_fname=settings.value("session_ticket","/tmp/session_ticket").toString();
+        spoolDIR = settings.value("spool_dir").toString();
+        rcp_file = settings.value("rcp_file").toString();
+        ticket_fname=settings.value("session_ticket").toString();
         settings.endGroup();
 
         settings.beginGroup("TEMPLATES");
-        localTemplates=settings.value("local_templates","/opt/vprinter/local_templates/").toString();
-        globalTemplates=settings.value("global_templates","/opt/vprinter/global_templates/").toString();
-        ftpTemplatesDir=settings.value("ftp_templates_dir","ftp://127.0.0.1/pub/templates/").toString();
+        local_t_path=settings.value("local_templates").toString();
+        global_t_path=settings.value("global_templates").toString();
+        ftpTemplatesDir=settings.value("ftp_templates_dir",).toString();
         settings.endGroup();
 #elif defined(Q_OS_WIN)
         settings.beginGroup("POSTSCRIPT");
-        gsBin = settings.value("gs_bin","C:/Program Files/gs/gs8.70/bin/gswin32c.exe").toString();
+        gsBin = settings.value("gs_bin").toString();
         settings.endGroup();
         settings.beginGroup("PDF");
-        pdftkBin = settings.value("pdfTK","c:/Tools/pdftk.exe").toString();
+        pdftkBin = settings.value("pdfTK").toString();
         settings.endGroup();
         settings.beginGroup("USED_DIR_FILE");
-        spoolDIR = settings.value("spool_dir","c:/spool").toString();
-        rcp_file = settings.value("rcp_file","c:/gs/pdf.rcp").toString();
+        spoolDIR = settings.value("spool_dir").toString();
+        rcp_file = settings.value("rcp_file").toString();
         settings.endGroup();
 
         settings.beginGroup("TEMPLATES");
-        localTemplates=settings.value("local_templates","local_templates/").toString();
-        globalTemplates=settings.value("global_templates","global_templates/").toString();
-        ftpTemplatesDir=settings.value("ftp_templates_dir","ftp://127.0.0.1/pub/templates/").toString();
+        local_t_path=settings.value("local_templates").toString();
+        global_t_path=settings.value("global_templates").toString();
+        ftpTemplatesDir=settings.value("ftp_templates_dir").toString();
         settings.endGroup();
 #endif
 
@@ -310,7 +310,7 @@ void Mediator::getEnablePrinter()
 void Mediator::do_needPrintPage(const QString & t_file_name)
 {
     if (tmpl_plugin){
-        tmpl_plugin->convertTemplatesToPdf(t_file_name,doc_model);
+        tmpl_plugin->convertTemplatesToPdf(fileNameToFullPath(t_file_name));
     }else{
         QString e_msg  = QObject::trUtf8("Плагин работы с шаблонами не инициализирован или не загружен!");
         emit error(e_msg);
@@ -320,8 +320,9 @@ void Mediator::mergeDocWithTemplate(QString &first,QString &second,
                                     QString &third,QString &fourth)
 {
     //FIXME Hardcode need fix!!!!
+    // Страницы могут не успеть объдинисться !!!
     QString first_page;
-    QString other_page;
+    QString other_pages;
     QString out_put_first;
     QString out_put_other;
     QString out_put_all_doc;
@@ -332,32 +333,37 @@ void Mediator::mergeDocWithTemplate(QString &first,QString &second,
 
         break;
     case 1:
-        out_put_first = QString("%1/%2_out_first.pdf").arg(this->spoolDIR,this->sid);
-        out_put_other= QString("%1/%2_out_other.pdf").arg(this->spoolDIR,this->sid);
+        out_put_first  = QString("%1/%2_out_first.pdf").arg(this->spoolDIR,this->sid);
+        out_put_other  = QString("%1/%2_out_other.pdf").arg(this->spoolDIR,this->sid);
+        out_put_all_doc= QString("%1/%2_out_all.pdf").arg(this->spoolDIR,this->sid);
         if (this->pagesInDocCount =1){
             first_page = gs_plugin->getFirstPages();
-
+            other_pages = gs_plugin->getOtherPages();
             // Объединяем первую страницу и первую страницу шаблона
-            gs_plugin->merge_mark_print(first_page,
-                                        first,this->user_name,
-                                        this->currentPrinter);
+            gs_plugin->merge2Pdf(first_page,first,out_put_first);
+
+            // Печатаем документ
+            gs_plugin->printPdf(out_put_first,this->currentPrinter);
 
             // Печатаем последюю страницу
+
             gs_plugin->printPdf(fourth,this->currentPrinter);
         }else{
             first_page = gs_plugin->getFirstPages();
-             other_page = gs_plugin->getOtherPages();
+            other_pages = gs_plugin->getOtherPages();
             // Объединяем первую страницу и первую страницу шаблона
-            gs_plugin->merge_mark_print(first_page,
-                                        first,this->user_name,
-                                        this->currentPrinter);
+            gs_plugin->merge2Pdf(first_page,first,out_put_first);
+            // Объединим певую и последующие страницы
+            gs_plugin->merge2Pdf(other_pages,second,out_put_other);
 
-            // Объединяем 2 страницу и 2 страницу шаблона
-            gs_plugin->merge_mark_print(other_page,
-                                        second,this->user_name,
-                                        this->currentPrinter);
+            // Объединим первую и последующие страницы
+            gs_plugin->merge2Pdf(out_put_first,out_put_other,out_put_all_doc);
+
+            // Печатаем документ
+             gs_plugin->printPdf(out_put_all_doc,this->currentPrinter);
 
             // Печатаем последюю страницу
+
             gs_plugin->printPdf(fourth,this->currentPrinter);
         }
         break;
@@ -479,30 +485,9 @@ void  Mediator::parseServerResponse(QString &responce_msg)
                 break;
             case MB_NOT_EXIST_ANS:
                 emit mbNumberNotExist();
-                // Формируем в зависимости от режима работы нужные страницы
-                switch (this->work_mode){
-                case Accounting:
-                    // Учет листов с печатью обратной стороны
-                    if (QFile::exists(this->currentTemplates_fname)){
-                        // Шаблон выбран он существует
-                        QPixmap page = this->formatPage(currentTemplates_fname,2);
-                        emit needShowPreviewPage(page);
-                    }else{
-                        msg =QObject::trUtf8("Не выбран шаблон или отсутсвует файл шаблона");
-                        emit error(msg);
-                    }
-                    break;
-            case AccountingOnly:
-                    // Только учет без реальной печати оборотной стороны
-                    break;
-            case PrintOverAccountPaper:
-                    break;
-            case PrintWithAccounting:
-                    break;
-                }
 
                 break;
-        case PRINTER_LIST_ANS:
+            case PRINTER_LIST_ANS:
                 // "/1400;:;SL9PRT.DDDD;:;socket://200.0.0.100:9100/?waitof=false###;:;SL9PRT.NEW;:;socket://200.0.0.100:9100/###"
                 remote_printer = body.split("###;:;");
                 for (int i = 0; i < remote_printer.size(); ++i) {
@@ -518,24 +503,11 @@ void  Mediator::parseServerResponse(QString &responce_msg)
                     tmp_list.append(pline.section(".",1,1)); // Имя принтера после точки
                 }
 
-
-                /*
-            plist = QPrinterInfo::availablePrinters();
-
-            for (int i = 0; i < plist.size(); ++i) {
-                if (plist.at(i).printerName()!="Защищенный принтер"){
-                    tmp_list.append(plist.at(i).printerName());
-                }
-            }
-
-            msg = QString("SL9PRT.DDDD");
-            tmp_list.append(msg);
-            */
                 this->printersModel->setStringList(tmp_list);
                 emit StateChanged(filledPrinterList);
 
                 break;
-        case PRINTER_LIST_EMPTY:
+            case PRINTER_LIST_EMPTY:
                 msg =QObject::trUtf8("У данного пользователя нет ни одного разрешенного принтера");
                 emit error(msg);
                 break;
@@ -565,22 +537,14 @@ void Mediator::setMode (int mode)
 {
     currentMode = mode;
     QString title;
+    // Обновим списки файлов в каталоге шаблонов
+    WorkDlg->setTemplatesModel(getFolderModel(true),getFolderModel(false));
+
     WorkDlg->move(this->getDeskTopCenter(WorkDlg->width(),WorkDlg->height()));
     WorkDlg->setPageSizeModel(this->getPageSizeModel());
     WorkDlg->setUserName(this->getUserName());
-    WorkDlg->setModel(this->getDocumentModel());
-    switch (mode){
-    case 0:
-        title = QObject::trUtf8("Режим работы: [Учет листов]");
-        break;
-    case 1:
-        title = QObject::trUtf8("Режим работы: [Печать на учтенных листах]");
-        break;
-    case 2:
-        title = QObject::trUtf8("Режим работы: [Печать документа с автоматическим учетом листов]");
-        break;
-    }
-    WorkDlg->setWindowTitle(title);
+    WorkDlg->setModel(tmpl_plugin->getModel());
+    WorkDlg->setMode(mode);
     int ret = WorkDlg->exec();
     if (ret == QDialog::Accepted){
         //QTimer::singleShot(500,qApp,SLOT(quit()));
@@ -590,7 +554,13 @@ void Mediator::setMode (int mode)
 void Mediator::do_convertTemplatesToScenes(const QString & templ_filename)
 {
     if (tmpl_plugin){
-        tmpl_plugin->setTemplates(templ_filename,doc_model);
+        /*
+         * Запрос у плагина файла в который сохранили модель
+         * преобразование имени шаблона в полный путь
+         */
+        QString xml = tmpl_plugin->saveModel2Xml();
+        QString f_name;
+        tmpl_plugin->setTemplates(fileNameToFullPath(templ_filename));
     }else{
         QString e_msg  = QObject::trUtf8("Плагин работы с шаблонами не инициализирован или не загружен!");
         emit error(e_msg);
@@ -646,12 +616,12 @@ void Mediator::do_needAuthUserToPrinter()
     net_plugin->sendData(msg);
 }
 
-void Mediator::checkMBInBase(QString &mb_value, QString &copyNum_value, WorkMode w_mode)
+void Mediator::checkMBInBase(QString &mb_value, QString &copyNum_value, int w_mode)
 {
     // Запрос к БД через демон период задается через
     // ini файл по умолчанию от начала текущего года до сегодня
     // Формируем SQL   SELECT count (*) AS mb_count from
-    this->work_mode=w_mode;
+    //this->work_mode=w_mode;
 
     QDate dt_end;
     dt_end=QDate::currentDate (); // Текущая дата
@@ -663,14 +633,81 @@ void Mediator::checkMBInBase(QString &mb_value, QString &copyNum_value, WorkMode
 }
 
 //**************************************** protected ******************************************
+QString Mediator::fileNameToFullPath(const QString &in_name)
+{
+    QString f_name;
+    QString find_name;
+    QString find_end;
+    find_name = in_name.section('.', 0, 0)+".tmpl";
+    find_end  = in_name.section('.', 1, 1);
+    // TODO переделать на итератор
+    if (find_end == "local"){
+        for (int i=0; i <local_fileInfoList.size();i++){
+            QFileInfo fi= local_fileInfoList.at(i);
+            if (fi.fileName()==find_name){
+                f_name = fi.absoluteFilePath();
+                break;
+            }
+        }
+    }else{
+        for (int i=0; i <global_fileInfoList.size();i++){
+            QFileInfo fi= global_fileInfoList.at(i);
+            if (fi.fileName()==find_name){
+                f_name = fi.absoluteFilePath();
+                break;
+            }
+        }
+    }
+    return f_name;
+}
+QStringListModel *Mediator::getFolderModel(bool mode)
+{
+    QStringList  fileList;
+    QStringList filters;
+    QDir dir;
+
+    filters << "*.tmpl" << "*.TMPL";
+    if (mode){
+        dir.setPath(this->global_t_path);
+    } else{
+        dir.setPath(this->local_t_path);
+    }
+
+    dir.setFilter(QDir::Files | QDir::Hidden | QDir::NoSymLinks);
+    dir.setNameFilters(filters);
+    QFileInfoList list = dir.entryInfoList();
+    for (int i = 0; i < list.size(); ++i) {
+        QFileInfo fileInfo = list.at(i);
+        // TODO В дальнейшем надо получать название шаблона из самого шаблона
+        // через плагин
+
+        if (mode){
+            fileList.append(tr("%1.global").arg(fileInfo.completeBaseName ()));
+            global_fileInfoList.append(fileInfo);
+        } else{
+            fileList.append(tr("%1.local").arg(fileInfo.completeBaseName ()));
+            local_fileInfoList.append(fileInfo);
+        }
+    }
+    if (mode){
+        globalTModel->setStringList(fileList);
+        return globalTModel;
+    } else{
+        localTModel->setStringList(fileList);
+        return localTModel;
+    }
+
+
+
+}
 
 void Mediator::connector()
 {
 
     connect (WorkDlg,
-             SIGNAL(checkMBInBase(QString &, QString &,WorkMode)),
+             SIGNAL(checkMBInBase(QString &, QString &,int)),
              this,
-             SLOT(do_checkMBInBase(QString &, QString &,WorkMode ))
+             SLOT(do_checkMBInBase(QString &, QString &,int ))
              );
     connect (WorkDlg,
              SIGNAL(needAuthUserToPrinter()),
@@ -708,13 +745,13 @@ void Mediator::connector()
     connect (this,
              SIGNAL(print_allowed()),
              WorkDlg,
-             SLOT(doPrintAllowed())
+             SLOT(doPrintAllowed()) // TODO это просто информационное сообщение !!!!
              );
     connect (this,
              SIGNAL(allTemplatesPagesParsed(QGraphicsScene*,QGraphicsScene*,
                                             QGraphicsScene*,QGraphicsScene*)),
              teditorDlg,
-             SLOT(setScene(QGraphicsScene*,QGraphicsScene*,
+             SLOT(setPages(QGraphicsScene*,QGraphicsScene*,
                            QGraphicsScene*,QGraphicsScene*))
              );
     /*
@@ -738,14 +775,14 @@ void Mediator::createModels()
     pageSizeModel = new QStringListModel(this);
     mandatModel   = new QStringListModel(this);
     stampModel    = new QStringListModel(this);
-    doc_model     = new QStandardItemModel(this);
+    localTModel   = new QStringListModel(this);
+    globalTModel  = new QStringListModel(this);
 
-    fillMap();
-    doc_model->setHorizontalHeaderLabels(getAllElem());
-    this->insertDocToModel();
-    qDebug() << Q_FUNC_INFO << "doc_model->rowCount" << doc_model->rowCount();
+    //fillMap();
+
 }
 //                                Геттеры
+/*
 QString Mediator::getElemTagById(int elem_id)
 {
     QString result;
@@ -760,6 +797,7 @@ QString Mediator::getElemTagById(int elem_id)
     }
     return result;
 }
+
 
 int Mediator::getElemIdByName(const QString elem_name)
 {
@@ -782,6 +820,7 @@ QStringList Mediator::getAllElem()
 
     return result;
 }
+
 
 void Mediator::insertDocToModel()
 {
@@ -847,3 +886,4 @@ void Mediator::fillMap()
     elemTag.insert(QObject::trUtf8("brak_doc"), 21);
     elemTag.insert(QObject::trUtf8("stamp_index"), 22);
 }
+*/
