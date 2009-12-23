@@ -1,6 +1,6 @@
 TEMPLATE = lib
 QT += gui \
-      QtXml
+      xml
 TARGET = tmpl_plugin
 CONFIG(debug, debug|release) {
     message(Build Debug!)
