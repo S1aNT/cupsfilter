@@ -21,7 +21,10 @@ HEADERS += ../global/pre_header.h \
     previewwnd.h \
     addtemplate.h \
     teditor.h \
-    view.h 
+    cmdframe.h \
+    view.h \
+    ../global/templ_info.h \
+    ../global/templ_info_d.h 
 SOURCES += main.cpp \
     mediator.cpp \
     getusernamemandatdlg.cpp \
@@ -31,13 +34,15 @@ SOURCES += main.cpp \
     previewwnd.cpp \
     addtemplate.cpp \
     teditor.cpp \
-    view.cpp 
+    cmdframe.cpp \
+    view.cpp \
+    ../global/templ_info.cpp \
+    ../global/templ_info_d.cpp
 FORMS += getusernamemandatdlg.ui \
     selectwindow.ui \
     workfield.ui \
     addelemdlg.ui \
     previewwnd.ui \
-    addtemplate.ui \
-    teditor.ui
+    addtemplate.ui 
 RESOURCES += images.qrc
 TRANSLATIONS = safeFatPrinter_ru.ts
