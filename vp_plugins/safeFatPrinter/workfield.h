@@ -11,6 +11,7 @@
 #include <QDataWidgetMapper>
 #include <QFileDialog>
 
+#include <QTableView>
 #include "previewwnd.h"
 
 #include "tech_global.h"
@@ -35,8 +36,8 @@ public:
     void setPageSizeModel(QStringListModel *page_size_model){p_size_mod =page_size_model;};
     void setUserName(const QString & user_name){userName=user_name;};
     void setModel (QStandardItemModel * model);
-    void setMode (WorkMode mode_value);
-    void setTemplatesDir(const QString &local,const QString &global);
+    void setMode (int mode_value);
+    void setTemplatesModel(QStringListModel *global,QStringListModel *local);
 signals:
     // Запрос на преобразование шаблона в набор из 4-х сцен
     void convertTemplatesToScenes(const QString &t_file_name);
@@ -45,17 +46,7 @@ signals:
     void needAuthUserToPrinter(); // Требуется авторизовать пользователя на принтер
     void needPrintPage(const QString &t_file_name);
     void dontNeedPrintPage();
-    void needCreateEmptyTemplates(const QString & file_name,
-                                  const QString & t_author,
-                                  const QString & t_name,
-                                  const QString & t_desc,
-                                  const QString & p_size,
-                                  bool p_orient,
-                                  const QString & c_date,
-                                  qreal m_top,
-                                  qreal m_bottom,
-                                  qreal m_right,
-                                  qreal m_left);
+    void needCreateEmptyTemplates(const QString & file_name);
 public slots:
     void showInfoWindow(const QString &info);
     void showPreviewPage(QPixmap &preview_page);
@@ -87,14 +78,13 @@ private:
     QLineEdit *hide_stamp; // Скрытое поле Гриф секретности
 
     bool localORglobal; // Режим шаблонов локальные или глобальные
-    QString local_templ_dir;
-    QString global_templ_dir;
+    QStringListModel *local_templ_model;
+    QStringListModel *global_templ_model;
     QString currentTemplates;
 
-    QList <QFileInfo> local_templates_path;
-    QList <QFileInfo> global_templates_path;
 
-    WorkMode mode;
+
+    int mode;
 
     void setEnableField(bool e);
 };

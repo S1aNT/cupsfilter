@@ -53,13 +53,9 @@ workField::workField(QWidget *parent) :
              SLOT(do_addTemplates())
              );
     connect (addTmplDlg,
-             SIGNAL(needCreateEmptyTemplates(QString,QString,QString,QString,
-                                             QString,bool,QString,
-                                             qreal,qreal,qreal,qreal)),
+             SIGNAL(needCreateEmptyTemplates(QString &)),
              this,
-             SIGNAL(needCreateEmptyTemplates(QString,QString,QString,QString,
-                                             QString,bool,QString,
-                                             qreal,qreal,qreal,qreal))
+             SIGNAL(do_needCreateEmptyTemplates(QString &))
              );
 }
 
@@ -68,10 +64,14 @@ workField::~workField()
     delete ui;
 }
 
-void workField::setTemplatesDir(const QString &local,const QString &global)
+void workField::setTemplatesModel(QStringListModel *global,
+                                  QStringListModel *local)
 {
-    local_templ_dir = local;
-    global_templ_dir = global;
+    local_templ_model = local;
+    global_templ_model = global;
+
+    ui->templatesCbox->setModel(global_templ_model);
+    this->currentTemplates = ui->templatesCbox->currentText();
 }
 
 void workField::setPagesCount(int p_count)
@@ -84,9 +84,27 @@ void workField::setStampModel(QStringListModel *stamp_model)
     ui->secretCBox->setModel(stamp_model);
 }
 
-void workField::setMode(WorkMode mode_value)
+void workField::setMode(int mode_value)
 {
     mode = mode_value;
+    QString title;
+    switch (mode){
+    case 0: //Accounting
+        title = QObject::trUtf8("Режим работы: [Учет листов]");
+        break;
+    case 1: //PrintOverAccountPaper
+        title = QObject::trUtf8("Режим работы: [Печать на учтенных листах]");
+        ui->paperAccountsOutSide->setVisible(false);
+        ui->previewBtn->setText(tr("Печать на учтенных листах"));
+        break;
+    case 2: //PrintWithAccounting
+        title = QObject::trUtf8("Режим работы: [Печать документа с автоматическим учетом листов]");
+        ui->paperAccountsOutSide->setVisible(false);
+        ui->previewBtn->setText(tr("Печать + учтет листов"));
+        break;
+    }
+    this->setWindowTitle(title);
+
 }
 
 void workField::setStampField(QString field)
@@ -107,6 +125,10 @@ void workField::setStampField(QString field)
 
 void workField::setModel (QStandardItemModel * model)
 {
+    //QTableView * tv = new QTableView();
+    //tv->setModel(model);
+    //tv->show();
+
     w_model =model;
     //Свяжем  элементы диалогового окна с моделью через mapper
     mapper->setModel(w_model);
@@ -193,10 +215,11 @@ void workField::setModel (QStandardItemModel * model)
 //********************************** public slots ******************************************
 void workField::showEditor()
 {
-    //Отправим запрос на преобразование шаблона в набор сцен
+    /*
+     * Отправим запрос на преобразование шаблона в набор сцен
+     * при этом автоматически сохраним модель документа в xml
+     */
     emit convertTemplatesToScenes(this->currentTemplates);
-
-    //int ret = teditorDlg->exec();
 }
 
 void workField::showInfoWindow(const QString &info)
@@ -220,23 +243,26 @@ void workField::showPreviewPage(QPixmap &preview_page)
     connect (wnd,SIGNAL(dontNeedPrintPage()),this,SIGNAL(dontNeedPrintPage()));
     wnd->showPage(preview_page);
 }
+
 void workField::doPrintAllowed()
 {
-     this->setEnableField(true);
-     // Запишем данные в строку статуса
-     QString msg = QObject::trUtf8("Статус: Сервер безопастности разрешил печать.");
-     ui->AnsLabel->setText(msg);
-     // Требование распечатать документ используя выбранный шаблон
-     emit needPrintPage(this->currentTemplates);
+    this->setEnableField(true);
+    // Запишем данные в строку статуса
+    QString msg = QObject::trUtf8("Статус: Сервер безопастности разрешил печать.");
+    ui->AnsLabel->setText(msg);
+    // TODO это надо убрать отсюда
+    // Требование распечатать документ используя выбранный шаблон
+    emit needPrintPage(this->currentTemplates);
+
 }
 
 //********************************** private slots ******************************************
 void workField::do_addTemplates()
 {
     int ret;
-    addTmplDlg->setUserName(userName);
+    //addTmplDlg->setUserName(userName);
     addTmplDlg->setPageSize(p_size_mod);
-    addTmplDlg->setLocalTemplatesDir(local_templ_dir);
+    //addTmplDlg->setLocalTemplatesDir(local_templ_dir);
     ret = addTmplDlg->exec();
     if (ret == QDialog::Accepted){
         QString msg = QObject::trUtf8("Не забудьте отредактировать шаблон перед использованием");
@@ -251,31 +277,10 @@ void workField::do_addTemplates()
 
 void workField::setCurrentTemplates(QString temp)
 {
-    QString f_name;
-    QString t_name;
-    if (localORglobal){
-        for (int i=0;i<local_templates_path.size();i++){
-            QFileInfo fi=local_templates_path.at(i);
-            if (fi.fileName()==temp){
-                f_name = fi.absoluteFilePath();
-                t_name = fi.fileName();
-                break;
-            }
-        }
-        ui->editTemplatesTBtn->setEnabled(true);
-    }else{
-        for (int i=0;i<global_templates_path.size();i++){
-            QFileInfo fi=global_templates_path.at(i);
-            if (fi.fileName()==temp){
-                f_name = fi.absoluteFilePath();
-                break;
-            }
-        }
-        ui->editTemplatesTBtn->setEnabled(false);
-    }
-    currentTemplates = f_name; // Запомним выбор пользователя
-    QString msg = QObject::trUtf8("Статус: Выбран шаблон %1").arg(t_name);
+    currentTemplates = temp; // Запомним выбор пользователя
+    QString msg = QObject::trUtf8("Статус: Выбран шаблон %1").arg(temp);
     ui->AnsLabel->setText(msg);
+    ui->editTemplatesTBtn->setEnabled(localORglobal);
 }
 
 void workField::selectTemplatesDir(bool mode)
@@ -289,42 +294,14 @@ void workField::selectTemplatesDir(bool mode)
     if (mode){
         ui->tmplLabel->setText(QObject::trUtf8("Личные шаблоны"));
         title_str =QObject::trUtf8("Выберите ранее сохраненные индивидуальные шаблоны");
-        path = local_templ_dir;
+        ui->templatesCbox->setModel(local_templ_model);
     }else{
         // Читаем глобальные шаблоны которые предварительно закачаны в нужный каталог
-        ui->tmplLabel->setText(QObject::trUtf8("Глобальные шаблоны"));
+        ui->tmplLabel->setText(QObject::trUtf8("Общие шаблоны"));
         title_str =QObject::trUtf8("Выберите глобальные шаблоны");
-        path = global_templ_dir;
+        ui->templatesCbox->setModel(global_templ_model);
     }
-
-    QFileDialog::Options options = QFileDialog::DontResolveSymlinks | QFileDialog::ShowDirsOnly | QFileDialog::ReadOnly;
-    find_dir = QFileDialog::getExistingDirectory(this, title_str,path, options);
-
-    if (!find_dir.isEmpty()){
-        ui->templatesCbox->clear();
-
-        QStringList filters;
-        filters << "*.tmpl" << "*.TMPL";
-
-        QDir dir(find_dir);
-        dir.setFilter(QDir::Files | QDir::Hidden | QDir::NoSymLinks);
-        dir.setNameFilters(filters);
-        QFileInfoList list = dir.entryInfoList();
-        for (int i = 0; i < list.size(); ++i) {
-            QFileInfo fileInfo = list.at(i);
-            ui->templatesCbox->addItem(fileInfo.fileName());
-            if (mode){
-                local_templates_path.append(fileInfo);
-            }else{
-                global_templates_path.append(fileInfo);
-            }
-        }
-        // Установим шаблон файл которого выбран текущим
-        QString cur_tmpl = ui->templatesCbox->currentText();
-        if (!cur_tmpl.isEmpty()){
-            this->setCurrentTemplates(cur_tmpl);
-        }
-    }
+    this->currentTemplates = ui->templatesCbox->currentText();
 }
 
 void workField::flipLabel(bool flip)
