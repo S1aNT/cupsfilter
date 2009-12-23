@@ -14,9 +14,11 @@ class Itmpl_plugin{
 public:
     virtual ~Itmpl_plugin() {}
     virtual void init(const QString & spool,const QString & sid)=0;
-    // сохранение текущей модели в xml файл
+    virtual QStandardItemModel * getModel()=0;
+
+    // СЃРѕС…СЂР°РЅРµРЅРёРµ С‚РµРєСѓС‰РµР№ РјРѕРґРµР»Рё РІ xml С„Р°Р№Р»
     virtual QString saveModel2Xml() = 0;
-    //Загрузка модели из xml файла
+    //Р—Р°РіСЂСѓР·РєР° РјРѕРґРµР»Рё РёР· xml С„Р°Р№Р»Р°
     virtual void loadModel4Xml(const QString &in_file) = 0;
 
     virtual void loadTemplates(const QString & templates_in_file)=0;
@@ -35,14 +37,14 @@ public:
                              qreal m_right,
                              qreal m_left)=0;
 
-    virtual void setTemplates(const QString & templates_in_file,QStandardItemModel * model)=0;
-    virtual void convertTemplatesToPdf(const QString & templates_in_file,QStandardItemModel * model)=0;
+    virtual void setTemplates(const QString & templates_in_file)=0;
+    virtual void convertTemplatesToPdf(const QString & templates_in_file)=0;
     virtual void printFormatingPageToFile(int pageNum)=0;
     virtual QGraphicsScene *getFirstPage()=0;
     virtual QGraphicsScene *getSecondPage()=0;
     virtual QGraphicsScene *getThirdPage()=0;
     virtual QGraphicsScene *getFourthPage()=0;
-    virtual QStringList    getPageSizeList()=0;
+    virtual QStringList getPageSizeList()=0;
     virtual QStringList getElemNameList()=0;
     virtual QSize getPageSizeFromString(QString & page_str)=0;
 //    virtual bool getPageOrientation()=0;
