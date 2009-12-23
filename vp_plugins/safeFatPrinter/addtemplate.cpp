@@ -7,30 +7,14 @@
 #define MM_TO_POINT(mm) ((mm)*2.83465058)
 
 AddTemplate::AddTemplate(QWidget *parent) :
-    QDialog(parent),
-    ui(new Ui::AddTemplate)
+        QDialog(parent),
+        ui(new Ui::AddTemplate)
 {
     ui->setupUi(this);
-    this->creation_date = QDateTime::currentDateTime ().toString("dd.MM.yyyy hh:mm:ss");
-    ui->date_lineEd->setText(creation_date);
     //FIXME не работает обновление шрифта bold -> normal
 
     boldFont = QFont("Times", 14, QFont::Bold);
     normalFont = QFont("Times", 14, QFont::Normal);
-
-    // Значения по умолчанию
-    page_size = QString("A4 (210 x 297 mm)");
-    templ_name = QObject::trUtf8("Новый шаблон");
-    templ_desc = QObject::trUtf8("Описание шаблона");
-
-    page_height   = MM_TO_POINT(297);
-    page_width    = MM_TO_POINT(210);
-    margin_top    = MM_TO_POINT(10);
-    margin_bottom = MM_TO_POINT(10);
-    margin_left   = MM_TO_POINT(35);
-    margin_right  = MM_TO_POINT(15);
-
-    page_orient = true;
 
     connect (ui->portretBtn,
              SIGNAL(clicked()),
@@ -47,7 +31,7 @@ AddTemplate::AddTemplate(QWidget *parent) :
              this,
              SLOT(setCurrentPageSize(QString))
              );
-    connect (ui->name_lineEd,
+    connect (ui->t_name_lineEd,
              SIGNAL(textChanged(QString)),
              this,
              SLOT(setTemplatesName(QString))
@@ -58,16 +42,80 @@ AddTemplate::AddTemplate(QWidget *parent) :
              SLOT(setTemplatesDesc())
              );
 
+    connect (ui->margin_topSpBox,
+             SIGNAL(editingFinished()),
+             this,
+             SLOT(setMarginTop())
+             );
+    connect (ui->margin_bottomSBox,
+             SIGNAL(editingFinished()),
+             this,
+             SLOT(setMarginBottom())
+             );
+    connect (ui->margin_leftSpBox,
+             SIGNAL(editingFinished()),
+             this,
+             SLOT(setMarginLeft())
+             );
+    connect (ui->margin_rightSpBox,
+             SIGNAL(editingFinished()),
+             this,
+             SLOT(setMarginRight())
+             );
+
 }
 
 
 
+void AddTemplate::setEnableGUI(bool mode)
+{
+    work_mode = mode;
+
+    QString text;
+    ui->t_nameGBox->setEnabled(mode);
+    ui->t_descGBox->setEnabled(mode);
+    ui->page_orientGBox->setEnabled(mode);
+    ui->page_sizeGBox->setEnabled(mode);
+    ui->marginGBox->setEnabled(mode);
+    if (!mode){
+        text = tr("Закрыть");
+
+    }else{
+        text = tr("Отмена");
+    }
+    ui->addBtn->setVisible(mode);
+    ui->cancelBtn->setText(text);
+}
+
+void AddTemplate::setTemplatesInfo(Templ_info templ_Info)
+{
+    tInfo = templ_Info;
+    // Получили информацию о шаблоне загоним ее в нужные поля
+    ui->t_name_lineEd->setText(tInfo.t_name());
+    ui->descTextEdit->setPlainText(tInfo.t_desc());
+
+    ui->portretBtn->setChecked(tInfo.page_orient());
+    ui->pageSizeCBox->setCurrentIndex(ui->pageSizeCBox->findText(tInfo.p_size()));
+
+    ui->author_lineEd->setText(tInfo.t_author());
+    ui->date_lineEd->setText(tInfo.date_time());
+
+    tInfo.setDate_time(QDateTime::currentDateTime ().toString("dd.MM.yyyy hh:mm:ss"));
+    ui->date_lineEd->setText(tInfo.date_time());
+
+}
+
+/*
 void AddTemplate::setUserName(const QString & name)
 {
+    //FIX: по идее это уже есть в инфо шаблона
     if (!name.isEmpty()){
-        ui->author_lineEd->setText(name);
+        // Обновим имя пользователя
+        tInfo.setT_author(name) ;
+        ui->author_lineEd->setText(tInfo.t_author());
     }
 }
+*/
 
 void AddTemplate::setPageSize(QStringListModel *page_size_model)
 {
@@ -77,32 +125,45 @@ void AddTemplate::setPageSize(QStringListModel *page_size_model)
 }
 
 //-------------------------------------- protected slots
+void AddTemplate::setMarginTop()
+{
+    tInfo.setM_top(MM_TO_POINT(ui->margin_topSpBox->value()));
+}
+void AddTemplate::setMarginBottom()
+{
+    tInfo.setM_bottom (MM_TO_POINT(ui->margin_bottomSBox->value()));
+}
+void AddTemplate::setMarginLeft()
+{
+    tInfo.setM_left(MM_TO_POINT(ui->margin_leftSpBox->value()));
+}
+void AddTemplate::setMarginRight()
+{
+    tInfo.setM_right(MM_TO_POINT(ui->margin_rightSpBox->value()));
+}
 void AddTemplate::accept()
 {
     QString fileName;
 
     QString e_msg = QObject::trUtf8("Поле [ %1 ] не может быть пустым!");
-    if (ui->name_lineEd->text().isEmpty()){
+    if (ui->t_name_lineEd->text().isEmpty()){
         e_msg.arg(QObject::trUtf8("Имя шаблона"));
         this->showInfo(e_msg);
     }else{
-        //TODO сделать транслитерацию имени шаблона или оставить по русски для записи его в файл?
-        QString new_templates_name = QObject::trUtf8("%1/%2.tmpl").arg(local_dir,templ_name);
         fileName = QFileDialog::getSaveFileName(this, QObject::trUtf8("Сохранить шаблон как"),
-                                    new_templates_name,
-                                    tr("Шаблоны (*.tmpl *.TMPL)"));
+                                                local_dir,
+                                                tr("Шаблоны (*.tmpl *.TMPL)"));
         if (!fileName.isEmpty()){
-            //QMessageBox::information(this,"file",fileName);
-            QString user =  ui->author_lineEd->text();
-            emit needCreateEmptyTemplates(fileName,user,templ_name,templ_desc,
-                                          page_size,
-                                          page_orient,creation_date,
-                                          margin_top,margin_bottom,
-                                          margin_right,margin_left);
-            QDialog::accept();
+            if (work_mode){
+                emit needCreateEmptyTemplates(fileName);
+                QDialog::accept();
+            }else{
+                QDialog::close();
+            }
         }
     }
 }
+
 
 // ------------------------------------- protected
 void AddTemplate::showInfo(const QString & info)
@@ -122,33 +183,45 @@ void AddTemplate::showInfo(const QString & info)
 
 void AddTemplate::setTemplatesDesc()
 {
-    templ_desc = ui->descTextEdit->toPlainText();
+   // if (tInfo){
+        tInfo.setT_desc(ui->descTextEdit->toPlainText());
+   // }
+
 }
 
 void AddTemplate::setTemplatesName(const QString & name)
 {
+
     if (!name.isEmpty()){
-        templ_name = name;
+        //if (tInfo){
+            tInfo.setT_name(name);
+        //}
     }
 }
 
 void AddTemplate::setCurrentPageSize(const QString &psize)
 {
-    page_size =psize;
+    //if (tInfo){
+        tInfo.setP_size(psize);
+    //}
 }
 
 void AddTemplate::set_portret()
 {
     ui->portretBtn->setFont(boldFont);
     ui->landscapeBtn->setFont(normalFont);
-    this->page_orient = true;
+    //if (tInfo){
+        tInfo.setPage_orient(true);
+    //}
 }
 
 void AddTemplate::set_landscape()
 {
     ui->portretBtn->setFont(normalFont);
     ui->landscapeBtn->setFont(boldFont);
-    this->page_orient = false;
+    //if (tInfo){
+        tInfo.setPage_orient(false);
+    //}
 }
 
 AddTemplate::~AddTemplate()
