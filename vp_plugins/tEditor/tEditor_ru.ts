@@ -186,109 +186,109 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="490"/>
+        <location filename="mainwindow.cpp" line="496"/>
         <source>Ð¡Ð¾Ð·Ð´Ð°Ð½Ð¸Ðµ ÑÐ°Ð±Ð»Ð¾Ð½Ð° ...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="492"/>
+        <location filename="mainwindow.cpp" line="498"/>
         <source>Ð¡Ð¾Ð·Ð´Ð°Ð½Ð¸Ðµ Ð¿ÑÑÑÐ¾Ð³Ð¾ ÑÐ°Ð±Ð»Ð¾Ð½Ð°</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="500"/>
+        <location filename="mainwindow.cpp" line="506"/>
         <source>ÐÐ°Ð³ÑÑÐ·ÐºÐ° ÑÐ°Ð±Ð»Ð¾Ð½Ð° ...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="502"/>
+        <location filename="mainwindow.cpp" line="508"/>
         <source>ÐÐ°Ð³ÑÑÐ·ÐºÐ° Ð² ÑÐµÐ´Ð°ÐºÑÐ¾Ñ ÑÐ°Ð±Ð»Ð¾Ð½Ð° Ð´Ð»Ñ Ð¿ÑÐ¾ÑÐ¼Ð¾ÑÑÐ° Ð¸ ÑÐµÐ´Ð°ÐºÑÐ¸ÑÐ¾Ð²Ð°Ð½Ð¸Ñ</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="509"/>
+        <location filename="mainwindow.cpp" line="515"/>
         <source>Ð¡Ð¾ÑÑÐ°Ð½ÐµÐ½Ð¸Ðµ ÑÐ°Ð±Ð»Ð¾Ð½Ð° ÐºÐ°Ðº ...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="511"/>
+        <location filename="mainwindow.cpp" line="517"/>
         <source>Ð¡Ð¾ÑÑÐ°Ð½ÐµÐ½Ð¸Ðµ ÑÐµÐºÑÑÐµÐ³Ð¾ Ð²Ð°ÑÐ¸Ð°Ð½ÑÐ° ÑÐ°Ð±Ð»Ð¾Ð½Ð° Ð² ...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="517"/>
+        <location filename="mainwindow.cpp" line="523"/>
         <source>Ð¡Ð³Ð»Ð°Ð¶Ð¸Ð²Ð°Ð½Ð¸Ðµ</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="519"/>
+        <location filename="mainwindow.cpp" line="525"/>
         <source>Ð ÐµÐ¶Ð¸Ð¼ Ð¾ÑÐ¾Ð±ÑÐ°Ð¶ÐµÐ½Ð¸Ñ</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="522"/>
+        <location filename="mainwindow.cpp" line="528"/>
         <source>ÐÑÑÐ¾Ð´</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="524"/>
+        <location filename="mainwindow.cpp" line="530"/>
         <source>ÐÑÑÐ¾Ð´ Ð¸Ð· ÑÐµÐ´Ð°ÐºÑÐ¾ÑÐ°</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="527"/>
+        <location filename="mainwindow.cpp" line="533"/>
         <source>Ð Ð¿ÑÐ¾Ð³ÑÐ°Ð¼Ð¼Ðµ</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="528"/>
+        <location filename="mainwindow.cpp" line="534"/>
         <source>ÐÑÐ°ÑÐºÐ¸Ðµ ÑÐ²ÐµÐ´ÐµÐ½Ð¸Ñ Ð¾ Ð¿ÑÐ¾Ð³ÑÐ°Ð¼Ð¼Ðµ</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="531"/>
+        <location filename="mainwindow.cpp" line="537"/>
         <source>Ð Ð±Ð¸Ð±Ð»Ð¸Ð¾ÑÐµÐºÐµ Qt</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="532"/>
+        <location filename="mainwindow.cpp" line="538"/>
         <source>ÐÑÐ°ÑÐºÐ¸Ðµ ÑÐ²ÐµÐ´ÐµÐ½Ð¸Ñ Ð¾Ð± Ð¸ÑÐ¿Ð¾Ð»ÑÐ·ÑÐµÐ¼Ð¾Ð¹ Ð±Ð¸Ð±Ð»Ð¸Ð¾ÑÐµÐºÐµ Qt</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="538"/>
+        <location filename="mainwindow.cpp" line="544"/>
         <source>&amp;Ð¨Ð°Ð±Ð»Ð¾Ð½Ñ</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="546"/>
-        <location filename="mainwindow.cpp" line="562"/>
+        <location filename="mainwindow.cpp" line="554"/>
+        <location filename="mainwindow.cpp" line="570"/>
         <source>ÐÑÐ°Ð²ÐºÐ°</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="548"/>
+        <location filename="mainwindow.cpp" line="556"/>
         <source>ÐÐ°Ð½ÐµÐ»Ð¸</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="550"/>
-        <location filename="mainwindow.cpp" line="567"/>
+        <location filename="mainwindow.cpp" line="558"/>
+        <location filename="mainwindow.cpp" line="575"/>
         <source>Ð£ÑÐ¸Ð»Ð¸ÑÑ</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="555"/>
+        <location filename="mainwindow.cpp" line="563"/>
         <source>&amp;Ð¡Ð¿ÑÐ°Ð²ÐºÐ°</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="574"/>
+        <location filename="mainwindow.cpp" line="582"/>
         <source>ÐÐ¾ÑÐ¾Ð²</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="579"/>
+        <location filename="mainwindow.cpp" line="587"/>
         <source>Ð­Ð»ÐµÐ¼ÐµÐ½ÑÑ</source>
         <translation type="unfinished"></translation>
     </message>
