@@ -202,7 +202,7 @@ void GS_plugin::merge_mark_print(const QString &input_fn,const QString &backgrou
                                  const QString &user_name,const QString &printer_name)
 {
     // Объеденить наложить маркер отправить на печать
-    this->printer ="Prt707o";
+    //this->printer ="Prt707o";
     //pdftk.exe in.pdf background back.pdf output - | pdftk.exe - update_info pdfmark output 2.pdf
     QString output_fn = QObject::trUtf8("%1/%2_%3_out.pdf")
                      .arg(this->tempPath, this->Sid)
@@ -413,6 +413,7 @@ void GS_plugin::parsePageCountThread(int Code,QString output)
             rx.setMinimal(true);
             if (rx.indexIn(output) != -1) {
                 bool ok;
+                qDebug() << Q_FUN_INFO << rx.cap(0); << rx.cap(1);
                 this->pagesCount = rx.cap(1).toInt(&ok, 10);
                 if (!ok) {
                     this->pagesCount =0;
