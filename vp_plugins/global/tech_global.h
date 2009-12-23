@@ -96,7 +96,6 @@ typedef enum WorkStep {
 };
 typedef enum WorkMode{
     Accounting,
-    AccountingOnly,
     PrintOverAccountPaper,
     PrintWithAccounting
 };
