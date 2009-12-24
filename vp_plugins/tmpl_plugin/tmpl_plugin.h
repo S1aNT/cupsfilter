@@ -71,7 +71,7 @@ public:
     // Возвращает текущую ориентацию шаблона
     //bool getPageOrientation();
     // Изменяет текущую ориентацию
-    //void setPageOrientation(bool p_orient);
+    void setPageOrientation(bool p_orient);
 
     Templ_info getTemplInfo(){return templ_info;};
     void setTemplInfo(Templ_info tInfo){ templ_info = tInfo;};

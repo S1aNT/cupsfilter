@@ -14,6 +14,7 @@
 #include <QStandardItem>
 #include <QXmlStreamWriter>
 #include <QXmlStreamReader>
+#include <QtAlgorithms>
 
 #include "tmpl_plugin.h"
 #include "tech_global.h"
@@ -170,11 +171,28 @@ bool Tmpl_plugin::getPageOrientation()
     return templ_info.page_orient();
 }
 
+*/
+
 void Tmpl_plugin::setPageOrientation(bool p_orient)
 {
     templ_info.setPage_orient(p_orient);
+    int p_s_id = this->getElemIdByName(templ_info.p_size());
+    // Заполним размеры страницы зная только строковый индетиф. размера
+    qreal w = this->findPageSize_W(p_s_id); // ширина листа
+    qreal h = this->findPageSize_H(p_s_id); // высота листа
+    // Теперь повернем страницу согласно ориентации
+    if (!templ_info.page_orient()){
+        qSwap(w,h);
+    }
+    templ_info.setPage_width(w);
+    templ_info.setPage_height(h);
+    // теперь каждой странице изменим размеры
+    create_page(firstPage_scene,
+                                      templ_info.page_width(),templ_info.page_height(),
+                                      templ_info.m_top(),templ_info.m_bottom(),
+                                      templ_info.m_right(),templ_info.m_left()
+                                      );
 }
-*/
 
 QStringList Tmpl_plugin::getPageSizeList()
 {
@@ -225,8 +243,14 @@ void Tmpl_plugin::createEmptyTemplate(const QString & file_name)
         // Основные данные уже переданны в плагин вызовом setTemplInfo(tInfo)
         int p_s_id = this->getElemIdByName(templ_info.p_size());
         // Заполним размеры страницы зная только строковый индетиф. размера
-        templ_info.setPage_width(this->findPageSize_W(p_s_id));     // ширина листа
-        templ_info.setPage_height(this->findPageSize_H(p_s_id));    // высота листа
+        qreal w = this->findPageSize_W(p_s_id); // ширина листа
+        qreal h = this->findPageSize_H(p_s_id); // высота листа
+        // Теперь повернем страницу согласно ориентации
+        if (!templ_info.page_orient()){
+           qSwap(w,h);
+        }
+        templ_info.setPage_width(w);
+        templ_info.setPage_height(h);
 
         templ_info.setFirstPageElemCount(0);  // первая страница шаблона 0 элементов
         templ_info.setSecondPageElemCount(0); // вторая страница шаблона 0 элементов
@@ -780,6 +804,7 @@ bool Tmpl_plugin::parse_templates(const QString & in_file)
     QString marker;
     QGraphicsItem  * parent;
 
+    //TODO Можно объединить в одну проверку QFile::exists
     if (!in_file.isEmpty()){
         if (QFile::exists(in_file)){
 
@@ -802,12 +827,6 @@ bool Tmpl_plugin::parse_templates(const QString & in_file)
             in >> templ_info;
 
             if (templ_info.t_ver() == t_version){// Сравним версию шаблона
-                if (!templ_info.page_orient()){
-                    // Меняем местами высоту и ширину
-                    qreal tmp =templ_info.page_width();
-                    templ_info.setPage_width(templ_info.page_height());
-                    templ_info.setPage_height(tmp);
-                }
                 // создаем основное рабочее поле
                 this->create_page(firstPage_scene,
                                   templ_info.page_width(),templ_info.page_height(),
