@@ -331,7 +331,7 @@ void GS_plugin::printPdf(const QString &print_fn, const QString &printer_name)
     args.append(printer_name);
     args.append(print_fn);
 
-    fr =QString("c:\\tools\\p.bat");
+    fr =QString("E:\\tools\\p.bat");
     proc->execute(fr, args,QProcess::MergedChannels);
 
 }
