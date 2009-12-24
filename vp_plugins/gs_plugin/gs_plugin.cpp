@@ -413,7 +413,7 @@ void GS_plugin::parsePageCountThread(int Code,QString output)
             rx.setMinimal(true);
             if (rx.indexIn(output) != -1) {
                 bool ok;
-                qDebug() << Q_FUNC_INFO << rx.cap(0); << rx.cap(1);
+                qDebug() << Q_FUNC_INFO << rx.cap(0) << rx.cap(1);
                 this->pagesCount = rx.cap(1).toInt(&ok, 10);
                 if (!ok) {
                     this->pagesCount =0;
