@@ -13,8 +13,8 @@ AddTemplate::AddTemplate(QWidget *parent) :
     ui->setupUi(this);
     //FIXME не работает обновление шрифта bold -> normal
 
-    boldFont = QFont("Times", 14, QFont::Bold);
-    normalFont = QFont("Times", 14, QFont::Normal);
+    boldFont = QFont("Tahoma", 8, QFont::Bold);
+    normalFont = QFont("Tahoma", 8, QFont::Normal);
 
     connect (ui->portretBtn,
              SIGNAL(clicked()),
@@ -90,11 +90,13 @@ void AddTemplate::setEnableGUI(bool mode)
 void AddTemplate::setTemplatesInfo(Templ_info templ_Info)
 {
     tInfo = templ_Info;
+
     // Получили информацию о шаблоне загоним ее в нужные поля
     ui->t_name_lineEd->setText(tInfo.t_name());
     ui->descTextEdit->setPlainText(tInfo.t_desc());
 
     ui->portretBtn->setChecked(tInfo.page_orient());
+
     ui->pageSizeCBox->setCurrentIndex(ui->pageSizeCBox->findText(tInfo.p_size()));
 
     ui->author_lineEd->setText(tInfo.t_author());
@@ -102,6 +104,7 @@ void AddTemplate::setTemplatesInfo(Templ_info templ_Info)
 
     tInfo.setDate_time(QDateTime::currentDateTime ().toString("dd.MM.yyyy hh:mm:ss"));
     ui->date_lineEd->setText(tInfo.date_time());
+
 
 }
 
@@ -208,17 +211,18 @@ void AddTemplate::setCurrentPageSize(const QString &psize)
 
 void AddTemplate::set_portret()
 {
-    ui->portretBtn->setFont(boldFont);
-    ui->landscapeBtn->setFont(normalFont);
+    ui->p_orient_label->setFont(boldFont);
+    ui->l_orient_label->setFont(normalFont);
     //if (tInfo){
         tInfo.setPage_orient(true);
     //}
+
 }
 
 void AddTemplate::set_landscape()
 {
-    ui->portretBtn->setFont(normalFont);
-    ui->landscapeBtn->setFont(boldFont);
+    ui->p_orient_label->setFont(normalFont);
+    ui->l_orient_label->setFont(boldFont);
     //if (tInfo){
         tInfo.setPage_orient(false);
     //}

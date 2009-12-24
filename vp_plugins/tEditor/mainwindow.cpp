@@ -195,8 +195,9 @@ void MainWindow::showTemplatesInfo()
 {
     if (this->templ_load && tmpl_plugin ){
         // Покажем информацию о шаблоне
-        TProperDlg->setTemplatesInfo(tInfo);
+        //TODO функцию очистки
         TProperDlg->setPageSize(page_size_model);
+        TProperDlg->setTemplatesInfo(tInfo);
         TProperDlg->setEnableGUI(false);
         TProperDlg->exec();
     }
