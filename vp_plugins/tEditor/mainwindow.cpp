@@ -1,11 +1,12 @@
 #include <QDebug>
 #include <QtGui>
-#include <QtGui/QFrame>
+#include <QUuid>
 #include <QDesktopWidget>
 #include <QTabWidget>
 #include <QFileDialog>
 #include <QStringListModel>
 #include <QStandardItemModel>
+#include <QSettings>
 
 #include "mainwindow.h"
 #include "view.h"
@@ -13,6 +14,7 @@
 
 MainWindow::MainWindow()
 {
+    this->readGlobal(qApp->applicationDirPath());
     // Создаем модель
     doc_model     = new QStandardItemModel(this);
 
@@ -131,8 +133,6 @@ void MainWindow::loadPlugins()
                         );
 
 #if defined(Q_OS_UNIX)
-                //FIXME
-                QString ticket_name = "/tmp/session_ticket";
 
                 auth_plugin->init(ticket_name);
 #elif defined(Q_OS_WIN)
@@ -145,10 +145,12 @@ void MainWindow::loadPlugins()
             tmpl_plugin_Interface = qobject_cast<Itmpl_plugin *> (plugin);
             if (tmpl_plugin_Interface){
                 tmpl_plugin = tmpl_plugin_Interface;
-                //FIXME
-                QString spool ="c:/spool/";
-                QString sid = "ewqfrieie";
-                tmpl_plugin->init(spool,sid);
+
+
+                QUuid uSID=QUuid::createUuid () ;  //generate SID
+                QString sid=uSID.toString().replace("{","").replace("}","");
+
+                tmpl_plugin->init(spoolDir,sid);
 
                 // Получим названия стандартных кнопок для шаблона
                 elemList = tmpl_plugin->getElemNameList();
@@ -269,9 +271,8 @@ void MainWindow::do_createEmptyTemplate()
         TProperDlg->setTemplatesInfo(tInfo);
         TProperDlg->setPageSize(page_size_model);
 
-        //FIXME
-        QString local_templ_dir ="c:/local_templ_dir/";
-        TProperDlg->setLocalTemplatesDir(local_templ_dir);
+
+        TProperDlg->setLocalTemplatesDir(local_t_path);
         TProperDlg->setEnableGUI(true);
         // Покажем информацию о шаблоне
         TProperDlg->exec();
@@ -312,12 +313,14 @@ void MainWindow::loadTemplates()
 {
     QString title_str;
     title_str =QObject::trUtf8("Выберите ранее сохраненные индивидуальные шаблоны");
-    if (local_path.isEmpty()){
-        local_path = qApp->applicationDirPath();
+    /*
+    if (local_t_pathh.isEmpty()){
+        local_t_path = qApp->applicationDirPath();
     }
+    */
     QString file_name =QFileDialog::getOpenFileName(this,
                                                     title_str,
-                                                    local_path,
+                                                    local_t_path,
                                                     tr("Шаблоны (*.tmpl *.TMPL)")
                                                     );
 
@@ -338,12 +341,14 @@ void MainWindow::saveTemplatesAs()
 {
     QString title_str;
     title_str =QObject::trUtf8("Выберите место для сохраненнения шаблона");
+    /*
     if (local_path.isEmpty()){
         local_path = qApp->applicationDirPath();
     }
+    */
     QString save_file = QFileDialog::getSaveFileName(this,
                                                      title_str,
-                                                     local_path,
+                                                     local_t_path,
                                                      tr("Шаблоны (*.tmpl *.TMPL)")
                                                      );
     if (!save_file.isEmpty()){
@@ -674,4 +679,49 @@ void MainWindow::printTempl()
     }
 
 }
+
+void MainWindow::readGlobal(const QString &app_dir)
+{
+    // Читаем файл настроек
+    // TODO add emit log_message
+    QString l_msg = QString("[%1]").arg(QString::fromAscii(Q_FUNC_INFO));
+    QString e_msg;
+    QString ini_path =QString("%1/Technoserv/safe_printer.ini").arg(app_dir);
+
+    if (QFile::exists(ini_path)){
+        QSettings settings (ini_path,QSettings::IniFormat);
+        settings.setIniCodec("UTF-8");
+        settings.beginGroup("SERVICE");
+        serverHostName = settings.value("server").toString();
+        serverPort = settings.value("port").toInt();
+        settings.endGroup();
+#if defined(Q_OS_UNIX)
+        settings.beginGroup("USED_DIR_FILE");
+        spoolDIR = settings.value("spool_dir").toString();
+        ticket_fname=settings.value("session_ticket").toString();
+        settings.endGroup();
+
+        settings.beginGroup("TEMPLATES");
+        local_t_path=settings.value("local_templates").toString();
+        global_t_path=settings.value("global_templates").toString();
+        ftpTemplatesDir=settings.value("ftp_templates_dir",).toString();
+        settings.endGroup();
+#elif defined(Q_OS_WIN)
+        settings.beginGroup("USED_DIR_FILE");
+        spoolDir= settings.value("spool_dir").toString();
+        settings.endGroup();
+
+        settings.beginGroup("TEMPLATES");
+        local_t_path=settings.value("local_templates").toString();
+        global_t_path=settings.value("global_templates").toString();
+        ftpTemplatesDir=settings.value("ftp_templates_dir").toString();
+        settings.endGroup();
+#endif
+
+    }else{
+        e_msg = QObject::trUtf8("Файл %1 не найден!").arg(ini_path);
+        this->error(e_msg,false);
+    }
+}
+
 //******************************************************************************

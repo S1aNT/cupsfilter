@@ -58,7 +58,7 @@ private:
     bool loadFromFile(QString &file_name);
     void error(QString e_msg,bool admin);
     void printTempl();
-
+    void readGlobal(const QString &app_dir);
     /*
      * Поворачивает страницу на 90 градусов по часовой или против
      */
@@ -107,7 +107,15 @@ private:
     AddTemplate *TProperDlg;
     cmdFrame * CmdButtonBox;
     // Переменные из установок
-    QString local_path; // Путь к локальным шаблонам пользователя
+
+    QString serverHostName;
+    int serverPort;
+    QString spoolDir;
+    QString ticket_fname;
+    QString local_t_path; // Путь к локальным шаблонам пользователя
+    QString global_t_path;
+    QString ftpTemplatesDir;
+
     // Модель данных
     QStandardItemModel *doc_model; // Перейти на модель !!!!!
 };
