@@ -7,7 +7,7 @@ workField::workField(QWidget *parent) :
 {
     ui->setupUi(this);
     //hide_stamp = new QLineEdit(this);
-
+    ui->dateField_dateEd->setDate(QDate::currentDate());
     //hide_stamp->setVisible(false);
     mapper = new QDataWidgetMapper(this);
     mapper->setSubmitPolicy(QDataWidgetMapper::AutoSubmit);
