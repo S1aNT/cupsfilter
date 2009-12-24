@@ -39,7 +39,7 @@ private slots:
     void errorA(QString e_msg); // Ошибка А типа - завершать рабту
     void errorB(QString e_msg); // Ошибка Б типа -  не  завершить работу
     void do_CmdButtonClick(const QString &line);// Нажали командную кнопку
-    void test_slot();
+    void do_angle_direct();
 signals:
     void addBaseElementToPage(int, QStringList & line);
     void addImgElementToPage(int , QString &templ_fn);
@@ -57,9 +57,13 @@ private:
     //Директор по такелажу :) - т.е грузчик !(Грузит шаблон из файла)
     bool loadFromFile(QString &file_name);
     void error(QString e_msg,bool admin);
-     void printTempl();
-    //Inet_plugin *net_plugin;
-    //Igs_plugin *gs_plugin;
+    void printTempl();
+
+    /*
+     * Поворачивает страницу на 90 градусов по часовой или против
+     */
+    void flipPage(bool angle_direct);
+    bool curPageOrient; // текущая ориентация страницы
     Auth_plugin *auth_plugin;
     Itmpl_plugin *tmpl_plugin;
 
@@ -87,6 +91,9 @@ private:
     QAction *quitAct;
     QAction *flipAction;
     QAction *addBaseElem;
+    QAction *portretAct;
+    QAction *landscapeAct;
+
     // Приватные данные
     Templ_info tInfo;
     int currentPage;

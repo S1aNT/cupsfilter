@@ -86,13 +86,7 @@ MainWindow::MainWindow()
 }
 
 
-void MainWindow::test_slot()
-{
-    QMessageBox msgBox;
-    msgBox.setText("The  1111.");
-    msgBox.exec();
 
-}
 
 void MainWindow::loadPlugins()
 {
@@ -187,15 +181,6 @@ void MainWindow::loadPlugins()
                         SLOT(doAddImgElementToPage(int,QString &))
                         );
 
-                /*
-                connect (this,SIGNAL(needUpdatePage(int)),plugin,SLOT(update_scene(int)));
-
-                connect (teditorDlg,
-                         SIGNAL(saveTemplates()),
-                         plugin,
-                         SLOT(doSaveTemplates())
-                         );
-                         */
             }
         }
     }
@@ -250,6 +235,7 @@ void MainWindow::do_needCreateEmptyTemplates(QString &file_name)
 {
     if (tmpl_plugin ){
         tmpl_plugin->setTemplInfo(tInfo);
+
         tmpl_plugin->createEmptyTemplate(file_name);
         this->statusBar()->showMessage(QObject::tr("Шаблон [%1] создан")
                                        .arg(file_name),1000);
@@ -258,6 +244,8 @@ void MainWindow::do_needCreateEmptyTemplates(QString &file_name)
         if (templ_load){
             this->statusBar()->showMessage(QObject::tr("Шаблон [%1] загружен")
                                            .arg(file_name),1000);
+            this->currentTemplates = file_name;
+             showInfoAct->setEnabled(true);
 
         }else{
             this->statusBar()->showMessage(QObject::tr("Ошибка загрузки шаблона [%1]")
@@ -299,18 +287,23 @@ void MainWindow::setPages(QGraphicsScene *first,
     View * vPage  = (View *)tabWidget->widget(0);
     if (vPage){
         vPage->gr_view()->setScene(first);
+        //vPage->gr_view()->fitInView(first->sceneRect());
     }
     vPage  = (View *)tabWidget->widget(1);
     if (vPage){
         vPage->gr_view()->setScene(second);
+        //vPage->gr_view()->fitInView(second->sceneRect());
+
     }
     vPage  = (View *)tabWidget->widget(2);
     if (vPage){
         vPage->gr_view()->setScene(third);
+        //vPage->gr_view()->fitInView(third->sceneRect());
     }
     vPage  = (View *)tabWidget->widget(3);
     if (vPage){
         vPage->gr_view()->setScene(fourth);
+        //vPage->gr_view()->fitInView(fourth->sceneRect());
     }
 
 }
@@ -333,6 +326,8 @@ void MainWindow::loadTemplates()
         this->statusBar()->showMessage(QObject::tr("Шаблон [%1] загружен")
                                        .arg(file_name),1000);
         this->currentTemplates = file_name;
+        showInfoAct->setEnabled(true);
+
     }else{
         this->statusBar()->showMessage(QObject::tr("Ошибка загрузки шаблона [%1]")
                                        .arg(file_name),1000);
@@ -377,6 +372,58 @@ void MainWindow::toggleAntialiasing()
         }
     }
 }
+void MainWindow::do_angle_direct()
+{
+    curPageOrient = tInfo.page_orient();
+    if (QAction *action = qobject_cast<QAction*>(sender())) {
+        QVariant v = action->data();
+        if (v.canConvert<QString>()) {
+            QString who_click = qvariant_cast<QString>(v);
+            if (curPageOrient && who_click =="Land"){
+                flipPage(true);
+            }
+            if (!curPageOrient && who_click =="Port"){
+                flipPage(false);
+            }
+        }
+    }
+}
+
+
+void MainWindow::flipPage(bool angle_direct)
+{
+    QMatrix  mat;
+    qreal angle;
+    if (angle_direct){
+        angle = -90;
+
+    }else{
+        angle = 90;
+    }
+    mat.rotate(angle);
+
+    View * vPage  = (View *)tabWidget->widget(0);
+    if (vPage){
+        vPage->gr_view()->setMatrix(mat,true);
+        vPage->setAngle(angle);
+    }
+    vPage  = (View *)tabWidget->widget(1);
+    if (vPage){
+       vPage->gr_view()->setMatrix(mat,true);
+        vPage->setAngle(angle);
+    }
+    vPage  = (View *)tabWidget->widget(2);
+    if (vPage){
+       vPage->gr_view()->setMatrix(mat,true);
+         vPage->setAngle(angle);
+    }
+    vPage  = (View *)tabWidget->widget(3);
+    if (vPage){
+        vPage->gr_view()->setMatrix(mat,true);
+         vPage->setAngle(angle);
+    }
+}
+
 //******************************************************************************
 //------------------------------- Private function
 void MainWindow::insertDocToModel()
@@ -428,7 +475,7 @@ bool MainWindow::loadFromFile(QString &file_name)
     bool flag = false;
     if (!file_name.isEmpty()){
         if (tmpl_plugin ){
-            tmpl_plugin->setTemplInfo(tInfo);
+            //tmpl_plugin->setTemplInfo(tInfo);
             tmpl_plugin->loadTemplates(file_name);
 
             tInfo = tmpl_plugin->getTemplInfo();
@@ -537,6 +584,28 @@ void MainWindow::createActions()
     aboutQtAct = new QAction(tr("О библиотеке Qt"), this);
     aboutQtAct->setStatusTip(tr("Краткие сведения об используемой библиотеке Qt"));
     connect(aboutQtAct, SIGNAL(triggered()), qApp, SLOT(aboutQt()));
+
+    portretAct = new QAction(QIcon(":/portret.png"),
+                             tr("Книжная ориентация страниц"),this);
+    portretAct->setStatusTip(tr("Выбор книжной ориентации страниц"));
+    portretAct->setData(QString("Port"));
+    connect (
+            portretAct,
+            SIGNAL(triggered()),
+            this, SLOT(do_angle_direct())
+            );
+    landscapeAct = new QAction(QIcon(":/landscape.png"),
+                               tr("Альбомная ориентация страниц"),this);
+    landscapeAct->setStatusTip(tr("Выбор альбомной ориентации страниц"));
+    landscapeAct->setData(QString("Land"));
+    connect (
+            landscapeAct,
+            SIGNAL(triggered()),
+            this, SLOT(do_angle_direct())
+            );
+    QActionGroup * orientGroup = new QActionGroup(this);
+    orientGroup->addAction(portretAct);
+    orientGroup->addAction(landscapeAct);
 }
 
 void MainWindow::createMenus()
@@ -557,7 +626,8 @@ void MainWindow::createMenus()
 
     toolsMenu = menuBar()->addMenu(tr("Утилиты"));
     toolsMenu->addAction(antialiasAct);
-
+    toolsMenu->addAction(portretAct);
+    toolsMenu->addAction(landscapeAct);
 
     menuBar()->addSeparator();
     helpMenu = menuBar()->addMenu(tr("&Справка"));
@@ -575,6 +645,9 @@ void MainWindow::createToolBars()
     toolsToolBar = addToolBar(tr("Утилиты"));
     toolsToolBar->addAction(antialiasAct);
     toolsToolBar->addAction(showInfoAct);
+    toolsToolBar->addAction(portretAct);
+    toolsToolBar->addAction(landscapeAct);
+
 }
 
 void MainWindow::createStatusBar()
@@ -596,9 +669,9 @@ void MainWindow::createDockWindows()
 
 void MainWindow::printTempl()
 {
-  if (tmpl_plugin ){
-       tmpl_plugin->convertTemplatesToPdf(currentTemplates);
-  }
+    if (tmpl_plugin ){
+        tmpl_plugin->convertTemplatesToPdf(currentTemplates);
+    }
 
 }
 //******************************************************************************
