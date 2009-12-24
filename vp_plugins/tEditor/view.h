@@ -14,7 +14,7 @@ class View : public QFrame
     Q_OBJECT
 public:
     View(const QString &name, QWidget *parent = 0);
-
+    inline void setAngle(qreal angle){curAngle = angle;};
     QGraphicsView *gr_view() const;
     QString &getPageName(){return pageName;};
 public slots:
@@ -32,6 +32,8 @@ private:
     QLabel *label;
     QSlider *zoomSlider;
     QString pageName;
+    QMatrix matrix;
+    qreal curAngle;
 };
 
 #endif

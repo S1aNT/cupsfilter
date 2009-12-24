@@ -14,6 +14,7 @@ View::View(const QString &name, QWidget *parent)
     graphicsView->setDragMode(QGraphicsView::RubberBandDrag);
     graphicsView->setOptimizationFlags(QGraphicsView::DontSavePainterState);
     graphicsView->setViewportUpdateMode(QGraphicsView::SmartViewportUpdate);
+    curAngle = 0;
 
     int size = style()->pixelMetric(QStyle::PM_ToolBarIconSize);
     QSize iconSize(size, size);
@@ -55,6 +56,8 @@ View::View(const QString &name, QWidget *parent)
 
     connect(zoomInIcon, SIGNAL(clicked()), this, SLOT(zoomIn()));
     connect(zoomOutIcon, SIGNAL(clicked()), this, SLOT(zoomOut()));
+
+
     setupMatrix();
 }
 
@@ -83,10 +86,13 @@ void View::setupMatrix()
     qreal scale = qPow(qreal(2), (zoomSlider->value() - 250) / qreal(50));
 
     QMatrix matrix;
-    matrix.scale(scale, scale);
 
+    //matrix = graphicsView->matrix();
+    //matrix.scale(1., 1.);
+    matrix.scale(scale, scale);
+    matrix.rotate(curAngle);
     graphicsView->setMatrix(matrix);
-    setResetButtonEnabled();
+
 }
 
 
