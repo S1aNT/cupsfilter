@@ -421,6 +421,8 @@ void Mediator::getMeMandatList(QString &userName)
         QString message =QString("/cmd;:;%1;:;%2;:;%3").arg(sid).arg(GET_MANDAT_LIST_CMD,0,10).arg(userName);
         qDebug() << Q_FUNC_INFO << message;
         net_plugin->sendData(message);
+
+
     }
 }
 
@@ -455,6 +457,9 @@ void  Mediator::parseServerResponse(QString &responce_msg)
             case PRINT_ALLOWED:
                 // Печать разрешена
                 emit print_allowed();
+
+                //QString msg2;
+                //net_plugin->sendData(msg2);
                 break;
             case PRINT_DENIED:
                 msg =QObject::trUtf8("Данному пользователю запрещена печать!");
