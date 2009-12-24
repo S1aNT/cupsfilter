@@ -32,7 +32,6 @@ void  Auth::init ()
     myLib.load();
     //qDebug()<< "Library " << myLib.fileName();
     if (myLib.isLoaded()){
-
         DLLGETCURRENTUSER pluginGetUSER= (DLLGETCURRENTUSER) myLib.resolve("GetCurrentUser");
         DLLGETCURRENTSECLABEL pluginGetCurrentSecLabel=(DLLGETCURRENTSECLABEL) myLib.resolve("GetCurrentSecLabel");
         /*
@@ -47,24 +46,16 @@ void  Auth::init ()
         // Читаем данные через интерфейс к LDAP
         user_name =QString::fromUtf16((ushort*)pluginGetUSER());
         user_mandat =QString::fromUtf16((ushort*)pluginGetCurrentSecLabel());
-        //qDebug() << "Name " << user_name <<" Mandat " << user_mandat;
-        if (!user_name.isEmpty() && !user_mandat.isEmpty()){
-            emit get_User_name_mandat(user_name,user_mandat);
-        }
-    }else{
+    }
+    if (user_name.isEmpty()){
         // Нет у меня другого выхода спросим у системы
         // определим из реестра путь к Logon User Name
-
         QSettings log_settings("HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer",QSettings::NativeFormat);
-        user_name =log_settings.value("Logon User Name").toString(); // returns "Logon User Name"
+        user_name = log_settings.value("Logon User Name").toString(); // returns "Logon User Name"
         qDebug() <<Q_FUNC_INFO <<log_settings.status();
-        //user_name="usr1";
-        //emit needShowAuthWindow(user_name);
-        user_mandat="";
-//        user_name = QString("u707on1");
-        user_name = QString("usr1");
-        emit get_User_name_mandat(user_name,user_mandat);
+        //user_name = QString("usr1");
     }
+    emit get_User_name_mandat(user_name,user_mandat);
 }
 
 Q_EXPORT_PLUGIN2(auth, Auth);
