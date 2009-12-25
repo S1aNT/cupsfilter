@@ -1,5 +1,6 @@
 #include "workfield.h"
 #include "ui_workfield.h"
+#include <QProcess>
 
 workField::workField(QWidget *parent) :
         QDialog(parent),
@@ -259,6 +260,16 @@ void workField::doPrintAllowed()
 //********************************** private slots ******************************************
 void workField::do_addTemplates()
 {
+    // Вызов tEditor
+    QProcess proc;
+    QString  m_Command = tr("%1/tEditor.exe").arg(qApp->applicationDirPath());
+    QStringList m_Args;
+    m_Args.append("new");
+    proc.start( m_Command, m_Args );
+    if (!proc.waitForStarted()) {
+        qDebug()<< QString("Unable to launch application %1").arg(m_Command);
+    }
+    /*
     int ret;
     //addTmplDlg->setUserName(userName);
     addTmplDlg->setPageSize(p_size_mod);
@@ -269,9 +280,10 @@ void workField::do_addTemplates()
         this->showInfoWindow(msg);
     }
 
-    /*
+
     Редактор показываем только когда пользователь выеберет этот шаблон
     для редактирования
+
     */
 }
 
