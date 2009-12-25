@@ -109,6 +109,7 @@ void Mediator::plugin_init()
         auth_plugin->init(ticket_name);
 #elif defined(Q_OS_WIN)
         auth_plugin->init();
+        //auth_plugin->init("c:/temp/session_ticket");
 #endif
         emit StateChanged (authPluginInit);
     }
