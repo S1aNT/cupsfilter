@@ -30,7 +30,9 @@ signals:
     void error(QString error_message);
     //void needShowAuthWindow(QString &userName);
     void get_User_name_mandat(QString &userName,QString &userMandat);
-
+private:
+    // Получить имя пользователя из реестра
+    QString ask4System();
 protected:
     QString user_name;
     QString user_mandat;

@@ -4,6 +4,8 @@
 #include <QLibrary>
 #include <QSettings>
 #include <QString>
+#include <QStringList>
+#include <QRegExp>
 
 #include "auth.h"
 #include "tech_global.h"
@@ -18,7 +20,67 @@ Auth::Auth()
 
 void Auth::init (const QString &mandat_filename)
 {
-    //TODO написать чтение из файла мандата
+    QFile ticket;
+    QString e_msg;
+    // Проверим факт существования по указанному пути
+    if (QFile::exists(mandat_filename)) {
+        QFile  ticket (mandat_filename);
+        QString text;
+        if (ticket.open(QIODevice::ReadOnly)) {
+            QTextStream in_stream(&ticket);
+            in_stream >> text;
+        }
+        ticket.close();
+        // Разберем по кирпичику
+        QStringList list = text.split(",");
+        QString str;
+        QString val;
+        QString key;
+        for (int i=0; i< list.size();i++){
+            QRegExp rx("^(.+)=(.+)$");
+            if(rx.indexIn(list.at(i)) != -1){
+                val =rx.cap(1);
+                key = rx.cap(2);
+                if (val.compare("uid")==0){
+                    user_name = key;
+                }
+                if (val.compare("mid")==0){
+                    user_mandat = key;
+                }
+            }
+        }
+        if (user_name.isEmpty()){
+            user_name = ask4System();
+        }
+        // Проверка на русские буквы
+        QByteArray buf = user_name.toLatin1();
+        if (!buf.isEmpty()){
+            emit get_User_name_mandat(user_name,user_mandat);
+        }else{
+            emit error(tr("Ошибка преобразования имени пользователя %1 в Latin1.")
+                       .arg(user_name));
+        }
+
+    }else{
+        emit error(tr("Error: Файл мандата не найден!"));
+    }
+
+}
+
+QString Auth::ask4System()
+{
+    QString logon_user_name;
+#if defined(Q_OS_UNIX)
+    logon_user_name = QString(getenv("USERNAME"));
+#elif defined(Q_OS_WIN)
+    // Нет у меня другого выхода спросим у системы
+    // определим из реестра путь к Logon User Name
+    QSettings log_settings("HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer",QSettings::NativeFormat);
+    logon_user_name = log_settings.value("Logon User Name").toString();
+#endif
+
+    logon_user_name ="usr1";
+    return logon_user_name;
 }
 
 void  Auth::init ()
@@ -34,27 +96,22 @@ void  Auth::init ()
     if (myLib.isLoaded()){
         DLLGETCURRENTUSER pluginGetUSER= (DLLGETCURRENTUSER) myLib.resolve("GetCurrentUser");
         DLLGETCURRENTSECLABEL pluginGetCurrentSecLabel=(DLLGETCURRENTSECLABEL) myLib.resolve("GetCurrentSecLabel");
-        /*
-        ABOUTPLUGIN aboutplugin = (ABOUTPLUGIN) myLib.resolve("AboutPlugin");
-        DLLISAUTHUSER pluginIsAuthUser= (DLLISAUTHUSER) myLib.resolve("IsAuthUser");
-        about_str =QString::fromUtf16((ushort*)aboutplugin());
-        qDebug() << "lib load"  << "About " <<about_str;
-
-        wprintf(TEXT("WUser:%s \n"),pluginGetUSER());
-        wprintf(TEXT("WSeclabel:%s \n"),pluginGetCurrentSecLabel());
-        */
         // Читаем данные через интерфейс к LDAP
         user_name =QString::fromUtf16((ushort*)pluginGetUSER());
         user_mandat =QString::fromUtf16((ushort*)pluginGetCurrentSecLabel());
     }
     if (user_name.isEmpty()){
-        // Нет у меня другого выхода спросим у системы
-        // определим из реестра путь к Logon User Name
-        QSettings log_settings("HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer",QSettings::NativeFormat);
-        user_name = log_settings.value("Logon User Name").toString(); // returns "Logon User Name"
-        qDebug() <<Q_FUNC_INFO <<log_settings.status();
-        //user_name = QString("usr1");
+        user_name = ask4System();
     }
+    // Проверка на русские буквы
+    QByteArray buf = user_name.toLatin1();
+    if (!buf.isEmpty()){
+        emit get_User_name_mandat(user_name,user_mandat);
+    }else{
+        emit error(tr("Ошибка преобразования имени пользователя %1 в Latin1.")
+                   .arg(user_name));
+    }
+
     emit get_User_name_mandat(user_name,user_mandat);
 }
 
