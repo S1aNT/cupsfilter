@@ -7,6 +7,20 @@ INCLUDEPATH += ../interfaces \
     ../global
 TARGET = tEditor
 LANGUAGE = C++
+DESTDIR = ../safeFatPrinter/
+
+CONFIG(debug, debug|release) {
+    message(Build Debug!)
+    RCC_DIR = ../build/$${TARGET}/debug/rcc
+    MOC_DIR = ../build/$${TARGET}/debug/moc
+    OBJECTS_DIR = ../build/$${TARGET}/debug/obj
+
+} else {
+    message(Build Release!)
+    RCC_DIR = ../build/$${TARGET}/release/rcc
+    MOC_DIR = ../build/$${TARGET}/release/moc
+    OBJECTS_DIR = ../build/$${TARGET}/release/obj
+}
 
 # Use Precompiled headers (PCH)
 PRECOMPILED_HEADER = ../global/pre_header.h
