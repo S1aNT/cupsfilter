@@ -7,7 +7,7 @@ INCLUDEPATH += ../interfaces \
     ../global
 TARGET = tEditor
 LANGUAGE = C++
-DESTDIR = ../safeFatPrinter/
+DESTDIR = ../safeFatPrinter/debug/
 
 CONFIG(debug, debug|release) {
     message(Build Debug!)
