@@ -37,83 +37,42 @@ Tmpl_plugin::Tmpl_plugin(QObject *parent)
 };
 
 
-// сохранение текущей модели в xml файл
-QString Tmpl_plugin::saveModel2Xml()
+// сохранение текущей модели в data файл
+bool Tmpl_plugin::saveModel2Data()
 {
-    QString e_msg;
-    QString out_file;
-    // Формируем имя файла
-    out_file = QObject::trUtf8("%1/%2_model_data.xml").arg(spool_dir, current_sid);
-    // Запись пользовательских данных в xml файл
-    QFile file(out_file);
-    if ( file.open(QIODevice::WriteOnly)){
-        // open an xml stream writer and write simulation data
-        QXmlStreamWriter stream(&file);
-        stream.setAutoFormatting(true);
-        stream.writeStartDocument();
-        stream.writeStartElement("t_date");
-        stream.writeAttribute("version", "0.1" );
-        stream.writeAttribute("user", QString(getenv("USERNAME")) );
-        stream.writeAttribute("when", QDateTime::currentDateTime().toString(Qt::ISODate) );
-        //m_scene->writeStream( &stream );
-        // Запись модели в файл
-        if (doc_model){
-            qDebug() << Q_FUNC_INFO << "rowCount" << doc_model->rowCount();
-            for (int i=0;i<doc_model->columnCount();i++){
-                QStandardItem * header_item = doc_model->horizontalHeaderItem(i);
-                QString header = header_item->data(Qt::EditRole).toString().toUpper();
-                for (int j=0;j<doc_model->rowCount();j++){
-                    QStandardItem * cell_item = doc_model->item(j, i);
-                    QString c_data = cell_item->data(Qt::EditRole).toString();
-                    stream.writeEmptyElement("model_elem");
-                    stream.writeAttribute("header",header);
-                    stream.writeAttribute("c_data",c_data);
-                }
-            }
-        }
-        stream.writeEndDocument();
-        // close the file
-        file.close();
+    if (QFile::exists(model_data_file)){
+        QFile::remove(model_data_file);
+    }
+
+    QFile new_data_file(model_data_file);
+
+    if (new_data_file.open(QIODevice::WriteOnly)){
+        QDataStream out(&new_data_file);
+        out.setVersion(QDataStream::Qt_4_5);
+        out << doc_model;
+        new_data_file.close();
+
     }else{
-        e_msg = tr("Ошибка создания файла %1").arg(out_file);
+        return false;
     }
-    if (!e_msg.isEmpty()) {
-        emit error(e_msg);
-    }
-    return out_file;
+    return true;
 }
-//Загрузка модели из xml файла
-void Tmpl_plugin::loadModel4Xml(const QString &in_file)
+//Загрузка модели из data файла
+bool Tmpl_plugin::loadModel4Data(const QString &in_file)
 {
     QString e_msg;
     QFile file( in_file );
     if ( file.open( QIODevice::ReadOnly ) ){
-        QXmlStreamReader  stream( &file );
+        QDataStream in(&in_file);
+        in.setVersion(QDataStream::Qt_4_5);
         doc_model->clear();
-        while ( !stream.atEnd() ){
-            stream.readNext();
-            if ( stream.isStartElement() ) {
-                if ( stream.name() == "model_elem" ){
-                    // Читаем элемент
-
-
-                }else{
-                    stream.raiseError( QString("Unrecognised element '%1'").arg(stream.name().toString()) );
-                }
-            }
-        }
+        in >> doc_model;
         file.close();
 
-        // check if error occured
-        if ( stream.hasError() ){
-            e_msg = QString("Ошибка загрузки '%1' (%2)").arg(in_file).arg(stream.errorString()) ;
-        }
     }else{
-        e_msg = tr("Ошибка открытия файла с данными %1").arg(in_file);
+        return false;
     }
-    if (!e_msg.isEmpty()) {
-        emit error(e_msg);
-    }
+    return true;
 }
 
 void Tmpl_plugin::init(const QString &spool,const QString &sid)
@@ -150,10 +109,13 @@ void Tmpl_plugin::init(const QString &spool,const QString &sid)
             //page_marker = "templates_page"; // маркер страницы
             // Создаем QMap размеров страниц
             // Заполним описание шаблона версией шаблона
-            //templ_info = new Templ_info();
             templ_info.setT_ver(t_version);
             // Создадим модель данных для шаблона
             createModel();
+            /*
+	     * @brief Сформируем имя файла в которы будем сохранять модель
+             */
+            model_data_file = tr("%1/%2_model.dat").arg(spool,sid);
         }else{
             e_msg = QObject::trUtf8("ERROR: каталог %1 не существует\n").arg(spool);
         }
@@ -282,105 +244,6 @@ void Tmpl_plugin::createEmptyTemplate(const QString & file_name)
 
 }
 
-void Tmpl_plugin::createEmptyTemplate(const QString & file_name,
-                                      const QString & t_author,
-                                      const QString & t_name,
-                                      const QString & t_desc,
-                                      const QString & p_size,
-
-                                      bool  pages_orient,
-                                      const QString & c_date,
-                                      qreal m_top,
-                                      qreal m_bottom,
-                                      qreal m_right,
-                                      qreal m_left)
-{
-    QString e_msg;
-    const QString startnow = QDir::currentPath();
-    // Создаем пустой шаблон документа
-
-    if (QFile::exists(file_name)){
-        QFile::remove(file_name);
-    }
-    QFile new_tmpl_file(file_name);
-    new_tmpl_file.open(QIODevice::WriteOnly);
-    QDataStream out(&new_tmpl_file);
-    out.setVersion(QDataStream::Qt_4_5);
-
-    templates_file_name = file_name;
-    int p_s_id = this->getElemIdByName(p_size);
-
-    // Создаем общую часть шаблона
-    templ_info.setT_ver(t_version);
-
-    templ_info.setT_author(t_author);    // автор шаблона
-    templ_info.setT_name(t_name);      // название шаблона, то что покажем в списке шаблонов
-    templ_info.setT_desc(t_desc);      // описание шаблона, может быть пустым
-    templ_info.setP_size(p_size);      // размер бумаги
-
-    templ_info.setPage_width(this->findPageSize_W(p_s_id));     // ширина листа
-    templ_info.setPage_height(this->findPageSize_H(p_s_id));    // высота листа
-
-    templ_info.setPage_orient(pages_orient);    // ориентация листа
-    templ_info.setDate_time(c_date); // дата и время создания шаблона
-
-    templ_info.setM_left(m_left);      // отступ слева
-    templ_info.setM_right(m_right);     // отступ справа
-    templ_info.setM_top(m_top);       // отступ сверху
-    templ_info.setM_bottom(m_bottom);    // отступ снизу
-
-    templ_info.setFirstPageElemCount(0);  // первая страница шаблона 0 элементов
-    templ_info.setSecondPageElemCount(0); // вторая страница шаблона 0 элементов
-    templ_info.setThirdPageElemCount (0);  // третья страница шаблона 0 элементов
-    templ_info.setFourthPageElemCount (0); // четвертая страница шаблона 0 элементов
-    // Запишем общую часть шаблона
-    out << templ_info;
-    /*
-    // Создаем общую часть шаблона
-    t_info.version = t_version;
-    t_info.t_author = t_author;    // автор шаблона
-    t_info.t_name = t_name;      // название шаблона, то что покажем в списке шаблонов
-    t_info.t_desc = t_desc;      // описание шаблона, может быть пустым
-    t_info.p_size = p_size;      // размер бумаги
-
-    t_info.page_width = this->findPageSize_W(p_s_id);     // ширина листа
-    t_info.page_height = this->findPageSize_H(p_s_id);    // высота листа
-
-    t_info.page_orient = pages_orient;    // ориентация листа
-    t_info.date_time = c_date; // дата и время создания шаблона
-
-    t_info.m_left = m_left;      // отступ слева
-    t_info.m_right = m_right;     // отступ справа
-    t_info.m_top = m_top;       // отступ сверху
-    t_info.m_bottom = m_bottom;    // отступ снизу
-
-    t_info.firstPageElemCount = 0;  // первая страница шаблона 0 элементов
-    t_info.secondPageElemCount = 0; // вторая страница шаблона 0 элементов
-    t_info.thirdPageElemCount = 0;  // третья страница шаблона 0 элементов
-    t_info.fourthPageElemCount = 0; // четвертая страница шаблона 0 элементов
-    // Запишем общую часть шаблона
-    out << t_info;
-*/
-
-
-    // Начнем сохранение страниц
-    out << page_marker;
-    out << templ_info.firstPageElemCount();  // первая страница шаблона 0 элементов
-    out << page_marker;
-    out << templ_info.secondPageElemCount(); // вторая страница шаблона 0 элементов
-    out << page_marker;
-    out << templ_info.thirdPageElemCount();  // третья страница шаблона 0 элементов
-    out << page_marker;
-    out << templ_info.fourthPageElemCount(); // четвертая страница шаблона 0 элементов
-
-    new_tmpl_file.close();
-    emit emptyTemplateCreate(file_name);
-
-    if (!e_msg.isEmpty()) {
-        emit error(e_msg);
-    }
-}
-
 void Tmpl_plugin::doAddImgElementToPage(int page,QString &file_img)
 {
     QString e_msg;
@@ -438,6 +301,7 @@ void Tmpl_plugin::doAddImgElementToPage(int page,QString &file_img)
     }
 
 }
+
 void Tmpl_plugin::doAddBaseElementToPage(int page,QStringList &text_list)
 {
     QString e_msg;
@@ -479,6 +343,7 @@ void Tmpl_plugin::doAddBaseElementToPage(int page,QStringList &text_list)
         scene->update();
     }
 }
+
 void Tmpl_plugin::setTemplates(const QString & templates_in_file)
 {
     QString e_msg;
@@ -1418,6 +1283,9 @@ QDataStream &operator << (QDataStream &out,const QGraphicsScene * scene)
     }
     return out;
 }
+
+
+
 /*
 QDebug       operator << (QDebug &out, const QGraphicsScene * scene)
 {
@@ -1425,6 +1293,21 @@ QDebug       operator << (QDebug &out, const QGraphicsScene * scene)
 }
 QDataStream &operator >> (QDataStream &in, QGraphicsScene *scene)
 {
+    QGraphicsItem *  parent;
+    QString elem_type;
+
+    // Поиск предка
+    parent = this->findPaperElem(scene);
+
+    for (int i=0;i<templ_info.firstPageElemCount();i++){
+        // перебор всех элементов страницы
+        in >> elemType;
+        if (elemType=="tElem"){
+            in >>ps >>fnt >> col >>pList;
+            this->create_SimpleItem(parent,ps,fnt,col,pList);
+        }
+    }
+    return in;
 
 }
 */

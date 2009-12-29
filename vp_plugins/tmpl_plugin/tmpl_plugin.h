@@ -34,9 +34,11 @@ public:
     // Возвращаем указатеь на модель
     QStandardItemModel * getModel(){return doc_model;};
     // сохранение текущей модели в xml файл возвращает имя файла
-    QString saveModel2Xml();
+    bool saveModel2Data();
+
+    QString & getModelDataFile(){return model_data_file;};
     //Загрузка модели из xml файла
-    void loadModel4Xml(const QString &in_file);
+    bool loadModel4Data(const QString &in_file);
 
     // Просто загрузим шаблон и преобразуем его в набор сцен
     // так как модель не передали то и преобразование не производим
@@ -45,19 +47,6 @@ public:
     void loadTemplates(const QString & templates_in_file);
     void saveTemplatesAs(const QString & save_file);
     void createEmptyTemplate(const QString & file_name);
-    void createEmptyTemplate(const QString & file_name,
-                             const QString & t_author,
-                             const QString & t_name,
-                             const QString & t_desc,
-                             const QString & p_size,
-
-                             bool pages_orient,
-                             const QString & c_date,
-                             qreal m_top,
-                             qreal m_bottom,
-                             qreal m_right,
-                             qreal m_left);
-
     void printFormatingPageToFile(int pageNum);
     void convertTemplatesToPdf(const QString & templates_in_file);
     QGraphicsScene *getFirstPage(){return firstPage_scene;};
@@ -159,6 +148,11 @@ private:
     // Список базовых элементов шаблона
     QMap <QString, int> elem_name_map;
     //QMap <QString, int> elemTag;
+    /*
+     * @brief Файл в который будет сохраненно состояние модели
+     * генерируется при страте плагина
+    */
+    QString model_data_file;
 };
 
 #endif
