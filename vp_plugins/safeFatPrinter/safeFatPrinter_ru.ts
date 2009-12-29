@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE TS>
-<TS version="2.0">
+<TS version="2.0" language="ru_RU" sourcelanguage="ru">
 <context>
     <name>AddTemplate</name>
     <message utf8="true">
         <location filename="addtemplate.ui" line="14"/>
         <source>Создание нового пользовательского шаблона</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Создание нового шаблона</translation>
     </message>
     <message utf8="true">
         <location filename="addtemplate.ui" line="26"/>
@@ -17,12 +17,12 @@
     <message utf8="true">
         <location filename="addtemplate.ui" line="61"/>
         <source>Сохранить шаблон как....</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Сохранить</translation>
     </message>
     <message utf8="true">
         <location filename="addtemplate.ui" line="68"/>
         <source>отмена</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Отмена</translation>
     </message>
     <message utf8="true">
         <location filename="addtemplate.ui" line="84"/>
@@ -36,7 +36,7 @@
     </message>
     <message utf8="true">
         <location filename="addtemplate.ui" line="122"/>
-        <source>  Автор:</source>
+        <source>Автор:</source>
         <translation type="unfinished"></translation>
     </message>
     <message utf8="true">
@@ -46,13 +46,13 @@
     </message>
     <message utf8="true">
         <location filename="addtemplate.ui" line="142"/>
-        <source>  Дата создания:  </source>
+        <source>Дата создания:</source>
         <translation type="unfinished"></translation>
     </message>
     <message utf8="true">
         <location filename="addtemplate.ui" line="169"/>
         <source>Ориентация</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Ориентация страницы</translation>
     </message>
     <message>
         <location filename="addtemplate.ui" line="184"/>
@@ -73,7 +73,7 @@
     <message utf8="true">
         <location filename="addtemplate.ui" line="254"/>
         <source>Поля</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Поля отступа</translation>
     </message>
     <message utf8="true">
         <location filename="addtemplate.ui" line="269"/>
@@ -99,7 +99,7 @@
         <location filename="addtemplate.ui" line="331"/>
         <location filename="addtemplate.ui" line="346"/>
         <source>Размер бумаги</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Размер листа</translation>
     </message>
     <message utf8="true">
         <location filename="addtemplate.ui" line="356"/>
@@ -113,7 +113,7 @@
     </message>
     <message>
         <location filename="addtemplate.cpp" line="93"/>
-        <source>Ð¨Ð°Ð±Ð»Ð¾Ð½Ñ (*.tmpl *.TMPL)</source>
+        <source>Шаблоны(*.tmpl *.TMPL)</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -139,26 +139,22 @@
     <name>QObject</name>
     <message>
         <location filename="../global/config.h" line="24"/>
-        <source>Debug: %1
-</source>
+        <source>Debug: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../global/config.h" line="27"/>
-        <source>Warning: %1
-</source>
+        <source>Warning: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../global/config.h" line="30"/>
-        <source>Critical: %1
-</source>
+        <source>Critical: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../global/config.h" line="33"/>
-        <source>Fatal: %1
-</source>
+        <source>Fatal: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message utf8="true">
@@ -168,8 +164,8 @@
     </message>
     <message utf8="true">
         <location filename="main.cpp" line="28"/>
-        <source>Ошибка запуска приложения, не достаточно параметров запуска</source>
-        <translation type="unfinished"></translation>
+        <source>Ошибка запуска приложения, недостаточно параметров запуска</source>
+        <translation type="unfinished">Ошибка программы, недостаточно параметров запуска</translation>
     </message>
     <message utf8="true">
         <location filename="mediator.cpp" line="80"/>
@@ -199,22 +195,22 @@
     <message utf8="true">
         <location filename="mediator.cpp" line="468"/>
         <source>Успешно соединились с сервером безопасности</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Установлена связь с сервером безопасности</translation>
     </message>
     <message utf8="true">
         <location filename="mediator.cpp" line="491"/>
-        <source>Не выбран шаблон или отсутсвует файл шаблона</source>
+        <source>Не выбран шаблон или отсутствует файл шаблона</source>
         <translation type="unfinished"></translation>
     </message>
     <message utf8="true">
         <location filename="mediator.cpp" line="539"/>
         <source>У данного пользователя нет ни одного разрешенного принтера</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">У Вас нет разрешенных принтеров. Обратитесь к администратору безопасности.</translation>
     </message>
     <message utf8="true">
         <location filename="mediator.cpp" line="548"/>
-        <source>У данного пользователя нет ни одного мандата</source>
-        <translation type="unfinished"></translation>
+        <source>У данного пользователя нет ни одного разрешенного мандата</source>
+        <translation type="unfinished">У Вас нет разрешенных мандатов. Обратитесь к администратору безопасности.</translation>
     </message>
     <message utf8="true">
         <location filename="mediator.cpp" line="577"/>
@@ -231,22 +227,22 @@
         <location filename="mediator.cpp" line="595"/>
         <location filename="mediator.cpp" line="619"/>
         <source>Плагин работы с шаблонами не инициализирован или не загружен!</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Плагин работы с шаблонами не загружен или ошибка конфигурации плагина.Обратитесь к администратору системы.</translation>
     </message>
     <message utf8="true">
         <location filename="mediator.cpp" line="436"/>
-        <source>Сервер безопастности перегружен или не доступен!</source>
-        <translation type="unfinished"></translation>
+        <source>Сервер безопасности не доступен!</source>
+        <translation type="unfinished">Сервер безопасности недоступен. Обратитесь к администратору системы.</translation>
     </message>
     <message utf8="true">
         <location filename="mediator.cpp" line="454"/>
         <source>Данному пользователю запрещена печать!</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Попытка несанкционированного доступа к принтеру. Обратитесь к администратору безопасности.</translation>
     </message>
     <message utf8="true">
         <location filename="mediator.cpp" line="458"/>
         <source>Данному пользователю не назначен ни один принтер!</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">У Вас нет разрешенных принтеров. Обратитесь к администратору безопасности.</translation>
     </message>
     <message>
         <location filename="mediator.cpp" line="660"/>
@@ -281,7 +277,7 @@
         <location filename="mediator.cpp" line="831"/>
         <location filename="workfield.cpp" line="138"/>
         <source>Номер копии</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Номер экземпляра</translation>
     </message>
     <message utf8="true">
         <location filename="mediator.cpp" line="832"/>
@@ -384,8 +380,8 @@
     </message>
     <message utf8="true">
         <location filename="selectwindow.cpp" line="18"/>
-        <source>Выбери принтер и режим работы</source>
-        <translation type="unfinished"></translation>
+        <source>Выберите принтер и режим работы</source>
+        <translation type="unfinished">Выбор доступного принтера и режима печати</translation>
     </message>
     <message>
         <location filename="selectwindow.cpp" line="57"/>
@@ -399,7 +395,7 @@
     </message>
     <message utf8="true">
         <location filename="selectwindow.cpp" line="133"/>
-        <source>Для решения этой проблемы обратитесь к администратору безопасности!</source>
+        <source>Для решения этой проблемы обратитесь к администратору системы!</source>
         <translation type="unfinished"></translation>
     </message>
     <message utf8="true">
@@ -430,7 +426,7 @@
     <message utf8="true">
         <location filename="addtemplate.cpp" line="91"/>
         <source>Сохранить шаблон как</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Сохранить</translation>
     </message>
     <message utf8="true">
         <location filename="addtemplate.cpp" line="113"/>
@@ -449,12 +445,12 @@
     </message>
     <message utf8="true">
         <location filename="selectwindow.cpp" line="150"/>
-        <source>Авторизация с консоли</source>
-        <translation type="unfinished"></translation>
+        <source>Ввод параметров авторизация с консоли</source>
+        <translation type="unfinished">Ввод параметров авторизации с консоль</translation>
     </message>
     <message utf8="true">
         <location filename="workfield.cpp" line="227"/>
-        <source>Статус: Сервер безопастности разрешил печать.</source>
+        <source>Статус: Сервер безопасности разрешил печать.</source>
         <translation type="unfinished"></translation>
     </message>
     <message utf8="true">
@@ -474,7 +470,7 @@
     </message>
     <message utf8="true">
         <location filename="workfield.cpp" line="291"/>
-        <source>Выберите ранее сохраненные индивидуальные шаблоны</source>
+        <source>Выберите личные шаблоны</source>
         <translation type="unfinished"></translation>
     </message>
     <message utf8="true">
@@ -505,17 +501,17 @@
     <message utf8="true">
         <location filename="workfield.cpp" line="365"/>
         <source>Шаблон документа должен быть выбран!</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Выберите шаблон документа.</translation>
     </message>
     <message utf8="true">
         <location filename="workfield.cpp" line="369"/>
-        <source>Номер экземпляра не может быть не заполнен!</source>
+        <source>Поле Номер экземпляра не может быть пустым!</source>
         <translation type="unfinished"></translation>
     </message>
     <message utf8="true">
         <location filename="workfield.cpp" line="372"/>
-        <source>Поле МБ должно быть заполнено</source>
-        <translation type="unfinished"></translation>
+        <source>Поле МБ должно не может быть пустым</source>
+        <translation type="unfinished">Поле МБ не может быть пустым.</translation>
     </message>
     <message utf8="true">
         <location filename="workfield.cpp" line="375"/>
@@ -564,7 +560,7 @@
     </message>
     <message utf8="true">
         <location filename="view.cpp" line="53"/>
-        <source>Сглаживание</source>
+        <source>Сглаживание линий</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -577,12 +573,12 @@
     </message>
     <message utf8="true">
         <location filename="selectwindow.ui" line="43"/>
-        <source>  Предварительный учет листов  </source>
+        <source>Предварительный учет листов</source>
         <translation type="unfinished"></translation>
     </message>
     <message utf8="true">
         <location filename="selectwindow.ui" line="63"/>
-        <source>  Печать на учтенных листах  </source>
+        <source>Печать на учтенных листах</source>
         <translation type="unfinished"></translation>
     </message>
     <message utf8="true">
@@ -722,7 +718,7 @@
     </message>
     <message>
         <location filename="workfield.ui" line="281"/>
-        <source>Dddd; </source>
+        <source>Dddd;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -738,7 +734,7 @@
     <message utf8="true">
         <location filename="workfield.ui" line="311"/>
         <source>Редактирование текщего шаблона</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Редактирование текущего шаблона</translation>
     </message>
     <message>
         <location filename="workfield.ui" line="314"/>
@@ -756,7 +752,7 @@
     <message utf8="true">
         <location filename="workfield.ui" line="363"/>
         <source>Выбор общих или индивидуальных шаблонов</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Выбор глобальных или личных шаблонов</translation>
     </message>
     <message utf8="true">
         <location filename="workfield.ui" line="389"/>
