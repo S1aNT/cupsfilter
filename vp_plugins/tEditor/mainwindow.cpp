@@ -16,6 +16,7 @@ MainWindow::MainWindow()
 {
     this->readGlobal(qApp->applicationDirPath());
     // Создаем модель
+    // TODO модель создается в плагине взять на нее указатель !!!
     doc_model     = new QStandardItemModel(this);
 
     templ_load = false;
@@ -244,22 +245,10 @@ void MainWindow::do_needCreateEmptyTemplates(QString &file_name)
                                        .arg(file_name),1000);
         // Теперь загрузим этот же шаблон
         templ_load = loadFromFile(file_name);
-        if (templ_load){
-            this->statusBar()->showMessage(QObject::tr("Шаблон [%1] загружен")
-                                           .arg(file_name),1000);
-            this->currentTemplates = file_name;
-             showInfoAct->setEnabled(true);
-
-        }else{
-            this->statusBar()->showMessage(QObject::tr("Ошибка загрузки шаблона [%1]")
-                                           .arg(file_name),1000);
-
-        }
-
     }
 }
 
-void MainWindow::do_createEmptyTemplate()
+void MainWindow::createNewTemplate()
 {
     // Покажем дилоговое окошко с вводом параметров шаблона
     if (tmpl_plugin ){
@@ -326,18 +315,8 @@ void MainWindow::loadTemplates()
                                                     );
 
     templ_load = loadFromFile(file_name);
-    if (templ_load){
-        this->statusBar()->showMessage(QObject::tr("Шаблон [%1] загружен")
-                                       .arg(file_name),1000);
-        this->currentTemplates = file_name;
-        showInfoAct->setEnabled(true);
-
-    }else{
-        this->statusBar()->showMessage(QObject::tr("Ошибка загрузки шаблона [%1]")
-                                       .arg(file_name),1000);
-
-    }
 }
+
 void MainWindow::saveTemplatesAs()
 {
     QString title_str;
@@ -476,19 +455,39 @@ void MainWindow::insertDocToModel(QString &item)
 }
 
 
-bool MainWindow::loadFromFile(QString &file_name)
+bool MainWindow::loadFromFile(const QString &file_name)
 {
-    bool flag = false;
-    if (!file_name.isEmpty()){
-        if (tmpl_plugin ){
-            //tmpl_plugin->setTemplInfo(tInfo);
+    if (!file_name.isEmpty() && tmpl_plugin){
             tmpl_plugin->loadTemplates(file_name);
-
             tInfo = tmpl_plugin->getTemplInfo();
-            flag = true;
-        }
-    }
-    return flag;
+            this->statusBar()->showMessage(tr("Шаблон [%1] загружен"));
+            this->currentTemplates = file_name;
+            showInfoAct->setEnabled(true);
+            return true;
+    }else{
+      this->statusBar()->showMessage(tr("Ошибка загрузки шаблона [%1]")
+                                            .arg(file_name),1000);
+      return false;
+     }
+}
+
+bool MainWindow::loadFromFileWithDat(const QString &file_name,const QString &file_name_dat)
+{
+    if (!file_name.isEmpty() &&
+        !file_name_dat.isEmpty() &&
+         tmpl_plugin){
+
+            tmpl_plugin->loadTemplatesWithDat(file_name,file_name_dat);
+            tInfo = tmpl_plugin->getTemplInfo();
+            this->statusBar()->showMessage(tr("Шаблон [%1] загружен"));
+            this->currentTemplates = file_name;
+            showInfoAct->setEnabled(true);
+            return true;
+    }else{
+      this->statusBar()->showMessage(tr("Ошибка загрузки шаблона [%1]")
+                                            .arg(file_name),1000);
+      return false;
+     }
 }
 
 void MainWindow::error(QString e_msg,bool admin)
@@ -552,7 +551,7 @@ void MainWindow::createActions()
     connect (newAct,
              SIGNAL(triggered()),
              this,
-             SLOT(do_createEmptyTemplate())
+             SLOT(createNewTemplate())
              );
 
     loadAct = new QAction(QIcon(":/t_open.png"),
@@ -720,8 +719,8 @@ void MainWindow::readGlobal(const QString &app_dir)
 #endif
 
     }else{
-        e_msg = QObject::trUtf8("Файл %1 не найден!").arg(ini_path);
-        this->error(e_msg,false);
+        e_msg = QObject::trUtf8("Файл с настройками программы %1 не найден!").arg(ini_path);
+        errorA(e_msg);
     }
 }
 

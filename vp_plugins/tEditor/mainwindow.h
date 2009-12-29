@@ -24,18 +24,25 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 public:
     MainWindow();
+    //Директор по такелажу :) - т.е грузчик !(Грузит шаблон из файла)
+    bool loadFromFile(const QString &file_name);
+    bool loadFromFileWithDat(const QString &file_name,const QString &file_name_dat);
+public slots:
+    void createNewTemplate();
+
 private slots:
     void showTemplatesInfo();
     void pageSelect(int page);
     void toggleAntialiasing();
     void loadTemplates();
     void saveTemplatesAs();
-    void do_createEmptyTemplate();
+    
+    void do_needCreateEmptyTemplates(QString &file_name);
+
     void saveUserName(QString & u_name);
     void setPages(QGraphicsScene *first, QGraphicsScene *second,
                   QGraphicsScene *third, QGraphicsScene *fourth);
 
-    void do_needCreateEmptyTemplates(QString &file_name);
     void errorA(QString e_msg); // Ошибка А типа - завершать рабту
     void errorB(QString e_msg); // Ошибка Б типа -  не  завершить работу
     void do_CmdButtonClick(const QString &line);// Нажали командную кнопку
@@ -54,8 +61,6 @@ private:
     void insertDocToModel();
     void insertDocToModel(QString &item);
 
-    //Директор по такелажу :) - т.е грузчик !(Грузит шаблон из файла)
-    bool loadFromFile(QString &file_name);
     void error(QString e_msg,bool admin);
     void printTempl();
     void readGlobal(const QString &app_dir);
