@@ -83,18 +83,7 @@ public slots:
     // авторизация текущего пользователя на предварительно выбранный принтер
     void do_needAuthUserToPrinter();
     void checkMBInBase(QString &mb_value, QString &copyNum_value,int w_mode);
-    // Требование к плагину создать пустой шаблон
-    void do_needCreateEmptyTemplates(const QString & file_name,
-                                  const QString & t_name,
-                                  const QString & t_author,
-                                  const QString & t_desc,
-                                  const QString & p_size,
-                                  bool p_orient,
-                                  const QString & c_date,
-                                  qreal m_top,
-                                  qreal m_bottom,
-                                  qreal m_right,
-                                  qreal m_left);
+
 private slots:
     void do_User_name_mandat(QString &userName,QString &userMandat);
     void parseServerResponse(QString &responce_msg);

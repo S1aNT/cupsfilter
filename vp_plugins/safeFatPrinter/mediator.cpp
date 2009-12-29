@@ -12,8 +12,6 @@
 #include <QMapIterator>
 #include <QSettings>
 #include <QDate>
-#include <QXmlStreamWriter>
-#include <QXmlStreamReader>
 #include <QFileInfo>
 
 #include "mediator.h"
@@ -559,43 +557,27 @@ void Mediator::setMode (int mode)
 
 void Mediator::do_convertTemplatesToScenes(const QString & templ_filename)
 {
+    QString e_msg;
     if (tmpl_plugin){
         /*
-         * Запрос у плагина файла в который сохранили модель
+         * @brief Запрос у плагина файла в который сохранили модель
          * преобразование имени шаблона в полный путь
          */
-        QString xml = tmpl_plugin->saveModel2Xml();
-        QString f_name;
-        tmpl_plugin->setTemplates(fileNameToFullPath(templ_filename));
+        QString data_file = tmpl_plugin->getModelDataFile();
+        if (tmpl_plugin->saveModel2Data()){
+            tmpl_plugin->setTemplates(fileNameToFullPath(templ_filename));
+        }else{
+          e_msg  = QObject::trUtf8("Ошибка при сохранении модели в файл %1!")
+                   .arg( data_file);
+          emit error(e_msg);
+        }
     }else{
-        QString e_msg  = QObject::trUtf8("Плагин работы с шаблонами не инициализирован или не загружен!");
+        e_msg  = QObject::trUtf8("Плагин работы с шаблонами не инициализирован или не загружен!");
         emit error(e_msg);
     }
 }
 
-void Mediator::do_needCreateEmptyTemplates(const QString & file_name,
-                                           const QString & t_name,const QString & t_author,
-                                           const QString & t_desc,
-                                           const QString & p_size,
 
-                                           bool p_orient,
-                                           const QString & c_date,
-                                           qreal m_top,
-                                           qreal m_bottom,
-                                           qreal m_right,
-                                           qreal m_left)
-{
-    if (tmpl_plugin){
-        tmpl_plugin->createEmptyTemplate(file_name,t_author,t_name,t_desc,
-                                         p_size,
-                                         p_orient,c_date,
-                                         m_top,m_bottom,
-                                         m_right,m_left);
-    }else{
-        QString e_msg  = QObject::trUtf8("Плагин работы с шаблонами не инициализирован или не загружен!");
-        emit error(e_msg);
-    }
-}
 
 void Mediator::setCurrentPrinter(const QString & printer)
 {
@@ -720,14 +702,7 @@ void Mediator::connector()
              this,
              SLOT(do_needAuthUserToPrinter())
              );
-    connect (WorkDlg,
-             SIGNAL(needCreateEmptyTemplates(QString,QString,QString,QString,
-                                             QString,bool,QString,qreal,qreal,
-                                             qreal,qreal)),
-             this,
-             SLOT(do_needCreateEmptyTemplates(QString,QString,QString,QString,
-                                              QString,bool,QString,qreal,qreal,
-                                              qreal,qreal)));
+
     connect (WorkDlg,
              SIGNAL(needPrintPage(QString)),
              this,
@@ -740,15 +715,7 @@ void Mediator::connector()
              this,
              SLOT(do_convertTemplatesToScenes(QString))
              );
-    // Заоодно сохраним в редакторе полный путь к редактируеммому шаблону
-    /*
-    connect (WorkDlg,
-             SIGNAL(convertTemplatesToScenes(QString)),
-             teditorDlg,
-             SLOT(setCurTemplFileName(QString))
-             );
-    */
-    connect (this,
+      connect (this,
              SIGNAL(print_allowed()),
              WorkDlg,
              SLOT(doPrintAllowed()) // TODO это просто информационное сообщение !!!!
