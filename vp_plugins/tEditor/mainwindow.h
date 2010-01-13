@@ -36,7 +36,7 @@ private slots:
     void toggleAntialiasing();
     void loadTemplates();
     void saveTemplatesAs();
-    
+
     void do_needCreateEmptyTemplates(QString &file_name);
 
     void saveUserName(QString & u_name);
@@ -47,6 +47,7 @@ private slots:
     void errorB(QString e_msg); // Ошибка Б типа -  не  завершить работу
     void do_CmdButtonClick(const QString &line);// Нажали командную кнопку
     void do_angle_direct();
+    void do_viewCode();
 signals:
     void addBaseElementToPage(int, QStringList & line);
     void addImgElementToPage(int , QString &templ_fn);
@@ -57,9 +58,6 @@ private:
     void createStatusBar();
     void createDockWindows();
     void loadPlugins();
-    // Рабта с моделью
-    void insertDocToModel();
-    void insertDocToModel(QString &item);
 
     void error(QString e_msg,bool admin);
     void printTempl();
@@ -98,6 +96,7 @@ private:
     QAction *addBaseElem;
     QAction *portretAct;
     QAction *landscapeAct;
+    QAction *viewCodeAct;
 
     // Приватные данные
     Templ_info tInfo;
