@@ -13,10 +13,11 @@
 #include <QSettings>
 #include <QDate>
 #include <QFileInfo>
+#include <QProcess>
 
 #include "mediator.h"
 #include "workfield.h"
-#include "teditor.h"
+
 
 
 Mediator::Mediator(QObject *parent) :
@@ -28,19 +29,13 @@ Mediator::Mediator(QObject *parent) :
 
     // создаем все нужные диалогвые окна
     WorkDlg = new workField();
+    WorkDlg->setAttribute(Qt::WA_DeleteOnClose);
     WorkDlg->setWindowFlags(Qt::Dialog |
                             Qt::CustomizeWindowHint |
                             Qt::WindowTitleHint |
                             Qt::WindowCloseButtonHint |
                             Qt::WindowSystemMenuHint);
     WorkDlg->setStampModel(this->getStampModel());
-
-    teditorDlg = new tEditor(WorkDlg);
-    teditorDlg->setWindowFlags(Qt::Dialog |
-                               Qt::CustomizeWindowHint |
-                               Qt::WindowTitleHint |
-                               Qt::WindowCloseButtonHint |
-                               Qt::WindowSystemMenuHint);
 
     this->connector();
     /*
@@ -54,7 +49,6 @@ Mediator::Mediator(QObject *parent) :
 void Mediator::convert2pdf(QString &in_file)
 {
     gs_plugin->convertPs2Pdf(in_file);
-
 }
 
 
@@ -183,19 +177,8 @@ void Mediator::loadPlugin(const QString &app_dir)
                          SIGNAL(allTemplatesPagesParsed(QGraphicsScene *,QGraphicsScene *,
                                                         QGraphicsScene *,QGraphicsScene *))
                          );
-                connect (this,SIGNAL(needUpdatePage(int)),plugin,SLOT(update_scene(int)));
-                /*
-                connect(teditorDlg,
-                        SIGNAL(addBaseElementToPage(int)),
-                        plugin,
-                        SLOT(doAddBaseElementToPage(int))
-                        );
-*/
-                connect (teditorDlg,
-                         SIGNAL(saveTemplates()),
-                         plugin,
-                         SLOT(doSaveTemplates())
-                         );
+                //connect (this,SIGNAL(needUpdatePage(int)),plugin,SLOT(update_scene(int)));
+
             }
             gs_plugin_Interface = qobject_cast<Igs_plugin *> (plugin);
             if (gs_plugin_Interface) {
@@ -252,6 +235,7 @@ void Mediator::readGlobal(const QString &app_dir)
         spoolDIR = settings.value("spool_dir").toString();
         rcp_file = settings.value("rcp_file").toString();
         ticket_fname=settings.value("session_ticket").toString();
+        tEditor_bin =settings.value("tEditor_bin").toString();
         settings.endGroup();
 
         settings.beginGroup("TEMPLATES");
@@ -269,6 +253,7 @@ void Mediator::readGlobal(const QString &app_dir)
         settings.beginGroup("USED_DIR_FILE");
         spoolDIR = settings.value("spool_dir").toString();
         rcp_file = settings.value("rcp_file").toString();
+        tEditor_bin =settings.value("tEditor_bin").toString();
         settings.endGroup();
 
         settings.beginGroup("TEMPLATES");
@@ -305,6 +290,40 @@ void Mediator::getEnablePrinter()
 }
 
 //*************************************** private slots *****************************************
+
+void Mediator::do_showEditorWithData()
+{
+    QStringList args;
+
+    if (!currentTemplates_fname.isEmpty()){
+        args.append(currentTemplates_fname);
+        if (!model_data_file.isEmpty()){
+            args.append(model_data_file);
+        }
+        // стартуем редактор
+        QProcess proc;
+        proc.execute(tEditor_bin, args);
+    }
+}
+
+void Mediator::do_userSelectTemplates(const QString &templ)
+{
+    currentTemplates_fname = fileNameToFullPath(templ);
+}
+
+void Mediator::do_saveModelInFile()
+{
+    if (tmpl_plugin){
+        if (tmpl_plugin->saveModel2Data()){
+            // Получим имя файла в который сохранили модель
+            model_data_file = tmpl_plugin->getModelDataFile();
+        }
+    }else{
+        QString e_msg  = QObject::trUtf8("Плагин работы с шаблонами не инициализирован или не загружен!");
+        emit error(e_msg);
+    }
+}
+
 // Печать текущего документа использую шаблон
 void Mediator::do_needPrintPage(const QString & t_file_name)
 {
@@ -359,7 +378,7 @@ void Mediator::mergeDocWithTemplate(QString &first,QString &second,
             gs_plugin->merge2Pdf(out_put_first,out_put_other,out_put_all_doc);
 
             // Печатаем документ
-             gs_plugin->printPdf(out_put_all_doc,this->currentPrinter);
+            gs_plugin->printPdf(out_put_all_doc,this->currentPrinter);
 
             // Печатаем последюю страницу
 
@@ -420,8 +439,6 @@ void Mediator::getMeMandatList(QString &userName)
         QString message =QString("/cmd;:;%1;:;%2;:;%3").arg(sid).arg(GET_MANDAT_LIST_CMD,0,10).arg(userName);
         qDebug() << Q_FUNC_INFO << message;
         net_plugin->sendData(message);
-
-
     }
 }
 
@@ -446,8 +463,7 @@ void  Mediator::parseServerResponse(QString &responce_msg)
         QRegExp rx("^/(\\d+);:;(.*)$");
 
 
-        if(rx.indexIn(responce_msg) != -1)
-        {
+        if(rx.indexIn(responce_msg) != -1){
             qApp->processEvents();
             cmd =rx.cap(1);
             body = rx.cap(2);
@@ -557,24 +573,24 @@ void Mediator::setMode (int mode)
 
 void Mediator::do_convertTemplatesToScenes(const QString & templ_filename)
 {
+    /*
+
     QString e_msg;
     if (tmpl_plugin){
-        /*
-         * @brief Запрос у плагина файла в который сохранили модель
-         * преобразование имени шаблона в полный путь
-         */
         QString data_file = tmpl_plugin->getModelDataFile();
-        if (tmpl_plugin->saveModel2Data()){
+
+    if (tmpl_plugin->saveModel2Data()){
             tmpl_plugin->setTemplates(fileNameToFullPath(templ_filename));
         }else{
-          e_msg  = QObject::trUtf8("Ошибка при сохранении модели в файл %1!")
-                   .arg( data_file);
-          emit error(e_msg);
+            e_msg  = QObject::trUtf8("Ошибка при сохранении модели в файл %1!")
+                     .arg( data_file);
+            emit error(e_msg);
         }
     }else{
         e_msg  = QObject::trUtf8("Плагин работы с шаблонами не инициализирован или не загружен!");
         emit error(e_msg);
     }
+    */
 }
 
 
@@ -648,6 +664,7 @@ QString Mediator::fileNameToFullPath(const QString &in_name)
     }
     return f_name;
 }
+
 QStringListModel *Mediator::getFolderModel(bool mode)
 {
     QStringList  fileList;
@@ -709,32 +726,28 @@ void Mediator::connector()
              SLOT(do_needPrintPage(QString))
              );
 
-    // Отправим запрос на конвертацию шаблона в набор сцен
     connect (WorkDlg,
-             SIGNAL(convertTemplatesToScenes(QString)),
+             SIGNAL(saveModelInFile()),
              this,
-             SLOT(do_convertTemplatesToScenes(QString))
+             SLOT(do_saveModelInFile())
              );
-      connect (this,
+
+    connect (WorkDlg,
+             SIGNAL(showEditorWithData()),
+             this,
+             SLOT(do_showEditorWithData())
+             );
+    connect (WorkDlg,
+             SIGNAL(userSelectTemplates(QString )),
+             this,
+             SLOT(do_userSelectTemplates(QString ))
+             );
+    connect (this,
              SIGNAL(print_allowed()),
              WorkDlg,
              SLOT(doPrintAllowed()) // TODO это просто информационное сообщение !!!!
              );
-    connect (this,
-             SIGNAL(allTemplatesPagesParsed(QGraphicsScene*,QGraphicsScene*,
-                                            QGraphicsScene*,QGraphicsScene*)),
-             teditorDlg,
-             SLOT(setPages(QGraphicsScene*,QGraphicsScene*,
-                           QGraphicsScene*,QGraphicsScene*))
-             );
-    /*
-    connect (this,
-             SIGNAL(allTemplatesPagesParsed(QGraphicsScene*,QGraphicsScene*,
-                                            QGraphicsScene*,QGraphicsScene*)),
-             teditorDlg,
-             SLOT(exec())
-             );
-*/
+
 }
 
 QPixmap Mediator::formatPage(const QString &in_file,int pageNum)
@@ -754,109 +767,3 @@ void Mediator::createModels()
     //fillMap();
 
 }
-//                                Геттеры
-/*
-QString Mediator::getElemTagById(int elem_id)
-{
-    QString result;
-    if (elem_id <= elemTag.size() && elem_id >0){
-        QMapIterator<QString, int> i (elemTag);
-        while (i.hasNext()) {
-            i.next();
-            if (i.value() == elem_id){
-                result = i.key();
-            }
-        }
-    }
-    return result;
-}
-
-
-int Mediator::getElemIdByName(const QString elem_name)
-{
-    int result=0; // Если в списке запрошенного элемента нет то возвращаем 0
-    if (!elem_name.isEmpty() && elemTag.contains(elem_name)){
-        result= elemTag.value(elem_name);
-    }
-    return result;
-}
-
-QStringList Mediator::getAllElem()
-{
-    QStringList result;
-
-    QMapIterator<QString, int> i (elemTag);
-    while (i.hasNext()) {
-        i.next();
-        result.append(i.key());
-    }
-
-    return result;
-}
-
-
-void Mediator::insertDocToModel()
-{
-    // add empty row to model
-    doc_model->insertRow(doc_model->rowCount());
-}
-
-void Mediator::insertDocToModel(QString &item)
-{
-    if (!item.isEmpty() && item.contains(";:;", Qt::CaseInsensitive)){
-        QStringList itemList= item.split(";:;");
-        if (itemList.size()>0){
-            QList<QStandardItem *> cells;
-
-
-            for (int i = 0; i <itemList.size() ; ++i) {
-                QStandardItem * cell_item= new QStandardItem();
-                cells.append(cell_item);
-            }
-            QStringList list_2;
-            for (int i = 0; i <itemList.size() ; ++i) {
-                QString tmp_str=itemList.at(i);
-                qDebug() << tmp_str;
-                if (!tmp_str.isEmpty() && tmp_str.contains("=")){
-                    list_2.clear();
-                    list_2 = tmp_str.split("=");
-                    if (list_2.size() == 1){
-                        QStandardItem *cell_item =cells.at(this->getElemIdByName(list_2.at(0)));
-                        cell_item->setData(QVariant(list_2.at(1)),Qt::EditRole);
-                        qDebug() << "Key" << list_2.at(0) << " Value " << list_2.at(1);
-                    }
-                }
-            }
-            doc_model->appendRow (cells);
-        }
-
-    }
-
-}
-
-void Mediator::fillMap()
-{
-    elemTag.insert(QObject::trUtf8("МБ"),1 );
-    elemTag.insert(QObject::trUtf8("Название док-та"),2 );
-    elemTag.insert(QObject::trUtf8("Гриф"), 3);
-    elemTag.insert(QObject::trUtf8("Пункт перечня"),4 );
-    elemTag.insert(QObject::trUtf8("Номер копии"), 5);
-    elemTag.insert(QObject::trUtf8("Кол-во листов"),6 );
-    elemTag.insert(QObject::trUtf8("Исполнитель"), 7);
-    elemTag.insert(QObject::trUtf8("Отпечатал"), 8);
-    elemTag.insert(QObject::trUtf8("Телефон"), 9);
-    elemTag.insert(QObject::trUtf8("Инв. N"), 10);
-    elemTag.insert(QObject::trUtf8("Дата распечатки"), 11);
-    elemTag.insert(QObject::trUtf8("Получатель N1"), 12);
-    elemTag.insert(QObject::trUtf8("Получатель N2"), 13);
-    elemTag.insert(QObject::trUtf8("Получатель N3"), 14);
-    elemTag.insert(QObject::trUtf8("Получатель N4"), 15);
-    elemTag.insert(QObject::trUtf8("Получатель N5"), 16);
-    elemTag.insert(QObject::trUtf8("last_page_stamp"), 17);
-    elemTag.insert(QObject::trUtf8("recivers_list"), 18);
-    elemTag.insert(QObject::trUtf8("doc_status"), 19);
-    elemTag.insert(QObject::trUtf8("brak_pages"), 20);
-    elemTag.insert(QObject::trUtf8("brak_doc"), 21);
-    elemTag.insert(QObject::trUtf8("stamp_index"), 22);
-}
-*/

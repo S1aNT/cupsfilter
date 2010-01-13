@@ -90,32 +90,45 @@ private slots:
     void getMeMandatList(QString &userName);
     void parserGSMessage(TaskState state);
     void setPageCountInDoc(int p_count);
-    // Печать текущего документа использую шаблон
+
+    void do_showEditorWithData();
+    void do_userSelectTemplates(const QString &templ);
+    /**
+     * @brief Печать текущего документа используя шаблон
+     */
     void do_needPrintPage(const QString & t_file_name);
 
     // Шаблон преобразован в pdf получим имена страниц
     void mergeDocWithTemplate(QString &first,QString &second,
                               QString &third,QString &fourth);
 
-     // Обработка ошибок (запись в лог перед передачей дальше)
+    // Обработка ошибок (запись в лог перед передачей дальше)
     void doError(QString msg);
+
+    // Запись текуще модели в файл
+    void do_saveModelInFile();
 private:
     QStringList log_console;
+
+    /**
+     * @brief различные файлы
+     */
+    QString model_data_file;
     QString log_file;
 
-    /*
-       Указатели на плагины
-    */
+    /**
+     *  @brief Указатели на плагины
+     */
     Inet_plugin *net_plugin;
     Igs_plugin *gs_plugin;
     Auth_plugin *auth_plugin;
     Itmpl_plugin *tmpl_plugin;
     //-------------------------------------------------------------------------
-    /*
-       Указатели на диалоговые окна
-    */
+    /**
+     * @brief Указатели на диалоговые окна
+     */
     workField *WorkDlg;
-    tEditor * teditorDlg;
+
     //-------------------------------------------------------------------------
 
     bool connect_state;
@@ -151,6 +164,7 @@ private:
     QString gsBin;
     QString pdftkBin;
     QString spoolDIR;
+    QString tEditor_bin;
     QString ticket_fname;
     QString rcp_file;
 
@@ -173,18 +187,18 @@ protected:
     //int getElemIdByName(const QString elem_name);
 
     /**
-     * Read global settings from Application Dir
+     * @brief Read global settings from Application Dir
      */
     void readGlobal(const QString &app_dir);
 
     void createModels();
     /**
-     * Заполним список содержимого локальных и глобальных каталогов
+     * @brief Заполним список содержимого локальных и глобальных каталогов
      */
     QStringListModel *getFolderModel(bool mode);
 
     /**
-     * Преобразует имя шаблона в полный путь к файлу
+     * @brief Преобразует имя шаблона в полный путь к файлу
      */
     QString fileNameToFullPath(const QString &in_name);
     //void insertDocToModel();
