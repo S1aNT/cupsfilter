@@ -32,9 +32,14 @@ public:
     Tmpl_plugin(QObject *parent=0);
     void init(const QString & spool,const QString & sid);
     // Возвращаем указатеь на модель
-    QStandardItemModel * getModel(){return doc_model;};
+    QStandardItemModel * getModel() const {return doc_model;};
     // сохранение текущей модели в xml файл возвращает имя файла
     bool saveModel2Data();
+    /**
+     * @brief Триггер переключающий по кругу  режим отображения элементов 
+     *	      шаблона код / значения поля и обновляющий сцены
+     */
+    void viewCode();
 
     QString & getModelDataFile(){return model_data_file;};
     //Загрузка модели из xml файла
@@ -45,6 +50,9 @@ public:
     // нужна отдельная функция при установке модели произвести обновление
     // каждой сцены в соответствии с моделью
     void loadTemplates(const QString & templates_in_file);
+    void loadTemplatesWithDat(const QString & templates_in_file,
+                              const QString & in_file_dat);
+
     void saveTemplatesAs(const QString & save_file);
     void createEmptyTemplate(const QString & file_name);
     void printFormatingPageToFile(int pageNum);
@@ -73,21 +81,18 @@ signals:
     void allPagesConverted(QString &first,QString &second,
                           QString &third,QString &fourth);
 public slots:
-
-
-
     void update_scene(QGraphicsScene *scene);
     void setTemplates(const QString & templates_in_file);
 
     // Добавим базовый элемент на страницу page
-    void doAddBaseElementToPage(int page,QStringList &text_list);
+    void doAddBaseElementToPage(int page,QString &text);
     // Добавим img элемент на страницу page
     void doAddImgElementToPage(int page,QString &file_img);
 
     // сохраним текущий набор сцен в файл шаблона
     void doSaveTemplates();
 protected:
-    void createModel();
+    void model_init();
     qreal findPageSize_H(int page_size_id);// Высота
     qreal findPageSize_W(int page_size_id);// Ширина
     int getElemIdByName(const QString &elem_name);
@@ -124,7 +129,7 @@ private:
     // Создает новый базовый элемент
     void create_SimpleItem(QGraphicsItem *parent,
                            QPointF &ps, QFont &fnt,
-                           QColor &col,QStringList &pList);
+                           QColor &col,QString &text);
 
     QString spool_dir;
     QString current_sid;
@@ -153,6 +158,7 @@ private:
      * генерируется при страте плагина
     */
     QString model_data_file;
+    bool view_code_state;
 };
 
 #endif

@@ -48,8 +48,21 @@ bool Tmpl_plugin::saveModel2Data()
 
     if (new_data_file.open(QIODevice::WriteOnly)){
         QDataStream out(&new_data_file);
+        /*
         out.setVersion(QDataStream::Qt_4_5);
-        out << doc_model;
+        for (int col = 0; col < doc_model->columnCount(); ++col) {
+            out << doc_model->headerData(col,Qt::Horizontal);
+        }
+        */
+        out << doc_model->rowCount();
+        out << doc_model->columnCount();
+        for (int row = 0; row < doc_model->rowCount(); ++row) {
+            for (int col = 0; col < doc_model->columnCount(); ++col) {
+                QModelIndex index = doc_model->index(row, col);
+                out << doc_model->data(index, Qt::DisplayRole);
+            }
+        }
+
         new_data_file.close();
 
     }else{
@@ -62,18 +75,55 @@ bool Tmpl_plugin::loadModel4Data(const QString &in_file)
 {
     QString e_msg;
     QFile file( in_file );
-    if ( file.open( QIODevice::ReadOnly ) ){
-        QDataStream in(&in_file);
-        in.setVersion(QDataStream::Qt_4_5);
-        doc_model->clear();
-        in >> doc_model;
-        file.close();
+    QVariant item;
+    int rowCount;
+    int colCount;
+    //model_init();
 
+    if ( file.open( QIODevice::ReadOnly ) ){
+        QDataStream in(&file);
+        in.setVersion(QDataStream::Qt_4_5);
+        /*
+        doc_model->clear();
+        for (int col = 0; col < doc_model->columnCount(); ++col) {
+            in >> item;
+            doc_model->setHeaderData(col,Qt::Horizontal,item,Qt::EditRole);
+        }
+        */
+        in >> rowCount;
+        in >> colCount;
+
+        for (int row = 0; row < rowCount; ++row) {
+            for (int col = 0; col < colCount; ++col) {
+                QModelIndex index = doc_model->index(row, col);
+                in >> item;
+                doc_model->setData(index,item,Qt::EditRole);
+            }
+        }
+        file.close();
     }else{
         return false;
     }
     return true;
 }
+
+
+/*
+     * @brief Инициализация модели данных
+     * если уже существует то очистка модели
+*/
+void Tmpl_plugin::model_init()
+{
+    doc_model->clear();
+    doc_model->setHorizontalHeaderLabels(elem_name_QSL);
+    doc_model->insertRow(doc_model->rowCount());
+
+    qDebug() << Q_FUNC_INFO
+            << "doc_model->rowCount" << doc_model->rowCount()
+            << "doc_model->colCount" << doc_model->columnCount();
+}
+
+
 
 void Tmpl_plugin::init(const QString &spool,const QString &sid)
 {
@@ -111,11 +161,14 @@ void Tmpl_plugin::init(const QString &spool,const QString &sid)
             // Заполним описание шаблона версией шаблона
             templ_info.setT_ver(t_version);
             // Создадим модель данных для шаблона
-            createModel();
+            doc_model     = new QStandardItemModel(this);
+            model_init();
             /*
-	     * @brief Сформируем имя файла в которы будем сохранять модель
+             * @brief Сформируем имя файла в которы будем сохранять модель
              */
             model_data_file = tr("%1/%2_model.dat").arg(spool,sid);
+            // По умолчанию показываем коды полей
+            view_code_state = false; 
         }else{
             e_msg = QObject::trUtf8("ERROR: каталог %1 не существует\n").arg(spool);
         }
@@ -127,13 +180,6 @@ void Tmpl_plugin::init(const QString &spool,const QString &sid)
         emit error(e_msg);
     }
 }
-/*
-bool Tmpl_plugin::getPageOrientation()
-{
-    return templ_info.page_orient();
-}
-
-*/
 
 void Tmpl_plugin::setPageOrientation(bool p_orient)
 {
@@ -150,10 +196,10 @@ void Tmpl_plugin::setPageOrientation(bool p_orient)
     templ_info.setPage_height(h);
     // теперь каждой странице изменим размеры
     create_page(firstPage_scene,
-                                      templ_info.page_width(),templ_info.page_height(),
-                                      templ_info.m_top(),templ_info.m_bottom(),
-                                      templ_info.m_right(),templ_info.m_left()
-                                      );
+                templ_info.page_width(),templ_info.page_height(),
+                templ_info.m_top(),templ_info.m_bottom(),
+                templ_info.m_right(),templ_info.m_left()
+                );
 }
 
 QStringList Tmpl_plugin::getPageSizeList()
@@ -184,6 +230,44 @@ void Tmpl_plugin::loadTemplates(const QString & templates_in_file)
 
 }
 
+void Tmpl_plugin::loadTemplatesWithDat(const QString & templates_in_file,
+                                       const QString & in_file_dat)
+{
+    QString e_msg;
+    // Очистка модели или ее создание при необходимости
+    this->model_init();
+
+    if (QFile::exists(in_file_dat)){
+        //Загрузка модели из data файла
+        if (!loadModel4Data(in_file_dat)){
+            e_msg = QObject::trUtf8("ERROR: Ошибка разбора файла данных [%1]\n").arg(in_file_dat);
+            emit error(e_msg);
+        }
+    }
+    this->loadTemplates(templates_in_file);
+    /**
+     * @brief Обновим шаблон в соответсвии с данными модели
+     */
+    update_scene(firstPage_scene);
+    update_scene(secondPage_scene);
+    update_scene(thirdPage_scene);
+    update_scene(fourthPage_scene);
+}
+
+void Tmpl_plugin::viewCode()
+{
+  view_code_state = !view_code_state;
+    /**
+     * @brief Обновим шаблон в соответсвии с данными модели
+     * и положением переключателя режимов
+     */
+    update_scene(firstPage_scene);
+    update_scene(secondPage_scene);
+    update_scene(thirdPage_scene);
+    update_scene(fourthPage_scene);
+  
+}
+
 void Tmpl_plugin::createEmptyTemplate(const QString & file_name)
 {
     QString e_msg;
@@ -209,7 +293,7 @@ void Tmpl_plugin::createEmptyTemplate(const QString & file_name)
         qreal h = this->findPageSize_H(p_s_id); // высота листа
         // Теперь повернем страницу согласно ориентации
         if (!templ_info.page_orient()){
-           qSwap(w,h);
+            qSwap(w,h);
         }
         templ_info.setPage_width(w);
         templ_info.setPage_height(h);
@@ -302,7 +386,7 @@ void Tmpl_plugin::doAddImgElementToPage(int page,QString &file_img)
 
 }
 
-void Tmpl_plugin::doAddBaseElementToPage(int page,QStringList &text_list)
+void Tmpl_plugin::doAddBaseElementToPage(int page,QString &text)
 {
     QString e_msg;
     QString l_msg = QString(" [%1] ").arg(QString::fromAscii(Q_FUNC_INFO));
@@ -336,7 +420,7 @@ void Tmpl_plugin::doAddBaseElementToPage(int page,QStringList &text_list)
         pItem->setZValue(100);
         pItem->setPos(100.0,100.0);
         //pItem->setText(QStringList()<<QObject::trUtf8("Элемент"));
-        pItem->setText(text_list);
+        pItem->setTag(text);
         pItem->setFlag(QGraphicsItem::ItemIsMovable);
         pItem->setData(ObjectName, "tElem");
         pItem->setParentItem(item);
@@ -472,7 +556,7 @@ void Tmpl_plugin::doSaveTemplates()
             if (elem_type == "tElem"){
                 tElem =(SimpleItem* )firstPage_scene->items().at(i);
                 out << tElem->pos() << tElem->getFont() << tElem->getColor()
-                        << tElem->getText();
+                        << tElem->getTag();
             }
         }
 
@@ -485,7 +569,7 @@ void Tmpl_plugin::doSaveTemplates()
             if (elem_type == "tElem"){
                 tElem =(SimpleItem* )secondPage_scene->items().at(i);
                 out << tElem->pos() << tElem->getFont() << tElem->getColor()
-                        << tElem->getText();
+                        << tElem->getTag();
             }
         }
 
@@ -498,7 +582,7 @@ void Tmpl_plugin::doSaveTemplates()
             if (elem_type == "tElem"){
                 tElem =(SimpleItem* )thirdPage_scene->items().at(i);
                 out << tElem->pos() << tElem->getFont() << tElem->getColor()
-                        << tElem->getText();
+                        << tElem->getTag();
             }
         }
 
@@ -511,7 +595,7 @@ void Tmpl_plugin::doSaveTemplates()
             if (elem_type == "tElem"){
                 tElem =(SimpleItem* )fourthPage_scene->items().at(i);
                 out << tElem->pos() << tElem->getFont() << tElem->getColor()
-                        << tElem->getText();
+                        << tElem->getTag();
             }
         }
 
@@ -527,19 +611,19 @@ void Tmpl_plugin::convertTemplatesToPdf(const QString & templates_in_file)
 {
     QString e_msg;
     if (QFile::exists(templates_in_file)) {
-            if (parse_templates(templates_in_file)){
-                // создаем pdf файлы
-                // FIXME hardcore!!!!
-                printFormatingPageToFile(1);
-                printFormatingPageToFile(2);
-                printFormatingPageToFile(3);
-                printFormatingPageToFile(4);
+        if (parse_templates(templates_in_file)){
+            // создаем pdf файлы
+            // FIXME hardcore!!!!
+            printFormatingPageToFile(1);
+            printFormatingPageToFile(2);
+            printFormatingPageToFile(3);
+            printFormatingPageToFile(4);
 
-                emit allPagesConverted(firstPage_tmpl_fn,secondPage_tmpl_fn,
-                                       thirdPage_tmpl_fn,fourthPage_tmpl_fn);
-            }else{
-                e_msg = QObject::trUtf8("ERROR: Ошибка разбора шаблона [%1]\n").arg(templates_in_file);
-            }
+            emit allPagesConverted(firstPage_tmpl_fn,secondPage_tmpl_fn,
+                                   thirdPage_tmpl_fn,fourthPage_tmpl_fn);
+        }else{
+            e_msg = QObject::trUtf8("ERROR: Ошибка разбора шаблона [%1]\n").arg(templates_in_file);
+        }
     }else{
         e_msg = QObject::trUtf8("Файл [%1] шаблона не найден.").arg(templates_in_file);
     }
@@ -643,15 +727,6 @@ void Tmpl_plugin::create_page(QGraphicsScene * scene,
     }
 }
 
-void Tmpl_plugin::createModel()
-{
-   doc_model     = new QStandardItemModel(this);
-   doc_model->setHorizontalHeaderLabels(elem_name_QSL);
-   doc_model->insertRow(doc_model->rowCount());
-   qDebug() << Q_FUNC_INFO
-            << "doc_model->rowCount" << doc_model->rowCount()
-            << "doc_model->colCount" << doc_model->columnCount();
-}
 
 bool Tmpl_plugin::parse_templates(const QString & in_file)
 {
@@ -663,7 +738,7 @@ bool Tmpl_plugin::parse_templates(const QString & in_file)
     QPointF ps;
     QFont fnt;
     QColor col;
-    QStringList pList;
+    QString text;
     QStringList filledList;
     int page_count_elem;
     QString marker;
@@ -728,8 +803,8 @@ bool Tmpl_plugin::parse_templates(const QString & in_file)
                             // перебор всех элементов страницы
                             in >> elemType;
                             if (elemType=="tElem"){
-                                in >>ps >>fnt >> col >>pList;
-                                this->create_SimpleItem(parent,ps,fnt,col,pList);
+                                in >>ps >>fnt >> col >>text;
+                                this->create_SimpleItem(parent,ps,fnt,col,text);
                             }
                         }
                     }else{
@@ -758,8 +833,8 @@ bool Tmpl_plugin::parse_templates(const QString & in_file)
                             // перебор всех элементов страницы
                             in >> elemType;
                             if (elemType=="tElem"){
-                                in >>ps >>fnt >> col >>pList;
-                                this->create_SimpleItem(parent,ps,fnt,col,pList);
+                                in >>ps >>fnt >> col >>text;
+                                this->create_SimpleItem(parent,ps,fnt,col,text);
                             }
                         }
 
@@ -789,8 +864,8 @@ bool Tmpl_plugin::parse_templates(const QString & in_file)
                             // перебор всех элементов страницы
                             in >> elemType;
                             if (elemType=="tElem"){
-                                in >>ps >>fnt >> col >>pList;
-                                this->create_SimpleItem(parent,ps,fnt,col,pList);
+                                in >>ps >>fnt >> col >>text;
+                                this->create_SimpleItem(parent,ps,fnt,col,text);
                             }
                         }
 
@@ -819,8 +894,8 @@ bool Tmpl_plugin::parse_templates(const QString & in_file)
                             // перебор всех элементов страницы
                             in >> elemType;
                             if (elemType=="tElem"){
-                                in >>ps >>fnt >> col >>pList;
-                                this->create_SimpleItem(parent,ps,fnt,col,pList);
+                                in >>ps >>fnt >> col >>text;
+                                this->create_SimpleItem(parent,ps,fnt,col,text);
                             }
                         }
 
@@ -862,9 +937,10 @@ QString Tmpl_plugin::findFromModel(const QString &find_line)
 
     if (find_line.contains("[") && find_line.contains("]")){
 
-        local_find.replace("[","").replace("]","");
-
-        qDebug() << Q_FUNC_INFO << "local_find" << local_find;
+        QRegExp rx("\\[(.+)\\]");
+        if(rx.indexIn(find_line.toUpper()) != -1){
+          local_find = rx.cap(1);
+          qDebug() << Q_FUNC_INFO << "local_find" << local_find;
         if (doc_model){
             qDebug() << Q_FUNC_INFO << "rowCount" << doc_model->rowCount();
             for (int i=0;i<doc_model->columnCount();i++){
@@ -876,7 +952,7 @@ QString Tmpl_plugin::findFromModel(const QString &find_line)
                     QStandardItem * cell_item = doc_model->item(0, i);
                     if (cell_item){
                         qDebug() << "cell " << cell_item->data(Qt::EditRole).toString()
-                                   << "find_rep "<< find_rep;
+                                << "find_rep "<< find_rep;
                         find_rep.replace(QRegExp("\\[(.+)\\]"),cell_item->data(Qt::EditRole).toString() );
                         qDebug() << Q_FUNC_INFO << find_rep;
                     }
@@ -885,9 +961,8 @@ QString Tmpl_plugin::findFromModel(const QString &find_line)
                 }
             }
         }
-        // Теперь надо заменить [**] на  найденное значение
 
-
+        }
     }
     return find_rep;
 }
@@ -1210,7 +1285,7 @@ void Tmpl_plugin::fillPageMap()
 }
 void Tmpl_plugin::create_SimpleItem(QGraphicsItem *parent,
                                     QPointF &ps, QFont &fnt,
-                                    QColor &col,QStringList &pList)
+                                    QColor &col,QString &text)
 {
     QStringList filledList;
 
@@ -1225,7 +1300,7 @@ void Tmpl_plugin::create_SimpleItem(QGraphicsItem *parent,
     pItem->setPos(ps);
     pItem->setFont(fnt);
     pItem->setColor(col);
-    pItem->setText(pList);
+    pItem->setTag(text);
     pItem->setZValue(100);
     pItem->setFlag(QGraphicsItem::ItemIsMovable);
     pItem->setData(ObjectName, "tElem");
@@ -1240,21 +1315,21 @@ void Tmpl_plugin::update_scene(QGraphicsScene *scene)
     // текста [some_text] проверка есть ли такой в модели и запись значения
 
     QString t_str;
-    QStringList old_list;
     QStringList new_list;
 
     for (int i = 0; i < scene->items().size(); i++){
         QGraphicsItem *item = scene->items().at(i);
         t_str=item->data(ObjectName).toString();
         if (t_str==QString("tElem")){
-            old_list.clear();
             new_list.clear();
-
             SimpleItem* item =(SimpleItem* )scene->items().at(i);
-            old_list = item->getText();
-            //Анализ old_list на предмет наличия [тег]
-            for (int j = 0; j <old_list.size();j++){
-                new_list.append(findFromModel(old_list.at(j)));
+            t_str =item->getTag();
+
+            if (view_code_state){
+            //Анализ t_str на предмет наличия [тег]
+               new_list.append(findFromModel(t_str));
+            }else{
+               new_list << t_str; 
             }
             item->setText(new_list);
         }
