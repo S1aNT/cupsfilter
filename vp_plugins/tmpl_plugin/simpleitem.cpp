@@ -114,10 +114,13 @@ void SimpleItem::setTextDlg()
 {
     QString source;
     bool ok = false;
-    source = QInputDialog::getText(0, tr("Введите текст"), tr("Поле ввода текстовых данных:"), QLineEdit::Normal, source, &ok);
+    source = QInputDialog::getText(0, tr("Введите текст"), 
+		tr("Поле ввода текстовых данных:"), QLineEdit::Normal, source, &ok);
 
-    if (ok && !source.isEmpty())
-        this->setText(QStringList()<<source.split("\n"));
+    if (ok && !source.isEmpty()){
+        //this->setText(QStringList()<<source.split("\n"));
+        this->setTag(source);
+    }
 }
 void SimpleItem::setText(QStringList &pList)
 {

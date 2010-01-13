@@ -30,6 +30,10 @@ public:
         virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent *pe);
 
         QStringList getText();
+
+        QString getTag() const {return tag;};
+        void setTag(const QString &t){tag = t;};
+
         QFont getFont();
         QColor getColor();
         void setColor(const QColor & col);
@@ -50,6 +54,8 @@ protected:
 private:
         enum{nPenWidth=1};
         QStringList textList; // Список строк рисуемый в объекте
+        QString tag;          // Тег который присвоен элементу
+        
         bool printFrame; // Печатать рамку или нет
         QFont currentFont;
         QColor currentColor;
