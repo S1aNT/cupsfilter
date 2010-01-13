@@ -14,8 +14,13 @@ class Itmpl_plugin{
 public:
     virtual ~Itmpl_plugin() {}
     virtual void init(const QString & spool,const QString & sid) = 0;
-    virtual QStandardItemModel * getModel() = 0;
+    virtual QStandardItemModel * getModel() const = 0;
 
+    /**
+     * @brief Триггер переключающий по кругу  режим отображения элементов 
+     *	      шаблона код / значения поля и обновляющий сцену
+     */
+    virtual void viewCode() =0 ;	
     // сохранение текущей модели в data файл [model_data_file]
     virtual bool saveModel2Data() = 0;
     //Загрузка модели из xml файла
