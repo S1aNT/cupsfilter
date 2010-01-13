@@ -17,14 +17,14 @@ MainWindow::MainWindow()
     this->readGlobal(qApp->applicationDirPath());
     // Создаем модель
     // TODO модель создается в плагине взять на нее указатель !!!
-    doc_model     = new QStandardItemModel(this);
+    //doc_model     = new QStandardItemModel(this);
 
     templ_load = false;
     // Создаем нужные окошки
     CmdButtonBox = new cmdFrame(this);
 
     TProperDlg  = new AddTemplate(this);
-    //TProperDlg->setAttribute(Qt::WA_DeleteOnClose);
+    TProperDlg->setAttribute(Qt::WA_DeleteOnClose);
     TProperDlg->setWindowFlags(Qt::Dialog |
                                Qt::CustomizeWindowHint |
                                Qt::WindowTitleHint |
@@ -155,9 +155,7 @@ void MainWindow::loadPlugins()
 
                 // Получим названия стандартных кнопок для шаблона
                 elemList = tmpl_plugin->getElemNameList();
-
-                doc_model->setHorizontalHeaderLabels(elemList);
-                insertDocToModel();
+                doc_model = tmpl_plugin->getModel();
 
                 // Получим список размеров страниц
                 page_size_model->setStringList(tmpl_plugin->getPageSizeList());
@@ -346,6 +344,17 @@ void MainWindow::errorB(QString e_msg)
     error(e_msg,false);
 }
 
+void MainWindow::do_viewCode()
+{
+    if (tmpl_plugin){
+        tmpl_plugin->viewCode();
+    }else{
+        QString e_msg = tr("Плагин для работы с шаблонами не загружен!");
+        errorA(e_msg);
+
+    }
+}
+
 void MainWindow::toggleAntialiasing()
 {
     // Данные режим работает на всех страницах шаблона
@@ -394,100 +403,59 @@ void MainWindow::flipPage(bool angle_direct)
     }
     vPage  = (View *)tabWidget->widget(1);
     if (vPage){
-       vPage->gr_view()->setMatrix(mat,true);
+        vPage->gr_view()->setMatrix(mat,true);
         vPage->setAngle(angle);
     }
     vPage  = (View *)tabWidget->widget(2);
     if (vPage){
-       vPage->gr_view()->setMatrix(mat,true);
-         vPage->setAngle(angle);
+        vPage->gr_view()->setMatrix(mat,true);
+        vPage->setAngle(angle);
     }
     vPage  = (View *)tabWidget->widget(3);
     if (vPage){
         vPage->gr_view()->setMatrix(mat,true);
-         vPage->setAngle(angle);
+        vPage->setAngle(angle);
     }
 }
 
 //******************************************************************************
 //------------------------------- Private function
-void MainWindow::insertDocToModel()
-{
-    // add empty row to model
-    doc_model->insertRow(doc_model->rowCount());
-}
 
-
-
-void MainWindow::insertDocToModel(QString &item)
-{
-    if (!item.isEmpty() && item.contains(";:;", Qt::CaseInsensitive)){
-        QStringList itemList= item.split(";:;");
-        if (itemList.size()>0){
-            QList<QStandardItem *> cells;
-
-
-            for (int i = 0; i <itemList.size() ; ++i) {
-                QStandardItem * cell_item= new QStandardItem();
-                cells.append(cell_item);
-            }
-            /*
-            QStringList list_2;
-            for (int i = 0; i <itemList.size() ; ++i) {
-                QString tmp_str=itemList.at(i);
-                qDebug() << tmp_str;
-                if (!tmp_str.isEmpty() && tmp_str.contains("=")){
-                    list_2.clear();
-                    list_2 = tmp_str.split("=");
-                    if (list_2.size() == 1){
-                        QStandardItem *cell_item =cells.at(this->getElemIdByName(list_2.at(0)));
-                        cell_item->setData(QVariant(list_2.at(1)),Qt::EditRole);
-                        qDebug() << "Key" << list_2.at(0) << " Value " << list_2.at(1);
-                    }
-                }
-            }
-            */
-            doc_model->appendRow (cells);
-        }
-
-    }
-
-}
 
 
 bool MainWindow::loadFromFile(const QString &file_name)
 {
     if (!file_name.isEmpty() && tmpl_plugin){
-            tmpl_plugin->loadTemplates(file_name);
-            tInfo = tmpl_plugin->getTemplInfo();
-            this->statusBar()->showMessage(tr("Шаблон [%1] загружен"));
-            this->currentTemplates = file_name;
-            showInfoAct->setEnabled(true);
-            return true;
+        tmpl_plugin->loadTemplates(file_name);
+        tInfo = tmpl_plugin->getTemplInfo();
+        this->statusBar()->showMessage(tr("Шаблон [%1] загружен"));
+        this->currentTemplates = file_name;
+        showInfoAct->setEnabled(true);
+        return true;
     }else{
-      this->statusBar()->showMessage(tr("Ошибка загрузки шаблона [%1]")
-                                            .arg(file_name),1000);
-      return false;
-     }
+        this->statusBar()->showMessage(tr("Ошибка загрузки шаблона [%1]")
+                                       .arg(file_name),1000);
+        return false;
+    }
 }
 
 bool MainWindow::loadFromFileWithDat(const QString &file_name,const QString &file_name_dat)
 {
     if (!file_name.isEmpty() &&
         !file_name_dat.isEmpty() &&
-         tmpl_plugin){
+        tmpl_plugin){
 
-            tmpl_plugin->loadTemplatesWithDat(file_name,file_name_dat);
-            tInfo = tmpl_plugin->getTemplInfo();
-            this->statusBar()->showMessage(tr("Шаблон [%1] загружен"));
-            this->currentTemplates = file_name;
-            showInfoAct->setEnabled(true);
-            return true;
+        tmpl_plugin->loadTemplatesWithDat(file_name,file_name_dat);
+        tInfo = tmpl_plugin->getTemplInfo();
+        this->statusBar()->showMessage(tr("Шаблон [%1] загружен"));
+        this->currentTemplates = file_name;
+        showInfoAct->setEnabled(true);
+        return true;
     }else{
-      this->statusBar()->showMessage(tr("Ошибка загрузки шаблона [%1]")
-                                            .arg(file_name),1000);
-      return false;
-     }
+        this->statusBar()->showMessage(tr("Ошибка загрузки шаблона [%1]")
+                                       .arg(file_name),1000);
+        return false;
+    }
 }
 
 void MainWindow::error(QString e_msg,bool admin)
@@ -611,6 +579,16 @@ void MainWindow::createActions()
     QActionGroup * orientGroup = new QActionGroup(this);
     orientGroup->addAction(portretAct);
     orientGroup->addAction(landscapeAct);
+
+    viewCodeAct = new QAction(QIcon(":/reload.png"),
+                              tr("Показать [коды] / значения полей реквизитов"),this);
+    viewCodeAct->setStatusTip(tr("Режим отображения [код] / значение реквизита"));
+
+    connect (
+            viewCodeAct,
+            SIGNAL(triggered()),
+            this, SLOT(do_viewCode())
+            );
 }
 
 void MainWindow::createMenus()
@@ -633,6 +611,7 @@ void MainWindow::createMenus()
     toolsMenu->addAction(antialiasAct);
     toolsMenu->addAction(portretAct);
     toolsMenu->addAction(landscapeAct);
+    toolsMenu->addAction(viewCodeAct);
 
     menuBar()->addSeparator();
     helpMenu = menuBar()->addMenu(tr("&Справка"));
@@ -652,6 +631,7 @@ void MainWindow::createToolBars()
     toolsToolBar->addAction(showInfoAct);
     toolsToolBar->addAction(portretAct);
     toolsToolBar->addAction(landscapeAct);
+    toolsToolBar->addAction(viewCodeAct);
 
 }
 
