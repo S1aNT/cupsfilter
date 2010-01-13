@@ -11,11 +11,9 @@
 #include <QDataWidgetMapper>
 #include <QFileDialog>
 
-#include <QTableView>
 #include "previewwnd.h"
-
 #include "tech_global.h"
-#include "addtemplate.h"
+
 
 using namespace SafeVirtualPrinter;
 
@@ -47,6 +45,20 @@ signals:
     void needPrintPage(const QString &t_file_name);
     void dontNeedPrintPage();
     void needCreateEmptyTemplates(const QString & file_name);
+    /**
+     * @brief Запрос на сохранение данных из модели в файл dat
+     */
+    void saveModelInFile();
+    /**
+      * @brief Пользователь выбрал шаблон
+      */
+    void userSelectTemplates(const QString & t);
+    /**
+      * @brief  Запрос к посреднику на запуск редактора
+      * с отображением данных
+      */
+    void showEditorWithData();
+
 public slots:
     void showInfoWindow(const QString &info);
     void showPreviewPage(QPixmap &preview_page);
@@ -59,7 +71,7 @@ private slots:
     void selectTemplatesDir(bool mode);
     void do_addTemplates(); // добавление пустого шаблона
 
-    void showEditor();
+    void do_editTemplates();
     void setStampField(QString field);
 protected:
     void changeEvent(QEvent *e);
@@ -69,8 +81,6 @@ private:
     QSignalMapper *signalMapper;
 
     QStandardItemModel * w_model;
-    AddTemplate *addTmplDlg;
-
 
     QStringListModel *p_size_mod;
     QString userName;

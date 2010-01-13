@@ -12,12 +12,7 @@ workField::workField(QWidget *parent) :
     //hide_stamp->setVisible(false);
     mapper = new QDataWidgetMapper(this);
     mapper->setSubmitPolicy(QDataWidgetMapper::AutoSubmit);
-    addTmplDlg = new AddTemplate(this);
-    addTmplDlg->setWindowFlags(Qt::Dialog |
-                               Qt::CustomizeWindowHint |
-                               Qt::WindowTitleHint |
-                               Qt::WindowCloseButtonHint |
-                               Qt::WindowSystemMenuHint);
+
 
     connect (ui->secretCBox,
              SIGNAL(currentIndexChanged(QString)),
@@ -27,7 +22,7 @@ workField::workField(QWidget *parent) :
     connect (ui->editTemplatesTBtn,
              SIGNAL(clicked()),
              this,
-             SLOT(showEditor())
+             SLOT(do_editTemplates())
              );
     connect (ui->paperAccountsOutSide,
              SIGNAL(toggled(bool)),
@@ -47,16 +42,19 @@ workField::workField(QWidget *parent) :
     connect (ui->templatesCbox,
              SIGNAL(currentIndexChanged(QString)),
              this,
-             SLOT(setCurrentTemplates(QString)));
+             SLOT(setCurrentTemplates(QString))
+             );
+    connect (ui->templatesCbox,
+             SIGNAL(currentIndexChanged(QString)),
+             this,
+             SIGNAL(userSelectTemplates(QString))
+             );
+
+
     connect (ui->addTemplatesTBtn,
              SIGNAL(clicked()),
              this,
              SLOT(do_addTemplates())
-             );
-    connect (addTmplDlg,
-             SIGNAL(needCreateEmptyTemplates(QString &)),
-             this,
-             SIGNAL(do_needCreateEmptyTemplates(QString &))
              );
 }
 
@@ -113,7 +111,6 @@ void workField::setStampField(QString field)
     int col;
     for (int i = 0; i < w_model->columnCount(); i++)
     {
-
         QStandardItem * header_item = w_model->horizontalHeaderItem(i);
         QString header = header_item->data(Qt::EditRole).toString();
         if (header.compare(QObject::trUtf8("Гриф"))==0){
@@ -214,13 +211,15 @@ void workField::setModel (QStandardItemModel * model)
 
 }
 //********************************** public slots ******************************************
-void workField::showEditor()
+/**
+  * @brief Запрос к плагину на сохранение текущуй модели в файл
+  * данных, затем запрос к посреднику запустка редактора шаблонов с
+  * фалом данных и файлом шаблнов
+  */
+void workField::do_editTemplates()
 {
-    /*
-     * Отправим запрос на преобразование шаблона в набор сцен
-     * при этом автоматически сохраним модель документа в xml
-     */
-    emit convertTemplatesToScenes(this->currentTemplates);
+    emit saveModelInFile();
+    emit showEditorWithData();
 }
 
 void workField::showInfoWindow(const QString &info)
@@ -313,7 +312,9 @@ void workField::selectTemplatesDir(bool mode)
         title_str =QObject::trUtf8("Выберите глобальные шаблоны");
         ui->templatesCbox->setModel(global_templ_model);
     }
-    this->currentTemplates = ui->templatesCbox->currentText();
+
+    setCurrentTemplates (ui->templatesCbox->currentText());
+    emit userSelectTemplates(ui->templatesCbox->currentText());
 }
 
 void workField::flipLabel(bool flip)
