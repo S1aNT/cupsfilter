@@ -17,7 +17,7 @@
         <file>../safeFatPrinter/images/ok.png</file>
         <file>../safeFatPrinter/images/outgoing.png</file>
         <file>../safeFatPrinter/images/play.png</file>
-        <file>../safeFatPrinter/images/reload.png</file>
+        <file alias="view_code">../safeFatPrinter/images/reload.png</file>
         <file>../safeFatPrinter/images/restart.png</file>
         <file>../safeFatPrinter/images/run.png</file>
         <file alias="t_save.png">../safeFatPrinter/images/save.png</file>
