@@ -5,13 +5,13 @@
 #include <QFileDialog>
 
 #define MM_TO_POINT(mm) ((mm)*2.83465058)
+#define POINT_TO_MM(mm) ((mm)/2.83465058)     ////////  0.352777778
 
 AddTemplate::AddTemplate(QWidget *parent) :
         QDialog(parent),
         ui(new Ui::AddTemplate)
 {
     ui->setupUi(this);
-    //FIXME не работает обновление шрифта bold -> normal
 
     boldFont = QFont("Tahoma", 8, QFont::Bold);
     normalFont = QFont("Tahoma", 8, QFont::Normal);
@@ -65,6 +65,10 @@ AddTemplate::AddTemplate(QWidget *parent) :
 
 }
 
+void AddTemplate::default_init()
+{
+
+}
 
 
 void AddTemplate::setEnableGUI(bool mode)
@@ -105,7 +109,13 @@ void AddTemplate::setTemplatesInfo(Templ_info templ_Info)
     tInfo.setDate_time(QDateTime::currentDateTime ().toString("dd.MM.yyyy hh:mm:ss"));
     ui->date_lineEd->setText(tInfo.date_time());
 
+    //FIXME надо подумать как правильнее делать
+    // возникает замкнутый круг setValue меняет tInfo
 
+    ui->margin_topSpBox->setValue(POINT_TO_MM(tInfo.m_top()));
+    ui->margin_bottomSBox->setValue(POINT_TO_MM(tInfo.m_bottom()));
+    ui->margin_leftSpBox->setValue(POINT_TO_MM(tInfo.m_left()));
+    ui->margin_rightSpBox->setValue(POINT_TO_MM(tInfo.m_right()));
 }
 
 /*
