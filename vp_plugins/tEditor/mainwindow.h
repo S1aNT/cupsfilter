@@ -26,7 +26,7 @@ public:
     MainWindow();
     //Директор по такелажу :) - т.е грузчик !(Грузит шаблон из файла)
     bool loadFromFile(const QString &file_name);
-    bool loadFromFileWithDat(const QString &file_name,const QString &file_name_dat);
+    void loadFromFileWithDat(const QString &file_name,const QString &file_name_dat);
 public slots:
     void createNewTemplate();
 
@@ -49,7 +49,7 @@ private slots:
     void do_angle_direct();
     void do_viewCode();
 signals:
-    void addBaseElementToPage(int, QStringList & line);
+    void addBaseElementToPage(int, const QString & line);
     void addImgElementToPage(int , QString &templ_fn);
 private:
     void createActions();

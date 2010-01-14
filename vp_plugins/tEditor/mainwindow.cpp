@@ -30,7 +30,8 @@ MainWindow::MainWindow()
                                Qt::WindowTitleHint |
                                Qt::WindowCloseButtonHint |
                                Qt::WindowSystemMenuHint);
-    //
+
+    // TODO увеличение на максиму экрана!!!
     this->resize(800,600);
 
     tabWidget = new QTabWidget;
@@ -102,7 +103,8 @@ void MainWindow::loadPlugins()
     Itmpl_plugin *tmpl_plugin_Interface;
     Auth_plugin *auth_plugin_Interface;
 #if defined(Q_OS_WIN)
-    if (pluginsDir.dirName().toLower() == "debug" || pluginsDir.dirName().toLower() == "release")
+    if (pluginsDir.dirName().toLower() == "debug" ||
+        pluginsDir.dirName().toLower() == "release")
         pluginsDir.cdUp();
 #elif defined(Q_OS_MAC)
     if (pluginsDir.dirName() == "MacOS") {
@@ -172,9 +174,9 @@ void MainWindow::loadPlugins()
                                        QGraphicsScene *))
                          );
                 connect(this,
-                        SIGNAL(addBaseElementToPage(int,QStringList &)),
+                        SIGNAL(addBaseElementToPage(int,QString &)),
                         plugin,
-                        SLOT(doAddBaseElementToPage(int,QStringList &))
+                        SLOT(doAddBaseElementToPage(int,QString &))
                         );
                 connect(this,
                         SIGNAL(addImgElementToPage(int,QString &)),
@@ -216,9 +218,9 @@ void MainWindow::do_CmdButtonClick(const QString &line)
                 emit addImgElementToPage(this->currentPage+1,templ_fn);
             }
         }else{
-            QStringList list;
-            list << line;
-            emit addBaseElementToPage(this->currentPage+1,list);
+            //QStringList list;
+            //list << line;
+            emit addBaseElementToPage(this->currentPage+1,line);
         }
     }else{
         QString e_msg = tr("Необходимо предварительно загрузить шаблон!");
@@ -239,8 +241,7 @@ void MainWindow::do_needCreateEmptyTemplates(QString &file_name)
         tmpl_plugin->setTemplInfo(tInfo);
 
         tmpl_plugin->createEmptyTemplate(file_name);
-        this->statusBar()->showMessage(QObject::tr("Шаблон [%1] создан")
-                                       .arg(file_name),1000);
+        this->statusBar()->showMessage(QObject::tr("Шаблон [%1] создан").arg(file_name),1000);
         // Теперь загрузим этот же шаблон
         templ_load = loadFromFile(file_name);
     }
@@ -439,7 +440,7 @@ bool MainWindow::loadFromFile(const QString &file_name)
     }
 }
 
-bool MainWindow::loadFromFileWithDat(const QString &file_name,const QString &file_name_dat)
+void MainWindow::loadFromFileWithDat(const QString &file_name,const QString &file_name_dat)
 {
     if (!file_name.isEmpty() &&
         !file_name_dat.isEmpty() &&
@@ -447,14 +448,14 @@ bool MainWindow::loadFromFileWithDat(const QString &file_name,const QString &fil
 
         tmpl_plugin->loadTemplatesWithDat(file_name,file_name_dat);
         tInfo = tmpl_plugin->getTemplInfo();
-        this->statusBar()->showMessage(tr("Шаблон [%1] загружен"));
+        this->statusBar()->showMessage(tr("Шаблон [%1] загружен").arg(file_name));
         this->currentTemplates = file_name;
         showInfoAct->setEnabled(true);
-        return true;
+        templ_load = true;
     }else{
         this->statusBar()->showMessage(tr("Ошибка загрузки шаблона [%1]")
                                        .arg(file_name),1000);
-        return false;
+        templ_load = false;
     }
 }
 
@@ -580,7 +581,7 @@ void MainWindow::createActions()
     orientGroup->addAction(portretAct);
     orientGroup->addAction(landscapeAct);
 
-    viewCodeAct = new QAction(QIcon(":/reload.png"),
+    viewCodeAct = new QAction(QIcon(":/view_code.png"),
                               tr("Показать [коды] / значения полей реквизитов"),this);
     viewCodeAct->setStatusTip(tr("Режим отображения [код] / значение реквизита"));
 
