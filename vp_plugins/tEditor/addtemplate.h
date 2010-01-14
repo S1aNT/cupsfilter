@@ -50,6 +50,10 @@ private slots:
 protected:
     void changeEvent(QEvent *e);
     void showInfo(const QString & info);
+    /**
+      * @brief начальная настройка шаблона
+      */
+    void default_init();
 protected slots:
     void accept();
 private:
