@@ -108,7 +108,7 @@ bool Tmpl_plugin::loadModel4Data(const QString &in_file)
 }
 
 
-/*
+/**
      * @brief Инициализация модели данных
      * если уже существует то очистка модели
 */
@@ -157,9 +157,16 @@ void Tmpl_plugin::init(const QString &spool,const QString &sid)
             page_name_QSL = QStringList(page_size_map.keys());
 
             //page_marker = "templates_page"; // маркер страницы
-            // Создаем QMap размеров страниц
-            // Заполним описание шаблона версией шаблона
+
+            // Заполним описание шаблона версией шаблона  и начальными значениями
+
             templ_info.setT_ver(t_version);
+            templ_info.setM_bottom(MM_TO_POINT(10));
+            templ_info.setM_top(MM_TO_POINT(10));
+            templ_info.setM_left(MM_TO_POINT(30));
+            templ_info.setM_right(MM_TO_POINT(10));
+            templ_info.setPage_orient(true);
+
             // Создадим модель данных для шаблона
             doc_model     = new QStandardItemModel(this);
             model_init();
@@ -168,7 +175,7 @@ void Tmpl_plugin::init(const QString &spool,const QString &sid)
              */
             model_data_file = tr("%1/%2_model.dat").arg(spool,sid);
             // По умолчанию показываем коды полей
-            view_code_state = false; 
+            view_code_state = false;
         }else{
             e_msg = QObject::trUtf8("ERROR: каталог %1 не существует\n").arg(spool);
         }
@@ -256,7 +263,7 @@ void Tmpl_plugin::loadTemplatesWithDat(const QString & templates_in_file,
 
 void Tmpl_plugin::viewCode()
 {
-  view_code_state = !view_code_state;
+    view_code_state = !view_code_state;
     /**
      * @brief Обновим шаблон в соответсвии с данными модели
      * и положением переключателя режимов
@@ -265,7 +272,7 @@ void Tmpl_plugin::viewCode()
     update_scene(secondPage_scene);
     update_scene(thirdPage_scene);
     update_scene(fourthPage_scene);
-  
+
 }
 
 void Tmpl_plugin::createEmptyTemplate(const QString & file_name)
@@ -939,28 +946,28 @@ QString Tmpl_plugin::findFromModel(const QString &find_line)
 
         QRegExp rx("\\[(.+)\\]");
         if(rx.indexIn(find_line.toUpper()) != -1){
-          local_find = rx.cap(1);
-          qDebug() << Q_FUNC_INFO << "local_find" << local_find;
-        if (doc_model){
-            qDebug() << Q_FUNC_INFO << "rowCount" << doc_model->rowCount();
-            for (int i=0;i<doc_model->columnCount();i++){
-                QStandardItem * header_item = doc_model->horizontalHeaderItem(i);
-                QString header = header_item->data(Qt::EditRole).toString().toUpper();
-                if (header.compare(local_find) == 0){
-                    // В модели всегда две строчки заголовок и данные,работаю со второй строчкой
-                    //QStandardItem * cell_item = doc_model->item(doc_model->rowCount(), i);
-                    QStandardItem * cell_item = doc_model->item(0, i);
-                    if (cell_item){
-                        qDebug() << "cell " << cell_item->data(Qt::EditRole).toString()
-                                << "find_rep "<< find_rep;
-                        find_rep.replace(QRegExp("\\[(.+)\\]"),cell_item->data(Qt::EditRole).toString() );
-                        qDebug() << Q_FUNC_INFO << find_rep;
-                    }
+            local_find = rx.cap(1);
+            qDebug() << Q_FUNC_INFO << "local_find" << local_find;
+            if (doc_model){
+                qDebug() << Q_FUNC_INFO << "rowCount" << doc_model->rowCount();
+                for (int i=0;i<doc_model->columnCount();i++){
+                    QStandardItem * header_item = doc_model->horizontalHeaderItem(i);
+                    QString header = header_item->data(Qt::EditRole).toString().toUpper();
+                    if (header.compare(local_find) == 0){
+                        // В модели всегда две строчки заголовок и данные,работаю со второй строчкой
+                        //QStandardItem * cell_item = doc_model->item(doc_model->rowCount(), i);
+                        QStandardItem * cell_item = doc_model->item(0, i);
+                        if (cell_item){
+                            qDebug() << "cell " << cell_item->data(Qt::EditRole).toString()
+                                    << "find_rep "<< find_rep;
+                            find_rep.replace(QRegExp("\\[(.+)\\]"),cell_item->data(Qt::EditRole).toString() );
+                            qDebug() << Q_FUNC_INFO << find_rep;
+                        }
 
-                    break;
+                        break;
+                    }
                 }
             }
-        }
 
         }
     }
@@ -1190,7 +1197,6 @@ qreal Tmpl_plugin::findPageSize_H(int page_size_id)
 
 // ------------------------- protected function -------------------------------
 
-
 int Tmpl_plugin::getElemCount(QGraphicsScene *scene)
 {
     qDebug() <<Q_FUNC_INFO<< "scene count = " << scene->items().size();
@@ -1208,6 +1214,7 @@ int Tmpl_plugin::getElemCount(QGraphicsScene *scene)
     return count;
     */
 }
+
 QGraphicsItem *Tmpl_plugin::findPaperElem(QGraphicsScene *scene)
 {
     QGraphicsItem *item;
@@ -1283,6 +1290,7 @@ void Tmpl_plugin::fillPageMap()
     page_size_map.insert(QString("Letter (216 x 279 мм)"), QPrinter::Letter);
     page_size_map.insert(QString("Tabloid (279 x 432 мм)"), QPrinter::Tabloid);
 }
+
 void Tmpl_plugin::create_SimpleItem(QGraphicsItem *parent,
                                     QPointF &ps, QFont &fnt,
                                     QColor &col,QString &text)
@@ -1326,10 +1334,10 @@ void Tmpl_plugin::update_scene(QGraphicsScene *scene)
             t_str =item->getTag();
 
             if (view_code_state){
-            //Анализ t_str на предмет наличия [тег]
-               new_list.append(findFromModel(t_str));
+                //Анализ t_str на предмет наличия [тег]
+                new_list.append(findFromModel(t_str));
             }else{
-               new_list << t_str; 
+                new_list << t_str;
             }
             item->setText(new_list);
         }
