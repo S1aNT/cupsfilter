@@ -15,11 +15,12 @@ private slots:
     void cleanupTestCase();
     void loadPlugin();
 
-    void openTemplates_data();
-    void openTemplates();
-    void getPageSizeList();
+    //void getPageSizeList();
     void createEmptyTemplate_data();
     void createEmptyTemplate();
+
+    void openTemplates_data();
+    void openTemplates();
 
 private:
     pluginWorker *testObj;
@@ -53,7 +54,7 @@ void testTmpl_sql_plugin::openTemplates_data()
 
     QTest::newRow("emptyFileName")    << "" << false;
     QTest::newRow("notValidFileName") << "fantom file" << false;
-    //QTest::newRow("ValidFileName")    << "d://test_template.tmpl" << true;
+    QTest::newRow("ValidFileName")    << "d://test_template.tmpl" << true;
 }
 
 void testTmpl_sql_plugin::openTemplates()
@@ -87,11 +88,8 @@ void testTmpl_sql_plugin::createEmptyTemplate()
 
 //-----------------------------------------------------------------------------------
 
-void testTmpl_sql_plugin::getPageSizeList()
-{
 
-}
 
 QTEST_MAIN(testTmpl_sql_plugin)
-#include "test_main.moc"
+#include "t1.moc"
 
