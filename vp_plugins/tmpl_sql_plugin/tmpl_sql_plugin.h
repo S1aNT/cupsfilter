@@ -19,7 +19,7 @@ class Tmpl_sql_plugin : public QObject , Itmpl_sql_plugin
     Q_OBJECT
     Q_INTERFACES(Itmpl_sql_plugin)
 
-    QSqlDatabase DB_;
+
 public:
 
     Tmpl_sql_plugin(QObject *parent = 0);
@@ -38,16 +38,14 @@ public:
     bool isLoad();
     bool hasError();
 
-    /// Предварительная настройка БД
-    void Prepare ();
 
 signals:
-   void error(pluginsError errCode,QString error_message);
+    void error(pluginsError errCode,QString error_message);
 public slots:
-   bool createEmptyTemplate(const QString & t_fileName);
+    bool createEmptyTemplate(const QString & t_fileName);
 private:
-   inline bool isDBOpened(){return m_dbOpened;};
-   inline bool isDBConnected(){return m_dbConnect;};
+    inline bool isDBOpened(){return m_dbOpened;};
+    inline bool isDBConnected(){return m_dbConnect;};
 
     bool createTables(QSqlQuery *query);
 
@@ -61,8 +59,10 @@ private:
     //QSqlRelationalTableModel * tInfoModel;
     QSqlQueryModel  * tInfoModel;
 
-
-
+    /**
+      * @brief Singleton DB connection
+      */
+    QSqlDatabase DB_;
 protected:
     /**
       @brief Создаем пустую БД с параметрами по умолчанию
@@ -78,11 +78,22 @@ protected:
       * прочитать данные и записать их в соответсвующие модели
       */
     void setupModel();
-    /**
-      * @brief служебная функция открывает БД с шаблоном
-      */
-    bool openDB (const QString & db_fileName);
+
     void DumpError (const QSqlError& lastError);
+
+    /**
+      * @brief Предварительная настройка БД
+      */
+    bool InitDB ();
+    /**
+      * @brief Проверяет возможность создания файла по указанному пути
+      * 1.Проверка что данный файл не существует.
+      * Если файл есть на диске, то удаляем его с диска.
+      * (Так как пользователь уже согласился с выбором именно этого файла,
+      *  выбрал переписать его)
+      * 2.Создаем и удаляем файл по указанному пути
+      */
+    bool IsValidFileName(const QString & fileName);
 };
 
 
