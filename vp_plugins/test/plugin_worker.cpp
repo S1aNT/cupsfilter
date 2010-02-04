@@ -35,7 +35,7 @@ bool pluginWorker::loadPlugin()
                 connect (plugin,
                          SIGNAL(error(pluginsError,QString)),
                          this,
-                         SIGNAL(error(pluginsError,QString))
+                         SLOT(do_Error(pluginsError,QString))
                          );
                 return true;
             }
@@ -47,6 +47,12 @@ bool pluginWorker::loadPlugin()
  void pluginWorker::closeTemplates()
  {
 
+ }
+
+ void pluginWorker::do_Error(pluginsError errCode,QString error_message)
+ {
+     qDebug() << "Error code " << errCode << " eMessage " << error_message;
+     emit error(errCode,error_message);
  }
 
  bool pluginWorker::openTemplates(const QString &db_fileName)

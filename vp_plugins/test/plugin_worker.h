@@ -21,6 +21,8 @@ public:
 
 signals:
     void error(pluginsError errCode,QString error_message);
+public slots:
+    void do_Error(pluginsError errCode,QString error_message);
 private:
     Itmpl_sql_plugin *t_plugin;
     pluginsError errCode;
