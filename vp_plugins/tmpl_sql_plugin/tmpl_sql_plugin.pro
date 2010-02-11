@@ -22,11 +22,14 @@ CONFIG += plugin \
 
 INCLUDEPATH += ../interfaces \
                ../global
-DESTDIR = ../test/plugins
+DESTDIR = ../testWithGui/plugins
 LANGUAGE  = C++
 # Use Precompiled headers (PCH)
 PRECOMPILED_HEADER  = ../global/pre_header.h
 HEADERS += ../global/pre_header.h \
-        tmpl_sql_plugin.h
+           ../global/tech_global.h \
+        tmpl_sql_plugin.h \
+        ../global/tinfoeditmodel.h
 
-SOURCES = tmpl_sql_plugin.cpp
+SOURCES = tmpl_sql_plugin.cpp \
+          ../global/tinfoeditmodel.cpp
