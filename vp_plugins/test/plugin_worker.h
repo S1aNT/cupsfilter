@@ -5,8 +5,12 @@
 #include <QDebug>
 #include "itmpl_sql_plugin.h"
 
+#include "tinfoeditmodel.h"
 
-using namespace VirtualPrninterPlugins;
+#include "tech_global.h"
+
+using namespace SafeVirtualPrinter;
+
 
 class pluginWorker :public QObject
 {
@@ -18,11 +22,14 @@ public:
     bool openTemplates(const QString &db_fileName);
     bool createEmptyTemplate(const QString &db_fileName);
     void closeTemplates();
+    TemplateInfoEditModel  * getInfoModel();
+    QSqlQueryModel  * getPSizeModel();
 
 signals:
     void error(pluginsError errCode,QString error_message);
 public slots:
     void do_Error(pluginsError errCode,QString error_message);
+
 private:
     Itmpl_sql_plugin *t_plugin;
     pluginsError errCode;
@@ -33,6 +40,7 @@ protected:
 };
 
 
-Q_DECLARE_METATYPE(VirtualPrninterPlugins::pluginsError)
+
+Q_DECLARE_METATYPE(SafeVirtualPrinter::pluginsError)
 
 #endif //PLUGIN_WORKER_

@@ -3,7 +3,7 @@
 #include <QPluginLoader>
 #include <QFile>
 
-using namespace VirtualPrninterPlugins;
+using namespace SafeVirtualPrinter;
 
 pluginWorker::pluginWorker(QObject *parent)
 {
@@ -51,7 +51,7 @@ bool pluginWorker::loadPlugin()
 
  void pluginWorker::do_Error(pluginsError errCode,QString error_message)
  {
-     qDebug() << "Error code " << errCode << " eMessage " << error_message;
+     //qDebug() << "Error code " << errCode << " eMessage " << error_message;
      emit error(errCode,error_message);
  }
 
@@ -64,3 +64,13 @@ bool pluginWorker::loadPlugin()
  {
      return t_plugin->createEmptyTemplate(db_fileName);
  }
+
+TemplateInfoEditModel *pluginWorker::getInfoModel()
+{
+     return t_plugin->getInfoModel();
+}
+
+QSqlQueryModel *pluginWorker::getPSizeModel()
+{
+     return t_plugin->getPSizeModel();
+}
