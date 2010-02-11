@@ -8,56 +8,74 @@
 class QSqlQuery;
 class QSqlQueryModel;
 class QSqlRelationalTableModel;
+class QSqlError;
+
 #include "itmpl_sql_plugin.h"
+#include "tinfoeditmodel.h"
 
-//#include "tech_global.h"
+#include "tech_global.h"
 
-using namespace VirtualPrninterPlugins;
+using namespace SafeVirtualPrinter;
 
 class Tmpl_sql_plugin : public QObject , Itmpl_sql_plugin
 {
     Q_OBJECT
     Q_INTERFACES(Itmpl_sql_plugin)
-
-
 public:
 
     Tmpl_sql_plugin(QObject *parent = 0);
     ~Tmpl_sql_plugin();
 
-    /**
-      *@brief Открытие шаблона работает так:
-      * если драйвер БД загружен и установленно соединение,
-      * то открыть заданный файл как БД
-      */
-
-    bool openTemplates(const QString & t_fileName);
-    //QStringList customFilters() const;
+    inline bool isDBOpened(){return m_dbOpened;};
+    inline bool isDBConnected(){return m_dbConnect;};
 
     void closeTemplates();	
     bool isLoad();
     bool hasError();
+    //QSqlQueryModel  * getInfoModel(){return tInfoModel;};
+
+    TemplateInfoEditModel * getInfoModel(){return tInfoModel;};
+
+    QSqlQueryModel  * getPSizeModel(){return pSizeModel;};
 
 
 signals:
     void error(pluginsError errCode,QString error_message);
-public slots:
-    bool createEmptyTemplate(const QString & t_fileName);
-private:
-    inline bool isDBOpened(){return m_dbOpened;};
-    inline bool isDBConnected(){return m_dbConnect;};
 
+public slots:
+    /**
+      *@brief РћС‚РєСЂС‹С‚РёРµ С€Р°Р±Р»РѕРЅР° СЂР°Р±РѕС‚Р°РµС‚ С‚Р°Рє:
+      * РµСЃР»Рё РґСЂР°Р№РІРµСЂ Р‘Р” Р·Р°РіСЂСѓР¶РµРЅ Рё СѓСЃС‚Р°РЅРѕРІР»РµРЅРЅРѕ СЃРѕРµРґРёРЅРµРЅРёРµ,
+      * С‚Рѕ РѕС‚РєСЂС‹С‚СЊ СЃСѓС‰РµСЃС‚РІСѓСЋС‰РёР№ С„Р°Р№Р» РєР°Рє Р‘Р”
+      */
+    bool openTemplates(const QString & t_fileName);
+    /**
+      *@brief РЎРѕР·РґР°РЅРёРµ РїСѓСЃС‚РѕРіРѕ С€Р°Р±Р»РѕРЅР° (Р‘Р”)
+      * РµСЃР»Рё РґСЂР°Р№РІРµСЂ Р‘Р” Р·Р°РіСЂСѓР¶РµРЅ Рё СѓСЃС‚Р°РЅРѕРІР»РµРЅРЅРѕ СЃРѕРµРґРёРЅРµРЅРёРµ,
+      * Рё РёРјСЏ С„Р°Р№Р»Р° РїСЂРѕС…РѕРґРёС‚ РїСЂРѕРІРµСЂРєСѓ РЅР° РІР°Р»РёРґРЅРѕСЃС‚СЊ
+      * Рё С‚Р°РєРѕР№ С„Р°Р№Р» РІ Р·Р°РґР°РЅРЅРѕРј РјРµСЃС‚Рµ РјРѕР¶РЅРѕ СЃРѕР·РґР°С‚СЊ
+      * С‚Рѕ СЃРѕР·РґР°РґРёРј Р‘Р” РІ Р·Р°РґР°РЅРЅРѕРј С„Р°Р№Р»Рµ Рё РЅР°РїРѕР»РЅРёРј РµРіРѕ РЅР°С‡Р°Р»СЊРЅС‹Рј СЃРѕРґРµСЂР¶РёРјС‹Рј
+      */
+    bool createEmptyTemplate(const QString & t_fileName);
+private:    
     bool createTables(QSqlQuery *query);
 
     bool m_dbOpened;
     bool m_dbConnect;
 
     QString m_connectionName;
-    //QSqlQuery m_query;
 
-    /// Модель общие сведения о шаблоне
     //QSqlRelationalTableModel * tInfoModel;
-    QSqlQueryModel  * tInfoModel;
+    /**
+      * @brief РњРѕРґРµР»СЊ РРќР¤Рћ_РЁРђР‘Р›РћРќРђ
+      */
+    //QSqlQueryModel  * tInfoModel;
+    TemplateInfoEditModel  * tInfoModel;
+
+    /**
+      * @brief РњРѕРґРµР»СЊ Р РђР—РњР•Р Р«_Р›РРЎРўРђ
+      */
+    QSqlQueryModel  * pSizeModel;
 
     /**
       * @brief Singleton DB connection
@@ -65,35 +83,41 @@ private:
     QSqlDatabase DB_;
 protected:
     /**
-      @brief Создаем пустую БД с параметрами по умолчанию
+      * @brief РћС‚РєСЂС‹РІР°РµРј СЃСѓС‰РµСЃС‚РІСѓСЋС‰СѓСЋ Р‘Р”
+      */
+    bool openDataBase(const QString & t_fileName);
+    /**
+      * @brief РЎРѕР·РґР°РµРј РїСѓСЃС‚СѓСЋ Р‘Р” СЃ РїР°СЂР°РјРµС‚СЂР°РјРё РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ
       */
     bool create_emptyDB(const QString &emptyDB_fileName);
     /**
-      @brief Загружает драйвер и устанавливает соединение с БД sqlite
+      @brief Р—Р°РіСЂСѓР¶Р°РµС‚ РґСЂР°Р№РІРµСЂ Рё СѓСЃС‚Р°РЅР°РІР»РёРІР°РµС‚ СЃРѕРµРґРёРЅРµРЅРёРµ СЃ Р‘Р” sqlite
       */
     bool createConnection();
     /**
-      * @brief Настройка модели, для установленного соединения
-      * и файла открытого как БД
-      * прочитать данные и записать их в соответсвующие модели
+      * @brief РќР°СЃС‚СЂРѕР№РєР° РјРѕРґРµР»Рё, РґР»СЏ СѓСЃС‚Р°РЅРѕРІР»РµРЅРЅРѕРіРѕ СЃРѕРµРґРёРЅРµРЅРёСЏ
+      * Рё С„Р°Р№Р»Р° РѕС‚РєСЂС‹С‚РѕРіРѕ РєР°Рє Р‘Р”
+      * РїСЂРѕС‡РёС‚Р°С‚СЊ РґР°РЅРЅС‹Рµ Рё Р·Р°РїРёСЃР°С‚СЊ РёС… РІ СЃРѕРѕС‚РІРµС‚СЃРІСѓСЋС‰РёРµ РјРѕРґРµР»Рё
       */
-    void setupModel();
-
-    void DumpError (const QSqlError& lastError);
-
+    bool fillModels();
+    void DumpError (const QSqlError & lastError);
     /**
-      * @brief Предварительная настройка БД
+      * @brief РџСЂРµРґРІР°СЂРёС‚РµР»СЊРЅР°СЏ РЅР°СЃС‚СЂРѕР№РєР° Р‘Р”
       */
     bool InitDB ();
     /**
-      * @brief Проверяет возможность создания файла по указанному пути
-      * 1.Проверка что данный файл не существует.
-      * Если файл есть на диске, то удаляем его с диска.
-      * (Так как пользователь уже согласился с выбором именно этого файла,
-      *  выбрал переписать его)
-      * 2.Создаем и удаляем файл по указанному пути
+      * @brief РџСЂРѕРІРµСЂСЏРµС‚ РєРѕСЂСЂРµРєС‚РЅРѕСЃС‚СЊ РёРјРµРЅРё С„Р°Р№Р»Р° [РёРјСЏ С„Р°Р№Р»Р°].tmpl
       */
-    bool IsValidFileName(const QString & fileName);
+    bool isValidFileName(const QString & fileName);
+    /**
+      * @brief РџСЂРѕРІРµСЂСЏРµС‚ РІРѕР·РјРѕР¶РЅРѕСЃС‚СЊ СЃРѕР·РґР°РЅРёСЏ С„Р°Р№Р»Р° РїРѕ СѓРєР°Р·Р°РЅРЅРѕРјСѓ РїСѓС‚Рё
+      * 1.РџСЂРѕРІРµСЂРєР° С‡С‚Рѕ РґР°РЅРЅС‹Р№ С„Р°Р№Р» РЅРµ СЃСѓС‰РµСЃС‚РІСѓРµС‚.
+      * Р•СЃР»Рё С„Р°Р№Р» РµСЃС‚СЊ РЅР° РґРёСЃРєРµ, С‚Рѕ СѓРґР°Р»СЏРµРј РµРіРѕ СЃ РґРёСЃРєР°.
+      * (РўР°Рє РєР°Рє РїРѕР»СЊР·РѕРІР°С‚РµР»СЊ СѓР¶Рµ СЃРѕРіР»Р°СЃРёР»СЃСЏ СЃ РІС‹Р±РѕСЂРѕРј РёРјРµРЅРЅРѕ СЌС‚РѕРіРѕ С„Р°Р№Р»Р°,
+      *  РІС‹Р±СЂР°Р» РїРµСЂРµРїРёСЃР°С‚СЊ РµРіРѕ)
+      * 2.РЎРѕР·РґР°РµРј Рё СѓРґР°Р»СЏРµРј С„Р°Р№Р» РїРѕ СѓРєР°Р·Р°РЅРЅРѕРјСѓ РїСѓС‚Рё
+      */
+    bool isCreateFile(const QString & fileName);
 };
 
 
