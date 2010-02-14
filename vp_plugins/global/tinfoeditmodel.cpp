@@ -4,6 +4,8 @@
 TemplateInfoEditModel::TemplateInfoEditModel(QObject *parent)
     : QSqlQueryModel(parent)
 {
+    qRegisterMetaType<pSizeColumnOrder>("pSizeColumnOrder");
+    qRegisterMetaType<tInfoColumnOrder>("tInfoColumnOrder");
 }
 
 
@@ -43,7 +45,7 @@ bool TemplateInfoEditModel::setData(const QModelIndex &index, const QVariant &va
         break;
     case tInfo_pageID:  ok = setTemplatePageId(id,value.toInt());
         break;
-    case tInfo_angle:   ok = setTemplateAngle(id,value.toDouble());
+    case tInfo_angle:   ok = setTemplateAngle(id,value.toInt());
         break;
     case tInfo_ctime:   ok = setTemplateCTime(id,value.toInt());
         break;
@@ -51,17 +53,20 @@ bool TemplateInfoEditModel::setData(const QModelIndex &index, const QVariant &va
         break;
     case tInfo_author:  ok = setTemplateAuthor(id,value.toString());
         break;
-    case tInfo_mtop:    ok = setTemplateMTop(id,value.toDouble());
+    case tInfo_mtop:    ok = setTemplateMTop(id,value.toInt());
         break;
-    case tInfo_mbottom: ok = setTemplateMBottom(id,value.toDouble());
+    case tInfo_mbottom: ok = setTemplateMBottom(id,value.toInt());
         break;
-    case tInfo_mleft:   ok = setTemplateMLeft(id,value.toDouble());
+    case tInfo_mleft:   ok = setTemplateMLeft(id,value.toInt());
         break;
-    case tInfo_mright:  ok = setTemplateMRight(id,value.toDouble());
+    case tInfo_mright:  ok = setTemplateMRight(id,value.toInt());
         break;
     }
 
     refresh();
+    if (ok){
+        emit dataChanged(index, index);
+    }    
     return ok;
 }
 
@@ -73,19 +78,18 @@ void TemplateInfoEditModel::refresh()
              "c_time,m_time,author,margin_top,margin_bottom,"
              "margin_left,margin_right "
              "FROM template");
-
-    setHeaderData(tInfo_id,     Qt::Horizontal, tr("ID"));                 // 0
-    setHeaderData(tInfo_name,   Qt::Horizontal, tr("Имя шаблона"));        // 1
-    setHeaderData(tInfo_desc,   Qt::Horizontal, tr("Описание"));           // 2
-    setHeaderData(tInfo_pageID, Qt::Horizontal, tr("PSize_id"));           // 3
-    setHeaderData(tInfo_angle,  Qt::Horizontal, tr("Поворот (град.)"));    // 4
-    setHeaderData(tInfo_ctime,  Qt::Horizontal, tr("Время создания"));     // 5
-    setHeaderData(tInfo_mtime,  Qt::Horizontal, tr("Время изменения"));    // 6
-    setHeaderData(tInfo_author, Qt::Horizontal, tr("Автор"));              // 7
-    setHeaderData(tInfo_mtop,   Qt::Horizontal, tr("Отступ сверху (мм)")); // 8
-    setHeaderData(tInfo_mbottom,Qt::Horizontal, tr("Отступ снизу (мм)"));  // 9
-    setHeaderData(tInfo_mleft,  Qt::Horizontal, tr("Отступ слева (мм)"));  // 10
-    setHeaderData(tInfo_mright, Qt::Horizontal, tr("Отступ справа (мм)")); // 11
+          setHeaderData(tInfo_id,     Qt::Horizontal, tr("ID"));                 // 0
+          setHeaderData(tInfo_name,   Qt::Horizontal, tr("РРјСЏ С€Р°Р±Р»РѕРЅР°"));        // 1
+          setHeaderData(tInfo_desc,   Qt::Horizontal, tr("РћРїРёСЃР°РЅРёРµ"));           // 2
+          setHeaderData(tInfo_pageID, Qt::Horizontal, tr("PSize_id"));           // 3
+          setHeaderData(tInfo_angle,  Qt::Horizontal, tr("РџРѕРІРѕСЂРѕС‚ (РіСЂР°Рґ.)"));    // 4
+          setHeaderData(tInfo_ctime,  Qt::Horizontal, tr("Р’СЂРµРјСЏ СЃРѕР·РґР°РЅРёСЏ"));     // 5
+          setHeaderData(tInfo_mtime,  Qt::Horizontal, tr("Р’СЂРµРјСЏ РёР·РјРµРЅРµРЅРёСЏ"));    // 6
+          setHeaderData(tInfo_author, Qt::Horizontal, tr("РђРІС‚РѕСЂ"));              // 7
+          setHeaderData(tInfo_mtop,   Qt::Horizontal, tr("РћС‚СЃС‚СѓРї СЃРІРµСЂС…Сѓ (РјРј)")); // 8
+          setHeaderData(tInfo_mbottom,Qt::Horizontal, tr("РћС‚СЃС‚СѓРї СЃРЅРёР·Сѓ (РјРј)"));  // 9
+          setHeaderData(tInfo_mleft,  Qt::Horizontal, tr("РћС‚СЃС‚СѓРї СЃР»РµРІР° (РјРј)"));  // 10
+          setHeaderData(tInfo_mright, Qt::Horizontal, tr("РћС‚СЃС‚СѓРї СЃРїСЂР°РІР° (РјРј)")); // 11
 }
 
 bool TemplateInfoEditModel::setTemplateName(int Id, const QString &templateName)
@@ -115,7 +119,7 @@ bool TemplateInfoEditModel::setTemplatePageId(int Id, int pageId)
     return query.exec();
 }
 
-bool TemplateInfoEditModel::setTemplateAngle(int Id, double angle)
+bool TemplateInfoEditModel::setTemplateAngle(int Id, int angle)
 {
     QSqlQuery query;
     query.prepare("update template set angle = ? where id = ?");
@@ -151,7 +155,7 @@ bool TemplateInfoEditModel::setTemplateAuthor(int Id, const QString &templateAut
     return query.exec();
 }
 
-bool TemplateInfoEditModel::setTemplateMTop(int Id, double mTop)
+bool TemplateInfoEditModel::setTemplateMTop(int Id, int mTop)
 {
     QSqlQuery query;
     query.prepare("update template set margin_top = ? where id = ?");
@@ -160,7 +164,7 @@ bool TemplateInfoEditModel::setTemplateMTop(int Id, double mTop)
     return query.exec();
 }
 
-bool TemplateInfoEditModel::setTemplateMBottom(int Id, double mBottom)
+bool TemplateInfoEditModel::setTemplateMBottom(int Id, int mBottom)
 {
     QSqlQuery query;
     query.prepare("update template set margin_bottom = ? where id = ?");
@@ -169,7 +173,7 @@ bool TemplateInfoEditModel::setTemplateMBottom(int Id, double mBottom)
     return query.exec();
 }
 
-bool TemplateInfoEditModel::setTemplateMLeft(int Id, double mLeft)
+bool TemplateInfoEditModel::setTemplateMLeft(int Id, int mLeft)
 {
     QSqlQuery query;
     query.prepare("update template set margin_left = ? where id = ?");
@@ -178,7 +182,7 @@ bool TemplateInfoEditModel::setTemplateMLeft(int Id, double mLeft)
     return query.exec();
 }
 
-bool TemplateInfoEditModel::setTemplateMRight(int Id, double mRight)
+bool TemplateInfoEditModel::setTemplateMRight(int Id, int mRight)
 {
     QSqlQuery query;
     query.prepare("update template set margin_right = ? where id = ?");
