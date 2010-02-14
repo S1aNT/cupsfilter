@@ -4,7 +4,17 @@
 #include <QDialog>
 #include <QStringListModel>
 #include <QFont>
-#include "templ_info.h"
+
+#include "itmpl_sql_plugin.h"
+#include "mytypes.h"
+
+class TemplateInfoEditModel;
+class QSqlQueryModel;
+class QSqlTableModel;
+class QDataWidgetMapper;
+
+
+using namespace VPrn;
 
 namespace Ui {
     class AddTemplate;
@@ -16,30 +26,40 @@ public:
     AddTemplate(QWidget *parent = 0);
     ~AddTemplate();
     //void setUserName(const QString & name);
-    void setPageSize(QStringListModel *page_size_model);
+    //void setPageSize(QStringListModel *page_size_model);
+
     void setLocalTemplatesDir(const QString &l_dir){local_dir = l_dir;};
-    void setTemplatesInfo(Templ_info templ_Info);
+    //void setTemplatesInfo(Templ_info templ_Info);
     void setEnableGUI(bool mode);
 
-signals:
+    /**
+      * @fn default_init() Начальная настройка окна Информация о шаблоне
+      * задан порядок инициализации моделей
+      */
+    void default_init();
 
+    /**
+      * @fn Установим и настроим модель РАЗМЕРЫ_ЛИСТА
+      */
+    void setPageSizeModel(QSqlQueryModel *model){pSizeModel = model;};
+    /**
+      * @fn Установим и настроим модель ИНФО_ШАБЛОНА
+      */
+    void setInfoModel(TemplateInfoEditModel *model){tInfoModel = model;};
+    //void setInfoModel2(QSqlTableModel *model){tInfoModel2 = model;};
+signals:
     void needCreateEmptyTemplates(QString &fileName);
-    /*
-    void needCreateEmptyTemplates(const QString & file_name,
-                                  const QString & t_author,
-                                  const QString & t_name,
-                                  const QString & t_desc,
-                                  const QString & p_size,
-                                  bool p_orient,
-                                  const QString & c_date,
-                                  qreal m_top,
-                                  qreal m_bottom,
-                                  qreal m_right,
-                                  qreal m_left);
-                                  */
+
+    void error(pluginsError errCode,QString error_message);
+
 private slots:
-    void set_portret();
-    void set_landscape();
+    void setPortret();
+    void setLandscape();
+
+    /**
+      * @fn При выборе пользователем из выпадающего списка размера страницы
+      * ищем ID в модели РАЗМЕР_ЛИСТА и записываем в модель ИНФО_ШАБЛОНА
+      */
     void setCurrentPageSize(const QString &psize);
     void setTemplatesName(const QString & name);
     void setTemplatesDesc();
@@ -47,24 +67,50 @@ private slots:
     void setMarginBottom();
     void setMarginLeft();
     void setMarginRight();
+
 protected:
     void changeEvent(QEvent *e);
-    void showInfo(const QString & info);
-    /**
-      * @brief начальная настройка шаблона
-      */
-    void default_init();
+
 protected slots:
     void accept();
+
 private:
     Ui::AddTemplate *ui;
     QFont boldFont;
     QFont normalFont;
     QString local_dir;
+    int currentPSizeId;
 
     bool work_mode;
-    Templ_info tInfo;
+    /// связь между моделью РАЗМЕРЫ_ЛИСТА и элементами отображения
+    QDataWidgetMapper *pSizeDWMapper;
 
+    /// связь между моделью ИНФО_ШАБЛОНА и элементами отображения
+    QDataWidgetMapper *tInfoDWMapper;
+
+    /// указатель на модель РАЗМЕР_ЛИСТА
+    QSqlQueryModel *pSizeModel;
+    /// Указатель на модель ИНФО_ШАБЛОНА
+    TemplateInfoEditModel *tInfoModel;
+
+    //QSqlTableModel *tInfoModel2;
+
+    void showInfo(const QString & info);
+    void connector();
+    /**
+      * @fn Ищет в модели РАЗМЕР_ЛИСТА ID для строки pSizeHuman
+      */
+    int getIndexInPSizeModel(const QString pSizeHuman);
+    /**
+      * @fn Получает данные из модели ИНФО_ШАБЛОНА и записывает их в поля ввода
+      * Мой аналог QDataWidgetMapper, который "работает" очень своеобразно
+      */
+    void getData4Models();
+    /**
+      * @fn Получает данные из полей ввода и записывает их в модель ИНФО_ШАБЛОНА
+      * Мой аналог QDataWidgetMapper, который "работает" очень своеобразно
+      */
+    void setData4Models();
 };
 
 #endif // ADDTEMPLATE_H
