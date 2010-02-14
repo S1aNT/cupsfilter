@@ -1,10 +1,11 @@
-QT += network
+QT += network \
+      sql
 CONFIG += warn_on \
-    qt \
-    precompile_header
+          qt \
+          precompile_header
 TEMPLATE = app
 INCLUDEPATH += ../interfaces \
-    ../global
+               ../global
 TARGET = tEditor
 LANGUAGE = C++
 DESTDIR = ../safeFatPrinter/debug/
@@ -25,23 +26,22 @@ CONFIG(debug, debug|release) {
 # Use Precompiled headers (PCH)
 PRECOMPILED_HEADER = ../global/pre_header.h
 HEADERS += ../global/pre_header.h \
-    ../global/config.h \
-    ../global/tech_global.h \
-    addtemplate.h \
-    view.h \
-    mainwindow.h \
-    ../interfaces/itmpl_plugin.h \
-    cmdframe.h \
-    ../global/config.h \
-    ../global/templ_info.h \
-    ../global/templ_info_d.h
+           ../global/config.h \
+           ../global/tech_global.h \
+           ../global/config.h \
+           ../global/mytype.h \
+           ../interfaces/itmpl_sql_plugin.h \
+           addtemplate.h \
+           view.h \
+           mainwindow.h \
+           cmdframe.h
+
 SOURCES += main.cpp \
-    addtemplate.cpp \
-    view.cpp \
-    mainwindow.cpp \
-    cmdframe.cpp \
-    ../global/templ_info.cpp \
-    ../global/templ_info_d.cpp
+           addtemplate.cpp \
+           view.cpp \
+           mainwindow.cpp \
+           cmdframe.cpp
+
 FORMS += addtemplate.ui
 RESOURCES += images.qrc
 TRANSLATIONS = tEditor_ru.ts
