@@ -4,18 +4,20 @@
 #include <QObject>
 #include <QSqlDatabase>
 
-
 class QSqlQuery;
 class QSqlQueryModel;
 class QSqlRelationalTableModel;
 class QSqlError;
+class QSqlTableModel;
 
 #include "itmpl_sql_plugin.h"
 #include "tinfoeditmodel.h"
+#include "mytypes.h"
 
-#include "tech_global.h"
+using namespace VPrn;
 
-using namespace SafeVirtualPrinter;
+//#include "tech_global.h"
+//using namespace SafeVirtualPrinter;
 
 class Tmpl_sql_plugin : public QObject , Itmpl_sql_plugin
 {
@@ -35,6 +37,7 @@ public:
     //QSqlQueryModel  * getInfoModel(){return tInfoModel;};
 
     TemplateInfoEditModel * getInfoModel(){return tInfoModel;};
+    //QSqlTableModel * getInfoModel2(){return tInfoModel2;};
 
     QSqlQueryModel  * getPSizeModel(){return pSizeModel;};
 
@@ -44,54 +47,72 @@ signals:
 
 public slots:
     /**
-      *@brief Открытие шаблона работает так:
-      * если драйвер БД загружен и установленно соединение,
+      * @fn Открытие шаблона
+      * @brief работает так если драйвер БД загружен и установленно соединение,
       * то открыть существующий файл как БД
       */
-    bool openTemplates(const QString & t_fileName);
+    void openTemplates(const QString & t_fileName);
     /**
-      *@brief Создание пустого шаблона (БД)
-      * если драйвер БД загружен и установленно соединение,
-      * и имя файла проходит проверку на валидность
-      * и такой файл в заданном месте можно создать
+      * @fn Создание пустого шаблона (БД) во временном файле
+      * @brief если драйвер БД загружен и установленно соединение,
       * то создадим БД в заданном файле и наполним его начальным содержимым
+      * Пустой шаблон создается в следующем порядке:
+      * 1. проверка что файл заданный как БД шаблона не существует, но мождет быть создан
+      *    - имя файла проходит проверку на валидность (имя_файла.tmpl)
+      *    - такой файл в заданном месте можно создать
+      * 2. Проверка того что драйвер БД загружен, соединение по умолчанию установленно
+      * 3. Открытие БД и создание структуры базы
       */
-    bool createEmptyTemplate(const QString & t_fileName);
+    void createEmptyTemplate();
+    /**
+      * @fn сохраним шаблон с заданным именем
+      */
+    void saveTemplatesAs(const QString & fileName);
 private:    
-    bool createTables(QSqlQuery *query);
 
     bool m_dbOpened;
     bool m_dbConnect;
 
     QString m_connectionName;
+    /**
+      * @var currentDBFileName
+      * Имя файла текущей открытой БД
+      */
+    QString currentDBFileName;
 
     //QSqlRelationalTableModel * tInfoModel;
     /**
-      * @brief Модель ИНФО_ШАБЛОНА
+      * @fn Модель ИНФО_ШАБЛОНА
       */
-    //QSqlQueryModel  * tInfoModel;
     TemplateInfoEditModel  * tInfoModel;
+    //QSqlTableModel         * tInfoModel2;
+    //QSqlQueryModel  * tInfoModel;
 
     /**
-      * @brief Модель РАЗМЕРЫ_ЛИСТА
+      * @fn Модель РАЗМЕРЫ_ЛИСТА
       */
     QSqlQueryModel  * pSizeModel;
 
     /**
-      * @brief Singleton DB connection
+      * @fn Singleton DB connection
       */
     QSqlDatabase DB_;
-protected:
+
     /**
-      * @brief Открываем существующую БД
+      * @fn Открываем существующую БД
       */
     bool openDataBase(const QString & t_fileName);
     /**
-      * @brief Создаем пустую БД с параметрами по умолчанию
+      * @fn Создаем пустую БД с параметрами по умолчанию
       */
     bool create_emptyDB(const QString &emptyDB_fileName);
     /**
-      @brief Загружает драйвер и устанавливает соединение с БД sqlite
+      * @fn Создает набор необходимых таблиц
+      * QSqlQuery &query связан с нужным соединением с БД
+      */
+    bool create_tables(QSqlQuery &query);
+    /**
+      @fn Загружает драйвер и устанавливает соединение с БД sqlite
       */
     bool createConnection();
     /**
@@ -118,6 +139,7 @@ protected:
       * 2.Создаем и удаляем файл по указанному пути
       */
     bool isCreateFile(const QString & fileName);
+
 };
 
 
