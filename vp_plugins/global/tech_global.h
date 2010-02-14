@@ -100,17 +100,6 @@ typedef enum WorkMode{
     PrintWithAccounting
 };
 
-typedef enum pluginsError {
-        NoError,
-        FileNotFound,
-        FileIOError,
-        UnknownError,
-        DriverNotLoad,
-        NotConnectedToDB,
-	DBOpeningError,
-        SQLQueryError,
-        SQLCommonError
-};
 
 
 }
