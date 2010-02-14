@@ -2,7 +2,10 @@
 #define tInfoEditModel_H
 
 #include <QSqlQueryModel>
+#include <QDebug>
+#include <QSqlDatabase>
 
+#include "mytypes.h"
 
 /** 
   * @class Редактируемая SQl модель позволяет записывать данные в 
@@ -22,31 +25,9 @@
   * rw | 11 |Отступ справа (мм)
   */
 
-enum pSizeColumnOrder{
-        pSize_id     = 0, // ID
-        pSize_page   = 1, // Размер листа
-        pSize_code   = 2, // Код
-        pSize_width  = 3, // Ширина (мм)
-        pSize_height = 4  // Высота (мм)
-
-};
-enum tInfoColumnOrder{
-            tInfo_id     = 0,  //ID
-            tInfo_name   = 1,  //Имя шаблона
-            tInfo_desc   = 2,  //Описание шаблона;
-            tInfo_pageID = 3,  //Ссылка на таблицу размеры страниц
-            tInfo_angle  = 4,  //Поворот (град.)
-            tInfo_ctime  = 5,  //Время создания
-            tInfo_mtime  = 6,  //Время изменения
-            tInfo_author = 7, //Автор
-            tInfo_mtop   = 8, //Отступ сверху (мм)
-            tInfo_mbottom = 9,//Отступ снизу (мм)
-            tInfo_mleft   = 10,//Отступ слева (мм)
-            tInfo_mright  = 11 //Отступ справа (мм)
-
-};
 
 
+using namespace VPrn;
 
 class TemplateInfoEditModel : public QSqlQueryModel
 {
@@ -59,18 +40,18 @@ public:
     void refresh();
 
 private:
+
     bool setTemplateName   (int Id, const QString &templateName);
     bool setTemplateDesc   (int Id, const QString &templateDesc);
     bool setTemplatePageId (int Id, int pageId);
-    bool setTemplateAngle  (int Id, double angle);
+    bool setTemplateAngle  (int Id, int angle);
     bool setTemplateCTime  (int Id, int cTime);
     bool setTemplateMTime  (int Id, int mTime);
     bool setTemplateAuthor (int Id, const QString &templateAuthor);
-    bool setTemplateMTop   (int Id, double mTop);
-    bool setTemplateMBottom(int Id, double mBottom);
-    bool setTemplateMLeft  (int Id, double mLeft);
-    bool setTemplateMRight (int Id, double mRight);
-
+    bool setTemplateMTop   (int Id, int mTop);
+    bool setTemplateMBottom(int Id, int mBottom);
+    bool setTemplateMLeft  (int Id, int mLeft);
+    bool setTemplateMRight (int Id, int mRight);
 
 };
 
