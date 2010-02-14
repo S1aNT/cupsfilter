@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+﻿<?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <class>AddTemplate</class>
  <widget class="QDialog" name="AddTemplate">
@@ -10,7 +10,7 @@
     <x>0</x>
     <y>0</y>
     <width>460</width>
-    <height>455</height>
+    <height>488</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -54,8 +54,8 @@
   <widget class="QWidget" name="horizontalLayoutWidget_2">
    <property name="geometry">
     <rect>
-     <x>200</x>
-     <y>404</y>
+     <x>191</x>
+     <y>441</y>
      <width>251</width>
      <height>41</height>
     </rect>
@@ -106,30 +106,30 @@
      <x>10</x>
      <y>337</y>
      <width>441</width>
-     <height>61</height>
+     <height>101</height>
     </rect>
    </property>
    <property name="title">
     <string>Общая информация</string>
    </property>
-   <widget class="QWidget" name="horizontalLayoutWidget_3">
+   <widget class="QWidget" name="formLayoutWidget_2">
     <property name="geometry">
      <rect>
       <x>10</x>
       <y>20</y>
       <width>421</width>
-      <height>31</height>
+      <height>80</height>
      </rect>
     </property>
-    <layout class="QHBoxLayout" name="horizontalLayout_3">
-     <item>
+    <layout class="QFormLayout" name="formLayout">
+     <item row="0" column="0">
       <widget class="QLabel" name="label">
        <property name="text">
         <string>  Автор:</string>
        </property>
       </widget>
      </item>
-     <item>
+     <item row="0" column="1">
       <widget class="QLineEdit" name="author_lineEd">
        <property name="enabled">
         <bool>false</bool>
@@ -142,15 +142,32 @@
        </property>
       </widget>
      </item>
-     <item>
+     <item row="1" column="0">
       <widget class="QLabel" name="label_3">
        <property name="text">
         <string>  Дата создания:  </string>
        </property>
       </widget>
      </item>
-     <item>
-      <widget class="QLineEdit" name="date_lineEd">
+     <item row="1" column="1">
+      <widget class="QLineEdit" name="cdate_lineEd">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="readOnly">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="0">
+      <widget class="QLabel" name="label_7">
+       <property name="text">
+        <string>  Дата изменения:  </string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="1">
+      <widget class="QLineEdit" name="mdate_lineEd">
        <property name="enabled">
         <bool>false</bool>
        </property>
@@ -190,7 +207,7 @@
         <string>...</string>
        </property>
        <property name="icon">
-        <iconset resource="images.qrc">
+        <iconset resource="../tEditor/images.qrc">
          <normaloff>:/portret.png</normaloff>:/portret.png</iconset>
        </property>
        <property name="iconSize">
@@ -216,7 +233,7 @@
         <string>...</string>
        </property>
        <property name="icon">
-        <iconset resource="images.qrc">
+        <iconset resource="../tEditor/images.qrc">
          <normaloff>:/landscape.png</normaloff>:/landscape.png</iconset>
        </property>
        <property name="iconSize">
@@ -275,7 +292,7 @@
      <x>10</x>
      <y>245</y>
      <width>441</width>
-     <height>91</height>
+     <height>81</height>
     </rect>
    </property>
    <property name="title">
@@ -287,7 +304,7 @@
       <x>10</x>
       <y>11</y>
       <width>421</width>
-      <height>71</height>
+      <height>61</height>
      </rect>
     </property>
     <layout class="QGridLayout" name="gridLayout">
@@ -380,7 +397,7 @@
       <x>10</x>
       <y>10</y>
       <width>271</width>
-      <height>80</height>
+      <height>81</height>
      </rect>
     </property>
     <layout class="QGridLayout" name="gridLayout_4">
@@ -409,16 +426,16 @@
       </widget>
      </item>
      <item row="1" column="1">
-      <widget class="QSpinBox" name="p_heightSpBox">
-       <property name="enabled">
-        <bool>false</bool>
+      <widget class="QLineEdit" name="p_widthLEd">
+       <property name="readOnly">
+        <bool>true</bool>
        </property>
       </widget>
      </item>
      <item row="2" column="1">
-      <widget class="QSpinBox" name="p_widthSpBox">
-       <property name="enabled">
-        <bool>false</bool>
+      <widget class="QLineEdit" name="p_heightLEd">
+       <property name="readOnly">
+        <bool>true</bool>
        </property>
       </widget>
      </item>
@@ -438,13 +455,9 @@
   <tabstop>margin_rightSpBox</tabstop>
   <tabstop>addBtn</tabstop>
   <tabstop>cancelBtn</tabstop>
-  <tabstop>date_lineEd</tabstop>
-  <tabstop>author_lineEd</tabstop>
-  <tabstop>p_heightSpBox</tabstop>
-  <tabstop>p_widthSpBox</tabstop>
  </tabstops>
  <resources>
-  <include location="images.qrc"/>
+  <include location="../tEditor/images.qrc"/>
  </resources>
  <connections>
   <connection>
