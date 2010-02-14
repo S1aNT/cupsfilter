@@ -8,6 +8,7 @@
 #include <QtSql/QSqlQuery>
 #include <QtSql/QSqlError>
 #include <QtCore/QFile>
+#include <QDir>
 #include <QtCore/QRegExp>
 #include <QTemporaryFile>
 #include <QPrinter>
@@ -49,6 +50,62 @@ Tmpl_sql_plugin::~Tmpl_sql_plugin()
 
 //****************************** public functions ******************************
 
+void Tmpl_sql_plugin::init(const QString & spool,const QString & sid)
+{
+    QString e_msg;
+    QDir dir;
+
+    if (!sid.isEmpty()) {
+        current_sid = sid;// Запомним уникальный номер
+        if (dir.cd(spool) && !spool.isEmpty()) {
+            // Проверим факт существования временного каталога
+            spool_dir = spool;
+            // Формируем пути для файлов
+            firstPage_tmpl_fn = QObject::trUtf8("%1/%2_first_tmpl.pdf").arg(spool, sid);
+            secondPage_tmpl_fn = QObject::trUtf8("%1/%2_second_tmpl.pdf").arg(spool, sid);
+            thirdPage_tmpl_fn = QObject::trUtf8("%1/%2_third_tmpl.pdf").arg(spool, sid);
+            fourthPage_tmpl_fn = QObject::trUtf8("%1/%2_fourth_tmpl.pdf").arg(spool, sid);
+            // создаем сцены
+            firstPage_scene  = new QGraphicsScene(this);
+            secondPage_scene = new QGraphicsScene(this);
+            thirdPage_scene  = new QGraphicsScene(this);
+            fourthPage_scene = new QGraphicsScene(this);
+            // Заполним список базовых элементов шаблона
+
+            baseElemList << QObject::tr("МБ")
+                    << QObject::tr("Название док-та")
+                    << QObject::tr("Гриф")
+                    << QObject::tr("Пункт перечня")
+                    << QObject::tr("Номер копии")
+                    << QObject::tr("Кол-во листов")
+                    << QObject::tr("Исполнитель")
+                    << QObject::tr("Отпечатал")
+                    << QObject::tr("Телефон")
+                    << QObject::tr("Инв. N")
+                    << QObject::tr("Дата распечатки")
+                    << QObject::tr("Получатель N1")
+                    << QObject::tr("Получатель N2")
+                    << QObject::tr("Получатель N3")
+                    << QObject::tr("Получатель N4")
+                    << QObject::tr("Получатель N5");
+            view_code_state = false;
+        }else{
+            e_msg = QObject::trUtf8("ERROR: каталог %1 не существует\n").arg(spool);
+        }
+
+    }else{
+        e_msg = QObject::trUtf8("ERROR: Неверный SID для документа\n").arg(sid);
+    }
+    if (!e_msg.isEmpty()) {
+        emit error(InternalPluginError,e_msg);
+    }
+
+}
+
+QStringList Tmpl_sql_plugin::getBaseElemNameList() const
+{
+    return baseElemList;
+}
 
 //------------------------------------------------------------------------------
 bool Tmpl_sql_plugin::createConnection()
@@ -487,6 +544,15 @@ bool Tmpl_sql_plugin::create_emptyDB(QString const&)
             // Создаем базовый набор обязательных полей
             Ok &= query.prepare("insert into elem (tag,pos_x,pos_y,border) VALUES(?,?,?,?);");
             if (Ok){
+                for (int i=0; i< baseElemList.size();i++){
+
+                    query.addBindValue(baseElemList.at(i));
+                    query.addBindValue(100);
+                    query.addBindValue(100);
+                    query.addBindValue(1);
+                    Ok &= query.exec();
+                }
+                /*
                 query.addBindValue("МБ");
                 query.addBindValue(100);
                 query.addBindValue(100);
@@ -588,7 +654,7 @@ bool Tmpl_sql_plugin::create_emptyDB(QString const&)
                 query.addBindValue(100);
                 query.addBindValue(1);
                 Ok &= query.exec();
-
+*/
             }else{
                 DumpError(query.lastError());
             }
@@ -671,75 +737,6 @@ bool Tmpl_sql_plugin::fillModels()
                        .arg(tInfoModel->lastError().text()));
             Ok &= false;
         }
-        /*
-        tInfoModel2->setTable("template");
-        tInfoModel2->setEditStrategy(QSqlTableModel::OnManualSubmit);
-        tInfoModel2->select();
-        if (tInfoModel2->lastError().isValid()){
-            emit error(SQLQueryError,tr("Ошибка получения свойств шаблона. %1,%2")
-                       .arg(tInfoModel2->lastError().text())
-                       .arg(tInfoModel2->database().databaseName()));
-            Ok &= false;
-        }
-        tInfoModel2->setHeaderData(tInfo_id,     Qt::Horizontal, tr("ID"));                 // 0
-        //tInfoModel2->setHeaderData(tInfo_name,   Qt::Horizontal, tr("Имя шаблона"));        // 1
-        tInfoModel2->setHeaderData(tInfoModel2->fieldIndex("t_name"),   Qt::Horizontal, tr("Имя шаблона"));        // 1
-        tInfoModel2->setHeaderData(tInfo_desc,   Qt::Horizontal, tr("Описание"));           // 2
-        tInfoModel2->setHeaderData(tInfo_pageID, Qt::Horizontal, tr("PSize_id"));           // 3
-        tInfoModel2->setHeaderData(tInfo_angle,  Qt::Horizontal, tr("Поворот (град.)"));    // 4
-        tInfoModel2->setHeaderData(tInfo_ctime,  Qt::Horizontal, tr("Время создания"));     // 5
-        tInfoModel2->setHeaderData(tInfo_mtime,  Qt::Horizontal, tr("Время изменения"));    // 6
-        tInfoModel2->setHeaderData(tInfo_author, Qt::Horizontal, tr("Автор"));              // 7
-        tInfoModel2->setHeaderData(tInfo_mtop,   Qt::Horizontal, tr("Отступ сверху (мм)")); // 8
-        tInfoModel2->setHeaderData(tInfo_mbottom,Qt::Horizontal, tr("Отступ снизу (мм)"));  // 9
-        tInfoModel2->setHeaderData(tInfo_mleft,  Qt::Horizontal, tr("Отступ слева (мм)"));  // 10
-        tInfoModel2->setHeaderData(tInfo_mright, Qt::Horizontal, tr("Отступ справа (мм)")); // 11
-
-        tInfoModel->setQuery("SELECT id,t_name,t_desc,"
-                             "psize_id,angle,"
-                             "c_time,m_time,author,margin_top,margin_bottom,"
-                             "margin_left,margin_right "
-                             "FROM template",DB_);
-        tInfoModel->setHeaderData(tInfo_id,
-                                  Qt::Horizontal, tr("ID"));
-        tInfoModel->setHeaderData(tInfo_name,
-                                  Qt::Horizontal, tr("Имя шаблона"));
-        tInfoModel->setHeaderData(tInfo_desc,
-                                  Qt::Horizontal, tr("Описание"));
-        tInfoModel->setHeaderData(tInfo_pageID,
-                                  Qt::Horizontal, tr("PSize_id"));
-
-        tInfoModel->setHeaderData(tInfo_page,
-                                  Qt::Horizontal, tr("Размер листа"));
-        tInfoModel->setHeaderData(tInfo_code,
-                                  Qt::Horizontal, tr("Код"));
-        tInfoModel->setHeaderData(tInfo_width,
-                                  Qt::Horizontal, tr("Ширина (мм)"));
-        tInfoModel->setHeaderData(tInfo_height,
-                                  Qt::Horizontal, tr("Высота (мм)"));
-
-        tInfoModel->setHeaderData(tInfo_angle,
-                                  Qt::Horizontal, tr("Поворот (град.)"));
-        tInfoModel->setHeaderData(tInfo_ctime,
-                                  Qt::Horizontal, tr("Время создания"));
-        tInfoModel->setHeaderData(tInfo_mtime,
-                                  Qt::Horizontal, tr("Время изменения"));
-        tInfoModel->setHeaderData(tInfo_author,
-                                  Qt::Horizontal, tr("Автор"));
-        tInfoModel->setHeaderData(tInfo_mtop,
-                                  Qt::Horizontal, tr("Отступ сверху (мм)"));
-        tInfoModel->setHeaderData(tInfo_mbottom,
-                                  Qt::Horizontal, tr("Отступ снизу (мм)"));
-        tInfoModel->setHeaderData(tInfo_mleft,
-                                  Qt::Horizontal, tr("Отступ слева (мм)"));
-        tInfoModel->setHeaderData(tInfo_mright,
-                                  Qt::Horizontal, tr("Отступ справа (мм)"));
-        if (tInfoModel->lastError().isValid()){
-            emit error(SQLQueryError,tr("Ошибка получения свойств шаблона. %1")
-                       .arg(tInfoModel->lastError().text()));
-            Ok &= false;
-        }
-        */
     }
     return Ok;
 }
@@ -749,14 +746,7 @@ void Tmpl_sql_plugin::closeTemplates()
 {
 
 }
-bool Tmpl_sql_plugin::isLoad()
-{
-    return false;
-}
-bool Tmpl_sql_plugin::hasError()
-{
-    return false;
-}
+
 
 Q_EXPORT_PLUGIN2(Itmpl_sql_plugin, Tmpl_sql_plugin)
 ;

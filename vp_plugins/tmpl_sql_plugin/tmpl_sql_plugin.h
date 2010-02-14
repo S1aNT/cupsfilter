@@ -1,6 +1,21 @@
 #ifndef TMPL_SQL_PLUGIN_H
 #define TMPL_SQL_PLUGIN_H
 
+/**
+  * @todo В настоящий момент в шаблоне жестко создается 4 сцены,
+  * указатели на которые возвращаются внешнему приложению
+  * необходимо сделать наборот, шаблон возвращает QSqlQuery модель
+  * описывающую набор страниц в виде таблицы
+  * (№п/п, Название страницы, тип страницы [Лицевая сторона 1листа, <- {1,5}
+  *                                         Лицевая сторона 2листа, <- {0,1}
+  *                                         Обратная сторона листа, <- {0,1}
+  *                                         Фонарик])               <- {0,1}
+  * А приложение генерирует необходимое число QGraphicsScene и передает
+  * в шаблон их через указатель для заполнения сцены элементами присутвующими
+  * на данной странице в шаблоне
+  * При создании  шаблона необходимо указывать требуемое число страниц
+  */
+
 #include <QObject>
 #include <QSqlDatabase>
 
@@ -16,8 +31,6 @@ class QSqlTableModel;
 
 using namespace VPrn;
 
-//#include "tech_global.h"
-//using namespace SafeVirtualPrinter;
 
 class Tmpl_sql_plugin : public QObject , Itmpl_sql_plugin
 {
@@ -27,20 +40,22 @@ public:
 
     Tmpl_sql_plugin(QObject *parent = 0);
     ~Tmpl_sql_plugin();
+    /**
+      * @fn init(const QString & spool,const QString & sid)
+      * Первоначальная настройка плагина
+      */
+    void init(const QString & spool,const QString & sid);
 
     inline bool isDBOpened(){return m_dbOpened;};
     inline bool isDBConnected(){return m_dbConnect;};
 
-    void closeTemplates();	
-    bool isLoad();
-    bool hasError();
-    //QSqlQueryModel  * getInfoModel(){return tInfoModel;};
-
     TemplateInfoEditModel * getInfoModel(){return tInfoModel;};
-    //QSqlTableModel * getInfoModel2(){return tInfoModel2;};
 
     QSqlQueryModel  * getPSizeModel(){return pSizeModel;};
-
+    /**
+      * @fn Возвращает набор базовых элементов шаблона
+      */
+    QStringList getBaseElemNameList() const;
 
 signals:
     void error(pluginsError errCode,QString error_message);
@@ -68,33 +83,65 @@ public slots:
       * @fn сохраним шаблон с заданным именем
       */
     void saveTemplatesAs(const QString & fileName);
+    void closeTemplates();
 private:    
 
     bool m_dbOpened;
     bool m_dbConnect;
+    /**
+      * @var spool_dir    каталог для временных файлов
+      * @var current_sid  уникальный сеансовый номер
+      * Пути к генерируемым страницам шаблона 1-4
+      * @todo должны формироваться по запросу приложения
+      * @var firstPage_tmpl_fn;
+      * @var secondPage_tmpl_fn;
+      * @var thirdPage_tmpl_fn;
+      * @var fourthPage_tmpl_fn;
+      * Набор из 4-х сцен
+      * @var firstPage_scene;
+      * @var secondPage_scene;
+      * @var thirdPage_scene;
+      * @var fourthPage_scene;
+      */
+    QString spool_dir;
+    QString current_sid;
+
+    QString firstPage_tmpl_fn;
+    QString secondPage_tmpl_fn;
+    QString thirdPage_tmpl_fn;
+    QString fourthPage_tmpl_fn;
+
+    QGraphicsScene * firstPage_scene;
+    QGraphicsScene * secondPage_scene;
+    QGraphicsScene * thirdPage_scene;
+    QGraphicsScene * fourthPage_scene;
+
+    bool view_code_state;
 
     QString m_connectionName;
+    /**
+      * @var baseElemList;
+      * список базовых элементов
+      */
+    QStringList baseElemList;
+
     /**
       * @var currentDBFileName
       * Имя файла текущей открытой БД
       */
     QString currentDBFileName;
-
-    //QSqlRelationalTableModel * tInfoModel;
     /**
       * @fn Модель ИНФО_ШАБЛОНА
       */
     TemplateInfoEditModel  * tInfoModel;
-    //QSqlTableModel         * tInfoModel2;
-    //QSqlQueryModel  * tInfoModel;
 
     /**
-      * @fn Модель РАЗМЕРЫ_ЛИСТА
+      * @var Модель РАЗМЕРЫ_ЛИСТА
       */
     QSqlQueryModel  * pSizeModel;
 
     /**
-      * @fn Singleton DB connection
+      * @var Singleton DB connection
       */
     QSqlDatabase DB_;
 
@@ -139,7 +186,6 @@ private:
       * 2.Создаем и удаляем файл по указанному пути
       */
     bool isCreateFile(const QString & fileName);
-
 };
 
 
