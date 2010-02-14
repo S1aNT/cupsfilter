@@ -7,10 +7,11 @@
 
 #include "tinfoeditmodel.h"
 
-#include "tech_global.h"
+#include "mytypes.h"
 
-using namespace SafeVirtualPrinter;
+using namespace VPrn;
 
+class QSqlTableModel;
 
 class pluginWorker :public QObject
 {
@@ -20,15 +21,17 @@ public:
     pluginWorker(QObject *parent=0);
     bool loadPlugin();
     bool openTemplates(const QString &db_fileName);
-    bool createEmptyTemplate(const QString &db_fileName);
+    bool createEmptyTemplate();
     void closeTemplates();
-    TemplateInfoEditModel  * getInfoModel();
+    TemplateInfoEditModel  *getInfoModel();
+    //QSqlTableModel *getInfoModel2();
     QSqlQueryModel  * getPSizeModel();
 
 signals:
     void error(pluginsError errCode,QString error_message);
 public slots:
     void do_Error(pluginsError errCode,QString error_message);
+    void doCreateEmptyTemplate(const QString &fileName);
 
 private:
     Itmpl_sql_plugin *t_plugin;
@@ -41,6 +44,5 @@ protected:
 
 
 
-Q_DECLARE_METATYPE(SafeVirtualPrinter::pluginsError)
 
 #endif //PLUGIN_WORKER_

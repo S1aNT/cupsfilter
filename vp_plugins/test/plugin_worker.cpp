@@ -2,12 +2,12 @@
 #include <QDir>
 #include <QPluginLoader>
 #include <QFile>
-
-using namespace SafeVirtualPrinter;
+#include <QMessageBox>
+#include <QSqlTableModel>
 
 pluginWorker::pluginWorker(QObject *parent)
 {
-    qRegisterMetaType<pluginsError>("pluginsError");
+    //qRegisterMetaType<pluginsError>("pluginsError");
 }
 
 bool pluginWorker::loadPlugin()
@@ -53,16 +53,26 @@ bool pluginWorker::loadPlugin()
  {
      //qDebug() << "Error code " << errCode << " eMessage " << error_message;
      emit error(errCode,error_message);
+     QMessageBox msgBox;
+      msgBox.setText(error_message);
+      msgBox.exec();
  }
 
  bool pluginWorker::openTemplates(const QString &db_fileName)
  {
-     return t_plugin->openTemplates(db_fileName);
+     t_plugin->openTemplates(db_fileName);
+     return t_plugin->isDBOpened();
  }
 
- bool pluginWorker::createEmptyTemplate(const QString &db_fileName)
+ bool pluginWorker::createEmptyTemplate()
  {
-     return t_plugin->createEmptyTemplate(db_fileName);
+    t_plugin->createEmptyTemplate();
+    return t_plugin->isDBOpened();
+ }
+
+ void pluginWorker::doCreateEmptyTemplate(const QString &fileName)
+ {
+
  }
 
 TemplateInfoEditModel *pluginWorker::getInfoModel()
@@ -70,6 +80,12 @@ TemplateInfoEditModel *pluginWorker::getInfoModel()
      return t_plugin->getInfoModel();
 }
 
+/*
+QSqlTableModel *pluginWorker::getInfoModel2()
+{
+     return t_plugin->getInfoModel2();
+}
+*/
 QSqlQueryModel *pluginWorker::getPSizeModel()
 {
      return t_plugin->getPSizeModel();
