@@ -6,14 +6,15 @@
 #include <QFont>
 
 #include "itmpl_sql_plugin.h"
-
+#include "mytypes.h"
 
 class TemplateInfoEditModel;
 class QSqlQueryModel;
+class QSqlTableModel;
 class QDataWidgetMapper;
 
 
-//#include "templ_info.h"
+using namespace VPrn;
 
 namespace Ui {
     class AddTemplate;
@@ -32,20 +33,28 @@ public:
     void setEnableGUI(bool mode);
 
     /**
+      * @fn default_init() Начальная настройка окна Информация о шаблоне
+      * задан порядок инициализации моделей
+      */
+    void default_init();
+
+    /**
       * @fn Установим и настроим модель РАЗМЕРЫ_ЛИСТА
       */
-    void setPageSizeModel(QSqlQueryModel *model);
+    void setPageSizeModel(QSqlQueryModel *model){pSizeModel = model;};
     /**
       * @fn Установим и настроим модель ИНФО_ШАБЛОНА
       */
-    void setInfoModel(TemplateInfoEditModel *model);
-
+    void setInfoModel(TemplateInfoEditModel *model){tInfoModel = model;};
+    //void setInfoModel2(QSqlTableModel *model){tInfoModel2 = model;};
 signals:
     void needCreateEmptyTemplates(QString &fileName);
 
+    void error(pluginsError errCode,QString error_message);
+
 private slots:
-    void set_portret();
-    void set_landscape();
+    void setPortret();
+    void setLandscape();
 
     /**
       * @fn При выборе пользователем из выпадающего списка размера страницы
@@ -61,24 +70,16 @@ private slots:
 
 protected:
     void changeEvent(QEvent *e);
-    void showInfo(const QString & info);
-    /**
-      * @fn начальная настройка шаблона
-      */
-    void default_init();
-    void connector();
+
 protected slots:
     void accept();
-    /**
-      * @fn Ищет в модели РАЗМЕР_ЛИСТА ID для строки pSizeHuman
-      */
-    int getIndexInPSizeModel(const QString pSizeHuman);
 
 private:
     Ui::AddTemplate *ui;
     QFont boldFont;
     QFont normalFont;
     QString local_dir;
+    int currentPSizeId;
 
     bool work_mode;
     /// связь между моделью РАЗМЕРЫ_ЛИСТА и элементами отображения
@@ -91,6 +92,25 @@ private:
     QSqlQueryModel *pSizeModel;
     /// Указатель на модель ИНФО_ШАБЛОНА
     TemplateInfoEditModel *tInfoModel;
+
+    //QSqlTableModel *tInfoModel2;
+
+    void showInfo(const QString & info);
+    void connector();
+    /**
+      * @fn Ищет в модели РАЗМЕР_ЛИСТА ID для строки pSizeHuman
+      */
+    int getIndexInPSizeModel(const QString pSizeHuman);
+    /**
+      * @fn Получает данные из модели ИНФО_ШАБЛОНА и записывает их в поля ввода
+      * Мой аналог QDataWidgetMapper, который "работает" очень своеобразно
+      */
+    void getData4Models();
+    /**
+      * @fn Получает данные из полей ввода и записывает их в модель ИНФО_ШАБЛОНА
+      * Мой аналог QDataWidgetMapper, который "работает" очень своеобразно
+      */
+    void setData4Models();
 };
 
 #endif // ADDTEMPLATE_H
