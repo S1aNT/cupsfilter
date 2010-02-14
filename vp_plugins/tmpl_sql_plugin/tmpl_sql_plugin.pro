@@ -22,7 +22,7 @@ CONFIG += plugin \
 
 INCLUDEPATH += ../interfaces \
                ../global
-DESTDIR = ../testWithGui/plugins
+DESTDIR = ../safeFatPrinter/plugins
 LANGUAGE  = C++
 # Use Precompiled headers (PCH)
 PRECOMPILED_HEADER  = ../global/pre_header.h
@@ -30,6 +30,8 @@ HEADERS += ../global/pre_header.h \
            ../global/tech_global.h \
            ../global/mytypes.h \
            ../global/tinfoeditmodel.h \
-           tmpl_sql_plugin.h 
+           tmpl_sql_plugin.h \
+           simpleitem.h
 SOURCES = tmpl_sql_plugin.cpp \
+          simpleitem.cpp \
           ../global/tinfoeditmodel.cpp
