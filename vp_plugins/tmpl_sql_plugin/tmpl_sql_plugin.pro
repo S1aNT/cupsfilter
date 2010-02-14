@@ -28,8 +28,8 @@ LANGUAGE  = C++
 PRECOMPILED_HEADER  = ../global/pre_header.h
 HEADERS += ../global/pre_header.h \
            ../global/tech_global.h \
-        tmpl_sql_plugin.h \
-        ../global/tinfoeditmodel.h
-
+           ../global/mytypes.h \
+           ../global/tinfoeditmodel.h \
+           tmpl_sql_plugin.h 
 SOURCES = tmpl_sql_plugin.cpp \
           ../global/tinfoeditmodel.cpp
