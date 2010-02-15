@@ -24,6 +24,8 @@ class QSqlQueryModel;
 class QSqlRelationalTableModel;
 class QSqlError;
 class QSqlTableModel;
+class QGraphicsItem;
+class QGraphicsScene;
 
 #include "itmpl_sql_plugin.h"
 #include "tinfoeditmodel.h"
@@ -59,6 +61,8 @@ public:
 
 signals:
     void error(pluginsError errCode,QString error_message);
+    void allTemplatesPagesParsed(QGraphicsScene *scene_1,QGraphicsScene *scene_2,
+                                 QGraphicsScene *scene_3,QGraphicsScene *scene_4);
 
 public slots:
     /**
@@ -84,6 +88,12 @@ public slots:
       */
     void saveTemplatesAs(const QString & fileName);
     void closeTemplates();
+
+    /** @fn doAddBaseElementToPage(int page,QString &text)
+      * добавляет базовый элемент на страницу с номером page
+      */
+    void doAddBaseElementToPage(int page,const QString &text);
+
 private:    
 
     bool m_dbOpened;
@@ -162,6 +172,7 @@ private:
       @fn Загружает драйвер и устанавливает соединение с БД sqlite
       */
     bool createConnection();
+
     /**
       * @brief Настройка модели, для установленного соединения
       * и файла открытого как БД
@@ -169,14 +180,17 @@ private:
       */
     bool fillModels();
     void DumpError (const QSqlError & lastError);
+
     /**
       * @brief Предварительная настройка БД
       */
     bool InitDB ();
+
     /**
       * @brief Проверяет корректность имени файла [имя файла].tmpl
       */
     bool isValidFileName(const QString & fileName);
+
     /**
       * @brief Проверяет возможность создания файла по указанному пути
       * 1.Проверка что данный файл не существует.
@@ -186,6 +200,24 @@ private:
       * 2.Создаем и удаляем файл по указанному пути
       */
     bool isCreateFile(const QString & fileName);
+
+    /**
+      * @fn QGraphicsItem *findPaperElem(QGraphicsScene *scene)
+      * Ищет на заданной странице элемент имеющий тег Paper и возвращает
+      * указатель на него
+      * @todo Может просто возвращать сам элемент ???
+      */
+    QGraphicsItem *findPaperElem(QGraphicsScene *scene);
+
+    /** @fn bool fillScenes4Data()
+      * Рабор данных полученных из шаблона и запись их в сцены
+      */
+    bool fillScenes4Data();
+
+    void create_page(QGraphicsScene * scene,qreal width,qreal height,
+                                  qreal m_top,qreal m_bottom,
+                                  qreal m_right,qreal m_left);
+
 };
 
 

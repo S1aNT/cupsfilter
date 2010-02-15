@@ -1,4 +1,5 @@
 #include "tmpl_sql_plugin.h"
+#include "simpleitem.h"
 
 #include <QtCore/QDebug>
 #include <QtSql/QSqlError>
@@ -15,6 +16,7 @@
 #include <QMetaType>
 #include <QModelIndex>
 #include <QDateTime>
+#include <QtGui/QGraphicsItem>
 
 using namespace VPrn;
 
@@ -123,7 +125,6 @@ bool Tmpl_sql_plugin::createConnection()
     return  openingOk;
 }
 
-
 bool Tmpl_sql_plugin::openDataBase(const QString & t_fileName)
 {
     bool Ok = true;
@@ -145,7 +146,6 @@ bool Tmpl_sql_plugin::openDataBase(const QString & t_fileName)
     return  Ok;
 }
 
-
 //************************* Public slots *************************************
 
 void Tmpl_sql_plugin::openTemplates(const QString & t_fileName)
@@ -160,6 +160,12 @@ void Tmpl_sql_plugin::openTemplates(const QString & t_fileName)
             Ok &=openDataBase(t_fileName);
             if (Ok){
                 Ok &= fillModels();
+                // Рабор данных полученных из шаблона и запись их в сцены
+                Ok &= fillScenes4Data();
+
+                if (Ok){                  
+                    emit allTemplatesPagesParsed(firstPage_scene, secondPage_scene, 						 thirdPage_scene, fourthPage_scene);
+                }
             }
         }
     }
@@ -198,6 +204,7 @@ void Tmpl_sql_plugin::createEmptyTemplate()
     }
     m_dbOpened = Ok;
 }
+
 void Tmpl_sql_plugin::saveTemplatesAs(const QString & fileName)
 {
     bool Ok = true;
@@ -220,9 +227,95 @@ void Tmpl_sql_plugin::saveTemplatesAs(const QString & fileName)
     }
 }
 
+void Tmpl_sql_plugin::doAddBaseElementToPage(int page,const QString &text)
+{
+    QString e_msg;
+    QString l_msg = QString(" [%1] ").arg(QString::fromAscii(Q_FUNC_INFO));
+    QGraphicsScene *scene;
+    QGraphicsItem *item;
+
+    switch(page){
+    case 1:
+        scene = firstPage_scene;
+        break;
+    case 2:
+        scene = secondPage_scene;
+        break;
+    case 3:
+        scene = thirdPage_scene;
+        break;
+    case 4:
+        scene = fourthPage_scene;
+        break;
+    default:
+        e_msg = QObject::trUtf8("Ошибка: Такой страницы %2 в шаблоне не существует")
+                .arg(page,0,10);
+        /// @todo Исправить
+        emit error(InternalPluginError,e_msg);
+        //emit error(e_msg);
+        //emit toLog(l_msg+e_msg);
+        break;
+    }
+    if (scene){
+        item = findPaperElem(scene);
+
+        SimpleItem * pItem = new SimpleItem();
+        pItem->setZValue(100);
+        pItem->setPos(100.0,100.0);
+        //pItem->setText(QStringList()<<QObject::trUtf8("Элемент"));
+        pItem->setTag(text);
+        pItem->setFlag(QGraphicsItem::ItemIsMovable);
+        pItem->setData(ObjectName, "tElem");
+        pItem->setParentItem(item);
+        scene->update();
+    }
+}
+
 //------------------------------------------------------------------------------
 
-//***************** protected functions **************************************
+//***************** private functions **************************************
+
+// Рабор данных полученных из шаблона и запись их в сцены
+bool Tmpl_sql_plugin::fillScenes4Data()
+{
+    firstPage_scene->clear();
+    secondPage_scene->clear();
+    thirdPage_scene->clear();
+    fourthPage_scene->clear();
+    return true;
+}
+
+void Tmpl_sql_plugin::create_page(QGraphicsScene * scene,
+                              qreal width,qreal height,
+                              qreal m_top,qreal m_bottom,
+                              qreal m_right,qreal m_left)
+{
+    if (scene){
+        scene->setSceneRect(0, 0, width,height);
+        scene->setBackgroundBrush(Qt::white);
+        /// рисуем границы (@todo при печати надо их убирать)
+
+        QGraphicsRectItem *paper_rect =
+                new QGraphicsRectItem (QRectF(0,0, width,height));
+        paper_rect->setPen(QPen(Qt::black));
+        paper_rect->setBrush(QBrush(Qt::white));
+        paper_rect->setZValue(-1000.0);
+        paper_rect->setData(ObjectName, "Paper");
+        scene->addItem(paper_rect);
+
+        QGraphicsRectItem *border_rect =
+                new QGraphicsRectItem (
+                        QRectF(m_left, m_top,width-m_left-m_right,height-m_top-m_bottom)
+                        );
+
+        border_rect->setPen(QPen(Qt::black,2,Qt::DotLine));
+        border_rect->setBrush(QBrush(Qt::white));
+        border_rect->setOpacity(1);
+        border_rect->setZValue(-900);
+        border_rect->setData(ObjectName, "Border");
+        border_rect->setParentItem(paper_rect);
+    }
+}
 
 bool Tmpl_sql_plugin::InitDB()
 {
@@ -739,6 +832,20 @@ bool Tmpl_sql_plugin::fillModels()
         }
     }
     return Ok;
+}
+
+QGraphicsItem *Tmpl_sql_plugin::findPaperElem(QGraphicsScene *scene)
+{
+    QGraphicsItem *item;
+
+    // Поиск  указателя на бумагу
+    for (int i = 0; i < scene->items().size(); ++i){
+        item = scene->items().at(i);
+        if ( item->data(ObjectName).toString()=="Paper"){
+            break;
+        }
+    }
+    return item;
 }
 
 //****************************************************************************
