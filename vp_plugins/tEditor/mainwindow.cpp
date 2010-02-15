@@ -156,24 +156,10 @@ void MainWindow::loadPlugins()
                         );
 
                 connect(this,
-                        SIGNAL(addBaseElementToPage(int,QString &)),
+                        SIGNAL(addBaseElementToPage(int,const QString &)),
                         plugin,
-                        SLOT(doAddBaseElementToPage(int,QString &))
+                        SLOT(doAddBaseElementToPage(int,const QString &))
                         );
-
-                tmpl_plugin->init(spoolDir,sid);
-                // Получим названия стандартных кнопок для шаблона
-                elemList = tmpl_plugin->getBaseElemNameList();
-
-                /*
-
-
-
-                doc_model = tmpl_plugin->getModel();
-
-                // Получим список размеров страниц
-                page_size_model->setStringList(tmpl_plugin->getPageSizeList());
-
                 connect (plugin,
                          SIGNAL(allTemplatesPagesParsed(QGraphicsScene *,
                                                         QGraphicsScene *,
@@ -185,7 +171,15 @@ void MainWindow::loadPlugins()
                                        QGraphicsScene *,
                                        QGraphicsScene *))
                          );
+                tmpl_plugin->init(spoolDir,sid);
+                // Получим названия стандартных кнопок для шаблона
+                elemList = tmpl_plugin->getBaseElemNameList();
 
+                /*
+                doc_model = tmpl_plugin->getModel();
+
+                // Получим список размеров страниц
+                page_size_model->setStringList(tmpl_plugin->getPageSizeList());
                 connect(this,
                         SIGNAL(addImgElementToPage(int,QString &)),
                         plugin,

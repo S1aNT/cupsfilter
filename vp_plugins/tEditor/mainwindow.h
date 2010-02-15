@@ -56,7 +56,7 @@ private slots:
     void do_viewCode();
 signals:
     void addBaseElementToPage(int, const QString & line);
-    void addImgElementToPage(int , QString &templ_fn);
+    void addImgElementToPage(int , const QString &templ_fn);
 private:
     /**
       * @brief Полученый из плагина набор страниц преобразует во вкладки редактора
