@@ -13,8 +13,8 @@
 #include "cmdFrame.h"
 
 MainWindow::MainWindow():
-       auth_plugin(0)
-     , tmpl_plugin(0)
+        auth_plugin(0)
+        , tmpl_plugin(0)
 {
 
     this->readGlobal(qApp->applicationDirPath());
@@ -131,7 +131,7 @@ void MainWindow::loadPlugins()
                         SIGNAL(get_User_name_mandat(QString &,QString &)),
                         this,
                         SLOT(saveUserName(QString&)) // Мне нужно только имя
-                       );
+                        );
 
 #if defined(Q_OS_UNIX)
                 auth_plugin->init(ticket_name);
@@ -174,6 +174,7 @@ void MainWindow::loadPlugins()
                 tmpl_plugin->init(spoolDir,sid);
                 // Получим названия стандартных кнопок для шаблона
                 elemList = tmpl_plugin->getBaseElemNameList();
+
 
                 /*
                 doc_model = tmpl_plugin->getModel();
@@ -240,40 +241,41 @@ void MainWindow::saveUserName(QString & u_name)
 void MainWindow::do_needCreateEmptyTemplates(QString &file_name)
 {
     if (tmpl_plugin ){
+        tmpl_plugin->saveTemplatesAs(file_name);
 
-        //TODO привести к новому виду
-        /*
-        tmpl_plugin->setTemplInfo(tInfo);
+        if (tmpl_plugin->isDBOpened()){
+            statusBar()->showMessage(QObject::tr("Шаблон [%1] создан").arg(file_name),1000);
+            // Теперь загрузим этот же шаблон
+             loadFromFile(file_name);
+        }else{
+            statusBar()->showMessage(
+                    QObject::tr("Не возможно создать или загрузить шаблон [%1]")
+                    .arg(file_name),1000);
+        }
 
-        tmpl_plugin->createEmptyTemplate(file_name);
-        */
-        this->statusBar()->showMessage(QObject::tr("Шаблон [%1] создан").arg(file_name),1000);
-        // Теперь загрузим этот же шаблон
-        loadFromFile(file_name);
     }
 }
 
 void MainWindow::createNewTemplate()
 {
     // Покажем дилоговое окошко с вводом параметров шаблона
-    if (tmpl_plugin ){
-
-        //TODO привести к новому виду
-        /*
-        // Получим информацию о шаблоне
-        tInfo = tmpl_plugin->getTemplInfo();
-
-        tInfo.setT_author(userName);// Сохраним имя пользователя
-
-        TProperDlg->setTemplatesInfo(tInfo);
-        TProperDlg->setPageSize(page_size_model);
-        TProperDlg->setLocalTemplatesDir(local_t_path);
-        */
-        TProperDlg->setEnableGUI(true);
-        // Покажем информацию о шаблоне
-        TProperDlg->exec();
+    if (tmpl_plugin){
+        // Запомним в плагине имя пользователя
+        tmpl_plugin->setUserName (this->userName);
+        /** @brief Создаем пустой шаблон в во временном каталоге
+          * заданном при инициализации плагина
+          * @todo сейчас создается вовременом системном каталоге изменить!
+          */
+        tmpl_plugin->createEmptyTemplate();
+        if (tmpl_plugin->isDBOpened()){
+            // Покажем информацию о шаблоне
+            TProperDlg->setInfoModel(tmpl_plugin->getInfoModel());
+            TProperDlg->setPageSizeModel(tmpl_plugin->getPSizeModel());
+            TProperDlg->default_init();
+            TProperDlg->setEnableGUI(true);
+            TProperDlg->exec();
+        }
     }
-
 }
 
 void MainWindow::setPages(QGraphicsScene *first,
