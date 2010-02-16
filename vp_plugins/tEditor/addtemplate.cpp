@@ -108,7 +108,6 @@ void AddTemplate::default_init()
         //tInfoDWMapper->addMapping(ui->descTextEdit,tInfo_desc);
         //tInfoDWMapper->toFirst();
 
-
         pSizeDWMapper->setModel(pSizeModel);
         //Заполним выпадающий список из модели
         ui->pageSizeCBox->setModel(pSizeModel);
@@ -246,7 +245,6 @@ void AddTemplate::accept()
     QString fileName;
     this->setData4Models();
 
-
     QString e_msg = QObject::trUtf8("Поле [ %1 ] не может быть пустым!");
     if (ui->t_name_lineEd->text().isEmpty()){
         e_msg.arg(QObject::trUtf8("Имя шаблона"));
@@ -258,7 +256,6 @@ void AddTemplate::accept()
         if (!fileName.isEmpty()){
             if (work_mode){
                 emit needCreateEmptyTemplates(fileName);
-
                 QDialog::accept();
             }else{
                 QDialog::close();
