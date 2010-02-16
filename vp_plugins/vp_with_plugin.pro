@@ -8,5 +8,5 @@ SUBDIRS	= safeFatPrinter \
 	net_plugin \
 	gs_plugin \
 	auth_plugin \
-	tmpl_plugin
+        tmpl_sql_plugin
 
