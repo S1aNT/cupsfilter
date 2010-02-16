@@ -58,6 +58,7 @@ public:
       * @fn Возвращает набор базовых элементов шаблона
       */
     QStringList getBaseElemNameList() const;
+    void setUserName (const QString &user){userName = user;};
 
 signals:
     void error(pluginsError errCode,QString error_message);
@@ -113,6 +114,7 @@ private:
       * @var thirdPage_scene;
       * @var fourthPage_scene;
       */
+    QString userName;
     QString spool_dir;
     QString current_sid;
 
@@ -217,7 +219,11 @@ private:
     void create_page(QGraphicsScene * scene,qreal width,qreal height,
                                   qreal m_top,qreal m_bottom,
                                   qreal m_right,qreal m_left);
-
+    /**
+      * @fn bool fillPagesSizeTable(QSqlQuery &query)
+      * @brief Заполняет таблицу размеров страниц
+      */
+    bool fillPagesSizeTable(QSqlQuery &query);
 };
 
 
