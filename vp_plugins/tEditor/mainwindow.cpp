@@ -32,7 +32,8 @@ MainWindow::MainWindow():
                                Qt::WindowCloseButtonHint |
                                Qt::WindowSystemMenuHint);
 
-    // TODO увеличение на максиму экрана!!!
+    /// @todo увеличение на максиму экрана!!!
+
     this->resize(800,600);
 
     tabWidget = new QTabWidget;
@@ -246,7 +247,7 @@ void MainWindow::do_needCreateEmptyTemplates(QString &file_name)
         if (tmpl_plugin->isDBOpened()){
             statusBar()->showMessage(QObject::tr("Шаблон [%1] создан").arg(file_name),1000);
             // Теперь загрузим этот же шаблон
-             loadFromFile(file_name);
+            loadFromFile(file_name);
         }else{
             statusBar()->showMessage(
                     QObject::tr("Не возможно создать или загрузить шаблон [%1]")
