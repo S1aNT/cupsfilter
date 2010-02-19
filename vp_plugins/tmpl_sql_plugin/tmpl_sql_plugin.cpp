@@ -18,6 +18,7 @@
 #include <QModelIndex>
 #include <QDateTime>
 #include <QtGui/QGraphicsItem>
+#include <QtGui/QGraphicsScene>
 
 using namespace VPrn;
 
@@ -25,6 +26,7 @@ Tmpl_sql_plugin::Tmpl_sql_plugin(QObject *parent)
     : QObject(parent)
     , m_dbOpened(false)
     , m_dbConnect(false)
+    , view_code_state(false)
     , m_connectionName(QString())
 {
 
@@ -91,7 +93,7 @@ void Tmpl_sql_plugin::init(const QString & spool,const QString & sid)
                     << QObject::tr("Получатель N3")
                     << QObject::tr("Получатель N4")
                     << QObject::tr("Получатель N5");
-            view_code_state = false;
+
         }else{
             e_msg = QObject::trUtf8("ERROR: каталог %1 не существует\n").arg(spool);
         }
@@ -297,37 +299,44 @@ bool Tmpl_sql_plugin::fillScenes4Data()
 
     bool Ok = true;
     {
-        Ok &= query.exec("SELECT template.id, psize_id,angle, margin_top, margin_bottom,"
-                         "margin_left,margin_right,"
+        Ok &= query.exec("SELECT count(*) as cnt, template.id, psize_id,angle,"
+                         "margin_top, margin_bottom,margin_left,margin_right,"
                          "page_size.p_witdh,page_size.p_height FROM template "
                          "INNER JOIN page_size ON template.psize_id=page_size.id");
         if (Ok){
-            qDebug() << Q_FUNC_INFO << "query.size = " << query.size();
-            if (query.size() == 1){
-                int field_id       = query.record().indexOf("id");
-                int field_angle    = query.record().indexOf("angle");
-                int field_m_top    = query.record().indexOf("margin_top");
-                int field_m_bottom = query.record().indexOf("margin_bottom");
-                int field_m_left   = query.record().indexOf("margin_left");
-                int field_m_right  = query.record().indexOf("margin_right");
-                int field_p_width  = query.record().indexOf("page_size.p_width");
-                int field_p_height = query.record().indexOf("page_size.p_height");
+            /*
+            qDebug() << Q_FUNC_INFO
+                     << "query.size = " << query.size()
+                     << "is Active "    << query.isActive()
+                     << "is Select "    << query.isSelect();
+                     */
 
-                while (query.next()) {
-                    templ_id = query.value(field_id).toInt();
-                    angle    = query.value(field_angle).toInt();
-                    p_width  = MM_TO_POINT(query.value(field_p_width).toInt());
-                    p_height = MM_TO_POINT(query.value(field_p_height).toInt());
-                    m_top    = MM_TO_POINT(query.value(field_m_top).toInt());
-                    m_bottom = MM_TO_POINT(query.value(field_m_bottom).toInt());
-                    m_left   = MM_TO_POINT(query.value(field_m_left).toInt());
-                    m_right  = MM_TO_POINT(query.value(field_m_right).toInt());
-                }
+            int field_cnt      = query.record().indexOf("cnt");
+            int field_id       = query.record().indexOf("id");
+            int field_angle    = query.record().indexOf("angle");
+            int field_m_top    = query.record().indexOf("margin_top");
+            int field_m_bottom = query.record().indexOf("margin_bottom");
+            int field_m_left   = query.record().indexOf("margin_left");
+            int field_m_right  = query.record().indexOf("margin_right");
+            int field_p_width  = query.record().indexOf("page_size.p_width");
+            int field_p_height = query.record().indexOf("page_size.p_height");
+            query.next();
+            if (query.value(field_cnt).toInt() == 1){
+                templ_id = query.value(field_id).toInt();
+                angle    = query.value(field_angle).toInt();
+                p_width  = MM_TO_POINT(query.value(field_p_width).toInt());
+                p_height = MM_TO_POINT(query.value(field_p_height).toInt());
+                m_top    = MM_TO_POINT(query.value(field_m_top).toInt());
+                m_bottom = MM_TO_POINT(query.value(field_m_bottom).toInt());
+                m_left   = MM_TO_POINT(query.value(field_m_left).toInt());
+                m_right  = MM_TO_POINT(query.value(field_m_right).toInt());
                 ///выбор страниц из базы
                 QString sql = QString("SELECT id,p_number,p_type,p_name FROM page_detail "
-                              "INNER JOIN rel_templ_page ON page_detail.id=page_detail_id"
-                              "WHERE rel_templ_page.templ_id ='%1' ORDER BY p_number").arg(templ_id,0,10);
+                                      "INNER JOIN rel_templ_page ON page_detail.id=page_detail_id "
+                                      "WHERE rel_templ_page.templ_id ='%1' ORDER BY p_number").arg(templ_id,0,10);
                 Ok &= query.exec(sql);
+                qDebug() << "sql query " << sql;
+
                 if (Ok){
                     int field_id       = query.record().indexOf("id");
                     //int field_p_number = query.record().indexOf("p_number");
@@ -335,7 +344,7 @@ bool Tmpl_sql_plugin::fillScenes4Data()
 
                     while (query.next()) {
                         page_detail_id = query.value(field_id).toInt();
-                        //int pType      = ;
+
                         switch (query.value(field_pType).toInt()){
                         case FirstPage:
                             scene = firstPage_scene;
@@ -345,10 +354,10 @@ bool Tmpl_sql_plugin::fillScenes4Data()
                             break;
                         case ThirdPage:
                             scene = thirdPage_scene;
-                             break;
+                            break;
                         case FourthPage:
                             scene = fourthPage_scene;
-                             break;
+                            break;
                         }
                         if (scene){
                             create_page(scene,p_width,p_height,m_top,m_bottom,m_right,m_left);
@@ -360,17 +369,17 @@ bool Tmpl_sql_plugin::fillScenes4Data()
                 }else{
                     DumpError(query.lastError());
                 }
-
             }else{
-                Ok =false;
+                Ok = false;
                 emit error(SQLQueryError,
-                           tr("При разборе шаблона возникла ошибка.[count of templates != 1]"));
+                           tr("При разборе шаблона возникла ошибка.Число записей в шаблоне не соответствует требуемому!")
+                           );
             }
         }else{
             DumpError(query.lastError());
             emit error(SQLQueryError,
                        tr("При разборе шаблона возникла ошибка.[%1]")
-                           .arg(query.lastError().text()));
+                       .arg(query.lastError().text()));
         }
     }
     return Ok;
@@ -647,7 +656,7 @@ bool Tmpl_sql_plugin::create_emptyDB(QString const&)
 
 
         }else{
-             DumpError(query.lastError());
+            DumpError(query.lastError());
         }
 
 
@@ -958,6 +967,9 @@ bool Tmpl_sql_plugin::fillModels()
 {
     bool Ok =true;
     {
+        pSizeModel->clear();
+        tInfoModel->clear();
+
         QString e_str;
         QSqlQuery query (DB_);
         /// Заполним модель (только для чтения) список размеров страниц
