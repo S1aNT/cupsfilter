@@ -318,8 +318,21 @@ bool Tmpl_sql_plugin::fillScenes4Data()
             int field_m_bottom = query.record().indexOf("margin_bottom");
             int field_m_left   = query.record().indexOf("margin_left");
             int field_m_right  = query.record().indexOf("margin_right");
-            int field_p_width  = query.record().indexOf("page_size.p_width");
-            int field_p_height = query.record().indexOf("page_size.p_height");
+            int field_p_width  = query.record().indexOf("p_width");
+            int field_p_height = query.record().indexOf("p_height");
+/*
+            if (field_cnt      = -1 || field_id    = -1 ||
+                field_angle    = -1 || field_m_top = -1 ||
+                field_m_bottom = -1 || field_p_height = -1){
+                Ok = false;
+                emit error(SQLQueryError,
+                           tr("Ошибка структуры БД шаблона!")
+                           );
+
+            }else{
+
+            }
+*/
             query.next();
             if (query.value(field_cnt).toInt() == 1){
                 templ_id = query.value(field_id).toInt();
