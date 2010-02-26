@@ -9,9 +9,10 @@ class QSqlQueryModel;
 class QSqlTableModel;
 class QStringList;
 
+
 class TemplateInfoEditModel;
 #include <QObject>
-
+#include <QHash>
 
 class Itmpl_sql_plugin{
 
@@ -41,13 +42,9 @@ public:
 
     virtual void openTemplates(const QString & t_fileName) = 0;
     virtual void createEmptyTemplate() = 0;
-    virtual TemplateInfoEditModel  * getInfoModel() = 0;
-    virtual QSqlQueryModel  * getPSizeModel() = 0;
-    /**
-      * @fn Получение списка страниц хранящихся в шаблоне
-      * №п/п Название страницы тип страницы
-      virtual QSqlQueryModel  * getPageDescModel() = 0;
-      */
+    virtual TemplateInfoEditModel  * getInfoModel() const = 0;
+    virtual QSqlQueryModel  * getPSizeModel() const = 0;
+    virtual QSqlQueryModel  * getPagesModel() const = 0;
 
     virtual void saveTemplatesAs(const QString & fileName) = 0;
     virtual bool isDBOpened() = 0;
@@ -56,7 +53,8 @@ public:
     virtual void doAddBaseElementToPage(int page,const QString &text) = 0;
     virtual void setUserName (const QString &user) = 0;
     //virtual QSqlTableModel  * getInfoModel2() = 0;
-    virtual void closeTemplates() = 0;	
+    virtual void closeTemplates() = 0;
+    virtual void setTagValue(const QHash<QString, QString> &tagValue) = 0;	
 
 };
 
