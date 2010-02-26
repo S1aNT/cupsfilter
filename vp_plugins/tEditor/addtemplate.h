@@ -25,11 +25,9 @@ class AddTemplate : public QDialog {
 public:
     AddTemplate(QWidget *parent = 0);
     ~AddTemplate();
-    //void setUserName(const QString & name);
-    //void setPageSize(QStringListModel *page_size_model);
+
 
     void setLocalTemplatesDir(const QString &l_dir){local_dir = l_dir;};
-    //void setTemplatesInfo(Templ_info templ_Info);
     void setEnableGUI(bool mode);
 
     /**
@@ -46,7 +44,7 @@ public:
       * @fn Установим и настроим модель ИНФО_ШАБЛОНА
       */
     void setInfoModel(TemplateInfoEditModel *model){tInfoModel = model;};
-    //void setInfoModel2(QSqlTableModel *model){tInfoModel2 = model;};
+
 signals:
     void needCreateEmptyTemplates(QString &fileName);
 
@@ -61,16 +59,11 @@ private slots:
       * ищем ID в модели РАЗМЕР_ЛИСТА и записываем в модель ИНФО_ШАБЛОНА
       */
     void setCurrentPageSize(const QString &psize);
-    void setTemplatesName(const QString & name);
-    void setTemplatesDesc();
-    void setMarginTop();
-    void setMarginBottom();
-    void setMarginLeft();
-    void setMarginRight();
+
 
 protected:
     void changeEvent(QEvent *e);
-
+    void closeEvent ( QCloseEvent * event );
 protected slots:
     void accept();
 
@@ -80,6 +73,7 @@ private:
     QFont normalFont;
     QString local_dir;
     int currentPSizeId;
+    QString currentHumanPSize;
 
     bool work_mode;
     /// связь между моделью РАЗМЕРЫ_ЛИСТА и элементами отображения
@@ -98,9 +92,16 @@ private:
     void showInfo(const QString & info);
     void connector();
     /**
-      * @fn Ищет в модели РАЗМЕР_ЛИСТА ID для строки pSizeHuman
+      * @fn getIndexInPSizeModel(const QString pSizeHuman);
+      * @brief Получает в модели РАЗМЕР_ЛИСТА ID для строки pSizeHuman
       */
     int getIndexInPSizeModel(const QString pSizeHuman);
+    /**
+      * @fn translatePSizeModelIndex2CBoxIndex(int modelIndex)
+      * @brief преобразует ID из таблицы page_size в Индекс ComboBox
+      * поиск соответветствия происходит в модели РАЗМЕР_ЛИСТА
+      */
+    int translatePSizeID2CBoxIndex(int psize_id);
     /**
       * @fn Получает данные из модели ИНФО_ШАБЛОНА и записывает их в поля ввода
       * Мой аналог QDataWidgetMapper, который "работает" очень своеобразно

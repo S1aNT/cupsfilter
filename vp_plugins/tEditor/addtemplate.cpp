@@ -9,7 +9,22 @@
 #include <QtSql/QSqlError>
 #include <QtSql/QSqlTableModel>
 #include <QDataWidgetMapper>
+#include <QTableView>
+
 #include "mytypes.h"
+
+void createView(const QString &title, QAbstractItemModel * model )
+{
+    static int offset = 0;
+
+    QTableView *view = new QTableView;
+    view->setModel(model);
+    view->setWindowTitle(title);
+    view->move(100 + offset, 100 + offset);
+    view->verticalHeader()->setVisible(true);
+    offset += 20;
+    view->show();
+}
 
 using namespace VPrn;
 
@@ -18,7 +33,6 @@ AddTemplate::AddTemplate(QWidget *parent)
     , ui(new Ui::AddTemplate)
     , pSizeModel(0)
     , tInfoModel(0)
-    //, tInfoModel2(0)
 {
     ui->setupUi(this);
 
@@ -26,14 +40,13 @@ AddTemplate::AddTemplate(QWidget *parent)
     normalFont = QFont("Tahoma", 8, QFont::Normal);
 
     // Создамем мапперы
-    pSizeDWMapper = new QDataWidgetMapper(this);
-    pSizeDWMapper->setSubmitPolicy(QDataWidgetMapper::ManualSubmit);//QDataWidgetMapper::AutoSubmit);
+    //pSizeDWMapper = new QDataWidgetMapper(this);
+    //pSizeDWMapper->setSubmitPolicy(QDataWidgetMapper::ManualSubmit);//QDataWidgetMapper::AutoSubmit);
 
-    tInfoDWMapper = new QDataWidgetMapper(this);
-    tInfoDWMapper->setSubmitPolicy(QDataWidgetMapper::ManualSubmit);
+    //tInfoDWMapper = new QDataWidgetMapper(this);
+    //tInfoDWMapper->setSubmitPolicy(QDataWidgetMapper::ManualSubmit);
 
     this->connector();
-
 }
 
 void AddTemplate::connector()
@@ -48,47 +61,13 @@ void AddTemplate::connector()
              this,
              SLOT(setLandscape())
              );
-
-    /*
-    connect (ui->t_name_lineEd,
-             SIGNAL(textChanged(QString)),
-             this,
-             SLOT(setTemplatesName(QString))
-             );
-
-    connect (ui->descTextEdit,
-             SIGNAL(textChanged()),
-             this,
-             SLOT(setTemplatesDesc())
-             );
-*/
-    connect (ui->margin_topSpBox,
-             SIGNAL(editingFinished()),
-             this,
-             SLOT(setMarginTop())
-             );
-    connect (ui->margin_bottomSBox,
-             SIGNAL(editingFinished()),
-             this,
-             SLOT(setMarginBottom())
-             );
-    connect (ui->margin_leftSpBox,
-             SIGNAL(editingFinished()),
-             this,
-             SLOT(setMarginLeft())
-             );
-    connect (ui->margin_rightSpBox,
-             SIGNAL(editingFinished()),
-             this,
-             SLOT(setMarginRight())
-             );
-
+/*
     connect(ui->pageSizeCBox,
             SIGNAL(currentIndexChanged(int)),
             pSizeDWMapper,
             SLOT(setCurrentIndex(int))
             );
-
+*/
     connect (ui->pageSizeCBox,
              SIGNAL(currentIndexChanged(QString)),
              this,
@@ -100,24 +79,20 @@ void AddTemplate::connector()
 void AddTemplate::default_init()
 {   
     if (tInfoModel && pSizeModel){
-        getData4Models();
 
-        //tInfoDWMapper->setModel(tInfoModel);
-        //Настроим маппинг полей модели
-        //tInfoDWMapper->addMapping(ui->t_name_lineEd,tInfo_name);
-        //tInfoDWMapper->addMapping(ui->descTextEdit,tInfo_desc);
-        //tInfoDWMapper->toFirst();
+        //createView(QObject::tr("PageSize Query Model"), pSizeModel);
 
-        pSizeDWMapper->setModel(pSizeModel);
+        //pSizeDWMapper->setModel(pSizeModel);
         //Заполним выпадающий список из модели
         ui->pageSizeCBox->setModel(pSizeModel);
         ui->pageSizeCBox->setModelColumn(pSize_page);
+        ui->pageSizeCBox->setCurrentIndex(-1);
 
         //Настроим маппинг полей модели
-        pSizeDWMapper->addMapping(ui->p_widthLEd,pSize_width);
-        pSizeDWMapper->addMapping(ui->p_heightLEd,pSize_height);
-        pSizeDWMapper->toFirst();
-
+        //pSizeDWMapper->addMapping(ui->p_widthLEd,pSize_width);
+        //pSizeDWMapper->addMapping(ui->p_heightLEd,pSize_height);
+        //pSizeDWMapper->toFirst();
+        getData4Models();
     }
 }
 
@@ -142,104 +117,9 @@ void AddTemplate::setEnableGUI(bool mode)
     ui->cancelBtn->setText(text);
 }
 
-//************************************* public *********************************
-
-
-
-//------------------------------------- end public------------------------------
-
-/*
-void AddTemplate::setTemplatesInfo(Templ_info templ_Info)
-{
-    tInfo = templ_Info;
-
-    // Получили информацию о шаблоне загоним ее в нужные поля
-    ui->t_name_lineEd->setText(tInfo.t_name());
-    ui->descTextEdit->setPlainText(tInfo.t_desc());
-
-    ui->portretBtn->setChecked(tInfo.page_orient());
-
-    ui->pageSizeCBox->setCurrentIndex(ui->pageSizeCBox->findText(tInfo.p_size()));
-
-    ui->author_lineEd->setText(tInfo.t_author());
-    ui->date_lineEd->setText(tInfo.date_time());
-
-    tInfo.setDate_time(QDateTime::currentDateTime ().toString("dd.MM.yyyy hh:mm:ss"));
-    ui->date_lineEd->setText(tInfo.date_time());
-
-    //FIXME надо подумать как правильнее делать
-    // возникает замкнутый круг setValue меняет tInfo
-
-    ui->margin_topSpBox->setValue(POINT_TO_MM(tInfo.m_top()));
-    ui->margin_bottomSBox->setValue(POINT_TO_MM(tInfo.m_bottom()));
-    ui->margin_leftSpBox->setValue(POINT_TO_MM(tInfo.m_left()));
-    ui->margin_rightSpBox->setValue(POINT_TO_MM(tInfo.m_right()));
-}
-
-*/
-/*
-void AddTemplate::setUserName(const QString & name)
-{
-    //FIX: по идее это уже есть в инфо шаблона
-    if (!name.isEmpty()){
-        // Обновим имя пользователя
-        tInfo.setT_author(name) ;
-        ui->author_lineEd->setText(tInfo.t_author());
-    }
-}
-
-void AddTemplate::setPageSize(QStringListModel *page_size_model)
-{
-    ui->pageSizeCBox->setModel(page_size_model);
-    //ui->p_heightSpBox->setValue(page_height);
-    //ui->p_widthSpBox->setValue(page_width);
-}
-*/
 
 //-------------------------------------- protected slots
-void AddTemplate::setMarginTop()
-{
-    /*
-    QModelIndex psizeIDIndex = tInfoModel->index(tInfoModel->rowCount()-1,tInfo_mtop);
-    if (!tInfoModel->setData(psizeIDIndex,ui->margin_topSpBox->value(),Qt::EditRole)){
-        emit error (SQLCommonError,
-                    tr("При записи в поле [tInfo_mtop] произошла ошибка. %1")
-                    .arg(tInfoModel->lastError().text()));
-    }
-    */
-}
-void AddTemplate::setMarginBottom()
-{
-    /*
-    QModelIndex psizeIDIndex = tInfoModel->index(tInfoModel->rowCount()-1,tInfo_mbottom);
-    if (!tInfoModel->setData(psizeIDIndex,ui->margin_bottomSBox->value(),Qt::EditRole)){
-        emit error (SQLCommonError,
-                    tr("При записи в поле [tInfo_mbottom] произошла ошибка. %1")
-                    .arg(tInfoModel->lastError().text()));
-    }
-    */
-}
-void AddTemplate::setMarginLeft()
-{/*
-    QModelIndex psizeIDIndex = tInfoModel->index(tInfoModel->rowCount()-1,tInfo_mleft);
-    if (!tInfoModel->setData(psizeIDIndex,ui->margin_leftSpBox->value(),Qt::EditRole)){
-        emit error (SQLCommonError,
-                    tr("При записи в поле [tInfo_mleft] произошла ошибка. %1")
-                    .arg(tInfoModel->lastError().text()));
-    }
-    */
-}
-void AddTemplate::setMarginRight()
-{
-    /*
-    QModelIndex psizeIDIndex = tInfoModel->index(tInfoModel->rowCount()-1,tInfo_mright);
-    if (!tInfoModel->setData(psizeIDIndex,ui->margin_rightSpBox->value(),Qt::EditRole)){
-        emit error (SQLCommonError,
-                    tr("При записи в поле [tInfo_mright] произошла ошибка. %1")
-                    .arg(tInfoModel->lastError().text()));
-    }
-    */
-}
+
 void AddTemplate::accept()
 {
     QString fileName;
@@ -284,16 +164,21 @@ void AddTemplate::getData4Models()
             QModelIndex cellIndex = tInfoModel->index(tInfoModel->rowCount()-1,i);
             if (cellIndex.isValid()){
                 QVariant cellData = tInfoModel->data(cellIndex,Qt::EditRole);
-                {
-                    bool cnv_ok;
-                    qDebug() << "\nField N "  << i
-                            << "\nQVariant " << cellData
-                            << "\nQString "  << cellData.toString()
-                            << "\nInt "      << cellData.toInt()
-                            << "\nDateTime " << QDateTime::fromTime_t(cellData.toUInt())
-                            << "\nQString.toInt() " << cellData.toString().toInt(&cnv_ok,10);
-                }
+
                 switch (i){
+                case tInfo_pageID:
+                    {
+                        bool cnv_ok;
+                        qDebug() << "\nField N "  << i
+                                 << "\nQVariant " << cellData
+                                 << "\nQString "  << cellData.toString()
+                                 << "\nInt "      << cellData.toInt()
+                                 << "\nDateTime " << QDateTime::fromTime_t(cellData.toUInt())
+                                 << "\nQString.toInt() " << cellData.toString().toInt(&cnv_ok,10);
+                        int indx = translatePSizeID2CBoxIndex(cellData.toInt());
+                        ui->pageSizeCBox->setCurrentIndex(indx);
+                    }
+                    break;
                 case tInfo_name:
                     ui->t_name_lineEd->setText(cellData.toString());
                     break;
@@ -308,11 +193,6 @@ void AddTemplate::getData4Models()
                     }
                     break;
                 case tInfo_ctime:
-                    /*
-                    qDebug() << Q_FUNC_INFO
-                            << "cellData = " << cellData
-                            << "cellData string = " << cellData.toDateTime().toString();
-*/
                     {
                         QDateTime dt = QDateTime::fromTime_t(cellData.toUInt());
                         ui->cdate_lineEd->setText(dt.toString());
@@ -334,11 +214,6 @@ void AddTemplate::getData4Models()
                     ui->author_lineEd->setText(cellData.toString());
                     break;
                 case tInfo_mtop:
-                    /*
-                    qDebug() << Q_FUNC_INFO
-                            << "cellData = " << cellData
-                            << cellData.toString().toInt();
-                            */
                     ui->margin_topSpBox->setValue(cellData.toString().toInt());
                     break;
                 case tInfo_mbottom:
@@ -378,7 +253,9 @@ void AddTemplate::setData4Models()
                     }
                     break;
                 case tInfo_pageID:
-                    cellData = currentPSizeId;
+                    /// Имеем текстовое значение размера страницы, надо получить ID из модели
+
+                    cellData = getIndexInPSizeModel(currentHumanPSize);//currentPSizeId;
                     break;
                 case tInfo_mtime:
                     cellData = QDateTime::currentDateTime().toTime_t();
@@ -414,112 +291,92 @@ void AddTemplate::setData4Models()
 // ------------------------------------- private slots
 
 // -------------------------------------- сеттеры ------------------------------
-
-void AddTemplate::setTemplatesDesc()
-{ 
-    /*
-    QString desc = ui->descTextEdit->toPlainText();
-
-    if (!desc.isEmpty()){
-        QModelIndex psizeIDIndex = tInfoModel->index(tInfoModel->rowCount()-1,tInfo_desc);
-        if (!tInfoModel->setData(psizeIDIndex,desc,Qt::EditRole)){
-            emit error (SQLCommonError,
-                        tr("При записи в поле [tInfo_desc] произошла ошибка. %1")
-                        .arg(tInfoModel->lastError().text()));
-        }
-    }
-    */
-}
-
-void AddTemplate::setTemplatesName(const QString & name)
-{
-    /*
-    if (!name.isEmpty()){
-        QModelIndex psizeIDIndex = tInfoModel->index(tInfoModel->rowCount()-1,tInfo_name);
-        if (!tInfoModel->setData(psizeIDIndex,name,Qt::EditRole)){
-            emit error (SQLCommonError,
-                        tr("При записи в поле [tInfo_name] произошла ошибка. %1")
-                        .arg(tInfoModel->lastError().text()));
-        }
-    }
-    */
-}
-
 void AddTemplate::setCurrentPageSize(const QString &psize)
 {
     // Ищем ID по значению psize;
-    currentPSizeId = getIndexInPSizeModel(psize);
-    /*
-    if (id != -1){
-        qDebug() << Q_FUNC_INFO
-                << "tInfoModel->rowCount() = " << tInfoModel->rowCount()
-                << "tInfo_pageID = " << tInfo_pageID;
-
-        QModelIndex psizeIDIndex = tInfoModel->index(tInfoModel->rowCount()-1,tInfo_pageID);
-        if (!tInfoModel->setData(psizeIDIndex,id,Qt::EditRole)){
-            emit error (SQLCommonError,
-                        tr("При записи в поле [tInfo_pageID] произошла ошибка. %1")
-                        .arg(tInfoModel->lastError().text()));
-        }
-    }
-    */
+    //currentPSizeId = getIndexInPSizeModel(psize);
+    currentHumanPSize = psize;
 }
 
 void AddTemplate::setPortret()
 {
     ui->p_orient_label->setFont(boldFont);
     ui->l_orient_label->setFont(normalFont);
-    /*
-    QModelIndex psizeIDIndex = tInfoModel->index(tInfoModel->rowCount()-1,tInfo_angle);
-    if (!tInfoModel->setData(psizeIDIndex,0,Qt::EditRole)){
-        emit error (SQLCommonError,
-                    tr("При записи в поле [tInfo_angle] произошла ошибка. %1")
-                    .arg(tInfoModel->lastError().text()));
-    }
-    */
 }
 
 void AddTemplate::setLandscape()
 {
     ui->p_orient_label->setFont(normalFont);
     ui->l_orient_label->setFont(boldFont);
-    /*
-    QModelIndex psizeIDIndex = tInfoModel->index(tInfoModel->rowCount()-1,tInfo_angle);
-    if (!tInfoModel->setData(psizeIDIndex,90,Qt::EditRole)){
-        emit error (SQLCommonError,
-                    tr("При записи в поле [tInfo_angle] произошла ошибка. %1")
-                    .arg(tInfoModel->lastError().text()));
-    }
-    */
 }
 
 //------------------------------------------------------------------------------
+int AddTemplate::translatePSizeID2CBoxIndex(int psize_id)
+{
+    /// Поиск в
+    int CBoxIndex = -1;
+    {
+        QString column_psize = tr("Размер листа");
+        QString column_id = tr("Id");
+        QString header;
+        int find_id;
+        QString psize_hum;
+
+        for(int i=0; i<pSizeModel->rowCount(); i++){
+            for (int j=0; j<pSizeModel->columnCount(); j++){
+                header = pSizeModel->headerData(j,Qt::Horizontal,
+                                                Qt::DisplayRole).toString();
+                QModelIndex index = pSizeModel->index(i,j);
+                QVariant cell = pSizeModel->data(index,Qt::DisplayRole);
+
+                if (header.compare(column_id,Qt::CaseInsensitive)==0){
+                    find_id = cell.toInt();
+                }
+                if (header.compare(column_psize,Qt::CaseInsensitive)==0){
+                    psize_hum = cell.toString();
+                }
+
+            }
+            if (find_id == psize_id){
+                ///Поиск в комбобоксе индекса соответствующего  строке psize_hum
+                CBoxIndex = i;
+            }
+        }
+    }
+    return CBoxIndex;
+}
+
 int AddTemplate::getIndexInPSizeModel(const QString pSizeHuman)
 {
     QString header;
-    QString fnd = tr("Размер листа");
-    int rez= -1;
+    QString column_psize = tr("Размер листа");
+    QString column_id = tr("Id");
+    QString psize_hum;
+    int psize_id = -1;
+
     if (!pSizeHuman.isEmpty()){
-        for (int i=0; i<pSizeModel->columnCount(); i++){
-            header = pSizeModel->headerData(i,Qt::Horizontal,
-                                            Qt::DisplayRole).toString();
-            if (header == fnd){
-                // Цикл по всем элементам колонки Размер листа
-                for(int j=0; j<pSizeModel->rowCount(); j++){
-                    QModelIndex index = pSizeModel->index(j,i);
-                    QString cell = pSizeModel->data(index,
-                                                    Qt::DisplayRole).toString();
-                    if (cell == pSizeHuman){
-                        rez = j;
-                        //break;
-                        return rez;
+
+        for(int i=0; i<pSizeModel->rowCount(); i++){
+            for (int j=0; j<pSizeModel->columnCount(); j++){
+                header = pSizeModel->headerData(j,Qt::Horizontal,
+                                                Qt::DisplayRole).toString();
+                QModelIndex index = pSizeModel->index(i,j);
+                QVariant cell = pSizeModel->data(index,Qt::DisplayRole);
+                if (header.compare(column_psize,Qt::CaseInsensitive)==0){
+                    psize_hum = cell.toString();
+                }else{
+                    if (header.compare(column_id,Qt::CaseInsensitive)==0){
+                        psize_id = cell.toInt();
                     }
                 }
             }
-
+            if (!psize_hum.isEmpty() && psize_hum.compare(pSizeHuman)){
+                return psize_id;
+            }
         }
+
     }
-    return rez;
+    return psize_id;
 }
 
 AddTemplate::~AddTemplate()
@@ -537,4 +394,10 @@ void AddTemplate::changeEvent(QEvent *e)
     default:
         break;
     }
+}
+
+void AddTemplate::closeEvent ( QCloseEvent * event )
+{
+  event->ignore();
+  this->hide();
 }
