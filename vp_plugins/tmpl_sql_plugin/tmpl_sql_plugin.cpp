@@ -1,5 +1,6 @@
 #include "tmpl_sql_plugin.h"
 #include "simpleitem.h"
+#include "mytextitem.h"
 
 #include <QtCore/QDebug>
 #include <QtSql/QSqlError>
@@ -334,11 +335,14 @@ void Tmpl_sql_plugin::doAddBaseElementToPage(int page,const QString &text)
     if (scene){
         item = findPaperElem(scene);
 
-        SimpleItem * pItem = new SimpleItem();
+        //SimpleItem * pItem = new SimpleItem();
+        myTextItem *pItem = new myTextItem();
+
         pItem->setZValue(100);
         pItem->setPos(100.0,100.0);
-        //pItem->setText(QStringList()<<QObject::trUtf8("Элемент"));
+        pItem->setPlainText(text);
         pItem->setTag(text);
+        pItem->setTextInteractionFlags(Qt::TextEditorInteraction);
         pItem->setFlag(QGraphicsItem::ItemIsMovable);
         pItem->setData(ObjectName, "tElem");
         pItem->setParentItem(item);
@@ -697,55 +701,55 @@ bool Tmpl_sql_plugin::create_emptyDB(QString const&)
                     Ok &= query.prepare("insert into page_detail (p_number,p_type,"
                                         "p_name,p_visible) VALUES(?,?,?,?);");
                     if (Ok){
-                        query.addBindValue(1);
+                        query.addBindValue(0);
                         query.addBindValue(VPrn::FirstPage);
 
                         query.addBindValue(tr("Лицевая сторона 1-го листа.Экземпляр №1"));
                         query.addBindValue(1);
                         Ok &= query.exec();
 
-                        query.addBindValue(2);
+                        query.addBindValue(1);
                         query.addBindValue(VPrn::FirstPage);
 
                         query.addBindValue(tr("Лицевая сторона 1-го листа.Экземпляр №2"));
                         query.addBindValue(1);
                         Ok &= query.exec();
 
-                        query.addBindValue(3);
+                        query.addBindValue(2);
                         query.addBindValue(VPrn::FirstPage);
                         query.addBindValue(tr("Лицевая сторона 1-го листа.Экземпляр №3"));
                         query.addBindValue(1);
                         Ok &= query.exec();
 
-                        query.addBindValue(4);
+                        query.addBindValue(3);
                         query.addBindValue(VPrn::FirstPage);
 
                         query.addBindValue(tr("Лицевая сторона 1-го листа.Экземпляр №4"));
                         query.addBindValue(1);
                         Ok &= query.exec();
 
-                        query.addBindValue(5);
+                        query.addBindValue(4);
                         query.addBindValue(VPrn::FirstPage);
 
                         query.addBindValue(tr("Лицевая сторона 1-го листа.Экземпляр №5"));
                         query.addBindValue(1);
                         Ok &= query.exec();
 
-                        query.addBindValue(6);
+                        query.addBindValue(5);
                         query.addBindValue(VPrn::SecondPage);
 
                         query.addBindValue(tr("Лицевая сторона 2-го листа"));
                         query.addBindValue(1);
                         Ok &= query.exec();
 
-                        query.addBindValue(7);
+                        query.addBindValue(6);
                         query.addBindValue(VPrn::ThirdPage);
 
                         query.addBindValue(tr("Обратная сторона каждого листа"));
                         query.addBindValue(1);
                         Ok &= query.exec();
 
-                        query.addBindValue(8);
+                        query.addBindValue(7);
                         query.addBindValue(VPrn::FourthPage);
 
                         query.addBindValue(tr("Фонарик"));
