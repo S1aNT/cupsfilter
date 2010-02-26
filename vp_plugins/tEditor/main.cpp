@@ -3,9 +3,11 @@
 #include <QTextCodec>
 #include <QStringList>
 
+
 #include "config.h"
-#include "tech_global.h"
+//#include "tech_global.h"
 #include "mainwindow.h"
+
 
 
 int main(int argc, char *argv[])

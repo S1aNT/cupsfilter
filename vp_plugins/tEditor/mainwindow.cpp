@@ -8,9 +8,11 @@
 #include <QStandardItemModel>
 #include <QSettings>
 
+
 #include "mainwindow.h"
 #include "view.h"
 #include "cmdFrame.h"
+
 
 MainWindow::MainWindow():
         auth_plugin(0)
@@ -25,7 +27,7 @@ MainWindow::MainWindow():
     CmdButtonBox = new cmdFrame(this);
 
     TProperDlg  = new AddTemplate(this);
-    TProperDlg->setAttribute(Qt::WA_DeleteOnClose);
+    //TProperDlg->setAttribute(Qt::WA_DeleteOnClose);
     TProperDlg->setWindowFlags(Qt::Dialog |
                                Qt::CustomizeWindowHint |
                                Qt::WindowTitleHint |
@@ -87,8 +89,6 @@ MainWindow::MainWindow():
                      this,
                      SLOT(do_CmdButtonClick(const QString &))
                      );
-
-
 }
 
 
@@ -177,6 +177,8 @@ void MainWindow::loadPlugins()
                 elemList = tmpl_plugin->getBaseElemNameList();
 
 
+
+
                 /*
                 doc_model = tmpl_plugin->getModel();
 
@@ -235,8 +237,7 @@ void MainWindow::do_CmdButtonClick(const QString &line)
 
 void MainWindow::saveUserName(QString & u_name)
 {
-    //FIXME запись в tInfo.setT_author()!!!
-    userName = u_name;
+  userName = u_name;
 }
 
 void MainWindow::do_needCreateEmptyTemplates(QString &file_name)
