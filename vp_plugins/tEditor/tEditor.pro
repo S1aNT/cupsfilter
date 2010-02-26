@@ -29,7 +29,7 @@ HEADERS += ../global/pre_header.h \
            ../global/config.h \
            ../global/tech_global.h \
            ../global/config.h \
-           ../global/mytype.h \
+           ../global/mytypes.h \
            ../interfaces/itmpl_sql_plugin.h \
            addtemplate.h \
            view.h \
