@@ -13,10 +13,11 @@ class View : public QFrame
 {
     Q_OBJECT
 public:
-    View(const QString &name, QWidget *parent = 0);
+    View(QWidget *parent = 0);
     inline void setAngle(qreal angle){curAngle = angle;};
     QGraphicsView *gr_view() const;
-    QString &getPageName(){return pageName;};
+    void setTabOrder(int ord){tabOrder = ord;};
+    int getTabOrder(){return tabOrder;};
 public slots:
     //void flipPage(int Btn);
 
@@ -31,9 +32,10 @@ private:
     QGraphicsView *graphicsView;
     QLabel *label;
     QSlider *zoomSlider;
-    QString pageName;
+
     QMatrix matrix;
     qreal curAngle;
+    int tabOrder;
 };
 
 #endif

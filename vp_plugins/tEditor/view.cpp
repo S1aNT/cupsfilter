@@ -4,10 +4,11 @@
 #include <qmath.h>
 
 
-View::View(const QString &name, QWidget *parent)
+View::View( QWidget *parent)
     : QFrame(parent)
+    , tabOrder(-1)
 {
-    pageName = name;
+
     setFrameStyle(Sunken | StyledPanel);
     graphicsView = new QGraphicsView;
     graphicsView->setRenderHint(QPainter::Antialiasing, false);
