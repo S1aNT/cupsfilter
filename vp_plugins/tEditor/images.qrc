@@ -36,5 +36,6 @@
         <file>../safeFatPrinter/images/over_face_page.png</file>
         <file alias="portret.png">../safeFatPrinter/images/portret.png</file>
         <file alias="landscape.png">../safeFatPrinter/images/landscape.png</file>
+        <file alias="undo.png">../safeFatPrinter/images/undo.png</file>
     </qresource>
 </RCC>
