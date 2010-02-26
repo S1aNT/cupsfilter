@@ -61,6 +61,11 @@ bool TemplateInfoEditModel::setData(const QModelIndex &index, const QVariant &va
         break;
     case tInfo_mright:  ok = setTemplateMRight(id,value.toInt());
         break;
+    case tInfo_p_width:  ok = false;
+        break;
+    case tInfo_p_height:  ok = false;
+        break;
+
     }
 
     refresh();
@@ -73,11 +78,11 @@ bool TemplateInfoEditModel::setData(const QModelIndex &index, const QVariant &va
 
 void TemplateInfoEditModel::refresh()
 {
-    setQuery("SELECT id,t_name,t_desc,"
-             "psize_id,angle,"
+    setQuery("SELECT template.id,t_name,t_desc,"
+             "page_size_id,angle,"
              "c_time,m_time,author,margin_top,margin_bottom,"
-             "margin_left,margin_right "
-             "FROM template");
+             "margin_left,margin_right,page_size.p_witdh,page_size.p_height  "
+             "FROM template INNER JOIN page_size ON template.page_size_id=page_size.id");
           setHeaderData(tInfo_id,     Qt::Horizontal, tr("ID"));                 // 0
           setHeaderData(tInfo_name,   Qt::Horizontal, tr("Имя шаблона"));        // 1
           setHeaderData(tInfo_desc,   Qt::Horizontal, tr("Описание"));           // 2
@@ -90,6 +95,9 @@ void TemplateInfoEditModel::refresh()
           setHeaderData(tInfo_mbottom,Qt::Horizontal, tr("Отступ снизу (мм)"));  // 9
           setHeaderData(tInfo_mleft,  Qt::Horizontal, tr("Отступ слева (мм)"));  // 10
           setHeaderData(tInfo_mright, Qt::Horizontal, tr("Отступ справа (мм)")); // 11
+          setHeaderData(tInfo_p_width, Qt::Horizontal,  tr("Ширина (мм)")); // 12
+          setHeaderData(tInfo_p_height, Qt::Horizontal, tr("Высота (мм)")); // 13
+
 }
 
 bool TemplateInfoEditModel::setTemplateName(int Id, const QString &templateName)
@@ -113,7 +121,7 @@ bool TemplateInfoEditModel::setTemplateDesc(int Id, const QString &templateDesc)
 bool TemplateInfoEditModel::setTemplatePageId(int Id, int pageId)
 {
     QSqlQuery query;
-    query.prepare("update template set psize_id = ? where id = ?");
+    query.prepare("update template set page_size_id = ? where id = ?");
     query.addBindValue(pageId);
     query.addBindValue(Id);
     return query.exec();
