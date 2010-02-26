@@ -7,6 +7,7 @@
 #include <QStringListModel>
 #include <QStandardItemModel>
 #include <QSettings>
+#include <QtSql/QSqlQueryModel>
 
 
 #include "mainwindow.h"
@@ -34,31 +35,27 @@ MainWindow::MainWindow():
                                Qt::WindowCloseButtonHint |
                                Qt::WindowSystemMenuHint);
 
-    /// @todo увеличение на максиму экрана!!!
+    // create undo stack and associated menu actions
+    m_undoStack = new QUndoStack( this );
+    m_undoView  = 0;
+
+    /// @todo увеличение на максимум экрана!!!
 
     this->resize(800,600);
 
     tabWidget = new QTabWidget;
-    View * view = new View(QObject::trUtf8("Лицевая сторона 1-го листа"));
-    view->setMinimumSize(tabWidget->sizeHint());
-    tabWidget->addTab(view,QObject::trUtf8("1-я страница"));
+    for (int i=0;i<8;i++){
+        View * view = new View();
+        view->setTabOrder(i);
+        view->setMinimumSize(tabWidget->sizeHint());
+        tabWidget->addTab(view,QString("page"));
+    }
 
-    view = new View(QObject::trUtf8("Лицевая сторона 2-го листа"));
-    view->setMinimumSize(tabWidget->sizeHint());
-    tabWidget->addTab(view,QObject::trUtf8("2-я страница"));
-
-    view = new View(QObject::trUtf8("Обратная сторона каждого листа"));
-    view->setMinimumSize(tabWidget->sizeHint());
-    tabWidget->addTab(view,QObject::trUtf8("3-я страница"));
-
-    view = new View(QObject::trUtf8("Обратная сторона последнего листа"));
-    view->setMinimumSize(tabWidget->sizeHint());
-    tabWidget->addTab(view,QObject::trUtf8("4-я страница"));
-    currentPage = tabWidget->currentIndex();
     connect (tabWidget,
              SIGNAL(currentChanged(int)),
              this,
              SLOT(pageSelect(int)));
+
     setCentralWidget(tabWidget);
 
     createActions();
@@ -89,6 +86,8 @@ MainWindow::MainWindow():
                      this,
                      SLOT(do_CmdButtonClick(const QString &))
                      );
+
+
 }
 
 
@@ -165,9 +164,17 @@ void MainWindow::loadPlugins()
                          SIGNAL(allTemplatesPagesParsed(QGraphicsScene *,
                                                         QGraphicsScene *,
                                                         QGraphicsScene *,
+                                                        QGraphicsScene *,
+                                                        QGraphicsScene *,
+                                                        QGraphicsScene *,
+                                                        QGraphicsScene *,
                                                         QGraphicsScene *)),
                          this,
                          SLOT(setPages(QGraphicsScene *,
+                                       QGraphicsScene *,
+                                       QGraphicsScene *,
+                                       QGraphicsScene *,
+                                       QGraphicsScene *,
                                        QGraphicsScene *,
                                        QGraphicsScene *,
                                        QGraphicsScene *))
@@ -196,6 +203,18 @@ void MainWindow::loadPlugins()
 
 }
 
+// ----------------------------- Public slots
+void MainWindow::showUndoStack()
+{
+  // open up undo stack window
+  if ( m_undoView == 0 )
+  {
+    m_undoView = new QUndoView( m_undoStack );
+    m_undoView->setWindowTitle( "Редактор - история изменения" );
+    m_undoView->setAttribute( Qt::WA_QuitOnClose, false );
+  }
+  m_undoView->show();
+}
 
 // ----------------------------- Private slots
 void MainWindow::showTemplatesInfo()
@@ -266,7 +285,7 @@ void MainWindow::createNewTemplate()
         tmpl_plugin->setUserName (this->userName);
         /** @brief Создаем пустой шаблон в во временном каталоге
           * заданном при инициализации плагина
-          * @todo сейчас создается вовременом системном каталоге изменить!
+          * @todo сейчас создается во  временом системном каталоге изменить!
           */
         tmpl_plugin->createEmptyTemplate();
         if (tmpl_plugin->isDBOpened()){
@@ -280,11 +299,14 @@ void MainWindow::createNewTemplate()
     }
 }
 
-void MainWindow::setPages(QGraphicsScene *first,
+void MainWindow::setPages(QGraphicsScene *first,QGraphicsScene *first2,
+                          QGraphicsScene *first3,QGraphicsScene *first4,
+                          QGraphicsScene *first5,
                           QGraphicsScene *second,
                           QGraphicsScene *third,
                           QGraphicsScene *fourth)
 {
+
     View * vPage  = (View *)tabWidget->widget(0);
     if (vPage){
         vPage->gr_view()->setScene(first);
@@ -455,6 +477,19 @@ void MainWindow::loadFromFile(const QString &file_name)
             tmpl_plugin->openTemplates(file_name);
             Ok &= tmpl_plugin->isDBOpened();
             if (Ok){
+                pagesModel = tmpl_plugin->getPagesModel();
+                for (int i=0;i<pagesModel->rowCount();i++){
+                    int p_number  = pagesModel->data(pagesModel->index(i,VPrn::PD_p_number)).toInt();
+                    int p_visible = pagesModel->data(pagesModel->index(i,VPrn::PD_p_visible)).toInt();
+                    QString p_name = pagesModel->data(pagesModel->index(i,VPrn::PD_p_name)).toString();
+                    if (p_visible==1){
+                         tabWidget->setTabText(p_number,p_name);
+                     }else{
+                         tabWidget->widget(p_number)->hide();
+                     }
+                }
+                // Теперь получим число страниц в шаблоне и скроем те страницы
+                // которые помечены как скрытые в шаблоне
                 this->statusBar()->showMessage(tr("Шаблон [%1] загружен").arg(file_name));
                 this->currentTemplates = file_name;
                 showInfoAct->setEnabled(true);
@@ -494,10 +529,11 @@ void MainWindow::pageSelect(int page)
     currentPage = page;
 
     View * vPage  = (View *)tabWidget->widget(page);
+    /*
     if (vPage){
         this->statusBar()->showMessage(vPage->getPageName());
     }
-
+*/
 }
 
 void MainWindow::createActions()
@@ -508,54 +544,40 @@ void MainWindow::createActions()
     showInfoAct->setShortcut(QKeySequence(tr("Ctrl+I")));
     showInfoAct->setStatusTip(tr("Показать свойства текущего шаблона [CTRL+I]"));
     showInfoAct->setEnabled(templ_load);
-    connect(showInfoAct,
-            SIGNAL(triggered()),
-            this,
-            SLOT(showTemplatesInfo())
-
-            );
+    connect(showInfoAct, SIGNAL(triggered()),
+            this,        SLOT(showTemplatesInfo())  );
 
     printAct = new QAction(QIcon(":/t_print.png"),
                            tr("Пробная печать шаблона"),this);
-    connect(printAct,
-            SIGNAL(triggered()),
-            this,
-            SLOT(printTempl())
-
-            );
+    connect(printAct,SIGNAL(triggered()),
+            this,    SLOT(printTempl()) );
 
     newAct = new QAction(QIcon(":/t_new.png"),
                          tr("Создание шаблона ..."),this);
     newAct->setShortcut(QKeySequence::New);
     newAct->setStatusTip(tr("Создание пустого шаблона"));
-    connect (newAct,
-             SIGNAL(triggered()),
-             this,
-             SLOT(createNewTemplate())
-             );
+    connect(newAct, SIGNAL(triggered()),
+             this,  SLOT(createNewTemplate()));
 
     loadAct = new QAction(QIcon(":/t_open.png"),
                           tr("Загрузка шаблона ..."),this);
     loadAct->setShortcut(QKeySequence::Open);
     loadAct->setStatusTip(tr("Загрузка в редактор шаблона для просмотра и редактирования"));
-    connect (loadAct,
-             SIGNAL(triggered()),
-             this,
-             SLOT(loadTemplates()));
+    connect (loadAct,SIGNAL(triggered()),
+             this,   SLOT(loadTemplates()));
 
     saveAsAct = new QAction(QIcon(":/t_save.png"),
                             tr("Сохранение шаблона как ..."),this);
     saveAsAct->setShortcut(QKeySequence::Open);
     saveAsAct->setStatusTip(tr("Сохранение текущего варианта шаблона в ..."));
-    connect (saveAsAct,
-             SIGNAL(triggered()),
-             this,
-             SLOT(saveTemplatesAs()));
+    connect(saveAsAct, SIGNAL(triggered()),
+             this,     SLOT(saveTemplatesAs()));
 
     antialiasAct = new QAction(tr("Сглаживание"),this);
     antialiasAct->setCheckable(true);
     antialiasAct->setStatusTip(tr("Режим отображения"));
-    connect(antialiasAct, SIGNAL(triggered()), this, SLOT(toggleAntialiasing()));
+    connect(antialiasAct, SIGNAL(triggered()),
+            this, SLOT(toggleAntialiasing()));
 
     quitAct = new QAction(tr("Выход"), this);
     quitAct->setShortcuts(QKeySequence::Close);
@@ -574,33 +596,65 @@ void MainWindow::createActions()
                              tr("Книжная ориентация страниц"),this);
     portretAct->setStatusTip(tr("Выбор книжной ориентации страниц"));
     portretAct->setData(QString("Port"));
-    connect (
-            portretAct,
-            SIGNAL(triggered()),
-            this, SLOT(do_angle_direct())
-            );
+    connect(portretAct, SIGNAL(triggered()),
+             this,      SLOT(do_angle_direct()) );
+
     landscapeAct = new QAction(QIcon(":/landscape.png"),
                                tr("Альбомная ориентация страниц"),this);
     landscapeAct->setStatusTip(tr("Выбор альбомной ориентации страниц"));
     landscapeAct->setData(QString("Land"));
-    connect (
-            landscapeAct,
-            SIGNAL(triggered()),
-            this, SLOT(do_angle_direct())
-            );
+    connect(landscapeAct,  SIGNAL(triggered()),
+             this,         SLOT(do_angle_direct()));
+
     QActionGroup * orientGroup = new QActionGroup(this);
     orientGroup->addAction(portretAct);
     orientGroup->addAction(landscapeAct);
 
+    showUndoStackAct = new QAction(QIcon(":/undo.png"),
+                                tr("История изменения шаблона"),this);
+    showUndoStackAct->setStatusTip(tr("Доступ к истории изменения шаблона (вставка, удаление, перемещение элементов)"));
+    connect(showUndoStackAct, SIGNAL(triggered()),
+            this,             SLOT(showUndoStack()) );
+
+    undoAct = m_undoStack->createUndoAction( this,tr("Отменить действие") );
+    redoAct = m_undoStack->createRedoAction( this,tr("Повторить действие") );
+    undoAct->setShortcut( QKeySequence::Undo );
+    redoAct->setShortcut( QKeySequence::Redo );
+
+
+    /*
     viewCodeAct = new QAction(QIcon(":/view_code.png"),
                               tr("Показать [коды] / значения полей реквизитов"),this);
     viewCodeAct->setStatusTip(tr("Режим отображения [код] / значение реквизита"));
+    connect(viewCodeAct, SIGNAL(triggered()),
+             this,        SLOT(do_viewCode()) );
 
-    connect (
-            viewCodeAct,
-            SIGNAL(triggered()),
-            this, SLOT(do_viewCode())
-            );
+    changeFontAction = new QAction(QObject::trUtf8("Изменить шрифт"),0);
+    changeFontAction->setStatusTip(QObject::trUtf8("Выбор нового шрифта для элемента шаблона"));
+    connect(changeFontAction, SIGNAL(triggered()),
+            this,             SLOT(changeFont()));
+
+    changeColorAction = new QAction(QObject::trUtf8("Изменить цвет"),0);
+    changeColorAction->setStatusTip(QObject::trUtf8("Выбор нового цвета для элемента шаблона"));
+    connect(changeColorAction, SIGNAL(triggered()),
+            this,              SLOT(changeColor()));
+
+    rotateRightAction = new QAction (QObject::trUtf8("Вращать по часовой стрелке"),0);
+    connect(rotateRightAction,SIGNAL(triggered()),
+            this,             SLOT(rotateRight()));
+
+    rotateLeftAction = new QAction (QObject::trUtf8("Вращать против часовой стрелки"),0);
+    connect(rotateLeftAction,SIGNAL(triggered()),
+            this,            SLOT(rotateLeft()));
+
+    delElemAction = new QAction (QObject::trUtf8("Удалить элемент"),0);
+    connect (delElemAction, SIGNAL(triggered()),
+             this,          SLOT(delElement()));
+
+    //setTextAction = new QAction (QObject::trUtf8("Ввести произвольный текст"),0);
+    //connect (setTextAction,SIGNAL(triggered()),this,SLOT(setTextDlg()));
+
+    */
 }
 
 void MainWindow::createMenus()
@@ -613,17 +667,24 @@ void MainWindow::createMenus()
     templatesMenu->addAction(printAct);
 
     templatesMenu->addSeparator();
-
     templatesMenu->addAction(quitAct);
-    editMenu = menuBar()->addMenu(tr("Правка"));
+
+    //itemMenu = menuBar()->addMenu(tr("Элементы"));
 
     viewMenu = menuBar()->addMenu(tr("Панели"));
 
     toolsMenu = menuBar()->addMenu(tr("Утилиты"));
+
     toolsMenu->addAction(antialiasAct);
     toolsMenu->addAction(portretAct);
     toolsMenu->addAction(landscapeAct);
     toolsMenu->addAction(viewCodeAct);
+
+    editMenu = menuBar()->addMenu(tr("Правка"));
+    editMenu->addAction(undoAct);
+    editMenu->addAction(redoAct);
+    editMenu->addSeparator();
+    editMenu->addAction(showUndoStackAct);
 
     menuBar()->addSeparator();
     helpMenu = menuBar()->addMenu(tr("&Справка"));
@@ -633,11 +694,11 @@ void MainWindow::createMenus()
 
 void MainWindow::createToolBars()
 {
-    editToolBar = addToolBar(tr("Правка"));
+    editToolBar = addToolBar(tr("Шаблоны"));
     editToolBar->addAction(newAct);
     editToolBar->addAction(loadAct);
-    //editToolBar->addAction(saveAct);
     editToolBar->addAction(saveAsAct);
+
     toolsToolBar = addToolBar(tr("Утилиты"));
     toolsToolBar->addAction(antialiasAct);
     toolsToolBar->addAction(showInfoAct);

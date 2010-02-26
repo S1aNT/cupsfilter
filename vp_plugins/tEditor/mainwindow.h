@@ -2,6 +2,9 @@
 #define MAINWINDOW_H
 #include <QDebug>
 #include <QMainWindow>
+#include <QUndoStack>
+#include <QUndoView>
+
 
 QT_BEGIN_NAMESPACE
 class QAction;
@@ -10,6 +13,7 @@ class QMenu;
 class QTextEdit;
 class QStringListModel;
 class QStandardItemModel;
+class QSqlQueryModel;
 QT_END_NAMESPACE
 
 class View;
@@ -34,7 +38,7 @@ public:
 
 public slots:
     void createNewTemplate();
-
+    void showUndoStack();
 private slots:
     void showTemplatesInfo();
     void pageSelect(int page);
@@ -45,8 +49,11 @@ private slots:
     void do_needCreateEmptyTemplates(QString &file_name);
     void saveUserName(QString & u_name);
 
-    void setPages(QGraphicsScene *first, QGraphicsScene *second,
-                  QGraphicsScene *third, QGraphicsScene *fourth);
+    void setPages(QGraphicsScene *first, QGraphicsScene *first2,
+                  QGraphicsScene *first3,QGraphicsScene *first4,
+                  QGraphicsScene *first5,
+                  QGraphicsScene *second, QGraphicsScene *third,
+                  QGraphicsScene *fourth);
 
     void errorA(QString e_msg); // Ошибка А типа - завершать рабту
     void errorB(QString e_msg); // Ошибка Б типа -  не  завершить работу
@@ -58,13 +65,6 @@ signals:
     void addBaseElementToPage(int, const QString & line);
     void addImgElementToPage(int , const QString &templ_fn);
 private:
-    /**
-      * @brief Полученый из плагина набор страниц преобразует во вкладки редактора
-      * Требования:
-      * @li плагин tmpl_sql_plugin загружен
-      * @li @fn loadTemplates() или  @fn do_needCreateEmptyTemplates() успешно отработали
-      void setPage4List();//const QList<QGraphicsScene *> scene);
-      */
 
 
     void createActions();
@@ -91,6 +91,7 @@ private:
     QMenu *viewMenu;
     QMenu *helpMenu;
     QMenu *toolsMenu;
+    //QMenu *itemMenu;
 
     QToolBar *editToolBar;
     QToolBar *toolsToolBar;
@@ -104,6 +105,8 @@ private:
 
     QAction *printAct;
     QAction *undoAct;
+    QAction* redoAct;
+
     QAction *aboutAct;
     QAction *aboutQtAct;
     QAction *quitAct;
@@ -112,6 +115,17 @@ private:
     QAction *portretAct;
     QAction *landscapeAct;
     QAction *viewCodeAct;
+    QAction *showUndoStackAct;
+
+/*
+    //Меню для элементов
+    QAction *changeFontAction;
+    QAction *changeColorAction;
+    QAction *rotateRightAction;
+    QAction *rotateLeftAction;
+    QAction *setTextAction;
+    QAction *delElemAction;
+    */
 
     // Приватные данные
 
@@ -134,9 +148,14 @@ private:
     QString local_t_path; // Путь к локальным шаблонам пользователя
     QString global_t_path;
     QString ftpTemplatesDir;
+    /**
+      * @var QSqlQueryModel * pagesModel; Ссылка на модель СТРАНИЦЫ_ШАБЛОНА
+      */
+    QSqlQueryModel * pagesModel;
 
-    // Модель данных
-    QStandardItemModel *doc_model; // Перейти на модель !!!!!
+    QUndoStack*  m_undoStack;           // undo stack for undo & redo of commands
+    QUndoView*   m_undoView;            // undo stack window to view undo & redo commands
+
 };
 
 #endif
