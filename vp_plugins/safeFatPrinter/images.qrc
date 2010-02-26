@@ -33,5 +33,6 @@
         <file>images/over_face_page.png</file>
         <file>images/portret.png</file>
         <file>images/landscape.png</file>
+        <file>images/undo.png</file>
     </qresource>
 </RCC>
