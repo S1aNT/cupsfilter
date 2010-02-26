@@ -18,6 +18,7 @@
 
 #include <QObject>
 #include <QSqlDatabase>
+#include <QtCore/QHash>
 
 class QSqlQuery;
 class QSqlQueryModel;
@@ -26,6 +27,7 @@ class QSqlError;
 class QSqlTableModel;
 class QGraphicsItem;
 class QGraphicsScene;
+
 
 #include "itmpl_sql_plugin.h"
 #include "tinfoeditmodel.h"
@@ -51,9 +53,10 @@ public:
     inline bool isDBOpened(){return m_dbOpened;};
     inline bool isDBConnected(){return m_dbConnect;};
 
-    TemplateInfoEditModel * getInfoModel(){return tInfoModel;};
+    TemplateInfoEditModel * getInfoModel()const {return tInfoModel;};
 
-    QSqlQueryModel  * getPSizeModel(){return pSizeModel;};
+    QSqlQueryModel  * getPSizeModel()const {return pSizeModel;};
+    QSqlQueryModel  * getPagesModel()const {return pagesModel;};
     /**
       * @fn Возвращает набор базовых элементов шаблона
       */
@@ -62,10 +65,20 @@ public:
 
 signals:
     void error(pluginsError errCode,QString error_message);
-    void allTemplatesPagesParsed(QGraphicsScene *scene_1,QGraphicsScene *scene_2,
+    void allTemplatesPagesParsed(QGraphicsScene *scene_11,QGraphicsScene *scene_12,
+                                 QGraphicsScene *scene_13,QGraphicsScene *scene_14,
+                                 QGraphicsScene *scene_15,QGraphicsScene *scene_2,
                                  QGraphicsScene *scene_3,QGraphicsScene *scene_4);
 
 public slots:
+    /**
+      * @fn void setTagValue(const QHash <QString, QString> &tagValue);
+      * @brief Предназначенна для записи в шаблон значений полей
+      * пробегает по всем элементам хеша и ищет соответсвитвие в списке
+      * элементов шаблона после чего делает update таблицы elem и обновление
+      * элементов отображения
+      */
+    void setTagValue(const QHash<QString, QString> &tagValue);
     /**
       * @fn Открытие шаблона
       * @brief работает так если драйвер БД загружен и установленно соединение,
@@ -108,8 +121,12 @@ private:
       * @var secondPage_tmpl_fn;
       * @var thirdPage_tmpl_fn;
       * @var fourthPage_tmpl_fn;
-      * Набор из 4-х сцен
+      * Набор из 8-х сцен
       * @var firstPage_scene;
+      * @var firstPage_sceneN2;
+      * @var firstPage_sceneN3;
+      * @var firstPage_sceneN4;
+      * @var firstPage_sceneN5;
       * @var secondPage_scene;
       * @var thirdPage_scene;
       * @var fourthPage_scene;
@@ -119,11 +136,20 @@ private:
     QString current_sid;
 
     QString firstPage_tmpl_fn;
+    QString firstPage_tmpl_fn2;
+    QString firstPage_tmpl_fn3;
+    QString firstPage_tmpl_fn4;
+    QString firstPage_tmpl_fn5;
+
     QString secondPage_tmpl_fn;
     QString thirdPage_tmpl_fn;
     QString fourthPage_tmpl_fn;
 
     QGraphicsScene * firstPage_scene;
+    QGraphicsScene * firstPage_sceneN2;
+    QGraphicsScene * firstPage_sceneN3;
+    QGraphicsScene * firstPage_sceneN4;
+    QGraphicsScene * firstPage_sceneN5;
     QGraphicsScene * secondPage_scene;
     QGraphicsScene * thirdPage_scene;
     QGraphicsScene * fourthPage_scene;
@@ -150,7 +176,21 @@ private:
     /**
       * @var Модель РАЗМЕРЫ_ЛИСТА
       */
-    QSqlQueryModel  * pSizeModel;
+    QSqlQueryModel * pSizeModel;
+
+    /**
+      * @var Модель СТРАНИЦЫ_ШАБЛОНА
+      * @brief В данной модели храняться все страницы шаблона
+      * №п/п|Тип страницы| Отображаемое имя страницы
+      */
+    QSqlQueryModel * pagesModel;
+    /**
+      * @var Модель ЭЛЕМЕНТЫ_СТРАНИЦЫ
+      * @brief В данной модели храняться все элементы
+      * размещенные на i-странице шаблона
+      * text|tag|pos_x|pos_y|color|font|angle|border|img_data|always_view
+      */
+    QSqlQueryModel * elemInPageModel;
 
     /**
       * @var Singleton DB connection
@@ -224,6 +264,37 @@ private:
       * @brief Заполняет таблицу размеров страниц
       */
     bool fillPagesSizeTable(QSqlQuery &query);
+
+    /**
+      * @fn int getId4pageSizeTable(QSqlQuery &query,const QString & findSize)
+      * @retval int
+      * @brief Возвращает id Записи в таблице размеров страниц
+      */
+    int getId4pageSizeTable(QSqlQuery &query,const QString & findSize);
+    /**
+      * @fn void update_scenes(const QHash<QString, QString> &hash)
+      * @brief проходит по всем элементам каждой сцены и проверяет
+      * есть ли там элемент с тегом = tag если есть, то записывает ему новое
+      * значение, координаты элемента не меняются
+      */
+    void update_scenes(const QHash<QString, QString> &hash);
+    /**
+      * @fn QGraphicsScene * selectScene(int page)const
+      * @brief возвращает указатель на требуемую сцену
+      */
+    QGraphicsScene * selectScene(int page) const;
+    /**
+      * @fn void create_SimpleItem(QGraphicsItem *parent,
+      *                                  QPointF &ps, QFont &fnt,
+      *                                 QColor &col,QString &text,QString &text);
+      *
+      * @brief  создает новый элемент и размещает его на нужной сцене
+      */
+
+    void create_SimpleItem(QGraphicsItem *parent,
+                                        QPointF &ps, QFont &fnt,
+                                        QColor &col,QString &text,QString &tag);
+
 };
 
 
