@@ -88,9 +88,12 @@ void SimpleItem::paint (QPainter *ppainter,
     int pixelsHigh=fm.height();
     ppainter->setPen(QPen(currentColor,0));
     ppainter->setFont(currentFont);
+    /*
     for (int i = 0; i < textList.size(); ++i){
         ppainter->drawText(0,0+((i+1)*pixelsHigh),textList.at(i).toLocal8Bit().constData());
     }
+    */
+    ppainter->drawText(0,pixelsHigh,elemText.toLocal8Bit().constData());
     ppainter->restore();
 }
 void SimpleItem::mousePressEvent(QGraphicsSceneMouseEvent *pe)
@@ -119,15 +122,11 @@ void SimpleItem::setTextDlg()
 
     if (ok && !source.isEmpty()){
         //this->setText(QStringList()<<source.split("\n"));
-        this->setTag(source);
+        setTag(source);
+        setText(source);
     }
 }
-void SimpleItem::setText(QStringList &pList)
-{
-    textList.clear();
-    textList.append(pList);
-    update();
-}
+
 
 void SimpleItem::changeFont()
 {
@@ -171,7 +170,9 @@ QSize SimpleItem::calcSize() const
     int pHigh=0;
     int maxPixelsWide=0; // Максимальная ширина строки
     //qDebug() << Q_FUNC_INFO <<  fm.height() <<"\n";
+    maxPixelsWide = fm.width(elemText.toLocal8Bit().constData());
 
+    /*
     for (int i = 0; i < textList.size(); ++i){
         int pixelsWide = fm.width(textList.at(i).toLocal8Bit().constData());
         if (pixelsWide >maxPixelsWide){
@@ -180,17 +181,13 @@ QSize SimpleItem::calcSize() const
         }
         pHigh += fm.height();
     }
+    */
     pHigh+= (fm.height()/2);
     //qDebug() << Q_FUNC_INFO <<QSize(maxPixelsWide+nPenWidth*2,pHigh+nPenWidth*2);
     //return QSize(maxPixelsWide+5+nPenWidth*2,pHigh+nPenWidth*2);
     return QSize(maxPixelsWide,pHigh);
 }
 
-QStringList SimpleItem::getText()
-{
-    qDebug() << Q_FUNC_INFO << textList;
-    return textList;
-}
 QFont SimpleItem::getFont()
 {
     qDebug() << Q_FUNC_INFO <<currentFont;

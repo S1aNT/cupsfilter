@@ -29,10 +29,10 @@ public:
         virtual void mousePressEvent(QGraphicsSceneMouseEvent *pe);
         virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent *pe);
 
-        QStringList getText();
+        QString getText() const {return elemText;};
 
-        QString getTag() const {return tag;};
-        void setTag(const QString &t){tag = t;};
+        QString getTag() const {return elemTag;};
+        void setTag(const QString &t){elemTag = t;};
 
         QFont getFont();
         QColor getColor();
@@ -40,7 +40,7 @@ public:
         void setFont(const QFont &fnt);
 
 public  slots:
-        void setText(QStringList &pList);
+        void setText(const QString &t){elemText = t;};
         void changeFont();
         void changeColor();
         void setPrintFrame(bool frm);
@@ -53,8 +53,9 @@ protected:
 
 private:
         enum{nPenWidth=1};
-        QStringList textList; // Список строк рисуемый в объекте
-        QString tag;          // Тег который присвоен элементу
+
+        QString elemText; // Список строк рисуемый в объекте
+        QString elemTag;          // Тег который присвоен элементу
         
         bool printFrame; // Печатать рамку или нет
         QFont currentFont;
