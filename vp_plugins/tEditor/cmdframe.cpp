@@ -4,10 +4,7 @@
 #include <QVBoxLayout>
 #include <QSignalMapper>
 #include <QMessageBox>
-#include "tech_global.h"
 
-
-using namespace SafeVirtualPrinter;
 
 cmdFrame::cmdFrame(QWidget *parent) :
         QFrame(parent)
@@ -60,7 +57,7 @@ void cmdFrame::setCmdButton(QStringList c_list)
         pBt->setText(c_list.at(i));
         //qDebug() << "signalMapper:" << signalMapper << "pBt" <<pBt;
         connect(pBt, SIGNAL(clicked()), signalMapper, SLOT(map()));
-        signalMapper->setMapping(pBt, QString("[%1]").arg(c_list.at(i)));
+        signalMapper->setMapping(pBt, QString("%1").arg(c_list.at(i)));
         verticalLayout->addWidget(pBt);
     }
 
