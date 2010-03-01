@@ -3,6 +3,7 @@
 #include <QDebug>
 #include <QMainWindow>
 #include <QUndoStack>
+#include <QUndoGroup>
 #include <QUndoView>
 
 
@@ -18,6 +19,7 @@ QT_END_NAMESPACE
 
 class View;
 class cmdFrame;
+class UndoFrame;
 
 //#include "itmpl_plugin.h"
 //#include "templ_info.h"
@@ -38,8 +40,9 @@ public:
 
 public slots:
     void createNewTemplate();
-    void showUndoStack();
+
 private slots:
+    void updateUndoLimit(int limit);
     void showTemplatesInfo();
     void pageSelect(int page);
     void toggleAntialiasing();
@@ -49,11 +52,6 @@ private slots:
     void do_needCreateEmptyTemplates(QString &file_name);
     void saveUserName(QString & u_name);
 
-    void setPages(QGraphicsScene *first, QGraphicsScene *first2,
-                  QGraphicsScene *first3,QGraphicsScene *first4,
-                  QGraphicsScene *first5,
-                  QGraphicsScene *second, QGraphicsScene *third,
-                  QGraphicsScene *fourth);
 
     void errorA(QString e_msg); // Ошибка А типа - завершать рабту
     void errorB(QString e_msg); // Ошибка Б типа -  не  завершить работу
@@ -62,11 +60,9 @@ private slots:
     void do_angle_direct();
     void do_viewCode();
 signals:
-    void addBaseElementToPage(int, const QString & line);
+    void addBaseElementToPage(int, const QString &line);
     void addImgElementToPage(int , const QString &templ_fn);
 private:
-
-
     void createActions();
     void createMenus();
     void createToolBars();
@@ -117,15 +113,7 @@ private:
     QAction *viewCodeAct;
     QAction *showUndoStackAct;
 
-/*
-    //Меню для элементов
-    QAction *changeFontAction;
-    QAction *changeColorAction;
-    QAction *rotateRightAction;
-    QAction *rotateLeftAction;
-    QAction *setTextAction;
-    QAction *delElemAction;
-    */
+
 
     // Приватные данные
 
@@ -139,6 +127,7 @@ private:
 
     AddTemplate *TProperDlg;
     cmdFrame * CmdButtonBox;
+    UndoFrame * myUndoFrame;
 
     // Переменные из установок
     QString serverHostName;
@@ -153,9 +142,9 @@ private:
       */
     QSqlQueryModel * pagesModel;
 
-    QUndoStack*  m_undoStack;           // undo stack for undo & redo of commands
-    QUndoView*   m_undoView;            // undo stack window to view undo & redo commands
-
+    QUndoStack * m_ActiveStack;   // Текущий активный стек Undo
+    QUndoGroup * m_undoGroup;     // Группа стеков undo
+    QMap <int,myScene *> m_Scenes; // Группа сцен
 };
 
 #endif
