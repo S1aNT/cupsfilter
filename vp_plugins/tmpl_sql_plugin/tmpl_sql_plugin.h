@@ -2,35 +2,41 @@
 #define TMPL_SQL_PLUGIN_H
 
 /**
-  * @todo В настоящий момент в шаблоне жестко создается 4 сцены,
-  * указатели на которые возвращаются внешнему приложению
-  * необходимо сделать наборот, шаблон возвращает QSqlQuery модель
-  * описывающую набор страниц в виде таблицы
-  * (№п/п, Название страницы, тип страницы [Лицевая сторона 1листа, <- {1,5}
-  *                                         Лицевая сторона 2листа, <- {0,1}
-  *                                         Обратная сторона листа, <- {0,1}
-  *                                         Фонарик])               <- {0,1}
-  * А приложение генерирует необходимое число QGraphicsScene и передает
-  * в шаблон их через указатель для заполнения сцены элементами присутвующими
-  * на данной странице в шаблоне
-  * При создании  шаблона необходимо указывать требуемое число страниц
-  */
-
+  * @mainpage Плагин
+  * предназначен для работы с шаблоном, который представляет БД SQLITE
+  * При первоначальной загрузке плагина происходит инициализация рабочих,
+  * наборов данных:
+  * @var  QMap <int,myScene *> scenesGrp;
+  * Список указателей на сцены которые отрисовывают страницы шаблона
+  * @var QUndoGroup * undoGrp;
+  * Группа UndoStack  каждый их которых связан со своей сценой
+  * В памяти :memory: создается пустая БД заполненая необходимыми
+  * таблицами и связями, с данной БД связваются  необходимые модели.
+  * Если пользователь выбирает СОЗДАТЬ новый пустой шаблон, то создается
+  * новая БД по указанному пользователем пути,которая присоедияется к БД
+  * в памяти ATTACH DB и в нее копируются данный из временной БД, после чего
+  * модели настраиваютсяя на получение данных из новой БД, если возникает
+  * необходимость нового временного шаблона, то данный цикл повторяется
+*/
 #include <QObject>
 #include <QSqlDatabase>
 #include <QtCore/QHash>
+#include <QUndoStack>
+#include <QUndoGroup>
+#include <QMap>
 
 class QSqlQuery;
 class QSqlQueryModel;
 class QSqlRelationalTableModel;
 class QSqlError;
 class QSqlTableModel;
-class QGraphicsItem;
-class QGraphicsScene;
+//class QGraphicsItem;
+class myScene;
 
 
 #include "itmpl_sql_plugin.h"
 #include "tinfoeditmodel.h"
+#include "myscene.h"
 #include "mytypes.h"
 
 using namespace VPrn;
@@ -53,23 +59,37 @@ public:
     inline bool isDBOpened(){return m_dbOpened;};
     inline bool isDBConnected(){return m_dbConnect;};
 
-    TemplateInfoEditModel * getInfoModel()const {return tInfoModel;};
-
-    QSqlQueryModel  * getPSizeModel()const {return pSizeModel;};
-    QSqlQueryModel  * getPagesModel()const {return pagesModel;};
     /**
-      * @fn Возвращает набор базовых элементов шаблона
+      * @brief Геттеры возвращают константные указатели на
+      * @fn getInfoModel();        модель ИНФО_ШАБЛОНА
+      * @fn getPSizeModel();       модель РАЗМЕРЫ_ЛИСТА
+      * @fn getPagesModel();       модель СТРАНИЦЫ_ШАБЛОНА
+      * @fn getBaseElemNameList(); набор базовых элементов шаблона
+      * @fn getUndoGrp();          группу стеков
+      * @fn getScenesGroup();      список сцен, со связанными стеками Undo
       */
-    QStringList getBaseElemNameList() const;
+    TemplateInfoEditModel * getInfoModel() const {return tInfoModel;};
+    QSqlQueryModel        * getPSizeModel()const {return pSizeModel;};
+    QSqlQueryModel        * getPagesModel()const {return pagesModel;};
+    QStringList             getBaseElemNameList() const;
+    QUndoGroup            * getUndoGrp() const {return undoGrp;};
+    QMap <int,myScene *>  getScenesGroup() {return scenesGrp;}
+    //-------------------------------------------------------------------
+
+    /**
+      * @brief Устанавливает имя пользователя полученное от плагина Auth
+      */
     void setUserName (const QString &user){userName = user;};
 
 signals:
     void error(pluginsError errCode,QString error_message);
-    void allTemplatesPagesParsed(QGraphicsScene *scene_11,QGraphicsScene *scene_12,
-                                 QGraphicsScene *scene_13,QGraphicsScene *scene_14,
-                                 QGraphicsScene *scene_15,QGraphicsScene *scene_2,
-                                 QGraphicsScene *scene_3,QGraphicsScene *scene_4);
-
+    void allTemplatesPagesParsed();
+  /*
+    void allTemplatesPagesParsed(myScene *scene_11,myScene *scene_12,
+                                 myScene *scene_13,myScene *scene_14,
+                                 myScene *scene_15,myScene *scene_2,
+                                 myScene *scene_3,myScene *scene_4);
+*/
 public slots:
     /**
       * @fn void setTagValue(const QHash <QString, QString> &tagValue);
@@ -103,10 +123,10 @@ public slots:
     void saveTemplatesAs(const QString & fileName);
     void closeTemplates();
 
-    /** @fn doAddBaseElementToPage(int page,QString &text)
+    /** @fn doAddBaseElementToPage(int page,QString &tag)
       * добавляет базовый элемент на страницу с номером page
       */
-    void doAddBaseElementToPage(int page,const QString &text);
+    void doAddBaseElementToPage(int page,const QString &tag);
 
 private:    
 
@@ -122,14 +142,6 @@ private:
       * @var thirdPage_tmpl_fn;
       * @var fourthPage_tmpl_fn;
       * Набор из 8-х сцен
-      * @var firstPage_scene;
-      * @var firstPage_sceneN2;
-      * @var firstPage_sceneN3;
-      * @var firstPage_sceneN4;
-      * @var firstPage_sceneN5;
-      * @var secondPage_scene;
-      * @var thirdPage_scene;
-      * @var fourthPage_scene;
       */
     QString userName;
     QString spool_dir;
@@ -145,15 +157,24 @@ private:
     QString thirdPage_tmpl_fn;
     QString fourthPage_tmpl_fn;
 
-    QGraphicsScene * firstPage_scene;
-    QGraphicsScene * firstPage_sceneN2;
-    QGraphicsScene * firstPage_sceneN3;
-    QGraphicsScene * firstPage_sceneN4;
-    QGraphicsScene * firstPage_sceneN5;
-    QGraphicsScene * secondPage_scene;
-    QGraphicsScene * thirdPage_scene;
-    QGraphicsScene * fourthPage_scene;
-
+    /**
+      * @var QMap <int,myScene *> scenesGrp; Список сцен
+      */
+    QMap <int,myScene *> scenesGrp;
+    /**
+      * @var QUndoGroup * undoGrp; Группа стеков Undo
+      */
+    QUndoGroup * undoGrp;
+/*
+    myScene * firstPage_scene;
+    myScene * firstPage_sceneN2;
+    myScene * firstPage_sceneN3;
+    myScene * firstPage_sceneN4;
+    myScene * firstPage_sceneN5;
+    myScene * secondPage_scene;
+    myScene * thirdPage_scene;
+    myScene * fourthPage_scene;
+*/
     bool view_code_state;
 
     QString m_connectionName;
@@ -243,22 +264,12 @@ private:
       */
     bool isCreateFile(const QString & fileName);
 
-    /**
-      * @fn QGraphicsItem *findPaperElem(QGraphicsScene *scene)
-      * Ищет на заданной странице элемент имеющий тег Paper и возвращает
-      * указатель на него
-      * @todo Может просто возвращать сам элемент ???
-      */
-    QGraphicsItem *findPaperElem(QGraphicsScene *scene);
 
     /** @fn bool fillScenes4Data()
       * Рабор данных полученных из шаблона и запись их в сцены
       */
     bool fillScenes4Data();
 
-    void create_page(QGraphicsScene * scene,qreal width,qreal height,
-                                  qreal m_top,qreal m_bottom,
-                                  qreal m_right,qreal m_left);
     /**
       * @fn bool fillPagesSizeTable(QSqlQuery &query)
       * @brief Заполняет таблицу размеров страниц
@@ -279,21 +290,10 @@ private:
       */
     void update_scenes(const QHash<QString, QString> &hash);
     /**
-      * @fn QGraphicsScene * selectScene(int page)const
+      * @fn myScene * selectScene(int page)const
       * @brief возвращает указатель на требуемую сцену
       */
-    QGraphicsScene * selectScene(int page) const;
-    /**
-      * @fn void create_SimpleItem(QGraphicsItem *parent,
-      *                                  QPointF &ps, QFont &fnt,
-      *                                 QColor &col,QString &text,QString &text);
-      *
-      * @brief  создает новый элемент и размещает его на нужной сцене
-      */
-
-    void create_SimpleItem(QGraphicsItem *parent,
-                                        QPointF &ps, QFont &fnt,
-                                        QColor &col,QString &text,QString &tag);
+    myScene * selectScene(int page) const;
 
 };
 
