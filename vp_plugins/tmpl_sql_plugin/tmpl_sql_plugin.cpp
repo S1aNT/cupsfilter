@@ -19,7 +19,6 @@
 #include <QModelIndex>
 #include <QDateTime>
 #include <QtGui/QGraphicsItem>
-#include <QtGui/QGraphicsScene>
 #include <QtCore/QHashIterator>
 
 
@@ -34,6 +33,14 @@ Tmpl_sql_plugin::Tmpl_sql_plugin(QObject *parent)
 {
 
     qRegisterMetaType<pluginsError>("pluginsError");
+    //Создаем группу стеков Undo
+    undoGrp = new QUndoGroup (this);
+    //Создаем сцены, связываем их со стеком Undo
+    for (int i=0; i<8;i++){
+        QUndoStack * stack = new QUndoStack(this);
+        undoGrp->addStack(stack);
+        scenesGrp.insert(i,new myScene(i,stack,this));
+    }
 
     m_connectionName = QLatin1String("TCONN");
     m_dbConnect = createConnection();
@@ -77,17 +84,9 @@ void Tmpl_sql_plugin::init(const QString & spool,const QString & sid)
 
             secondPage_tmpl_fn = QObject::trUtf8("%1/%2_second_tmpl.pdf").arg(spool, sid);
             thirdPage_tmpl_fn = QObject::trUtf8("%1/%2_third_tmpl.pdf").arg(spool, sid);
-            fourthPage_tmpl_fn = QObject::trUtf8("%1/%2_fourth_tmpl.pdf").arg(spool, sid);
-            // создаем сцены
-            firstPage_scene  = new QGraphicsScene(this);
-            firstPage_sceneN2  = new QGraphicsScene(this);
-            firstPage_sceneN3  = new QGraphicsScene(this);
-            firstPage_sceneN4  = new QGraphicsScene(this);
-            firstPage_sceneN5  = new QGraphicsScene(this);
+            fourthPage_tmpl_fn = QObject::trUtf8("%1/%2_fourth_tmpl.pdf").arg(spool, sid);           
 
-            secondPage_scene = new QGraphicsScene(this);
-            thirdPage_scene  = new QGraphicsScene(this);
-            fourthPage_scene = new QGraphicsScene(this);
+
             // Заполним список базовых элементов шаблона
 
             baseElemList << QObject::tr("МБ")
@@ -220,10 +219,13 @@ void Tmpl_sql_plugin::openTemplates(const QString & t_fileName)
                 Ok &= fillScenes4Data();
 
                 if (Ok){                  
+                    emit allTemplatesPagesParsed();
+                    /*
                     emit allTemplatesPagesParsed(firstPage_scene,firstPage_sceneN2,
                                                  firstPage_sceneN3,firstPage_sceneN4,
                                                  firstPage_sceneN5,secondPage_scene,
                                                  thirdPage_scene, fourthPage_scene);
+                                                 */
                 }
             }
         }
@@ -288,111 +290,43 @@ void Tmpl_sql_plugin::saveTemplatesAs(const QString & fileName)
     }
 }
 
-void Tmpl_sql_plugin::doAddBaseElementToPage(int page,const QString &text)
+void Tmpl_sql_plugin::doAddBaseElementToPage(int page,const QString &tag)
 {
-    /**
-      * @todo ИЗМЕНИТЬ
-      */
     QString e_msg;
     QString l_msg = QString(" [%1] ").arg(QString::fromAscii(Q_FUNC_INFO));
-    QGraphicsScene *scene;
-    QGraphicsItem *item;
-
-    switch(page){
-    case VPrn::FirstPage:
-        scene = firstPage_scene;
-        break;       
-    case VPrn::FirstPageN2:
-        scene = firstPage_sceneN2;
-        break;
-    case VPrn::FirstPageN3:
-        scene = firstPage_sceneN3;
-        break;
-    case VPrn::FirstPageN4:
-        scene = firstPage_sceneN4;
-        break;
-    case VPrn::FirstPageN5:
-        scene = firstPage_sceneN5;
-        break;
-    case VPrn::SecondPage:
-        scene = secondPage_scene;
-        break;
-    case VPrn::ThirdPage:
-        scene = thirdPage_scene;
-        break;
-    case VPrn::FourthPage:
-        scene = fourthPage_scene;
-        break;
-    default:
-        e_msg = QObject::trUtf8("Ошибка: Такой страницы %2 в шаблоне не существует")
-                .arg(page,0,10);
-        /// @todo Исправить
-        emit error(InternalPluginError,e_msg);
-        //emit error(e_msg);
-        //emit toLog(l_msg+e_msg);
-        break;
-    }
-    if (scene){
-        item = findPaperElem(scene);
-
-        //SimpleItem * pItem = new SimpleItem();
-        myTextItem *pItem = new myTextItem();
-
-        pItem->setZValue(100);
-        pItem->setPos(100.0,100.0);
-        pItem->setPlainText(text);
-        pItem->setTag(text);
-        pItem->setTextInteractionFlags(Qt::TextEditorInteraction);
-        pItem->setFlag(QGraphicsItem::ItemIsMovable);
-        pItem->setData(ObjectName, "tElem");
-        pItem->setParentItem(item);
-        scene->update();
-    }
+    myScene *scene = selectScene(page);
+    scene->addBaseElem(tag);
 }
 
 //------------------------------------------------------------------------------
 
 //***************** private functions **************************************
 
-QGraphicsScene * Tmpl_sql_plugin::selectScene(int page)const
+myScene * Tmpl_sql_plugin::selectScene(int page)const
 {
-    QGraphicsScene *scene(0);
-    switch(page){
-    case VPrn::FirstPage:
-        scene = firstPage_scene;
-        break;
-    case VPrn::FirstPageN2:
-        scene = firstPage_sceneN2;
-        break;
-    case VPrn::FirstPageN3:
-        scene = firstPage_sceneN3;
-        break;
-    case VPrn::FirstPageN4:
-        scene = firstPage_sceneN4;
-        break;
-    case VPrn::FirstPageN5:
-        scene = firstPage_sceneN5;
-        break;
-    case VPrn::SecondPage:
-        scene = secondPage_scene;
-        break;
-    case VPrn::ThirdPage:
-        scene = thirdPage_scene;
-        break;
-    case VPrn::FourthPage:
-        scene = fourthPage_scene;
-        break;
-    }
-    return scene;
+    myScene *scene(0);
+    // Использую Java style итератор для просмотра всего списка сцен
+    QMapIterator<int, myScene *> i(scenesGrp);
+     while (i.hasNext()) {
+         i.next();
+         // Обработаем полученный указатеь на сцену
+         if (i.key()==page){
+             scene = i.value();
+             break;
+         }
+         qDebug() << i.key() << ": " << i.value();
+     }
+     return scene;
 }
+
 // Рабор данных полученных из шаблона и запись их в сцены
 bool Tmpl_sql_plugin::fillScenes4Data()
 {
     QSqlQuery query (DB_);
     QSqlQuery query_detail (DB_);
 
-    QGraphicsScene *scene(0);
-    QGraphicsItem *item(0);
+    myScene *scene(0);
+
     bool Ok =true;
     {
         //Модель tInfoModel заполнена возьмем оттуда данные
@@ -407,10 +341,11 @@ bool Tmpl_sql_plugin::fillScenes4Data()
 
         //Модель pagesModel заполнена возьмем оттуда данные о страницах шаблона
         for (int i=0;i<pagesModel->rowCount();i++){
-            int pType = pagesModel->data(pagesModel->index(i,VPrn::PD_p_type)).toInt();
-            scene = selectScene(pType);
+            int pNumber = pagesModel->data(pagesModel->index(i,VPrn::PD_p_number)).toInt();
+            scene = selectScene(pNumber);
             if (scene){
-                create_page(scene,p_width,p_height,m_top,m_bottom,m_right,m_left);
+                scene->createPage(p_width,p_height,m_top,m_bottom,m_right,m_left);
+                scene->setAngle(angle);
             }
         }
         if (Ok){
@@ -419,8 +354,8 @@ bool Tmpl_sql_plugin::fillScenes4Data()
             for (int i=0;i<elemInPageModel->rowCount();i++){
                 int elem_p_type = elemInPageModel->data(elemInPageModel->index(i,VPrn::elem_p_type)).toInt();
                 scene = selectScene(elem_p_type);
-                if (scene){
-                    item = this->findPaperElem(scene);
+
+                if (scene ){
                     //Получим данные конкретного элемента
                     int e_type   = elemInPageModel->data(elemInPageModel->index(i,VPrn::elem_text_img)).toInt();
                     qreal pos_x = elemInPageModel->data(elemInPageModel->index(i,VPrn::elem_pos_x)).toDouble();
@@ -433,7 +368,9 @@ bool Tmpl_sql_plugin::fillScenes4Data()
                         QColor color = variant.value<QColor>();
                         variant = elemInPageModel->data(elemInPageModel->index(i,VPrn::elem_font));
                         QFont font = variant.value<QFont>();
-                        create_SimpleItem(item,ps,font,color,text,tag);
+
+                        scene->addBaseElem(text,tag,ps,font,color);
+
                     }else{
                         //Читаем картинку из базы
                     }
@@ -445,57 +382,7 @@ bool Tmpl_sql_plugin::fillScenes4Data()
     return Ok;
 }
 
-void Tmpl_sql_plugin::create_SimpleItem(QGraphicsItem *parent,
-                                    QPointF &ps, QFont &fnt,
-                                    QColor &col,QString &text,QString &tag)
-{
-    QStringList filledList;
 
-    SimpleItem * pItem = new SimpleItem;
-
-    pItem->setPos(ps);
-    pItem->setFont(fnt);
-    pItem->setColor(col);
-    pItem->setText(text);
-    pItem->setTag(tag);
-    pItem->setZValue(100);
-    pItem->setFlag(QGraphicsItem::ItemIsMovable);
-    pItem->setData(ObjectName, "tElem");
-    pItem->setParentItem(parent);
-}
-
-void Tmpl_sql_plugin::create_page(QGraphicsScene * scene,
-                                  qreal width,qreal height,
-                                  qreal m_top,qreal m_bottom,
-                                  qreal m_right,qreal m_left)
-{
-    if (scene){
-        scene->clear();
-        scene->setSceneRect(0, 0, width,height);
-        scene->setBackgroundBrush(Qt::white);
-        /// рисуем границы (@todo при печати надо их убирать)
-
-        QGraphicsRectItem *paper_rect =
-                new QGraphicsRectItem (QRectF(0,0, width,height));
-        paper_rect->setPen(QPen(Qt::black));
-        paper_rect->setBrush(QBrush(Qt::red));
-        paper_rect->setZValue(-1000.0);
-        paper_rect->setData(ObjectName, "Paper");
-        scene->addItem(paper_rect);
-
-        QGraphicsRectItem *border_rect =
-                new QGraphicsRectItem (
-                        QRectF(m_left, m_top,width-m_left-m_right,height-m_top-m_bottom)
-                        );
-
-        border_rect->setPen(QPen(Qt::black,2,Qt::DotLine));
-        border_rect->setBrush(QBrush(Qt::white));
-        border_rect->setOpacity(1);
-        border_rect->setZValue(-900);
-        border_rect->setData(ObjectName, "Border");
-        border_rect->setParentItem(paper_rect);
-    }
-}
 
 bool Tmpl_sql_plugin::InitDB()
 {
@@ -1082,27 +969,20 @@ bool Tmpl_sql_plugin::fillModels()
     return Ok;
 }
 
-QGraphicsItem *Tmpl_sql_plugin::findPaperElem(QGraphicsScene *scene)
-{
-    QGraphicsItem *item;
 
-    // Поиск  указателя на бумагу
-    for (int i = 0; i < scene->items().size(); ++i){
-        item = scene->items().at(i);
-        if ( item->data(ObjectName).toString()=="Paper"){
-            break;
-        }
-    }
-    return item;
-}
 
 void Tmpl_sql_plugin::update_scenes(const QHash<QString, QString> &hash)
 {
+
     QString t_str;
-    QGraphicsScene *scene;
+    //myScene *scene;
     QSqlQuery query (DB_);
 
-    ///выбор страниц из базы
+    /**
+      * @todo надо переписать,так -> хэш передается в каждую сцену,
+      * и она сама обновляет свои элементики !!!!
+      */
+/*
     bool Ok = true;
     {
         Ok &= query.exec("SELECT page_detail.p_number,page_detail.p_type,"
@@ -1118,20 +998,7 @@ void Tmpl_sql_plugin::update_scenes(const QHash<QString, QString> &hash)
             while (query.next()) {
                 //page_detail_id = query.value(field_id).toInt();
 
-                switch (query.value(field_pType).toInt()){
-                case FirstPage:
-                    scene = firstPage_scene;
-                    break;
-                case SecondPage:
-                    scene = secondPage_scene;
-                    break;
-                case ThirdPage:
-                    scene = thirdPage_scene;
-                    break;
-                case FourthPage:
-                    scene = fourthPage_scene;
-                    break;
-                }
+                scene = selectScene(query.value(field_pType).toInt());
                 if (scene){
                     //Обновим элементы сцены
                     for (int i = 0; i < scene->items().size(); i++){
@@ -1155,6 +1022,7 @@ void Tmpl_sql_plugin::update_scenes(const QHash<QString, QString> &hash)
             DumpError(query.lastError());
         }
     }
+*/
 }
 
 //****************************************************************************
