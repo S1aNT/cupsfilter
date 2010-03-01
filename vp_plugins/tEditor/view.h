@@ -8,16 +8,19 @@ QT_FORWARD_DECLARE_CLASS(QGraphicsView)
 QT_FORWARD_DECLARE_CLASS(QLabel)
 QT_FORWARD_DECLARE_CLASS(QSlider)
 QT_FORWARD_DECLARE_CLASS(QToolButton)
-
+QT_FORWARD_DECLARE_CLASS(QUndoStack)
 class View : public QFrame
 {
     Q_OBJECT
 public:
     View(QWidget *parent = 0);
-    inline void setAngle(qreal angle){curAngle = angle;};
+    void setAngle(qreal angle);
     QGraphicsView *gr_view() const;
     void setTabOrder(int ord){tabOrder = ord;};
     int getTabOrder(){return tabOrder;};
+    void setUndoStack(QUndoStack *stack){m_UndoStack = stack;};
+    QUndoStack *undoStack() const{return m_UndoStack;};
+
 public slots:
     //void flipPage(int Btn);
 
@@ -32,10 +35,12 @@ private:
     QGraphicsView *graphicsView;
     QLabel *label;
     QSlider *zoomSlider;
+    QUndoStack * m_UndoStack;
 
     QMatrix matrix;
     qreal curAngle;
     int tabOrder;
+
 };
 
 #endif

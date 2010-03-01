@@ -2,7 +2,7 @@
 
 #include <QtGui>
 #include <qmath.h>
-
+#include <QUndoStack>
 
 View::View( QWidget *parent)
     : QFrame(parent)
@@ -60,6 +60,13 @@ View::View( QWidget *parent)
 
 
     setupMatrix();
+}
+
+void View::setAngle(qreal angle)
+{
+    curAngle = angle;
+    setupMatrix();
+
 }
 
 QGraphicsView *View::gr_view() const
