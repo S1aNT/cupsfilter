@@ -30,12 +30,13 @@ HEADERS += ../global/pre_header.h \
     ../global/tech_global.h \
     ../global/mytypes.h \
     ../global/tinfoeditmodel.h \
+    ../global/myscene.h  \    
     tmpl_sql_plugin.h \
     simpleitem.h \
-    mytextitem.h \
-    myscene.h
+    ../global/mytextitem.h \    
+    ../global/commands.h
 SOURCES = tmpl_sql_plugin.cpp \
     simpleitem.cpp \
     ../global/tinfoeditmodel.cpp \
-    mytextitem.cpp \
-    myscene.cpp
+    ../global/myscene.cpp  \
+    ../global/mytextitem.cpp 
