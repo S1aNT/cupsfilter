@@ -15,11 +15,13 @@ namespace VPrn{
 #define DM_TO_POINT(dm) ((dm)*283.465058)
 #define INCH_TO_POINT(inch) ((inch)*72.0)
 
+
 static const int ObjectName = 0;
+
 
 enum pSizeColumnOrder{
         pSize_id     = 0, // ID
-        pSize_page   = 1, // Размер листа
+        pSize_page   = 1, //  азмер листа
         pSize_code   = 2, // Код
         pSize_width  = 3, // Ширина (мм)
         pSize_height = 4  // Высота (мм)
@@ -64,7 +66,7 @@ enum elemColumnOrder{
             elem_color = 5,  //Цвет шрифта
             elem_font  = 6,  //Шрифт
             elem_angle = 7,  //Угол поворота относиттельно сцены
-            elem_border= 8,  //Рисовать границу элемента, да/нет
+            elem_border= 8,  // исовать границу элемента, да/нет
             elem_img_data = 9, // Если эемент картинка то тут будет записанны данные в виде бинарных данных
             elem_always_view = 10, // Всегда отображаемый Да/нет
             elem_p_type      = 11,  // Тип страницы на которой виден элемент
@@ -100,6 +102,9 @@ enum pageType{
 
 Q_DECLARE_METATYPE(VPrn::pSizeColumnOrder);
 Q_DECLARE_METATYPE(VPrn::tInfoColumnOrder);
+Q_DECLARE_METATYPE(VPrn::pageType);
+Q_DECLARE_METATYPE(VPrn::elemColumnOrder);
+Q_DECLARE_METATYPE(VPrn::pageDetailColumnOrder);
 
 #endif
 
