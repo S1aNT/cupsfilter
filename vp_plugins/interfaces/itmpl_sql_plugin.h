@@ -3,16 +3,17 @@
 
 class QString;
 class QStandardItemModel;
-class QGraphicsScene;
-class QSize;
 class QSqlQueryModel;
 class QSqlTableModel;
 class QStringList;
+class QUndoGroup;
 
 
+class myScene;
 class TemplateInfoEditModel;
 #include <QObject>
 #include <QHash>
+#include <QMap>
 
 class Itmpl_sql_plugin{
 
@@ -27,24 +28,16 @@ public:
      */
     /*
     virtual void viewCode() =0 ;
-
-    virtual void convertTemplatesToPdf(const QString & templates_in_file) = 0;
-    virtual void printFormatingPageToFile(int pageNum) = 0;
-
-    virtual QGraphicsScene *getFirstPage()  = 0;
-    virtual QGraphicsScene *getSecondPage() = 0;
-    virtual QGraphicsScene *getThirdPage()  = 0;
-    virtual QGraphicsScene *getFourthPage() = 0;
-
-    virtual QStringList getPageSizeList() = 0;
     */
     virtual QStringList getBaseElemNameList() const = 0;
 
     virtual void openTemplates(const QString & t_fileName) = 0;
     virtual void createEmptyTemplate() = 0;
-    virtual TemplateInfoEditModel  * getInfoModel() const = 0;
-    virtual QSqlQueryModel  * getPSizeModel() const = 0;
-    virtual QSqlQueryModel  * getPagesModel() const = 0;
+    virtual TemplateInfoEditModel  * getInfoModel()  const = 0;
+    virtual QSqlQueryModel         * getPSizeModel() const = 0;
+    virtual QSqlQueryModel         * getPagesModel() const = 0;
+    virtual QUndoGroup             * getUndoGrp()    const = 0;
+    virtual QMap <int,myScene *>     getScenesGroup()      = 0;
 
     virtual void saveTemplatesAs(const QString & fileName) = 0;
     virtual bool isDBOpened() = 0;
