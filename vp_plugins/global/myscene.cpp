@@ -35,6 +35,8 @@ QUndoStack *myScene::undoStack() const
 void  myScene::createPage(qreal width,qreal height,qreal m_top,qreal m_bottom,
                           qreal m_right,qreal m_left)
 {
+
+
     this->clear();
     this->setSceneRect(0, 0, width,height);
     this->setBackgroundBrush(Qt::white);

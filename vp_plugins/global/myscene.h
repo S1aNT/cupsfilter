@@ -62,8 +62,6 @@ public slots:
                      const QFont   &fnt = QFont("Times", 14, QFont::Bold),
                      const QColor  &col = Qt::black);
 
-
-
 private:
     qreal m_angle;
     typedef QPair<myTextItem*,QPointF>     ItemPos;
