@@ -31,6 +31,7 @@ HEADERS += ../global/pre_header.h \
     ../global/mytypes.h \
     ../global/myscene.h \
     ../global/mytextitem.h \
+    ../global/editpagesmodel.h \
     ../interfaces/itmpl_sql_plugin.h \
     addtemplate.h \
     view.h \
@@ -40,6 +41,7 @@ HEADERS += ../global/pre_header.h \
 SOURCES += main.cpp \
     ../global/myscene.cpp \
     ../global/mytextitem.cpp \
+    ../global/editpagesmodel.cpp \
     addtemplate.cpp \
     view.cpp \
     mainwindow.cpp \
