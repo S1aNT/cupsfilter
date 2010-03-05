@@ -7,10 +7,12 @@
 class myTextItem : public QGraphicsTextItem
 {
 public:
-    QString getTag()const {return tag;};
-    void setTag(const QString &t);
-    void setAngle(qreal Angle);
-    qreal getAngle(){return m_Angle;};
+    QString getTag()  const {return tag;};
+    qreal   getAngle()const {return m_Angle;};
+
+    void    setTag   (const QString &t);
+    void    setAngle (qreal Angle);
+
 private:
     QString tag;
     qreal m_Angle;
