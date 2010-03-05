@@ -11,6 +11,7 @@ class QUndoGroup;
 
 class myScene;
 class TemplateInfoEditModel;
+class EditPagesModel;
 #include <QObject>
 #include <QHash>
 #include <QMap>
@@ -35,18 +36,17 @@ public:
     virtual void createEmptyTemplate() = 0;
     virtual TemplateInfoEditModel  * getInfoModel()  const = 0;
     virtual QSqlQueryModel         * getPSizeModel() const = 0;
-    virtual QSqlQueryModel         * getPagesModel() const = 0;
+    virtual EditPagesModel         * getPagesModel() const = 0;
     virtual QUndoGroup             * getUndoGrp()    const = 0;
     virtual QMap <int,myScene *>     getScenesGroup()      = 0;
 
     virtual void saveTemplatesAs(const QString & fileName) = 0;
+    virtual void saveTemplates() = 0 ;
     virtual bool isDBOpened() = 0;
     virtual bool isDBConnected() =0 ;
     
     virtual void doAddBaseElementToPage(int page,const QString &text) = 0;
     virtual void setUserName (const QString &user) = 0;
-    //virtual QSqlTableModel  * getInfoModel2() = 0;
-    virtual void closeTemplates() = 0;
     virtual void setTagValue(const QHash<QString, QString> &tagValue) = 0;	
 
 };
