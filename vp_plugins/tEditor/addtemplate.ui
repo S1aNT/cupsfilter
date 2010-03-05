@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <class>AddTemplate</class>
  <widget class="QDialog" name="AddTemplate">
@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>460</width>
-    <height>488</height>
+    <width>472</width>
+    <height>557</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -24,7 +24,7 @@
     <rect>
      <x>10</x>
      <y>57</y>
-     <width>441</width>
+     <width>451</width>
      <height>91</height>
     </rect>
    </property>
@@ -36,7 +36,7 @@
      <rect>
       <x>10</x>
       <y>20</y>
-      <width>421</width>
+      <width>430</width>
       <height>61</height>
      </rect>
     </property>
@@ -55,9 +55,9 @@
    <property name="geometry">
     <rect>
      <x>191</x>
-     <y>441</y>
+     <y>498</y>
      <width>251</width>
-     <height>41</height>
+     <height>40</height>
     </rect>
    </property>
    <layout class="QHBoxLayout" name="horizontalLayout_2">
@@ -82,7 +82,7 @@
     <rect>
      <x>10</x>
      <y>4</y>
-     <width>440</width>
+     <width>451</width>
      <height>51</height>
     </rect>
    </property>
@@ -94,7 +94,7 @@
      <rect>
       <x>10</x>
       <y>20</y>
-      <width>420</width>
+      <width>431</width>
       <height>20</height>
      </rect>
     </property>
@@ -104,9 +104,9 @@
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>337</y>
-     <width>441</width>
-     <height>101</height>
+     <y>394</y>
+     <width>451</width>
+     <height>100</height>
     </rect>
    </property>
    <property name="title">
@@ -117,7 +117,7 @@
      <rect>
       <x>10</x>
       <y>20</y>
-      <width>421</width>
+      <width>431</width>
       <height>80</height>
      </rect>
     </property>
@@ -183,9 +183,9 @@
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>151</y>
+     <y>280</y>
      <width>141</width>
-     <height>91</height>
+     <height>111</height>
     </rect>
    </property>
    <property name="title">
@@ -197,7 +197,7 @@
       <x>12</x>
       <y>15</y>
       <width>121</width>
-      <height>71</height>
+      <height>91</height>
      </rect>
     </property>
     <layout class="QGridLayout" name="gridLayout_2">
@@ -207,7 +207,7 @@
         <string>...</string>
        </property>
        <property name="icon">
-        <iconset resource="../tEditor/images.qrc">
+        <iconset resource="images.qrc">
          <normaloff>:/portret.png</normaloff>:/portret.png</iconset>
        </property>
        <property name="iconSize">
@@ -233,7 +233,7 @@
         <string>...</string>
        </property>
        <property name="icon">
-        <iconset resource="../tEditor/images.qrc">
+        <iconset resource="images.qrc">
          <normaloff>:/landscape.png</normaloff>:/landscape.png</iconset>
        </property>
        <property name="iconSize">
@@ -289,10 +289,10 @@
   <widget class="QGroupBox" name="marginGBox">
    <property name="geometry">
     <rect>
-     <x>10</x>
-     <y>245</y>
-     <width>441</width>
-     <height>81</height>
+     <x>160</x>
+     <y>280</y>
+     <width>301</width>
+     <height>111</height>
     </rect>
    </property>
    <property name="title">
@@ -302,8 +302,8 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>11</y>
-      <width>421</width>
+      <y>41</y>
+      <width>281</width>
       <height>61</height>
      </rect>
     </property>
@@ -314,7 +314,7 @@
         <string>Верхнее</string>
        </property>
        <property name="alignment">
-        <set>Qt::AlignCenter</set>
+        <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
        </property>
       </widget>
      </item>
@@ -322,9 +322,6 @@
       <widget class="QLabel" name="label_4">
        <property name="text">
         <string>Левое</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignCenter</set>
        </property>
       </widget>
      </item>
@@ -378,63 +375,118 @@
      </item>
     </layout>
    </widget>
-  </widget>
-  <widget class="QGroupBox" name="page_sizeGBox">
-   <property name="geometry">
-    <rect>
-     <x>160</x>
-     <y>151</y>
-     <width>291</width>
-     <height>91</height>
-    </rect>
-   </property>
-   <property name="title">
-    <string>Размер бумаги</string>
-   </property>
-   <widget class="QWidget" name="gridLayoutWidget_3">
+   <widget class="QWidget" name="horizontalLayoutWidget_3">
     <property name="geometry">
      <rect>
       <x>10</x>
       <y>10</y>
-      <width>271</width>
-      <height>81</height>
+      <width>281</width>
+      <height>31</height>
      </rect>
     </property>
-    <layout class="QGridLayout" name="gridLayout_4">
-     <item row="0" column="0">
+    <layout class="QHBoxLayout" name="horizontalLayout_3">
+     <item>
       <widget class="QLabel" name="label_10">
        <property name="text">
-        <string>Размер бумаги</string>
+        <string>Размер листа</string>
        </property>
       </widget>
      </item>
-     <item row="0" column="1">
+     <item>
       <widget class="QComboBox" name="pageSizeCBox"/>
      </item>
-     <item row="1" column="0">
-      <widget class="QLabel" name="label_9">
-       <property name="text">
-        <string>Ширина</string>
+    </layout>
+   </widget>
+   <zorder>gridLayoutWidget</zorder>
+   <zorder>horizontalLayoutWidget_3</zorder>
+   <zorder>label_10</zorder>
+  </widget>
+  <widget class="QGroupBox" name="page_sizeGBox">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>150</y>
+     <width>451</width>
+     <height>121</height>
+    </rect>
+   </property>
+   <property name="title">
+    <string>Страницы шаблона</string>
+   </property>
+   <widget class="QWidget" name="formLayoutWidget_3">
+    <property name="geometry">
+     <rect>
+      <x>11</x>
+      <y>16</y>
+      <width>436</width>
+      <height>91</height>
+     </rect>
+    </property>
+    <layout class="QFormLayout" name="formLayout_2">
+     <item row="0" column="0">
+      <widget class="QCheckBox" name="FPnumberChBox_1">
+       <property name="enabled">
+        <bool>false</bool>
        </property>
-      </widget>
-     </item>
-     <item row="2" column="0">
-      <widget class="QLabel" name="label_11">
        <property name="text">
-        <string>Высота</string>
+        <string>Лицевая сторона 1-го листа.Экз. №1</string>
        </property>
-      </widget>
-     </item>
-     <item row="1" column="1">
-      <widget class="QLineEdit" name="p_widthLEd">
-       <property name="readOnly">
+       <property name="checked">
         <bool>true</bool>
        </property>
       </widget>
      </item>
+     <item row="0" column="1">
+      <widget class="QCheckBox" name="FPnumberChBox_2">
+       <property name="text">
+        <string>Лицевая сторона 1-го листа.Экз. №2</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="0">
+      <widget class="QCheckBox" name="FPnumberChBox_3">
+       <property name="text">
+        <string>Лицевая сторона 1-го листа.Экз. №3</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <widget class="QCheckBox" name="FPnumberChBox_4">
+       <property name="text">
+        <string>Лицевая сторона 1-го листа.Экз. №4</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="0">
+      <widget class="QCheckBox" name="FPnumberChBox_5">
+       <property name="text">
+        <string>Лицевая сторона 1-го листа.Экз. №5</string>
+       </property>
+      </widget>
+     </item>
      <item row="2" column="1">
-      <widget class="QLineEdit" name="p_heightLEd">
-       <property name="readOnly">
+      <widget class="QCheckBox" name="SPnumberChBox">
+       <property name="text">
+        <string>Лицевая сторона 2-го листа</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="0">
+      <widget class="QCheckBox" name="ThnumberChBox">
+       <property name="text">
+        <string>Обратная сторона каждого листа</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="1">
+      <widget class="QCheckBox" name="FvnumberChBox">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="text">
+        <string>Фонарик</string>
+       </property>
+       <property name="checked">
         <bool>true</bool>
        </property>
       </widget>
@@ -448,7 +500,6 @@
   <tabstop>descTextEdit</tabstop>
   <tabstop>portretBtn</tabstop>
   <tabstop>landscapeBtn</tabstop>
-  <tabstop>pageSizeCBox</tabstop>
   <tabstop>margin_topSpBox</tabstop>
   <tabstop>margin_leftSpBox</tabstop>
   <tabstop>margin_bottomSBox</tabstop>
@@ -457,7 +508,7 @@
   <tabstop>cancelBtn</tabstop>
  </tabstops>
  <resources>
-  <include location="../tEditor/images.qrc"/>
+  <include location="images.qrc"/>
  </resources>
  <connections>
   <connection>
