@@ -27,16 +27,16 @@ LANGUAGE = C++
 # Use Precompiled headers (PCH)
 PRECOMPILED_HEADER = ../global/pre_header.h
 HEADERS += ../global/pre_header.h \
-    ../global/tech_global.h \
-    ../global/mytypes.h \
-    ../global/tinfoeditmodel.h \
-    ../global/myscene.h  \    
-    tmpl_sql_plugin.h \
-    simpleitem.h \
-    ../global/mytextitem.h \    
-    ../global/commands.h
+           ../global/tech_global.h \
+           ../global/mytypes.h \
+           ../global/tinfoeditmodel.h \
+           ../global/myscene.h \
+           ../global/mytextitem.h \
+           ../global/commands.h \
+           ../global/editpagesmodel.h \
+           tmpl_sql_plugin.h 
 SOURCES = tmpl_sql_plugin.cpp \
-    simpleitem.cpp \
     ../global/tinfoeditmodel.cpp \
-    ../global/myscene.cpp  \
-    ../global/mytextitem.cpp 
+    ../global/myscene.cpp \
+    ../global/mytextitem.cpp \
+    ../global/editpagesmodel.cpp
