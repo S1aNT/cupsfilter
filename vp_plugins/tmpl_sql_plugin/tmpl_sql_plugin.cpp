@@ -1,5 +1,4 @@
 #include "tmpl_sql_plugin.h"
-#include "simpleitem.h"
 #include "mytextitem.h"
 
 #include <QtCore/QDebug>
@@ -33,6 +32,8 @@ Tmpl_sql_plugin::Tmpl_sql_plugin(QObject *parent)
 {
 
     qRegisterMetaType<pluginsError>("pluginsError");
+    qRegisterMetaType<pSizeColumnOrder>("pSizeColumnOrder");
+
     //Создаем группу стеков Undo
     undoGrp = new QUndoGroup (this);
     //Создаем сцены, связываем их со стеком Undo
@@ -49,7 +50,7 @@ Tmpl_sql_plugin::Tmpl_sql_plugin(QObject *parent)
         /// Создаем модели
         elemInPageModel = new QSqlTableModel(this);
         pSizeModel = new QSqlQueryModel(this);
-        pagesModel = new QSqlQueryModel(this);
+        pagesModel = new EditPagesModel(this);
         tInfoModel = new TemplateInfoEditModel(this);
     }
 }
@@ -175,7 +176,7 @@ void Tmpl_sql_plugin::setTagValue(const QHash <QString, QString> &tagValue)
         Ok &= isDBConnected() && isDBOpened();
 
         if (Ok){
-            Ok &= query.prepare("UPDATE elem SET text = ? WHERE tag =?");
+            Ok &= query.prepare("UPDATE elem SET e_text = ? WHERE e_tag =?");
             if (Ok){
 
                 QHashIterator<QString, QString> tV(tagValue);
@@ -220,12 +221,6 @@ void Tmpl_sql_plugin::openTemplates(const QString & t_fileName)
 
                 if (Ok){                  
                     emit allTemplatesPagesParsed();
-                    /*
-                    emit allTemplatesPagesParsed(firstPage_scene,firstPage_sceneN2,
-                                                 firstPage_sceneN3,firstPage_sceneN4,
-                                                 firstPage_sceneN5,secondPage_scene,
-                                                 thirdPage_scene, fourthPage_scene);
-                                                 */
                 }
             }
         }
@@ -267,6 +262,86 @@ void Tmpl_sql_plugin::createEmptyTemplate()
     m_dbOpened = Ok;
 }
 
+void Tmpl_sql_plugin::saveTemplates()
+{
+    bool Ok = true;
+    {
+        QSqlQuery query(DB_);
+        /// Проверка что соединение с БД установленно (драйвер был загружен)
+        Ok &= isDBConnected() && isDBOpened();
+        if (Ok){
+            /// Формируем SQL запрос на очистку таблицы от всех элементов для всех страниц
+            Ok &= query.exec("DELETE FROM elem ");
+            if (Ok){
+                int p_visible;
+                int p_number;
+                int p_id;
+                myScene *scene(0);
+                myTextItem *tElem(0);
+                QGraphicsItem *item;
+
+                QString elem_type;
+                QVariant t_var;
+                for (int i=0;i<pagesModel->rowCount();i++){
+                    p_visible = pagesModel->data(pagesModel->index(i,VPrn::PD_p_visible)).toInt();
+                    if ( p_visible == 1 ){
+                        p_number = pagesModel->data(pagesModel->index(i,VPrn::PD_p_number)).toInt();
+                        /// Поиск myScene соответсвующего странице с номером
+                        scene = scenesGrp.value( p_number );
+                        if (scene){
+                            p_id = pagesModel->data(pagesModel->index(i,VPrn::PD_id)).toInt();
+                            /// Формируем SQL запрос на INSERT таблицы elem
+                            Ok &= query.prepare("INSERT INTO elem (page_detail_id,e_text,e_tag,"
+                                                "pos_x,pos_y,color,font,angle,border,img,"
+                                                "img_data,always_view ) "
+                                                "VALUES (?,?,?,?,?,?,?,?,?,?,?,?)"
+                                                );
+                            if (Ok){
+                                ///Цикл по все элементам сцены
+                                for (int i = 0; i < scene->items().size(); i++){
+                                    item = scene->items().at(i);
+                                    elem_type = item->data(ObjectName).toString();
+
+                                    if (elem_type == "tElem"){
+                                        tElem =(myTextItem* )scene->items().at(i);
+
+                                        query.addBindValue( p_id );
+                                        query.addBindValue( tElem->toPlainText() );
+                                        query.addBindValue( tElem->getTag()   );
+                                        query.addBindValue( tElem->pos().x()  );
+                                        query.addBindValue( tElem->pos().y()  );
+                                        t_var = tElem->defaultTextColor();
+                                        query.addBindValue( t_var.toString()  );
+                                        t_var = tElem->font();
+                                        query.addBindValue( t_var.toString()  );
+                                        query.addBindValue( tElem->getAngle() );
+                                        query.addBindValue( 0 );
+                                        query.addBindValue( 0 );
+                                        query.addBindValue( 0 );
+                                        query.addBindValue( 1 );
+                                        query.exec();
+                                    }
+                                }
+                            }else{
+                                emit error (VPrn::SQLQueryError,tr("Ошибка [%1] при заполнении шаблона")
+                                            .arg( query.lastError().text() )
+                                            );
+                            }
+                        }else{
+                            emit error (VPrn::SQLQueryError,tr("Ошибка [%1] при очистке шаблона")
+                                        .arg( query.lastError().text() )
+                                        );
+                        }
+                    }
+                }
+            }
+        }else{
+            emit error(VPrn::InternalPluginError,
+                       tr("Ошибка сохранения шаблона.\n"
+                          "Необходимо вначале открыть существующий или создать новый шаблон"));
+        }
+    }
+}
 void Tmpl_sql_plugin::saveTemplatesAs(const QString & fileName)
 {
     bool Ok = true;
@@ -295,6 +370,7 @@ void Tmpl_sql_plugin::doAddBaseElementToPage(int page,const QString &tag)
     QString e_msg;
     QString l_msg = QString(" [%1] ").arg(QString::fromAscii(Q_FUNC_INFO));
     myScene *scene = selectScene(page);
+    /// @todo в модель  ЭЛЕМЕНТЫ_СТРАНИЦЫ
     scene->addBaseElem(tag);
 }
 
@@ -307,16 +383,16 @@ myScene * Tmpl_sql_plugin::selectScene(int page)const
     myScene *scene(0);
     // Использую Java style итератор для просмотра всего списка сцен
     QMapIterator<int, myScene *> i(scenesGrp);
-     while (i.hasNext()) {
-         i.next();
-         // Обработаем полученный указатеь на сцену
-         if (i.key()==page){
-             scene = i.value();
-             break;
-         }
-         qDebug() << i.key() << ": " << i.value();
-     }
-     return scene;
+    while (i.hasNext()) {
+        i.next();
+        // Обработаем полученный указатеь на сцену
+        if (i.key()==page){
+            scene = i.value();
+            break;
+        }
+        qDebug() << i.key() << ": " << i.value();
+    }
+    return scene;
 }
 
 // Рабор данных полученных из шаблона и запись их в сцены
@@ -344,6 +420,8 @@ bool Tmpl_sql_plugin::fillScenes4Data()
             int pNumber = pagesModel->data(pagesModel->index(i,VPrn::PD_p_number)).toInt();
             scene = selectScene(pNumber);
             if (scene){
+                //Чистим стек Undo
+                scene->undoStack()->clear();
                 scene->createPage(p_width,p_height,m_top,m_bottom,m_right,m_left);
                 scene->setAngle(angle);
             }
@@ -357,11 +435,11 @@ bool Tmpl_sql_plugin::fillScenes4Data()
 
                 if (scene ){
                     //Получим данные конкретного элемента
-                    int e_type   = elemInPageModel->data(elemInPageModel->index(i,VPrn::elem_text_img)).toInt();
+                    int e_type  = elemInPageModel->data(elemInPageModel->index(i,VPrn::elem_text_img)).toInt();
                     qreal pos_x = elemInPageModel->data(elemInPageModel->index(i,VPrn::elem_pos_x)).toDouble();
                     qreal pos_y = elemInPageModel->data(elemInPageModel->index(i,VPrn::elem_pos_y)).toDouble();
                     QPointF ps(pos_x,pos_y);
-                    if (e_type==1){
+                    if (e_type == 0){
                         QString text = elemInPageModel->data(elemInPageModel->index(i,VPrn::elem_text)).toString();
                         QString tag  = elemInPageModel->data(elemInPageModel->index(i,VPrn::elem_tag)).toString();
                         QVariant variant = elemInPageModel->data(elemInPageModel->index(i,VPrn::elem_color));
@@ -381,8 +459,6 @@ bool Tmpl_sql_plugin::fillScenes4Data()
     }
     return Ok;
 }
-
-
 
 bool Tmpl_sql_plugin::InitDB()
 {
@@ -447,9 +523,7 @@ bool Tmpl_sql_plugin::create_tables(QSqlQuery &query)
 {
     bool Ok =true;
     {
-        // Создаем пустую БД с прописанными значениями
-
-
+        // Создаем пустую БД с прописанными значениями   
         //Таблица описание страницы
         /**
           * p_number порядковый номер страницы в шаблоне
@@ -465,7 +539,7 @@ bool Tmpl_sql_plugin::create_tables(QSqlQuery &query)
         }
         //Таблица эементов
         Ok &= query.exec("CREATE TABLE elem (id INTEGER primary key autoincrement,"
-                         "page_detail_id INTEGER,text TEXT,tag TEXT,"
+                         "page_detail_id INTEGER,e_text TEXT,e_tag TEXT,"
                          "pos_x REAL,pos_y REAL,color TEXT,font TEXT,angle REAL,"
                          "border boolean,img INTEGER,img_data blob, always_view boolean); "
                          ); //"FOREIGN KEY (page_detail_id) REFERENCES page_detail (id) );"
@@ -504,7 +578,7 @@ bool Tmpl_sql_plugin::create_tables(QSqlQuery &query)
             DumpError(query.lastError());
         }
 
-        Ok &= query.exec("CREATE INDEX tag_ix ON elem(tag);");
+        Ok &= query.exec("CREATE INDEX tag_ix ON elem(e_tag);");
         if (!Ok){
             DumpError(query.lastError());
         }
@@ -543,7 +617,7 @@ int Tmpl_sql_plugin::getId4pageSizeTable(QSqlQuery &query,const QString & findSi
 
 /**
   @brief При вызове функции соединение с БД должно быть установленно
-  файл БД существуетн.
+  файл БД существует.
   */
 bool Tmpl_sql_plugin::create_emptyDB(QString const&)
 {
@@ -584,7 +658,7 @@ bool Tmpl_sql_plugin::create_emptyDB(QString const&)
                 /// Получим id последней вставленной записи
                 if (Ok){
                     templ_id = query.lastInsertId().toInt();
-                    /// Создаем 4 основных страницы в шаблоне
+                    /// Создаем 8 основных страницы в шаблоне
                     Ok &= query.prepare("insert into page_detail (p_number,p_type,"
                                         "p_name,p_visible) VALUES(?,?,?,?);");
                     if (Ok){
@@ -902,24 +976,16 @@ bool Tmpl_sql_plugin::fillModels()
         }
 
         /// Заполним модель (только для чтения)  СТРАНИЦЫ_ШАБЛОНА
-        pagesModel->setQuery("SELECT page_detail.id,page_detail.p_number,page_detail.p_type,"
-                             " page_detail.p_name,page_detail.p_visible FROM template "
-                             " INNER JOIN rel_templ_page ON templ_id= template.id"
-                             " INNER JOIN page_detail ON page_detail_id =  page_detail.id"
-                             " ORDER BY p_number",DB_);
-
-        pagesModel->setHeaderData(VPrn::PD_id,       Qt::Horizontal, tr("Id"));
-        pagesModel->setHeaderData(VPrn::PD_p_number, Qt::Horizontal, tr("Порядковый номер"));
-        pagesModel->setHeaderData(VPrn::PD_p_type,   Qt::Horizontal, tr("Тип страницы"));
-        pagesModel->setHeaderData(VPrn::PD_p_name,   Qt::Horizontal, tr("Название страницы"));
+        pagesModel->refresh();
 
         if (pagesModel->lastError().isValid()){
             emit error(SQLQueryError,tr("Ошибка получения свойств шаблона. %1")
                        .arg(pagesModel->lastError().text()));
             Ok &= false;
         }
+        /// @todo МОДЕЛЬ переделать на чтение запись
         /// Заполним модель (только для чтения) ЭЛЕМЕНТЫ_СТРАНИЦЫ
-        elemInPageModel->setQuery("SELECT elem.id,text,tag,pos_x,pos_y,color,font,"
+        elemInPageModel->setQuery("SELECT elem.id,e_text,e_tag,pos_x,pos_y,color,font,"
                                   "angle,border,img_data,always_view,page_detail.p_type "
                                   "img FROM elem "
                                   "INNER JOIN page_detail ON page_detail_id = page_detail.id "
@@ -969,8 +1035,6 @@ bool Tmpl_sql_plugin::fillModels()
     return Ok;
 }
 
-
-
 void Tmpl_sql_plugin::update_scenes(const QHash<QString, QString> &hash)
 {
 
@@ -982,7 +1046,7 @@ void Tmpl_sql_plugin::update_scenes(const QHash<QString, QString> &hash)
       * @todo надо переписать,так -> хэш передается в каждую сцену,
       * и она сама обновляет свои элементики !!!!
       */
-/*
+    /*
     bool Ok = true;
     {
         Ok &= query.exec("SELECT page_detail.p_number,page_detail.p_type,"
@@ -1026,10 +1090,6 @@ void Tmpl_sql_plugin::update_scenes(const QHash<QString, QString> &hash)
 }
 
 //****************************************************************************
-void Tmpl_sql_plugin::closeTemplates()
-{
-
-}
 
 
 Q_EXPORT_PLUGIN2(Itmpl_sql_plugin, Tmpl_sql_plugin)

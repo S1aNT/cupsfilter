@@ -18,6 +18,12 @@
   * модели настраиваютсяя на получение данных из новой БД, если возникает
   * необходимость нового временного шаблона, то данный цикл повторяется
 */
+#include "itmpl_sql_plugin.h"
+#include "tinfoeditmodel.h"
+#include "editpagesmodel.h"
+#include "myscene.h"
+#include "mytypes.h"
+
 #include <QObject>
 #include <QSqlDatabase>
 #include <QtCore/QHash>
@@ -30,17 +36,9 @@ class QSqlQueryModel;
 class QSqlRelationalTableModel;
 class QSqlError;
 class QSqlTableModel;
-//class QGraphicsItem;
 class myScene;
 
-
-#include "itmpl_sql_plugin.h"
-#include "tinfoeditmodel.h"
-#include "myscene.h"
-#include "mytypes.h"
-
 using namespace VPrn;
-
 
 class Tmpl_sql_plugin : public QObject , Itmpl_sql_plugin
 {
@@ -56,7 +54,7 @@ public:
       */
     void init(const QString & spool,const QString & sid);
 
-    inline bool isDBOpened(){return m_dbOpened;};
+    inline bool isDBOpened()   {return m_dbOpened;};
     inline bool isDBConnected(){return m_dbConnect;};
 
     /**
@@ -70,10 +68,10 @@ public:
       */
     TemplateInfoEditModel * getInfoModel() const {return tInfoModel;};
     QSqlQueryModel        * getPSizeModel()const {return pSizeModel;};
-    QSqlQueryModel        * getPagesModel()const {return pagesModel;};
+    EditPagesModel        * getPagesModel()const {return pagesModel;};
     QStringList             getBaseElemNameList() const;
-    QUndoGroup            * getUndoGrp() const {return undoGrp;};
-    QMap <int,myScene *>  getScenesGroup() {return scenesGrp;}
+    QUndoGroup            * getUndoGrp() const   {return undoGrp;};
+    QMap <int,myScene *>    getScenesGroup()     {return scenesGrp;}
     //-------------------------------------------------------------------
 
     /**
@@ -84,12 +82,7 @@ public:
 signals:
     void error(pluginsError errCode,QString error_message);
     void allTemplatesPagesParsed();
-  /*
-    void allTemplatesPagesParsed(myScene *scene_11,myScene *scene_12,
-                                 myScene *scene_13,myScene *scene_14,
-                                 myScene *scene_15,myScene *scene_2,
-                                 myScene *scene_3,myScene *scene_4);
-*/
+
 public slots:
     /**
       * @fn void setTagValue(const QHash <QString, QString> &tagValue);
@@ -118,10 +111,19 @@ public slots:
       */
     void createEmptyTemplate();
     /**
-      * @fn сохраним шаблон с заданным именем
+      * @fn saveTemplatesAs(const QString & fileName)
+      * @brief сохраним шаблон с заданным именем происходит просто копирование
+      * файла по новому пути, с проверкой возможности данной операции
       */
     void saveTemplatesAs(const QString & fileName);
-    void closeTemplates();
+    /**
+      * @fn saveTemplates(const QString & fileName)
+      * @brief Запись в существующий файл шаблона, являющейся корректной БД
+      * при этом эта БД уже открыта
+      * данных (элементы размещенные на странице) которые ввел пользователь,
+      * в нужные таблицы с проверкой возможности данной операции
+      */
+    void saveTemplates();
 
     /** @fn doAddBaseElementToPage(int page,QString &tag)
       * добавляет базовый элемент на страницу с номером page
@@ -200,12 +202,15 @@ private:
     QSqlQueryModel * pSizeModel;
 
     /**
-      * @var Модель СТРАНИЦЫ_ШАБЛОНА
+      * @var редактируемая Модель СТРАНИЦЫ_ШАБЛОНА
       * @brief В данной модели храняться все страницы шаблона
       * №п/п|Тип страницы| Отображаемое имя страницы
       */
-    QSqlQueryModel * pagesModel;
+     EditPagesModel * pagesModel;
     /**
+      * @todo сделать данную модель редкатируемой, при добавлении или удалении элемента
+      * со страницы, соответственно добавлять или удалять элемент модели, при записи шаблона,
+      * писать из модели а не из страницы
       * @var Модель ЭЛЕМЕНТЫ_СТРАНИЦЫ
       * @brief В данной модели храняться все элементы
       * размещенные на i-странице шаблона
