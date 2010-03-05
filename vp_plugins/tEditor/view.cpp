@@ -6,7 +6,7 @@
 
 View::View( QWidget *parent)
     : QFrame(parent)
-    , tabOrder(-1)
+    , tabNumber(-1)
 {
 
     setFrameStyle(Sunken | StyledPanel);

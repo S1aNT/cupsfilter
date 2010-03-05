@@ -16,8 +16,8 @@ public:
     View(QWidget *parent = 0);
     void setAngle(qreal angle);
     QGraphicsView *gr_view() const;
-    void setTabOrder(int ord){tabOrder = ord;};
-    int getTabOrder(){return tabOrder;};
+    void setTabNumber(int ord){tabNumber = ord;};
+    int  getTabNumber(){return tabNumber;};
     void setUndoStack(QUndoStack *stack){m_UndoStack = stack;};
     QUndoStack *undoStack() const{return m_UndoStack;};
 
@@ -39,7 +39,7 @@ private:
 
     QMatrix matrix;
     qreal curAngle;
-    int tabOrder;
+    int tabNumber;
 
 };
 
