@@ -4,7 +4,7 @@
 TemplateInfoEditModel::TemplateInfoEditModel(QObject *parent)
     : QSqlQueryModel(parent)
 {
-    qRegisterMetaType<pSizeColumnOrder>("pSizeColumnOrder");
+    //
     qRegisterMetaType<tInfoColumnOrder>("tInfoColumnOrder");
 }
 
