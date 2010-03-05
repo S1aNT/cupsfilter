@@ -1,20 +1,24 @@
-#include <QDebug>
-#include <QtGui>
-#include <QUuid>
-#include <QDesktopWidget>
-#include <QTabWidget>
-#include <QFileDialog>
-#include <QStringListModel>
-#include <QStandardItemModel>
-#include <QSettings>
-#include <QtSql/QSqlQueryModel>
-
-
 #include "mainwindow.h"
 #include "myscene.h"
 #include "view.h"
 #include "cmdframe.h"
 #include "undoframe.h"
+#include "editpagesmodel.h"
+
+#include <QtCore/QDebug>
+#include <QtCore/QUuid>
+#include <QtCore/QSettings>
+#include <QtCore/QPluginLoader>
+
+#include <QtGui/QDesktopWidget>
+#include <QtGui/QMainWindow>
+#include <QtGui/QMenuBar>
+#include <QtGui/QMessageBox>
+#include <QtGui/QToolBar>
+#include <QtGui/QTabWidget>
+#include <QtGui/QFileDialog>
+
+#include <QtSql/QSqlQueryModel>
 
 
 MainWindow::MainWindow():
@@ -23,8 +27,6 @@ MainWindow::MainWindow():
 {
 
     this->readGlobal(qApp->applicationDirPath());
-    // Создаем модель
-
     templ_load = false;
     // Создаем нужные окошки
     CmdButtonBox = new cmdFrame(this);
@@ -40,13 +42,13 @@ MainWindow::MainWindow():
     /// @todo увеличение на максимум экрана!!!
 
     this->resize(800,600);
-
     tabWidget = new QTabWidget;
+    // Создаем 8 View они существуют все время
     for (int i=0;i<8;i++){
-        View * view = new View();
-        view->setTabOrder(i);
+        View * view = new View(this);
+        view->setTabNumber(i);
         view->setMinimumSize(tabWidget->sizeHint());
-        tabWidget->addTab(view,QString("page"));
+        m_View.insert(i,view);
     }
 
     connect (tabWidget,
@@ -104,8 +106,6 @@ void MainWindow::loadPlugins()
         pluginsDir.cdUp();
     }
 #endif
-    //this->readGlobal(app_dir); // Читаем глобальные настройки
-
     pluginsDir.cd("plugins");
     foreach (QString fileName, pluginsDir.entryList(QDir::Files)){
         QPluginLoader pluginMessageer(pluginsDir.absoluteFilePath(fileName));
@@ -159,6 +159,10 @@ void MainWindow::loadPlugins()
                          SLOT(PagesUpdate())
                          );
 
+                connect(saveAct, SIGNAL(triggered()),
+                        plugin,  SLOT(saveTemplates())
+                        );
+
                 tmpl_plugin->init(spoolDir,sid);
                 // Получим названия стандартных кнопок для шаблона
                 elemList = tmpl_plugin->getBaseElemNameList();
@@ -166,7 +170,6 @@ void MainWindow::loadPlugins()
                 this->m_undoGroup = tmpl_plugin->getUndoGrp();
 
                 myUndoFrame->setUndoViewGroup(m_undoGroup);
-
 
                 undoAct = m_undoGroup->createUndoAction( this,tr("Отменить действие") );
                 redoAct = m_undoGroup->createRedoAction( this,tr("Повторить действие") );
@@ -178,20 +181,21 @@ void MainWindow::loadPlugins()
 
                 editMenu->addAction(undoAct);
                 editMenu->addAction(redoAct);
-                editMenu->addSeparator();
+                editMenu->addSeparator();                
 
                 // Получим набор сцен и соопоставим его страницам отображения
-                View * vPage;
-                this->m_Scenes = tmpl_plugin->getScenesGroup();
-                QGraphicsScene *scene;
-                QMapIterator<int, myScene *>  i(m_Scenes);
-                while (i.hasNext()) {                    
-                    i.next();
 
-                    if (i.key() < tabWidget->count()){
-                        //scene = qobject_cast<QGraphicsScene *>(i.value());
+                this->m_Scenes = tmpl_plugin->getScenesGroup();
+                View * vPage(0);
+                int page;
+                QGraphicsScene *scene(0);
+                QMapIterator<int, myScene *>  i(m_Scenes);
+                while (i.hasNext()) {
+                    i.next();
+                    page  = i.key();
+                    if (page >= 0 && page < 8 ){
                         scene = i.value();
-                        vPage  = (View *)tabWidget->widget(i.key());
+                        vPage = m_View.value(page);
                         vPage->gr_view()->setScene(scene);
                         vPage->setUndoStack(i.value()->undoStack());
                         vPage->setAngle(i.value()->getAngle());
@@ -200,11 +204,9 @@ void MainWindow::loadPlugins()
                                    ,true);
                     }
                 }
-                pageSelect(0);
             }
         }
     }
-
 }
 
 // ----------------------------- Public slots
@@ -212,8 +214,8 @@ void MainWindow::loadPlugins()
 // ----------------------------- Private slots
 void MainWindow::updateUndoLimit(int limit)
 {
-    View * vPage  = (View *)tabWidget->widget(this->currentPage);
-    if (vPage != 0) {
+    View *vPage  = (View *)tabWidget->currentWidget();
+    if (vPage) {
         int index = tabWidget->indexOf(vPage);
         Q_ASSERT(index != -1);
         static const QIcon unsavedIcon(":/t_needsave.png");
@@ -230,6 +232,7 @@ void MainWindow::showTemplatesInfo()
         // Покажем информацию о шаблоне
         TProperDlg->setInfoModel(tmpl_plugin->getInfoModel());
         TProperDlg->setPageSizeModel(tmpl_plugin->getPSizeModel());
+        TProperDlg->setPagesModel(tmpl_plugin->getPagesModel());
         TProperDlg->default_init();
         TProperDlg->setEnableGUI(false);
         TProperDlg->exec();
@@ -239,6 +242,11 @@ void MainWindow::showTemplatesInfo()
 void MainWindow::do_CmdButtonClick(const QString &line)
 {
     if (templ_load){
+        // Арифметика Пупкина с картинками :)
+        // Получим номер страницы отображаемой на текущей вкладке
+        View *vPage  = (View *)tabWidget->currentWidget();
+        int page = vPage->getTabNumber();
+
         if (line==tr("Изображение")){
             QString templ_fn = QFileDialog::getOpenFileName(this,
                                                             tr("Выберите картинку"),
@@ -247,12 +255,10 @@ void MainWindow::do_CmdButtonClick(const QString &line)
                                                             );
             if (!templ_fn.isEmpty()){
                 //добавим картинку
-                emit addImgElementToPage(this->currentPage,templ_fn);
+                emit addImgElementToPage(page,templ_fn);
             }
         }else{
-            //QStringList list;
-            //list << line;
-            emit addBaseElementToPage(this->currentPage,line);
+            emit addBaseElementToPage(page,line);
         }
     }else{
         QString e_msg = tr("Необходимо предварительно загрузить шаблон!");
@@ -299,6 +305,7 @@ void MainWindow::createNewTemplate()
             // Покажем информацию о шаблоне
             TProperDlg->setInfoModel(tmpl_plugin->getInfoModel());
             TProperDlg->setPageSizeModel(tmpl_plugin->getPSizeModel());
+            TProperDlg->setPagesModel(tmpl_plugin->getPagesModel());
             TProperDlg->default_init();
             TProperDlg->setEnableGUI(true);
             TProperDlg->exec();
@@ -326,7 +333,7 @@ void MainWindow::loadTemplates()
 void MainWindow::saveTemplatesAs()
 {
     QString title_str;
-    title_str =QObject::trUtf8("Выберите место для сохраненнения шаблона");
+    title_str =QObject::trUtf8("Выберите место для сохранения шаблона");
     /*
     if (local_path.isEmpty()){
         local_path = qApp->applicationDirPath();
@@ -377,7 +384,6 @@ void MainWindow::do_viewCode()
 
 void MainWindow::toggleAntialiasing()
 {
-      /// @todo  Изменить на выбор сцены из группы
     // Данные режим работает на всех страницах шаблона
     for (int i = 0; i < tabWidget->count();i++){
         View * vPage  = (View *)tabWidget->widget(i);
@@ -390,10 +396,10 @@ void MainWindow::toggleAntialiasing()
 
 void MainWindow::do_angle_direct()
 {
-    //TODO привести к новому виду
-    /*
-    curPageOrient = tInfo.page_orient();
-    */
+    /// @todo  привести к новому виду
+    View *vPage  = (View *)tabWidget->currentWidget();
+
+    /* 
     if (QAction *action = qobject_cast<QAction*>(sender())) {
         QVariant v = action->data();
         if (v.canConvert<QString>()) {
@@ -406,6 +412,7 @@ void MainWindow::do_angle_direct()
             }
         }
     }
+    */
 }
 
 void MainWindow::flipPage(bool angle_direct)
@@ -423,50 +430,18 @@ void MainWindow::flipPage(bool angle_direct)
             scene = i.value();
             vPage  = (View *)tabWidget->widget(i.key());
             if (angle_direct){
-               vPage->setAngle(-90);
-               i.value()->setAngle(-90);
-           }else{
-               vPage->setAngle(90);
-               i.value()->setAngle(90);
-           }
+                vPage->setAngle(-90);
+                i.value()->setAngle(-90);
+            }else{
+                vPage->setAngle(90);
+                i.value()->setAngle(90);
+            }
 
         }else{
             emit error(tr("Ошибочное число страниц [%1] в шаблоне").arg(i.key(),0,10)
                        ,true);
         }
     }
-    /*
-    QMatrix  mat;
-    qreal angle;
-    if (angle_direct){
-        angle = -90;
-
-    }else{
-        angle = 90;
-    }
-    mat.rotate(angle);
-
-    View * vPage  = (View *)tabWidget->widget(0);
-    if (vPage){
-        vPage->gr_view()->setMatrix(mat,true);
-        vPage->setAngle(angle);
-    }
-    vPage  = (View *)tabWidget->widget(1);
-    if (vPage){
-        vPage->gr_view()->setMatrix(mat,true);
-        vPage->setAngle(angle);
-    }
-    vPage  = (View *)tabWidget->widget(2);
-    if (vPage){
-        vPage->gr_view()->setMatrix(mat,true);
-        vPage->setAngle(angle);
-    }
-    vPage  = (View *)tabWidget->widget(3);
-    if (vPage){
-        vPage->gr_view()->setMatrix(mat,true);
-        vPage->setAngle(angle);
-    }
-    */
 }
 
 //******************************************************************************
@@ -480,19 +455,30 @@ void MainWindow::loadFromFile(const QString &file_name)
             tmpl_plugin->openTemplates(file_name);
             Ok &= tmpl_plugin->isDBOpened();
             if (Ok){
+                // Если уже был показан шаблон, то были созданы вкладки, удалим их
+                tabWidget->clear();
+                // Теперь получим число страниц в шаблоне и покаже те страницы
+                // которые не помечены как скрытые (удаленные) в шаблоне
+                int p_number;
+                int p_visible;
+                QString p_name;
+                View * vPage(0);
                 pagesModel = tmpl_plugin->getPagesModel();
-                for (int i=0;i<pagesModel->rowCount();i++){
-                    int p_number  = pagesModel->data(pagesModel->index(i,VPrn::PD_p_number)).toInt();
-                    int p_visible = pagesModel->data(pagesModel->index(i,VPrn::PD_p_visible)).toInt();
-                    QString p_name = pagesModel->data(pagesModel->index(i,VPrn::PD_p_name)).toString();
-                    if (p_visible==1){
-                        tabWidget->setTabText(p_number,p_name);
-                    }else{
-                        tabWidget->widget(p_number)->hide();
+                for (int i=0;i<pagesModel->rowCount();i++){                    
+                    p_visible = pagesModel->data(pagesModel->index(i,VPrn::PD_p_visible)).toInt();                    
+                    if ( p_visible == 1 ){
+                        p_name = pagesModel->data(pagesModel->index(i,VPrn::PD_p_name)).toString();
+                        p_number  = pagesModel->data(pagesModel->index(i,VPrn::PD_p_number)).toInt();
+                        /// Поиск View соответсвующего странице с номером
+                        vPage = m_View.value( p_number );
+                        if (vPage){
+                            tabWidget->addTab( vPage, p_name );
+                        }else{
+                            Ok &= false;
+                        }
                     }
                 }
-                // Теперь получим число страниц в шаблоне и скроем те страницы
-                // которые помечены как скрытые в шаблоне
+                pageSelect(0);
                 this->statusBar()->showMessage(tr("Шаблон [%1] загружен").arg(file_name));
                 this->currentTemplates = file_name;
                 showInfoAct->setEnabled(true);
@@ -520,22 +506,18 @@ void MainWindow::error(QString e_msg,bool admin)
         /// @todo Не работает выход
         QObject::connect(&msgBox,SIGNAL(rejected()),qApp,SLOT(quit()));
     }
-
     msgBox.setText(e_msg);
-
     msgBox.exec();
-
 }
 
 void MainWindow::pageSelect(int page)
 {
-    currentPage = page;
+
     View * vPage  = (View *)tabWidget->widget(page);
     m_undoGroup->setActiveStack(vPage == 0 ? 0 : vPage->undoStack());
 
     this->statusBar()->showMessage(tr("Выбранна страница шаблона - %1")
-                                   .arg(tabWidget->tabText(page)),1500);
-
+                                   .arg(tabWidget->tabText(page)),2500);
 }
 
 void MainWindow::createActions()
@@ -576,10 +558,15 @@ void MainWindow::createActions()
 
     saveAsAct = new QAction(QIcon(":/t_save.png"),
                             tr("Сохранение шаблона как ..."),this);
-    saveAsAct->setShortcut(QKeySequence::Open);
+    saveAsAct->setShortcut(QKeySequence::SaveAs);
     saveAsAct->setStatusTip(tr("Сохранение текущего варианта шаблона в ..."));
     connect(saveAsAct, SIGNAL(triggered()),
             this,     SLOT(saveTemplatesAs()));
+
+    saveAct = new QAction(QIcon(":/t_save.png"),
+                            tr("Сохранение шаблона"),this);
+    saveAct->setShortcut(QKeySequence::Save);
+    saveAct->setStatusTip(tr("Сохранение текущего варианта шаблона"));
 
     antialiasAct = new QAction(tr("Сглаживание"),this);
     antialiasAct->setCheckable(true);
@@ -634,6 +621,7 @@ void MainWindow::createMenus()
     templatesMenu = menuBar()->addMenu(tr("&Шаблоны"));
     templatesMenu->addAction(newAct);
     templatesMenu->addAction(loadAct);
+    templatesMenu->addAction(saveAct);
     templatesMenu->addAction(saveAsAct);
     templatesMenu->addAction(showInfoAct);
     templatesMenu->addAction(printAct);
@@ -666,7 +654,7 @@ void MainWindow::createToolBars()
     editToolBar = addToolBar(tr("Шаблоны"));
     editToolBar->addAction(newAct);
     editToolBar->addAction(loadAct);
-    editToolBar->addAction(saveAsAct);
+    editToolBar->addAction(saveAct);
 
     toolsToolBar = addToolBar(tr("Утилиты"));
     toolsToolBar->addAction(antialiasAct);

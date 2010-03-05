@@ -20,6 +20,7 @@ QT_END_NAMESPACE
 class View;
 class cmdFrame;
 class UndoFrame;
+class EditPagesModel;
 
 //#include "itmpl_plugin.h"
 //#include "templ_info.h"
@@ -77,7 +78,7 @@ private:
      * @fn Поворачивает страницу на 90 градусов по часовой или против
      */
     void flipPage(bool angle_direct);
-    bool curPageOrient; // текущая ориентация страницы
+
     Auth_plugin *auth_plugin;
     Itmpl_sql_plugin *tmpl_plugin;
 
@@ -87,7 +88,7 @@ private:
     QMenu *viewMenu;
     QMenu *helpMenu;
     QMenu *toolsMenu;
-    //QMenu *itemMenu;
+
 
     QToolBar *editToolBar;
     QToolBar *toolsToolBar;
@@ -116,8 +117,6 @@ private:
 
 
     // Приватные данные
-
-    int currentPage;
     QString userName;
 
     QString currentTemplates;
@@ -138,13 +137,24 @@ private:
     QString global_t_path;
     QString ftpTemplatesDir;
     /**
-      * @var QSqlQueryModel * pagesModel; Ссылка на модель СТРАНИЦЫ_ШАБЛОНА
+      * @var QSqlQueryModel * pagesModel; Указатель на модель СТРАНИЦЫ_ШАБЛОНА
       */
-    QSqlQueryModel * pagesModel;
+    EditPagesModel * pagesModel;
 
     QUndoStack * m_ActiveStack;   // Текущий активный стек Undo
     QUndoGroup * m_undoGroup;     // Группа стеков undo
-    QMap <int,myScene *> m_Scenes; // Группа сцен
+    /**
+      * @var QMap <int,myScene *>  m_Scenes;
+      * @brief Группа сцен
+      */
+    QMap <int,myScene *> m_Scenes;
+
+    /**
+      * @var QMap <int,View *> m_View;
+      * @brief Группа окон отображения
+      */
+    QMap <int,View *> m_View;
+
 };
 
 #endif
