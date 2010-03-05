@@ -1,17 +1,14 @@
 #ifndef ADDTEMPLATE_H
 #define ADDTEMPLATE_H
 
-#include <QDialog>
-#include <QStringListModel>
-#include <QFont>
-
 #include "itmpl_sql_plugin.h"
 #include "mytypes.h"
+#include <QtGui/QDialog>
 
 class TemplateInfoEditModel;
+class EditPagesModel;
 class QSqlQueryModel;
 class QSqlTableModel;
-class QDataWidgetMapper;
 
 
 using namespace VPrn;
@@ -23,28 +20,36 @@ namespace Ui {
 class AddTemplate : public QDialog {
     Q_OBJECT
 public:
+
     AddTemplate(QWidget *parent = 0);
     ~AddTemplate();
-
 
     void setLocalTemplatesDir(const QString &l_dir){local_dir = l_dir;};
     void setEnableGUI(bool mode);
 
     /**
-      * @fn default_init() Начальная настройка окна Информация о шаблоне
+      * @fn default_init()
+      * @brief Начальная настройка окна Информация о шаблоне
       * задан порядок инициализации моделей
       */
     void default_init();
 
     /**
-      * @fn Установим и настроим модель РАЗМЕРЫ_ЛИСТА
+      * @fn setPageSizeModel(QSqlQueryModel *model)
+      * @brief Установим и настроим модель РАЗМЕРЫ_ЛИСТА
       */
     void setPageSizeModel(QSqlQueryModel *model){pSizeModel = model;};
     /**
-      * @fn Установим и настроим модель ИНФО_ШАБЛОНА
+      * @fn setInfoModel(TemplateInfoEditModel *model)
+      * @brief Установим и настроим модель ИНФО_ШАБЛОНА
       */
     void setInfoModel(TemplateInfoEditModel *model){tInfoModel = model;};
 
+    /**
+      * @fn setPagesModel(QSqlQueryModel * model)
+      * @brief Установим и настроим модель СТРАНИЦЫ_ШАБЛОНА
+      */
+    void setPagesModel(EditPagesModel * model){m_pagesModel=model;};
 signals:
     void needCreateEmptyTemplates(QString &fileName);
 
@@ -59,7 +64,6 @@ private slots:
       * ищем ID в модели РАЗМЕР_ЛИСТА и записываем в модель ИНФО_ШАБЛОНА
       */
     void setCurrentPageSize(const QString &psize);
-
 
 protected:
     void changeEvent(QEvent *e);
@@ -76,18 +80,14 @@ private:
     QString currentHumanPSize;
 
     bool work_mode;
-    /// связь между моделью РАЗМЕРЫ_ЛИСТА и элементами отображения
-    QDataWidgetMapper *pSizeDWMapper;
-
-    /// связь между моделью ИНФО_ШАБЛОНА и элементами отображения
-    QDataWidgetMapper *tInfoDWMapper;
 
     /// указатель на модель РАЗМЕР_ЛИСТА
     QSqlQueryModel *pSizeModel;
     /// Указатель на модель ИНФО_ШАБЛОНА
     TemplateInfoEditModel *tInfoModel;
 
-    //QSqlTableModel *tInfoModel2;
+    ///Указатель на модель СТРАНИЦЫ_ШАБЛОНА
+    EditPagesModel * m_pagesModel;
 
     void showInfo(const QString & info);
     void connector();

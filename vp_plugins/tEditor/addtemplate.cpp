@@ -1,30 +1,19 @@
 #include "addtemplate.h"
 #include "ui_addtemplate.h"
 #include "tinfoeditmodel.h"
+#include "mytypes.h"
+#include "editpagesmodel.h"
 
-#include <QDateTime>
-#include <QMessageBox>
-#include <QFileDialog>
+#include <QtCore/QDateTime>
+#include <QtGui/QMessageBox>
+#include <QtGui/QFont>
+#include <qtGui/QFileDialog>
 #include <QtSql/QSqlQueryModel>
 #include <QtSql/QSqlError>
 #include <QtSql/QSqlTableModel>
-#include <QDataWidgetMapper>
-#include <QTableView>
 
-#include "mytypes.h"
 
-void createView(const QString &title, QAbstractItemModel * model )
-{
-    static int offset = 0;
 
-    QTableView *view = new QTableView;
-    view->setModel(model);
-    view->setWindowTitle(title);
-    view->move(100 + offset, 100 + offset);
-    view->verticalHeader()->setVisible(true);
-    offset += 20;
-    view->show();
-}
 
 using namespace VPrn;
 
@@ -33,19 +22,12 @@ AddTemplate::AddTemplate(QWidget *parent)
     , ui(new Ui::AddTemplate)
     , pSizeModel(0)
     , tInfoModel(0)
+    , m_pagesModel(0)
 {
     ui->setupUi(this);
 
     boldFont = QFont("Tahoma", 8, QFont::Bold);
     normalFont = QFont("Tahoma", 8, QFont::Normal);
-
-    // Создамем мапперы
-    //pSizeDWMapper = new QDataWidgetMapper(this);
-    //pSizeDWMapper->setSubmitPolicy(QDataWidgetMapper::ManualSubmit);//QDataWidgetMapper::AutoSubmit);
-
-    //tInfoDWMapper = new QDataWidgetMapper(this);
-    //tInfoDWMapper->setSubmitPolicy(QDataWidgetMapper::ManualSubmit);
-
     this->connector();
 }
 
@@ -61,13 +43,7 @@ void AddTemplate::connector()
              this,
              SLOT(setLandscape())
              );
-/*
-    connect(ui->pageSizeCBox,
-            SIGNAL(currentIndexChanged(int)),
-            pSizeDWMapper,
-            SLOT(setCurrentIndex(int))
-            );
-*/
+
     connect (ui->pageSizeCBox,
              SIGNAL(currentIndexChanged(QString)),
              this,
@@ -78,20 +54,11 @@ void AddTemplate::connector()
 
 void AddTemplate::default_init()
 {   
-    if (tInfoModel && pSizeModel){
-
-        //createView(QObject::tr("PageSize Query Model"), pSizeModel);
-
-        //pSizeDWMapper->setModel(pSizeModel);
+    if (tInfoModel && pSizeModel && m_pagesModel){
         //Заполним выпадающий список из модели
         ui->pageSizeCBox->setModel(pSizeModel);
         ui->pageSizeCBox->setModelColumn(pSize_page);
         ui->pageSizeCBox->setCurrentIndex(-1);
-
-        //Настроим маппинг полей модели
-        //pSizeDWMapper->addMapping(ui->p_widthLEd,pSize_width);
-        //pSizeDWMapper->addMapping(ui->p_heightLEd,pSize_height);
-        //pSizeDWMapper->toFirst();
         getData4Models();
     }
 }
@@ -158,82 +125,189 @@ void AddTemplate::showInfo(const QString & info)
 }
 
 void AddTemplate::getData4Models()
-{
-    if (tInfoModel && pSizeModel) {
-        for (int i=0;i<tInfoModel->columnCount();i++){
-            QModelIndex cellIndex = tInfoModel->index(tInfoModel->rowCount()-1,i);
-            if (cellIndex.isValid()){
-                QVariant cellData = tInfoModel->data(cellIndex,Qt::EditRole);
+{  
+    //Настроим чекбоксы страницы шаблона
+    for (int i=0;i<m_pagesModel->rowCount();i++){
+        int p_number   = m_pagesModel->data(m_pagesModel->index(i,VPrn::PD_p_number)).toInt();
+        int p_visible  = m_pagesModel->data(m_pagesModel->index(i,VPrn::PD_p_visible)).toInt();
+        //QString p_name = m_pagesModel->data(m_pagesModel->index(i,VPrn::PD_p_name)).toString();
+        bool state;
+        if (p_visible==1){
+            state = true;
+        }else{
+            state = false;
+        }
+        switch (p_number){
+        case 0:
+            ui->FPnumberChBox_1->setChecked(state);
+            break;
+        case 1:
+            ui->FPnumberChBox_2->setChecked(state);
+            break;
+        case 2:
+            ui->FPnumberChBox_3->setChecked(state);
+            break;
+        case 3:
+            ui->FPnumberChBox_4->setChecked(state);
+            break;
+        case 4:
+            ui->FPnumberChBox_5->setChecked(state);
+            break;
+        case 5:
+            ui->SPnumberChBox->setChecked(state);
+            break;
+        case 6:
+            ui->ThnumberChBox->setChecked(state);
+            break;
+        case 7:
+            ui->FvnumberChBox->setChecked(state);
+            break;
+        }
+    }
 
-                switch (i){
-                case tInfo_pageID:
-                    {
-                        bool cnv_ok;
+    for (int i=0;i<tInfoModel->columnCount();i++){
+        QModelIndex cellIndex = tInfoModel->index(tInfoModel->rowCount()-1,i);
+        if (cellIndex.isValid()){
+            QVariant cellData = tInfoModel->data(cellIndex,Qt::EditRole);
+
+            switch (i){
+            case tInfo_pageID:
+                {
+
+                    /*
+                      bool cnv_ok;
                         qDebug() << "\nField N "  << i
-                                 << "\nQVariant " << cellData
-                                 << "\nQString "  << cellData.toString()
-                                 << "\nInt "      << cellData.toInt()
-                                 << "\nDateTime " << QDateTime::fromTime_t(cellData.toUInt())
-                                 << "\nQString.toInt() " << cellData.toString().toInt(&cnv_ok,10);
-                        int indx = translatePSizeID2CBoxIndex(cellData.toInt());
-                        ui->pageSizeCBox->setCurrentIndex(indx);
-                    }
-                    break;
-                case tInfo_name:
-                    ui->t_name_lineEd->setText(cellData.toString());
-                    break;
-                case tInfo_desc:
-                    ui->descTextEdit->setPlainText(cellData.toString());
-                    break;
-                case tInfo_angle:
-                    if (cellData.toInt() == 0){
-                        this->setPortret();
-                    }else{
-                        this->setLandscape();
-                    }
-                    break;
-                case tInfo_ctime:
-                    {
-                        QDateTime dt = QDateTime::fromTime_t(cellData.toUInt());
-                        ui->cdate_lineEd->setText(dt.toString());
-                    }
-                    break;
-                case tInfo_mtime:
-                    {
-                        QDateTime dt = QDateTime::fromTime_t(cellData.toUInt());
-                        QString mt = dt.toString();
-
-                        if (mt.isEmpty()){
-                            mt = QDateTime::currentDateTime().toString();
-                        }
-                        //qDebug() << Q_FUNC_INFO << mt;
-                        ui->mdate_lineEd->setText(mt);
-                    }
-                    break;
-                case tInfo_author:
-                    ui->author_lineEd->setText(cellData.toString());
-                    break;
-                case tInfo_mtop:
-                    ui->margin_topSpBox->setValue(cellData.toString().toInt());
-                    break;
-                case tInfo_mbottom:
-                    ui->margin_bottomSBox->setValue(cellData.toInt());
-                    break;
-                case tInfo_mleft:
-                    ui->margin_leftSpBox->setValue(cellData.toInt());
-                    break;
-                case tInfo_mright:
-                    ui->margin_rightSpBox->setValue(cellData.toInt());
-                    break;
+                                << "\nQVariant " << cellData
+                                << "\nQString "  << cellData.toString()
+                                << "\nInt "      << cellData.toInt()
+                                << "\nDateTime " << QDateTime::fromTime_t(cellData.toUInt())
+                                << "\nQString.toInt() " << cellData.toString().toInt(&cnv_ok,10);
+                                */
+                    int indx = translatePSizeID2CBoxIndex(cellData.toInt());
+                    ui->pageSizeCBox->setCurrentIndex(indx);
                 }
+                break;
+            case tInfo_name:
+                ui->t_name_lineEd->setText(cellData.toString());
+                break;
+            case tInfo_desc:
+                ui->descTextEdit->setPlainText(cellData.toString());
+                break;
+            case tInfo_angle:
+                if (cellData.toInt() == 0){
+                    this->setPortret();
+                }else{
+                    this->setLandscape();
+                }
+                break;
+                case tInfo_ctime:
+                {
+                    QDateTime dt = QDateTime::fromTime_t(cellData.toUInt());
+                    ui->cdate_lineEd->setText(dt.toString());
+                }
+                break;
+                case tInfo_mtime:
+                {
+                    QDateTime dt = QDateTime::fromTime_t(cellData.toUInt());
+                    QString mt = dt.toString();
+
+                    if (mt.isEmpty()){
+                        mt = QDateTime::currentDateTime().toString();
+                    }
+                    //qDebug() << Q_FUNC_INFO << mt;
+                    ui->mdate_lineEd->setText(mt);
+                }
+                break;
+                case tInfo_author:
+                ui->author_lineEd->setText(cellData.toString());
+                break;
+                case tInfo_mtop:
+                ui->margin_topSpBox->setValue(cellData.toString().toInt());
+                break;
+                case tInfo_mbottom:
+                ui->margin_bottomSBox->setValue(cellData.toInt());
+                break;
+                case tInfo_mleft:
+                ui->margin_leftSpBox->setValue(cellData.toInt());
+                break;
+                case tInfo_mright:
+                ui->margin_rightSpBox->setValue(cellData.toInt());
+                break;
             }
         }
     }
+
 }
 
 void AddTemplate::setData4Models()
 {
-    if (tInfoModel && pSizeModel) {
+    if (tInfoModel && pSizeModel && m_pagesModel) {
+        for (int i=0;i<m_pagesModel->rowCount();i++){
+
+            int p_number   = m_pagesModel->data(m_pagesModel->index(i,VPrn::PD_p_number)).toInt();
+            int p_visible;//  = m_pagesModel->data(m_pagesModel->index(i,VPrn::PD_p_visible)).toInt();
+            switch (p_number){
+            case 0:
+                if (ui->FPnumberChBox_1->isChecked()){
+                    p_visible =1;
+                }else{
+                    p_visible =0;
+                }
+                break;
+            case 1:
+                if (ui->FPnumberChBox_2->isChecked()){
+                    p_visible =1;
+                }else{
+                    p_visible =0;
+                }
+                break;
+            case 2:
+                if (ui->FPnumberChBox_3->isChecked()){
+                    p_visible =1;
+                }else{
+                    p_visible =0;
+                }
+                break;
+            case 3:
+                if (ui->FPnumberChBox_4->isChecked()){
+                    p_visible =1;
+                }else{
+                    p_visible =0;
+                }
+                break;
+            case 4:
+                if (ui->FPnumberChBox_5->isChecked()){
+                    p_visible =1;
+                }else{
+                    p_visible =0;
+                }
+                break;
+            case 5:
+                if (ui->SPnumberChBox->isChecked()){
+                    p_visible =1;
+                }else{
+                    p_visible =0;
+                }
+                break;
+            case 6:
+                if (ui->ThnumberChBox->isChecked()){
+                    p_visible =1;
+                }else{
+                    p_visible =0;
+                }
+                break;
+            case 7:
+                if (ui->FvnumberChBox->isChecked()){
+                    p_visible =1;
+                }else{
+                    p_visible =0;
+                }
+                break;
+            }
+
+            m_pagesModel->setData(m_pagesModel->index(i,VPrn::PD_p_visible),p_visible,Qt::EditRole);
+        }
+
         for (int i=0;i<tInfoModel->columnCount();i++){
             QModelIndex cellIndex = tInfoModel->index(tInfoModel->rowCount()-1,i);
             if (cellIndex.isValid()){
@@ -398,6 +472,6 @@ void AddTemplate::changeEvent(QEvent *e)
 
 void AddTemplate::closeEvent ( QCloseEvent * event )
 {
-  event->ignore();
-  this->hide();
+    event->ignore();
+    this->hide();
 }
