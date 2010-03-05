@@ -86,23 +86,25 @@ enum pluginsError {
         InternalPluginError
 };
 
-enum pageType{
-     FirstPage  = 1,
-     SecondPage = 2,
-     ThirdPage  = 3,
-     FourthPage = 4,
-     FirstPageN2  = 5,
-     FirstPageN3  = 6,
-     FirstPageN4  = 7,
-     FirstPageN5  = 8,
-};
 
+  enum pageTypeFlags {
+     FirstPage    = 0x1,
+     SecondPage   = 0x2,
+     ThirdPage    = 0x3,
+     FourthPage   = 0x4,
+     FirstPageN2  = 0x5,
+     FirstPageN3  = 0x6,
+     FirstPageN4  = 0x7,
+     FirstPageN5  = 0x8
+     };
+     
 }
+
 
 
 Q_DECLARE_METATYPE(VPrn::pSizeColumnOrder);
 Q_DECLARE_METATYPE(VPrn::tInfoColumnOrder);
-Q_DECLARE_METATYPE(VPrn::pageType);
+//Q_DECLARE_METATYPE(VPrn::pageType);
 Q_DECLARE_METATYPE(VPrn::elemColumnOrder);
 Q_DECLARE_METATYPE(VPrn::pageDetailColumnOrder);
 
