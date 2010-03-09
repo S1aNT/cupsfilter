@@ -21,7 +21,7 @@ static const int ObjectName = 0;
 
 enum pSizeColumnOrder{
         pSize_id     = 0, // ID
-        pSize_page   = 1, //  азмер листа
+        pSize_page   = 1, // размер листа
         pSize_code   = 2, // Код
         pSize_width  = 3, // Ширина (мм)
         pSize_height = 4  // Высота (мм)
@@ -48,11 +48,10 @@ enum tInfoColumnOrder{
 
 
 enum pageDetailColumnOrder{
-            PD_id       = 0,  // ID
-	    PD_p_number = 1,  // Порядковый номер в шаблоне	        
-	    PD_p_type   = 2,  // Тип страницы
-            PD_p_name   = 3,   // Имя страницы
-            PD_p_visible   = 4   // Видна страница да/нет 1/0
+            PD_id         = 0,  // ID
+            PD_p_number   = 1,  // Порядковый номер в шаблоне
+            PD_p_name     = 2,   // Имя страницы
+            PD_p_visible  = 3   // Видна страница да/нет 1/0
 
 };
 
@@ -69,7 +68,7 @@ enum elemColumnOrder{
             elem_border= 8,  // исовать границу элемента, да/нет
             elem_img_data = 9, // Если эемент картинка то тут будет записанны данные в виде бинарных данных
             elem_always_view = 10, // Всегда отображаемый Да/нет
-            elem_p_type      = 11,  // Тип страницы на которой виден элемент
+            elem_p_number    = 11,  // Порядковый номер страницы 0-7 на которой виден элемент
             elem_text_img    = 12  // Тип элемента текст или картинка(1/0)
 };
 
@@ -87,16 +86,16 @@ enum pluginsError {
 };
 
 
-  enum pageTypeFlags {
-     FirstPage    = 0x1,
-     SecondPage   = 0x2,
-     ThirdPage    = 0x3,
-     FourthPage   = 0x4,
-     FirstPageN2  = 0x5,
-     FirstPageN3  = 0x6,
-     FirstPageN4  = 0x7,
-     FirstPageN5  = 0x8
-     };
+  enum pageNumbers {
+     FirstPage    = 0,
+     FirstPageN2  = 1,
+     FirstPageN3  = 2,
+     FirstPageN4  = 3,
+     FirstPageN5  = 4,
+     SecondPage   = 5,
+     ThirdPage    = 5,
+     FourthPage   = 7,
+ };
      
 }
 
@@ -104,9 +103,8 @@ enum pluginsError {
 
 Q_DECLARE_METATYPE(VPrn::pSizeColumnOrder);
 Q_DECLARE_METATYPE(VPrn::tInfoColumnOrder);
-//Q_DECLARE_METATYPE(VPrn::pageType);
 Q_DECLARE_METATYPE(VPrn::elemColumnOrder);
 Q_DECLARE_METATYPE(VPrn::pageDetailColumnOrder);
-
+Q_DECLARE_METATYPE(VPrn::pageNumbers);
 #endif
 
