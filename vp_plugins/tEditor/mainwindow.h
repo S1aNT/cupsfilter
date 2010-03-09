@@ -58,7 +58,7 @@ private slots:
     void errorB(QString e_msg); // Ошибка Б типа -  не  завершить работу
     void errorInfo(pluginsError eCode,QString e_msg); // Ошибка А типа -  завершить работу
     void do_CmdButtonClick(const QString &line);// Нажали командную кнопку
-    void do_angle_direct();
+    //void do_angle_direct();
     void do_viewCode();
 signals:
     void addBaseElementToPage(int, const QString &line);
@@ -77,7 +77,7 @@ private:
     /**
      * @fn Поворачивает страницу на 90 градусов по часовой или против
      */
-    void flipPage(bool angle_direct);
+    //void flipPage(bool angle_direct);
 
     Auth_plugin *auth_plugin;
     Itmpl_sql_plugin *tmpl_plugin;
@@ -107,10 +107,10 @@ private:
     QAction *aboutAct;
     QAction *aboutQtAct;
     QAction *quitAct;
-    QAction *flipAction;
+    //QAction *flipAction;
     QAction *addBaseElem;
-    QAction *portretAct;
-    QAction *landscapeAct;
+    //QAction *portretAct;
+    //QAction *landscapeAct;
     QAction *viewCodeAct;
     QAction *showUndoStackAct;
 

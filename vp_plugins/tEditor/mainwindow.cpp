@@ -21,6 +21,8 @@
 #include <QtSql/QSqlQueryModel>
 
 
+#include <QtGui/QTableView>
+
 MainWindow::MainWindow():
         auth_plugin(0)
         , tmpl_plugin(0)
@@ -43,14 +45,18 @@ MainWindow::MainWindow():
 
     this->resize(800,600);
     tabWidget = new QTabWidget;
+
     // Создаем 8 View они существуют все время
     for (int i=0;i<8;i++){
         View * view = new View(this);
         view->setTabNumber(i);
         view->setMinimumSize(tabWidget->sizeHint());
         m_View.insert(i,view);
+        // Если их не создавать тут то появляется артефакт отображения,
+        // мелочь, но раздражает
+        tabWidget->addTab(view,"page");
     }
-
+    tabWidget->clear();
     connect (tabWidget,
              SIGNAL(currentChanged(int)),
              this,
@@ -63,6 +69,7 @@ MainWindow::MainWindow():
     createToolBars();
     createStatusBar();
     createDockWindows();
+
     setWindowTitle(tr("Редактор шаблонов"));
     setUnifiedTitleAndToolBarOnMac(true);
 
@@ -317,11 +324,6 @@ void MainWindow::loadTemplates()
 {
     QString title_str;
     title_str =QObject::trUtf8("Выберите ранее сохраненные индивидуальные шаблоны");
-    /*
-    if (local_t_pathh.isEmpty()){
-        local_t_path = qApp->applicationDirPath();
-    }
-    */
     QString file_name =QFileDialog::getOpenFileName(this,
                                                     title_str,
                                                     local_t_path,
@@ -334,21 +336,13 @@ void MainWindow::saveTemplatesAs()
 {
     QString title_str;
     title_str =QObject::trUtf8("Выберите место для сохранения шаблона");
-    /*
-    if (local_path.isEmpty()){
-        local_path = qApp->applicationDirPath();
-    }
-    */
     QString save_file = QFileDialog::getSaveFileName(this,
                                                      title_str,
                                                      local_t_path,
                                                      tr("Шаблоны (*.tmpl *.TMPL)")
                                                      );
     if (!save_file.isEmpty()){
-        //TODO привести к новому виду
-        /*
-        tmpl_plugin->setTemplInfo(tInfo);
-        */
+
         tmpl_plugin->saveTemplatesAs(save_file);
     }
 }
@@ -370,11 +364,16 @@ void MainWindow::errorB(QString e_msg)
 
 void MainWindow::do_viewCode()
 {
-    if (tmpl_plugin){
-        //TODO привести к новому виду
-        /*
-        tmpl_plugin->viewCode();
-        */
+    if (this->templ_load && tmpl_plugin ){
+        // Данные режим работает на всех страницах шаблона
+        for (int i = 0; i < tabWidget->count();i++){
+            View * vPage  = (View *)tabWidget->widget(i);
+            if (vPage){
+                // Получим номер страницы отображаемой на i вкладке
+                int page = vPage->getTabNumber();
+                this->m_Scenes.value(page)->setViewMode();
+            }
+        }
     }else{
         QString e_msg = tr("Плагин для работы с шаблонами не загружен!");
         errorA(e_msg);
@@ -393,13 +392,13 @@ void MainWindow::toggleAntialiasing()
         }
     }
 }
-
+/*
 void MainWindow::do_angle_direct()
 {
     /// @todo  привести к новому виду
     View *vPage  = (View *)tabWidget->currentWidget();
 
-    /* 
+
     if (QAction *action = qobject_cast<QAction*>(sender())) {
         QVariant v = action->data();
         if (v.canConvert<QString>()) {
@@ -412,8 +411,9 @@ void MainWindow::do_angle_direct()
             }
         }
     }
-    */
+
 }
+
 
 void MainWindow::flipPage(bool angle_direct)
 {
@@ -443,11 +443,25 @@ void MainWindow::flipPage(bool angle_direct)
         }
     }
 }
-
+*/
 //******************************************************************************
+void createView(const QString &title, QAbstractItemModel * model )
+{
+    static int offset = 0;
+
+    QTableView *view = new QTableView;
+    view->setModel(model);
+    view->setWindowTitle(title);
+    view->move(100 + offset, 100 + offset);
+    view->verticalHeader()->setVisible(true);
+    offset += 20;
+    view->show();
+}
+
 //------------------------------- Private function
 void MainWindow::loadFromFile(const QString &file_name)
 {
+    //createView("Page size Model",tmpl_plugin->getPSizeModel());
     bool Ok =true;
     {
         Ok &= !file_name.isEmpty() && tmpl_plugin;
@@ -522,7 +536,6 @@ void MainWindow::pageSelect(int page)
 
 void MainWindow::createActions()
 {
-
     viewCodeAct = new QAction(QIcon(":/view_code.png"),
                               tr("Показать [коды] / значения полей реквизитов"),this);
     viewCodeAct->setStatusTip(tr("Режим отображения [код] / значение реквизита"));
@@ -586,7 +599,7 @@ void MainWindow::createActions()
     aboutQtAct = new QAction(tr("О библиотеке Qt"), this);
     aboutQtAct->setStatusTip(tr("Краткие сведения об используемой библиотеке Qt"));
     connect(aboutQtAct, SIGNAL(triggered()), qApp, SLOT(aboutQt()));
-
+/*
     portretAct = new QAction(QIcon(":/portret.png"),
                              tr("Книжная ориентация страниц"),this);
     portretAct->setStatusTip(tr("Выбор книжной ориентации страниц"));
@@ -604,16 +617,7 @@ void MainWindow::createActions()
     QActionGroup * orientGroup = new QActionGroup(this);
     orientGroup->addAction(portretAct);
     orientGroup->addAction(landscapeAct);
-
-    /*
-    showUndoStackAct = new QAction(QIcon(":/undo.png"),
-                                   tr("История изменения шаблона"),this);
-    showUndoStackAct->setStatusTip(tr("Доступ к истории изменения шаблона (вставка, удаление, перемещение элементов)"));
-    connect(showUndoStackAct, SIGNAL(triggered()),
-            this,             SLOT(showUndoStack()) );
-
     */
-
 }
 
 void MainWindow::createMenus()
@@ -625,28 +629,23 @@ void MainWindow::createMenus()
     templatesMenu->addAction(saveAsAct);
     templatesMenu->addAction(showInfoAct);
     templatesMenu->addAction(printAct);
-
     templatesMenu->addSeparator();
     templatesMenu->addAction(quitAct);
-
-    //itemMenu = menuBar()->addMenu(tr("Элементы"));
 
     viewMenu = menuBar()->addMenu(tr("Панели"));
 
     toolsMenu = menuBar()->addMenu(tr("Утилиты"));
-
     toolsMenu->addAction(antialiasAct);
-    toolsMenu->addAction(portretAct);
-    toolsMenu->addAction(landscapeAct);
+    //toolsMenu->addAction(portretAct);
+    //toolsMenu->addAction(landscapeAct);
     toolsMenu->addAction(viewCodeAct);
 
     editMenu = menuBar()->addMenu(tr("Правка"));
 
-
-    menuBar()->addSeparator();
     helpMenu = menuBar()->addMenu(tr("&Справка"));
     helpMenu->addAction(aboutAct);
     helpMenu->addAction(aboutQtAct);
+
 }
 
 void MainWindow::createToolBars()
@@ -659,10 +658,9 @@ void MainWindow::createToolBars()
     toolsToolBar = addToolBar(tr("Утилиты"));
     toolsToolBar->addAction(antialiasAct);
     toolsToolBar->addAction(showInfoAct);
-    toolsToolBar->addAction(portretAct);
-    toolsToolBar->addAction(landscapeAct);
+    //toolsToolBar->addAction(portretAct);
+    //toolsToolBar->addAction(landscapeAct);
     toolsToolBar->addAction(viewCodeAct);
-
 }
 
 void MainWindow::createStatusBar()
@@ -672,6 +670,7 @@ void MainWindow::createStatusBar()
 
 void MainWindow::createDockWindows()
 {
+
     QDockWidget *dock = new QDockWidget(tr("Элементы"), this);
     dock->setMinimumWidth(100);
     //dock->setMinimumWidth(200);
