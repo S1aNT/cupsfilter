@@ -41,8 +41,6 @@ bool EditPagesModel::setData(const QModelIndex &index, const QVariant &value, in
         break;
     case VPrn::PD_p_number:  ok = setPagesNumber (id,value.toInt());
         break;
-    case VPrn::PD_p_type:    ok = setPagesType   (id,value.toInt());
-        break;
     case VPrn::PD_p_visible: ok = setPageVisible (id,value.toInt());
         break;
     }
@@ -72,15 +70,6 @@ bool EditPagesModel::setPagesNumber (int id, int number)
     return query.exec();
 }
 
-bool EditPagesModel::setPagesType   (int id, int type)
-{
-    QSqlQuery query;
-    query.prepare("update page_detail set p_type = ? where id = ?");
-    query.addBindValue(type);
-    query.addBindValue(id);
-    return query.exec();
-
-}
 
 bool EditPagesModel::setPageVisible (int id, int page_visible)
 {
@@ -93,7 +82,7 @@ bool EditPagesModel::setPageVisible (int id, int page_visible)
 
 void EditPagesModel::refresh()
 {
-    setQuery("SELECT page_detail.id,page_detail.p_number,page_detail.p_type,"
+    setQuery("SELECT page_detail.id,page_detail.p_number,"
              " page_detail.p_name,page_detail.p_visible FROM template "
              " INNER JOIN rel_templ_page ON templ_id= template.id"
              " INNER JOIN page_detail ON page_detail_id =  page_detail.id"
@@ -101,7 +90,6 @@ void EditPagesModel::refresh()
 
     setHeaderData(VPrn::PD_id,        Qt::Horizontal, tr("Id"));
     setHeaderData(VPrn::PD_p_number,  Qt::Horizontal, tr("Порядковый номер"));
-    setHeaderData(VPrn::PD_p_type,    Qt::Horizontal, tr("Тип страницы"));
     setHeaderData(VPrn::PD_p_name,    Qt::Horizontal, tr("Название страницы"));
     setHeaderData(VPrn::PD_p_visible, Qt::Horizontal, tr("Видимость страницы"));
 }

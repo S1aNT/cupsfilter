@@ -29,7 +29,6 @@ public:
 private:
     bool setPagesName   (int id, QString &name);
     bool setPagesNumber (int id, int number);
-    bool setPagesType   (int id, int type);
     bool setPageVisible (int id, int page_visible);
 };
 
