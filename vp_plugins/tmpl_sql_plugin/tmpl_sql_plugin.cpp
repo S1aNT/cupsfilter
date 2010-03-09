@@ -703,7 +703,7 @@ bool Tmpl_sql_plugin::create_emptyDB(QString const&)
                     templ_id = query.lastInsertId().toInt();
                     /// Создаем 8 основных страницы в шаблоне
                     Ok &= query.prepare("insert into page_detail (p_number,"
-                                        "p_name,p_visible) VALUES(?,?,?,?);");
+                                        "p_name,p_visible) VALUES(?,?,?);");
                     if (Ok){
 
                         query.addBindValue(VPrn::FirstPage);
