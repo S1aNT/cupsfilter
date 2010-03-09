@@ -46,13 +46,14 @@ class Tmpl_sql_plugin : public QObject , Itmpl_sql_plugin
     Q_INTERFACES(Itmpl_sql_plugin)
 public:
 
-    Tmpl_sql_plugin(QObject *parent = 0);
+            Tmpl_sql_plugin(QObject *parent = 0);
     ~Tmpl_sql_plugin();
     /**
       * @fn init(const QString & spool,const QString & sid)
       * Первоначальная настройка плагина
       */
     void init(const QString & spool,const QString & sid);
+
 
     inline bool isDBOpened()   {return m_dbOpened;};
     inline bool isDBConnected(){return m_dbConnect;};
@@ -65,6 +66,7 @@ public:
       * @fn getBaseElemNameList(); набор базовых элементов шаблона
       * @fn getUndoGrp();          группу стеков
       * @fn getScenesGroup();      список сцен, со связанными стеками Undo
+      * @fn getFilesGroup();       список путей к pdf файлам myScene -> pdf
       */
     TemplateInfoEditModel * getInfoModel() const {return tInfoModel;};
     QSqlQueryModel        * getPSizeModel()const {return pSizeModel;};
@@ -72,16 +74,32 @@ public:
     QStringList             getBaseElemNameList() const;
     QUndoGroup            * getUndoGrp() const   {return undoGrp;};
     QMap <int,myScene *>    getScenesGroup()     {return scenesGrp;}
+    QMap <int,QString>      getFilesGroup()      {return filesGrp;}
     //-------------------------------------------------------------------
 
     /**
+      * @brief Переключает режим отображения Код / Значение на всех сценах
+      */
+    void setViewMode();
+
+    /**
+      * @fn void setUserName (const QString &user){userName = user;};
       * @brief Устанавливает имя пользователя полученное от плагина Auth
       */
     void setUserName (const QString &user){userName = user;};
-
+    /**
+      * @fn void printAllPage2Pdf();
+      * @brief Если шаблон успешно загружен и вышстоящее приложение потребовало
+      * сформировать страницы в pdf, то в результате функция возвращает
+      * QMap<int,QString> содержащий полные пути к сформированным страницам
+      * и их номера
+      *
+      */
+    void printAllPage2Pdf();
 signals:
     void error(pluginsError errCode,QString error_message);
     void allTemplatesPagesParsed();
+    void allPagesConverted();
 
 public slots:
     /**
@@ -129,36 +147,30 @@ public slots:
       * добавляет базовый элемент на страницу с номером page
       */
     void doAddBaseElementToPage(int page,const QString &tag);
-
+    /**
+      * @fn void convert2Pdf();
+      * @brief Преобразует текущий загруженный шаблон в набор pdf страниц
+      */
+    void convert2Pdf();
 private:    
 
     bool m_dbOpened;
     bool m_dbConnect;
+
     /**
+      * @var userName;    имя текущего пользователя полученное от подсистемы авторизации
       * @var spool_dir    каталог для временных файлов
       * @var current_sid  уникальный сеансовый номер
-      * Пути к генерируемым страницам шаблона 1-4
-      * @todo должны формироваться по запросу приложения
-      * @var firstPage_tmpl_fn;
-      * @var secondPage_tmpl_fn;
-      * @var thirdPage_tmpl_fn;
-      * @var fourthPage_tmpl_fn;
-      * Набор из 8-х сцен
       */
     QString userName;
     QString spool_dir;
     QString current_sid;
 
-    QString firstPage_tmpl_fn;
-    QString firstPage_tmpl_fn2;
-    QString firstPage_tmpl_fn3;
-    QString firstPage_tmpl_fn4;
-    QString firstPage_tmpl_fn5;
 
-    QString secondPage_tmpl_fn;
-    QString thirdPage_tmpl_fn;
-    QString fourthPage_tmpl_fn;
-
+    /**
+      * @var QMap <int,QString> filesGrp;  список файлов pdf
+      */
+    QMap <int,QString> filesGrp;
     /**
       * @var QMap <int,myScene *> scenesGrp; Список сцен
       */
@@ -167,32 +179,21 @@ private:
       * @var QUndoGroup * undoGrp; Группа стеков Undo
       */
     QUndoGroup * undoGrp;
-/*
-    myScene * firstPage_scene;
-    myScene * firstPage_sceneN2;
-    myScene * firstPage_sceneN3;
-    myScene * firstPage_sceneN4;
-    myScene * firstPage_sceneN5;
-    myScene * secondPage_scene;
-    myScene * thirdPage_scene;
-    myScene * fourthPage_scene;
-*/
+
     bool view_code_state;
 
     QString m_connectionName;
     /**
-      * @var baseElemList;
-      * список базовых элементов
+      * @var baseElemList; список базовых элементов
       */
     QStringList baseElemList;
 
     /**
-      * @var currentDBFileName
-      * Имя файла текущей открытой БД
+      * @var currentDBFileName Имя файла текущей открытой БД
       */
     QString currentDBFileName;
     /**
-      * @fn Модель ИНФО_ШАБЛОНА
+      * @var Модель ИНФО_ШАБЛОНА
       */
     TemplateInfoEditModel  * tInfoModel;
 
@@ -206,7 +207,7 @@ private:
       * @brief В данной модели храняться все страницы шаблона
       * №п/п|Тип страницы| Отображаемое имя страницы
       */
-     EditPagesModel * pagesModel;
+    EditPagesModel * pagesModel;
     /**
       * @todo сделать данную модель редкатируемой, при добавлении или удалении элемента
       * со страницы, соответственно добавлять или удалять элемент модели, при записи шаблона,
@@ -270,10 +271,10 @@ private:
     bool isCreateFile(const QString & fileName);
 
 
-    /** @fn bool fillScenes4Data()
+    /** @fn void fillScenes4Data()
       * Рабор данных полученных из шаблона и запись их в сцены
       */
-    bool fillScenes4Data();
+    void fillScenes4Data();
 
     /**
       * @fn bool fillPagesSizeTable(QSqlQuery &query)
@@ -294,11 +295,6 @@ private:
       * значение, координаты элемента не меняются
       */
     void update_scenes(const QHash<QString, QString> &hash);
-    /**
-      * @fn myScene * selectScene(int page)const
-      * @brief возвращает указатель на требуемую сцену
-      */
-    myScene * selectScene(int page) const;
 
 };
 

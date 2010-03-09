@@ -2,24 +2,25 @@
 #include "mytextitem.h"
 
 #include <QtCore/QDebug>
+#include <QtCore/QHashIterator>
+#include <QtCore/QTemporaryFile>
+#include <QtCore/QFile>
+#include <QtCore/QDir>
+#include <QtCore/QMetaType>
+#include <QtCore/QModelIndex>
+#include <QtCore/QDateTime>
+
+#include <QtGui/QPrinter>
+
 #include <QtSql/QSqlError>
 #include <QtSql/QSqlDriver>
-#include <QtSql/QSqlRelation>
-#include <QtSql/QSqlRelationalTableModel>
 #include <QtSql/QSqlQuery>
 #include <QtSql/QSqlError>
-#include <QtSql/QSqlRecord>
-#include <QtCore/QFile>
-#include <QDir>
-#include <QtCore/QRegExp>
-#include <QTemporaryFile>
-#include <QPrinter>
-#include <QMetaType>
-#include <QModelIndex>
-#include <QDateTime>
-#include <QtGui/QGraphicsItem>
-#include <QtCore/QHashIterator>
-
+//#include <QtGui/QGraphicsItem>
+//#include <QtSql/QSqlRelation>
+//#include <QtSql/QSqlRelationalTableModel>
+//#include <QtSql/QSqlRecord>
+//#include <QtCore/QRegExp>
 
 using namespace VPrn;
 
@@ -77,17 +78,10 @@ void Tmpl_sql_plugin::init(const QString & spool,const QString & sid)
             // Проверим факт существования временного каталога
             spool_dir = spool;
             // Формируем пути для файлов
-            firstPage_tmpl_fn  = QObject::trUtf8("%1/%2_first_tmpl.pdf").arg(spool, sid);
-            firstPage_tmpl_fn2 = QObject::trUtf8("%1/%2_first2_tmpl.pdf").arg(spool, sid);
-            firstPage_tmpl_fn3 = QObject::trUtf8("%1/%2_first3_tmpl.pdf").arg(spool, sid);
-            firstPage_tmpl_fn4 = QObject::trUtf8("%1/%2_first4_tmpl.pdf").arg(spool, sid);
-            firstPage_tmpl_fn5 = QObject::trUtf8("%1/%2_first5_tmpl.pdf").arg(spool, sid);
-
-            secondPage_tmpl_fn = QObject::trUtf8("%1/%2_second_tmpl.pdf").arg(spool, sid);
-            thirdPage_tmpl_fn = QObject::trUtf8("%1/%2_third_tmpl.pdf").arg(spool, sid);
-            fourthPage_tmpl_fn = QObject::trUtf8("%1/%2_fourth_tmpl.pdf").arg(spool, sid);           
-
-
+            for (int i=0; i<8;i++){
+                filesGrp.insert(i,tr("%1/%2_page_%3.pdf")
+                                    .arg(spool, sid).arg(i,0,10));
+            }
             // Заполним список базовых элементов шаблона
 
             baseElemList << QObject::tr("МБ")
@@ -123,6 +117,25 @@ void Tmpl_sql_plugin::init(const QString & spool,const QString & sid)
 QStringList Tmpl_sql_plugin::getBaseElemNameList() const
 {
     return baseElemList;
+}
+
+void Tmpl_sql_plugin::setViewMode()
+{
+    myScene * scene(0);
+    int p_visible;
+    int p_number;
+
+    for (int i=0;i<pagesModel->rowCount();i++){
+        p_visible = pagesModel->data(pagesModel->index(i,VPrn::PD_p_visible)).toInt();
+        if ( p_visible == 1 ){
+            p_number = pagesModel->data(pagesModel->index(i,VPrn::PD_p_number)).toInt();
+            /// Поиск myScene соответсвующего странице с номером
+            scene = scenesGrp.value( p_number );
+            if (scene){
+                scene->setViewMode();
+            }
+        }
+    }
 }
 
 //------------------------------------------------------------------------------
@@ -204,6 +217,54 @@ void Tmpl_sql_plugin::setTagValue(const QHash <QString, QString> &tagValue)
     }
 }
 
+void Tmpl_sql_plugin::convert2Pdf()
+{
+    myScene * scene(0);
+    int p_visible;
+    int p_number;
+    QString fileName;
+    QPrinter pdfprinter;
+
+    bool Ok = true;
+    {
+         Ok &= isDBConnected() && isDBOpened();
+         if (Ok){
+             for (int i=0; i < pagesModel->rowCount(); i++){
+                 p_visible = pagesModel->data(pagesModel->index(i,VPrn::PD_p_visible)).toInt();
+                 if ( p_visible == 1 ){
+                     p_number = pagesModel->data(pagesModel->index(i,VPrn::PD_p_number)).toInt();
+                     /// Поиск myScene соответсвующего странице с номером
+                     scene = scenesGrp.value( p_number );
+                     /// Поиск соответсвующего имени файла в который будем сохранять сцену
+                     fileName = filesGrp.value( p_number );
+                     if (scene && !fileName.isEmpty()){
+                         if (QFile::exists(fileName)){
+                             Ok = QFile::remove(fileName);
+                         }
+                         // Определим ориентацию страницы
+                         if (scene->getAngle() == 0.0){
+                             pdfprinter.setOrientation(QPrinter::Portrait);
+                         }else{
+                             pdfprinter.setOrientation(QPrinter::Landscape);
+                         }
+                         pdfprinter.setOutputFormat(QPrinter::PdfFormat);
+
+                     }else{
+                         Ok &=false;
+                         emit error(VPrn::InternalPluginError,
+                                    tr("Ошибка преобразования шаблона в pdf.\n"
+                                       "Нарушенна структура шаблона"));
+                     }
+                 }
+             }
+         }else{
+             emit error(VPrn::InternalPluginError,
+                        tr("Ошибка преобразования шаблона в pdf.\n"
+                           "Необходимо вначале открыть существующий или создать новый шаблон"));
+         }
+    }
+}
+
 void Tmpl_sql_plugin::openTemplates(const QString & t_fileName)
 {
     bool Ok = true;
@@ -217,7 +278,7 @@ void Tmpl_sql_plugin::openTemplates(const QString & t_fileName)
             if (Ok){
                 Ok &= fillModels();
                 // Рабор данных полученных из шаблона и запись их в сцены
-                Ok &= fillScenes4Data();
+                fillScenes4Data();
 
                 if (Ok){                  
                     emit allTemplatesPagesParsed();
@@ -298,16 +359,16 @@ void Tmpl_sql_plugin::saveTemplates()
                                                 );
                             if (Ok){
                                 ///Цикл по все элементам сцены
-                                for (int i = 0; i < scene->items().size(); i++){
-                                    item = scene->items().at(i);
+                                for (int j = 0; j < scene->items().size(); j++){
+                                    item = scene->items().at(j);
                                     elem_type = item->data(ObjectName).toString();
 
                                     if (elem_type == "tElem"){
-                                        tElem =(myTextItem* )scene->items().at(i);
+                                        tElem =(myTextItem* )scene->items().at(j);
 
                                         query.addBindValue( p_id );
                                         query.addBindValue( tElem->toPlainText() );
-                                        query.addBindValue( tElem->getTag()   );
+                                        query.addBindValue( tElem->getETag()   );
                                         query.addBindValue( tElem->pos().x()  );
                                         query.addBindValue( tElem->pos().y()  );
                                         t_var = tElem->defaultTextColor();
@@ -368,96 +429,78 @@ void Tmpl_sql_plugin::saveTemplatesAs(const QString & fileName)
 void Tmpl_sql_plugin::doAddBaseElementToPage(int page,const QString &tag)
 {
     QString e_msg;
-    QString l_msg = QString(" [%1] ").arg(QString::fromAscii(Q_FUNC_INFO));
-    myScene *scene = selectScene(page);
+    //QString l_msg = QString(" [%1] ").arg(QString::fromAscii(Q_FUNC_INFO));
     /// @todo в модель  ЭЛЕМЕНТЫ_СТРАНИЦЫ
-    scene->addBaseElem(tag);
+    //myScene *scene = selectScene(page);
+    myScene *scene = scenesGrp.value(page);
+    if (scene){
+        scene->addBaseElem(tag);
+    }
 }
 
 //------------------------------------------------------------------------------
 
 //***************** private functions **************************************
 
-myScene * Tmpl_sql_plugin::selectScene(int page)const
-{
-    myScene *scene(0);
-    // Использую Java style итератор для просмотра всего списка сцен
-    QMapIterator<int, myScene *> i(scenesGrp);
-    while (i.hasNext()) {
-        i.next();
-        // Обработаем полученный указатеь на сцену
-        if (i.key()==page){
-            scene = i.value();
-            break;
-        }
-        qDebug() << i.key() << ": " << i.value();
-    }
-    return scene;
-}
-
 // Рабор данных полученных из шаблона и запись их в сцены
-bool Tmpl_sql_plugin::fillScenes4Data()
+void Tmpl_sql_plugin::fillScenes4Data()
 {
     QSqlQuery query (DB_);
     QSqlQuery query_detail (DB_);
 
     myScene *scene(0);
 
-    bool Ok =true;
-    {
-        //Модель tInfoModel заполнена возьмем оттуда данные
-        //int templ_id    = tInfoModel->data(tInfoModel->index(0,tInfo_id)).toInt();
-        int    angle    = tInfoModel->data(tInfoModel->index(0,tInfo_angle)).toInt();
-        double m_top    = MM_TO_POINT(tInfoModel->data(tInfoModel->index(0,tInfo_mtop)).toInt());
-        double m_bottom = MM_TO_POINT(tInfoModel->data(tInfoModel->index(0,tInfo_mbottom)).toInt());
-        double m_left   = MM_TO_POINT(tInfoModel->data(tInfoModel->index(0,tInfo_mleft)).toInt());
-        double m_right  = MM_TO_POINT(tInfoModel->data(tInfoModel->index(0,tInfo_mright)).toInt());
-        double p_width  = MM_TO_POINT(tInfoModel->data(tInfoModel->index(0,tInfo_p_width)).toInt());
-        double p_height = MM_TO_POINT(tInfoModel->data(tInfoModel->index(0,tInfo_p_height)).toInt());
+    //Модель tInfoModel заполнена возьмем оттуда данные
+    //int templ_id    = tInfoModel->data(tInfoModel->index(0,tInfo_id)).toInt();
+    int    angle    = tInfoModel->data(tInfoModel->index(0,tInfo_angle)).toInt();
+    double m_top    = MM_TO_POINT(tInfoModel->data(tInfoModel->index(0,tInfo_mtop)).toInt());
+    double m_bottom = MM_TO_POINT(tInfoModel->data(tInfoModel->index(0,tInfo_mbottom)).toInt());
+    double m_left   = MM_TO_POINT(tInfoModel->data(tInfoModel->index(0,tInfo_mleft)).toInt());
+    double m_right  = MM_TO_POINT(tInfoModel->data(tInfoModel->index(0,tInfo_mright)).toInt());
+    double p_width  = MM_TO_POINT(tInfoModel->data(tInfoModel->index(0,tInfo_p_width)).toInt());
+    double p_height = MM_TO_POINT(tInfoModel->data(tInfoModel->index(0,tInfo_p_height)).toInt());
 
-        //Модель pagesModel заполнена возьмем оттуда данные о страницах шаблона
-        for (int i=0;i<pagesModel->rowCount();i++){
-            int pNumber = pagesModel->data(pagesModel->index(i,VPrn::PD_p_number)).toInt();
-            scene = selectScene(pNumber);
-            if (scene){
-                //Чистим стек Undo
-                scene->undoStack()->clear();
-                scene->createPage(p_width,p_height,m_top,m_bottom,m_right,m_left);
-                scene->setAngle(angle);
-            }
-        }
-        if (Ok){
-            // Теперь запишем в созданную страницу элементы которые к ней принадлежат
-            // Данные возьмем в модели ЭЛЕМЕНТЫ_СТРАНИЦЫ
-            for (int i=0;i<elemInPageModel->rowCount();i++){
-                int elem_p_type = elemInPageModel->data(elemInPageModel->index(i,VPrn::elem_p_type)).toInt();
-                scene = selectScene(elem_p_type);
-
-                if (scene ){
-                    //Получим данные конкретного элемента
-                    int e_type  = elemInPageModel->data(elemInPageModel->index(i,VPrn::elem_text_img)).toInt();
-                    qreal pos_x = elemInPageModel->data(elemInPageModel->index(i,VPrn::elem_pos_x)).toDouble();
-                    qreal pos_y = elemInPageModel->data(elemInPageModel->index(i,VPrn::elem_pos_y)).toDouble();
-                    QPointF ps(pos_x,pos_y);
-                    if (e_type == 0){
-                        QString text = elemInPageModel->data(elemInPageModel->index(i,VPrn::elem_text)).toString();
-                        QString tag  = elemInPageModel->data(elemInPageModel->index(i,VPrn::elem_tag)).toString();
-                        QVariant variant = elemInPageModel->data(elemInPageModel->index(i,VPrn::elem_color));
-                        QColor color = variant.value<QColor>();
-                        variant = elemInPageModel->data(elemInPageModel->index(i,VPrn::elem_font));
-                        QFont font = variant.value<QFont>();
-
-                        scene->addBaseElem(text,tag,ps,font,color);
-
-                    }else{
-                        //Читаем картинку из базы
-                    }
-                    scene->update();
-                }
-            }
+    //Модель pagesModel заполнена возьмем оттуда данные о страницах шаблона
+    for (int i=0;i<pagesModel->rowCount();i++){
+        int pNumber = pagesModel->data(pagesModel->index(i,VPrn::PD_p_number)).toInt();
+        //scene = selectScene(pNumber);
+        scene = scenesGrp.value(pNumber);
+        if (scene){
+            //Чистим стек Undo
+            scene->undoStack()->clear();
+            scene->createPage(p_width,p_height,m_top,m_bottom,m_right,m_left);
+            scene->setAngle(angle);
         }
     }
-    return Ok;
+
+    // Теперь запишем в созданную страницу элементы которые к ней принадлежат
+    // Данные возьмем в модели ЭЛЕМЕНТЫ_СТРАНИЦЫ
+    for (int i=0;i<elemInPageModel->rowCount();i++){
+        int elem_p_number = elemInPageModel->data(elemInPageModel->index(i,VPrn::elem_p_number)).toInt();
+        scene = scenesGrp.value(elem_p_number);
+        if (scene ){
+            //Получим данные конкретного элемента
+            int e_type  = elemInPageModel->data(elemInPageModel->index(i,VPrn::elem_text_img)).toInt();
+            qreal pos_x = elemInPageModel->data(elemInPageModel->index(i,VPrn::elem_pos_x)).toDouble();
+            qreal pos_y = elemInPageModel->data(elemInPageModel->index(i,VPrn::elem_pos_y)).toDouble();
+            QPointF ps(pos_x,pos_y);
+            if (e_type == 0){
+                QString text = elemInPageModel->data(elemInPageModel->index(i,VPrn::elem_text)).toString();
+                QString tag  = elemInPageModel->data(elemInPageModel->index(i,VPrn::elem_tag)).toString();
+                QVariant variant = elemInPageModel->data(elemInPageModel->index(i,VPrn::elem_color));
+                QColor color = variant.value<QColor>();
+                variant = elemInPageModel->data(elemInPageModel->index(i,VPrn::elem_font));
+                QFont font = variant.value<QFont>();
+
+                scene->addBaseElem(tag,text,ps,font,color);
+
+            }else{
+                //Читаем картинку из базы
+            }
+            scene->update();
+        }
+    }
+
 }
 
 bool Tmpl_sql_plugin::InitDB()
@@ -532,7 +575,7 @@ bool Tmpl_sql_plugin::create_tables(QSqlQuery &query)
           * p_name название страницы для отображения в редакторе
           */
         Ok &= query.exec("create table page_detail (id INTEGER primary key autoincrement, "
-                         "p_number INTEGER,p_type INTEGER,p_name TEXT,p_visible INTEGER);"
+                         "p_number INTEGER,p_name TEXT,p_visible INTEGER);"
                          );
         if (!Ok){
             DumpError(query.lastError());
@@ -659,60 +702,46 @@ bool Tmpl_sql_plugin::create_emptyDB(QString const&)
                 if (Ok){
                     templ_id = query.lastInsertId().toInt();
                     /// Создаем 8 основных страницы в шаблоне
-                    Ok &= query.prepare("insert into page_detail (p_number,p_type,"
+                    Ok &= query.prepare("insert into page_detail (p_number,"
                                         "p_name,p_visible) VALUES(?,?,?,?);");
                     if (Ok){
-                        query.addBindValue(0);
-                        query.addBindValue(VPrn::FirstPage);
 
+                        query.addBindValue(VPrn::FirstPage);
                         query.addBindValue(tr("Лицевая сторона 1-го листа.Экземпляр №1"));
                         query.addBindValue(1);
                         Ok &= query.exec();
 
-                        query.addBindValue(1);
-                        query.addBindValue(VPrn::FirstPage);
-
+                        query.addBindValue(VPrn::FirstPageN2);
                         query.addBindValue(tr("Лицевая сторона 1-го листа.Экземпляр №2"));
                         query.addBindValue(1);
                         Ok &= query.exec();
 
-                        query.addBindValue(2);
-                        query.addBindValue(VPrn::FirstPage);
+                        query.addBindValue(VPrn::FirstPageN3);
                         query.addBindValue(tr("Лицевая сторона 1-го листа.Экземпляр №3"));
                         query.addBindValue(1);
                         Ok &= query.exec();
 
-                        query.addBindValue(3);
-                        query.addBindValue(VPrn::FirstPage);
-
+                        query.addBindValue(VPrn::FirstPageN4);
                         query.addBindValue(tr("Лицевая сторона 1-го листа.Экземпляр №4"));
                         query.addBindValue(1);
                         Ok &= query.exec();
 
-                        query.addBindValue(4);
-                        query.addBindValue(VPrn::FirstPage);
-
+                        query.addBindValue(VPrn::FirstPageN5);
                         query.addBindValue(tr("Лицевая сторона 1-го листа.Экземпляр №5"));
                         query.addBindValue(1);
                         Ok &= query.exec();
 
-                        query.addBindValue(5);
                         query.addBindValue(VPrn::SecondPage);
-
                         query.addBindValue(tr("Лицевая сторона 2-го листа"));
                         query.addBindValue(1);
                         Ok &= query.exec();
 
-                        query.addBindValue(6);
                         query.addBindValue(VPrn::ThirdPage);
-
                         query.addBindValue(tr("Обратная сторона каждого листа"));
                         query.addBindValue(1);
                         Ok &= query.exec();
 
-                        query.addBindValue(7);
                         query.addBindValue(VPrn::FourthPage);
-
                         query.addBindValue(tr("Фонарик"));
                         query.addBindValue(1);
                         Ok &= query.exec();
@@ -986,11 +1015,10 @@ bool Tmpl_sql_plugin::fillModels()
         /// @todo МОДЕЛЬ переделать на чтение запись
         /// Заполним модель (только для чтения) ЭЛЕМЕНТЫ_СТРАНИЦЫ
         elemInPageModel->setQuery("SELECT elem.id,e_text,e_tag,pos_x,pos_y,color,font,"
-                                  "angle,border,img_data,always_view,page_detail.p_type "
+                                  "angle,border,img_data,always_view,page_detail.p_number "
                                   "img FROM elem "
                                   "INNER JOIN page_detail ON page_detail_id = page_detail.id "
-                                  "WHERE page_detail.p_visible = 1 "
-                                  "ORDER BY page_detail.p_type"
+                                  "WHERE page_detail.p_visible = 1 "                                 
                                   ,DB_);
         elemInPageModel->setHeaderData(VPrn::elem_id,
                                        Qt::Horizontal, tr("Id"));
@@ -1014,7 +1042,7 @@ bool Tmpl_sql_plugin::fillModels()
                                        Qt::Horizontal, tr("Изображение"));
         elemInPageModel->setHeaderData(VPrn::elem_always_view,
                                        Qt::Horizontal, tr("Всегда видим (1/0)"));
-        elemInPageModel->setHeaderData(VPrn::elem_p_type,
+        elemInPageModel->setHeaderData(VPrn::elem_p_number,
                                        Qt::Horizontal, tr("Страница шаблона"));
         elemInPageModel->setHeaderData(VPrn::elem_text_img,
                                        Qt::Horizontal, tr("Тип элемента текст/картинка (1/0)"));
