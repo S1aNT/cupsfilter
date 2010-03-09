@@ -249,8 +249,15 @@ void Tmpl_sql_plugin::convert2Pdf()
                          }else{
                              pdfprinter.setOrientation(QPrinter::Landscape);
                          }
-                         pdfprinter.setOutputFormat(QPrinter::PdfFormat);
+                         /// Если последний режим был показа тегов, то переключим на показ значений
+                         if (scene->getViewMode()){
+                            scene->setViewMode();
+                         }
 
+                         pdfprinter.setOutputFormat(QPrinter::PdfFormat);
+                         pdfprinter.setOutputFileName(fileName);
+                         QPainter painter(&pdfprinter);
+                         scene->render(&painter);
                      }else{
                          Ok &=false;
                          emit error(VPrn::InternalPluginError,
@@ -264,6 +271,9 @@ void Tmpl_sql_plugin::convert2Pdf()
                         tr("Ошибка преобразования шаблона в pdf.\n"
                            "Необходимо вначале открыть существующий или создать новый шаблон"));
          }
+    }
+    if (Ok){
+        emit allPagesConverted();
     }
 }
 
@@ -486,14 +496,14 @@ void Tmpl_sql_plugin::fillScenes4Data()
             qreal pos_y = elemInPageModel->data(elemInPageModel->index(i,VPrn::elem_pos_y)).toDouble();
             QPointF ps(pos_x,pos_y);
             if (e_type == 0){
-                QString text = elemInPageModel->data(elemInPageModel->index(i,VPrn::elem_text)).toString();
-                QString tag  = elemInPageModel->data(elemInPageModel->index(i,VPrn::elem_tag)).toString();
+                QString text     = elemInPageModel->data(elemInPageModel->index(i,VPrn::elem_text)).toString();
+                QString tag      = elemInPageModel->data(elemInPageModel->index(i,VPrn::elem_tag)).toString();
                 QVariant variant = elemInPageModel->data(elemInPageModel->index(i,VPrn::elem_color));
-                QColor color = variant.value<QColor>();
-                variant = elemInPageModel->data(elemInPageModel->index(i,VPrn::elem_font));
-                QFont font = variant.value<QFont>();
-
-                scene->addBaseElem(tag,text,ps,font,color);
+                QColor color     = variant.value<QColor>();
+                variant          = elemInPageModel->data(elemInPageModel->index(i,VPrn::elem_font));
+                QFont font       = variant.value<QFont>();
+                qreal angle      = elemInPageModel->data(elemInPageModel->index(i,VPrn::elem_angle)).toDouble();
+                scene->addBaseElem(tag,text,ps,font,color,angle);
 
             }else{
                 //Читаем картинку из базы
