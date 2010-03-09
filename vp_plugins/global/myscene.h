@@ -33,10 +33,12 @@ public:
     QGraphicsItem * getPaperItem();
 
     QUndoStack *undoStack() const;
-    int getNumber(){return m_Number;};
-    void  setAngle(qreal Angle) {m_angle = Angle;};
-    qreal getAngle(){return m_angle;};
 
+    void  setAngle(qreal Angle) {m_angle = Angle;};
+    void  setViewMode();
+    qreal getAngle(){return m_angle;};
+    int   getNumber(){return m_Number;};
+    bool  getViewMode(){return m_mode;};
 protected:
 
     void  mouseReleaseEvent( QGraphicsSceneMouseEvent* );      // receive mouse release events
@@ -63,6 +65,10 @@ public slots:
                      const QColor  &col = Qt::black);
 
 private:
+    /**
+      * @var bool m_mode Режим показа элементов Тэг/Значение
+      */
+    bool m_mode;
     qreal m_angle;
     typedef QPair<myTextItem*,QPointF>     ItemPos;
     QList<ItemPos>   m_TextItems;        // currently selected textitem & start positions
@@ -73,8 +79,8 @@ private:
     QAction *changeFontAction;
     QAction *changeColorAction;
     QAction *rotateRightAction;
-    QAction *rotateLeftAction;
-    QAction *setTextAction;
+    QAction *rotateLeftAction;    
+    QAction *setTagAction;
     QAction *delElemAction;
 };
 

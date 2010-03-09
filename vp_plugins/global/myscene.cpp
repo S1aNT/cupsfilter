@@ -18,7 +18,9 @@ using namespace VPrn;
 
 myScene::myScene(int Number, QUndoStack* undoStack, QObject *parent )
     : QGraphicsScene(parent)
+    , m_mode (true)
     , m_Number(-1)
+
 {
     // initialise variables
     m_undoStack     = undoStack;
@@ -90,13 +92,20 @@ void myScene::addBaseElem(const QString &tag,const QString &text,const QPointF &
     pItem->setPos(ps);
     pItem->setFont(fnt);
     pItem->setDefaultTextColor(col);
+
+    pItem->setETag(tag);
     if (text.isEmpty()){
+        pItem->setEText(tag);
+    }else{
+        pItem->setEText(text);
+    }
+    if (m_mode){
         pItem->setPlainText(tag);
     }else{
         pItem->setPlainText(text);
     }
 
-    pItem->setTag(tag);
+
     pItem->setZValue(100);
     pItem->setFlag(QGraphicsItem::ItemIsMovable, true);
     pItem->setFlag(QGraphicsItem::ItemIsSelectable, true);
@@ -149,8 +158,8 @@ void  myScene::contextMenuEvent( QGraphicsSceneContextMenuEvent* event )
     }else{
         qreal angle;
         QMenu menu;
-        setTextAction   = menu.addAction(QIcon(":/edit.png"),
-                                      QObject::trUtf8("Изменить значение"));
+        setTagAction   = menu.addAction(QIcon(":/edit.png"),
+                                      QObject::trUtf8("Изменить значение тега"));
         changeFontAction  = menu.addAction(QIcon(":/fontDialog.png"),
                                            QObject::trUtf8("Изменить шрифт"));
         changeColorAction = menu.addAction(QIcon(":/colorDialog.png"),
@@ -166,13 +175,14 @@ void  myScene::contextMenuEvent( QGraphicsSceneContextMenuEvent* event )
         delElemAction = menu.addAction(QObject::trUtf8("Удалить элемент"));
 
         QAction * act = menu.exec(event->screenPos());
-        if (act ==setTextAction){
+        if (act ==setTagAction){
             QString tag = QInputDialog::getText(event->widget(),
-                                                 tr("Введите новый текст"),
-                                                 tr("Новое значение элемента:"),
-                                                 QLineEdit::Normal, textItem->getTag());
+                                                 tr("Введите текст"),
+                                                 tr("Новый тэг элемента:"),
+                                                 QLineEdit::Normal, textItem->getETag());
             if (!tag.isEmpty()){
                 m_undoStack->push( new CommandTextItemChangeTag( this, textItem,tag ) );
+                textItem->setEText(tr("Новый..."));
             }
         }
         if (act == delElemAction){
@@ -208,7 +218,19 @@ void  myScene::contextMenuEvent( QGraphicsSceneContextMenuEvent* event )
     }
 }
 
+ void  myScene::setViewMode()
+ {
+     m_mode = (m_mode == true ) ? m_mode = false : m_mode = true;
 
+     ///Пройдем по каждому элементу сцены и изменим отображаемый элемент
+     QList<QGraphicsItem *> mTxtItem;
+     mTxtItem = this->items();
+     foreach (QGraphicsItem *item, mTxtItem){
+       if ( dynamic_cast<myTextItem*>( item ) ){
+           dynamic_cast<myTextItem*>( item )->setMode(m_mode);
+       }
+     }
+ }
 
 
 
