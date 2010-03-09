@@ -22,10 +22,10 @@ public:
         oldDirect    = m_TextItem->getAngle();
         newDirect    = direct;
         if ( direct  == 89.0 ){
-            setText( QString("Элемента %1 повернут вправо")
+            setText( QObject::tr("Элемента %1 повернут вправо")
                      .arg( m_TextItem->getETag() ) );
         }else{
-            setText( QString("Элемента %1 повернут вплево")
+            setText( QObject::tr("Элемента %1 повернут влево")
                      .arg( m_TextItem->getETag() ) );
         }
 
@@ -52,7 +52,7 @@ public:
         m_scene    = scene;
         oldTag     = m_TextItem->getETag();
         newTag     = mTag;
-        setText( QString("Элемент %1 изменен на %2")
+        setText( QObject::tr("Элемент %1 изменен на %2")
                  .arg(oldTag,newTag) );
     }
 
@@ -76,7 +76,7 @@ public:
         m_scene    = scene;
         oldColor    = m_TextItem->defaultTextColor();
         newColor    = clr;
-        setText( QString("У элемента %1 изменен цвет на %2")
+        setText( QObject::tr("У элемента %1 изменен цвет на %2")
                  .arg(m_TextItem->getETag(),clr.name()) );
     }
 
@@ -100,7 +100,7 @@ public:
         m_scene    = scene;
         oldFont    = m_TextItem->font();
         newFont    = fnt;
-        setText( QString("У элемента %1 изменен шрифт на %2")
+        setText( QObject::tr("У элемента %1 изменен шрифт на %2")
                  .arg(m_TextItem->getETag(),fnt.family()) );
     }
 
@@ -122,7 +122,7 @@ public:
     {
         m_TextItem = TextItem;
         m_scene    = scene;
-        setText( QString("Элемент %1 создан").arg(m_TextItem->getETag()) );
+        setText( QObject::tr("Элемент %1 создан").arg(m_TextItem->getETag()) );
     }
 
     ~CommandTextItemAdd()
@@ -147,7 +147,7 @@ public:
     {
         m_scene   = scene;
         m_TextItem =  TextItem;
-        setText( QString("Элемент %1 удален").arg(m_TextItem->getETag()) );
+        setText( QObject::tr("Элемент %1 удален").arg(m_TextItem->getETag()) );
     }
 
     virtual void undo()    { m_scene->addItem(  m_TextItem ); }
@@ -167,7 +167,7 @@ public:
         m_TextItem =  TextItem;
         m_from    = QPointF( fromX, fromY );
         m_to      = QPointF( toX, toY );
-        setText( QString("Элемент %5 перемещен %1,%2 -> %3,%4")
+        setText( QObject::tr("Элемент %5 перемещен %1,%2 -> %3,%4")
                  .arg(fromX).arg(fromY).arg(toX).arg(toY).arg(m_TextItem->getETag()) );
     }
 
