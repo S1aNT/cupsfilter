@@ -39,15 +39,18 @@ public:
     virtual EditPagesModel         * getPagesModel() const = 0;
     virtual QUndoGroup             * getUndoGrp()    const = 0;
     virtual QMap <int,myScene *>     getScenesGroup()      = 0;
+    virtual QMap <int,QString >      getFilesGroup()       = 0;
 
     virtual void saveTemplatesAs(const QString & fileName) = 0;
-    virtual void saveTemplates() = 0 ;
-    virtual bool isDBOpened() = 0;
-    virtual bool isDBConnected() =0 ;
+    virtual void saveTemplates () = 0 ;
+    virtual bool isDBOpened    () = 0;
+    virtual bool isDBConnected () =0 ;
     
     virtual void doAddBaseElementToPage(int page,const QString &text) = 0;
+    virtual void convert2Pdf() = 0;
     virtual void setUserName (const QString &user) = 0;
-    virtual void setTagValue(const QHash<QString, QString> &tagValue) = 0;	
+    virtual void setTagValue (const QHash<QString, QString> &tagValue) = 0;
+    virtual void setViewMode () =0 ;
 
 };
 
