@@ -169,7 +169,9 @@ void MainWindow::loadPlugins()
                 connect(saveAct, SIGNAL(triggered()),
                         plugin,  SLOT(saveTemplates())
                         );
-
+                connect(printAct, SIGNAL(triggered()),
+                        plugin, SLOT(convert2Pdf())
+                       );
                 tmpl_plugin->init(spoolDir,sid);
                 // Получим названия стандартных кнопок для шаблона
                 elemList = tmpl_plugin->getBaseElemNameList();
@@ -204,8 +206,7 @@ void MainWindow::loadPlugins()
                         scene = i.value();
                         vPage = m_View.value(page);
                         vPage->gr_view()->setScene(scene);
-                        vPage->setUndoStack(i.value()->undoStack());
-                        vPage->setAngle(i.value()->getAngle());
+                        vPage->setUndoStack(i.value()->undoStack());                        
                     }else{
                         emit error(tr("Ошибочное число страниц [%1] в шаблоне").arg(i.key(),0,10)
                                    ,true);
@@ -392,58 +393,7 @@ void MainWindow::toggleAntialiasing()
         }
     }
 }
-/*
-void MainWindow::do_angle_direct()
-{
-    /// @todo  привести к новому виду
-    View *vPage  = (View *)tabWidget->currentWidget();
 
-
-    if (QAction *action = qobject_cast<QAction*>(sender())) {
-        QVariant v = action->data();
-        if (v.canConvert<QString>()) {
-            QString who_click = qvariant_cast<QString>(v);
-            if (curPageOrient && who_click =="Land"){
-                flipPage(true);
-            }
-            if (!curPageOrient && who_click =="Port"){
-                flipPage(false);
-            }
-        }
-    }
-
-}
-
-
-void MainWindow::flipPage(bool angle_direct)
-{
-    /// @todo  Изменить на выбор сцены из группы
-    /// Работаем со всеми сценами одновременно
-    View * vPage;
-    QGraphicsScene *scene;
-    QMapIterator<int, myScene *>  i(m_Scenes);
-    while (i.hasNext()) {
-        i.next();
-
-        if (i.key() < tabWidget->count()){
-
-            scene = i.value();
-            vPage  = (View *)tabWidget->widget(i.key());
-            if (angle_direct){
-                vPage->setAngle(-90);
-                i.value()->setAngle(-90);
-            }else{
-                vPage->setAngle(90);
-                i.value()->setAngle(90);
-            }
-
-        }else{
-            emit error(tr("Ошибочное число страниц [%1] в шаблоне").arg(i.key(),0,10)
-                       ,true);
-        }
-    }
-}
-*/
 //******************************************************************************
 void createView(const QString &title, QAbstractItemModel * model )
 {
@@ -485,6 +435,8 @@ void MainWindow::loadFromFile(const QString &file_name)
                         p_number  = pagesModel->data(pagesModel->index(i,VPrn::PD_p_number)).toInt();
                         /// Поиск View соответсвующего странице с номером
                         vPage = m_View.value( p_number );
+
+                        vPage->setAngle(m_Scenes.value(p_number)->getAngle());
                         if (vPage){
                             tabWidget->addTab( vPage, p_name );
                         }else{
@@ -552,8 +504,6 @@ void MainWindow::createActions()
 
     printAct = new QAction(QIcon(":/t_print.png"),
                            tr("Пробная печать шаблона"),this);
-    connect(printAct,SIGNAL(triggered()),
-            this,    SLOT(printTempl()) );
 
     newAct = new QAction(QIcon(":/t_new.png"),
                          tr("Создание шаблона ..."),this);
@@ -599,25 +549,7 @@ void MainWindow::createActions()
     aboutQtAct = new QAction(tr("О библиотеке Qt"), this);
     aboutQtAct->setStatusTip(tr("Краткие сведения об используемой библиотеке Qt"));
     connect(aboutQtAct, SIGNAL(triggered()), qApp, SLOT(aboutQt()));
-/*
-    portretAct = new QAction(QIcon(":/portret.png"),
-                             tr("Книжная ориентация страниц"),this);
-    portretAct->setStatusTip(tr("Выбор книжной ориентации страниц"));
-    portretAct->setData(QString("Port"));
-    connect(portretAct, SIGNAL(triggered()),
-            this,      SLOT(do_angle_direct()) );
 
-    landscapeAct = new QAction(QIcon(":/landscape.png"),
-                               tr("Альбомная ориентация страниц"),this);
-    landscapeAct->setStatusTip(tr("Выбор альбомной ориентации страниц"));
-    landscapeAct->setData(QString("Land"));
-    connect(landscapeAct,  SIGNAL(triggered()),
-            this,         SLOT(do_angle_direct()));
-
-    QActionGroup * orientGroup = new QActionGroup(this);
-    orientGroup->addAction(portretAct);
-    orientGroup->addAction(landscapeAct);
-    */
 }
 
 void MainWindow::createMenus()
@@ -636,8 +568,6 @@ void MainWindow::createMenus()
 
     toolsMenu = menuBar()->addMenu(tr("Утилиты"));
     toolsMenu->addAction(antialiasAct);
-    //toolsMenu->addAction(portretAct);
-    //toolsMenu->addAction(landscapeAct);
     toolsMenu->addAction(viewCodeAct);
 
     editMenu = menuBar()->addMenu(tr("Правка"));
@@ -658,8 +588,6 @@ void MainWindow::createToolBars()
     toolsToolBar = addToolBar(tr("Утилиты"));
     toolsToolBar->addAction(antialiasAct);
     toolsToolBar->addAction(showInfoAct);
-    //toolsToolBar->addAction(portretAct);
-    //toolsToolBar->addAction(landscapeAct);
     toolsToolBar->addAction(viewCodeAct);
 }
 
@@ -677,12 +605,14 @@ void MainWindow::createDockWindows()
     //FIX проблема зафиксировать размер кнопок
     dock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
     dock->setWidget(CmdButtonBox);
-    addDockWidget(Qt::RightDockWidgetArea, dock);
+    addDockWidget(Qt::LeftDockWidgetArea,  dock);
+
     viewMenu->addAction(dock->toggleViewAction());
 
     myUndoFrame  = new UndoFrame(this);
     myUndoFrame->setMinimumWidth(100);
-    addDockWidget(Qt::LeftDockWidgetArea, myUndoFrame);
+    addDockWidget(Qt::RightDockWidgetArea,myUndoFrame);
+
     viewMenu->addAction(myUndoFrame->toggleViewAction());
     connect(myUndoFrame, SIGNAL(undoLimitChange(int)),
             this,        SLOT  (updateUndoLimit(int)));
