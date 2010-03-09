@@ -94,6 +94,7 @@ void myScene::addBaseElem(const QString &tag,const QString &text,const QPointF &
     pItem->setDefaultTextColor(col);
 
     pItem->setETag(tag);
+
     if (text.isEmpty()){
         pItem->setEText(tag);
     }else{
@@ -183,6 +184,7 @@ void  myScene::contextMenuEvent( QGraphicsSceneContextMenuEvent* event )
             if (!tag.isEmpty()){
                 m_undoStack->push( new CommandTextItemChangeTag( this, textItem,tag ) );
                 textItem->setEText(tr("Новый..."));
+                textItem->setPlainText(tag);
             }
         }
         if (act == delElemAction){
