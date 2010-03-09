@@ -83,7 +83,7 @@ QGraphicsItem * myScene::getPaperItem()
 
 
 void myScene::addBaseElem(const QString &tag,const QString &text,const QPointF &ps,
-                          const QFont &fnt,const QColor &col)
+                          const QFont &fnt,const QColor &col,const qreal m_angle)
 {
 
 
@@ -115,6 +115,8 @@ void myScene::addBaseElem(const QString &tag,const QString &text,const QPointF &
     pItem->setData(ObjectName, "tElem");
     pItem->setParentItem( this->getPaperItem() );
     m_undoStack->push( new CommandTextItemAdd( this, pItem ) );
+
+    m_undoStack->push( new CommandTextItemRotate( this, pItem,m_angle ) );
 }
 
 void myScene::selectItems()

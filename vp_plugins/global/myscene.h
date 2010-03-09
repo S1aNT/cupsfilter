@@ -20,15 +20,15 @@ class myScene : public QGraphicsScene
 public:
     myScene(int Number,QUndoStack*, QObject *parent = 0 );
     /**
-      * @brief создает на сцене страницу с размерами
+      * @brief СЃРѕР·РґР°РµС‚ РЅР° СЃС†РµРЅРµ СЃС‚СЂР°РЅРёС†Сѓ СЃ СЂР°Р·РјРµСЂР°РјРё
       */
     void  createPage(qreal width,qreal height,qreal m_top,qreal m_bottom,
                      qreal m_right,qreal m_left);
 
     /**
       * @fn   QGraphicsItem * getPaperItem();
-      * @brief Ищет на зтекущей странице элемент имеющий тег Paper и возвращает
-      * указатель на него
+      * @brief РС‰РµС‚ РЅР° Р·С‚РµРєСѓС‰РµР№ СЃС‚СЂР°РЅРёС†Рµ СЌР»РµРјРµРЅС‚ РёРјРµСЋС‰РёР№ С‚РµРі Paper Рё РІРѕР·РІСЂР°С‰Р°РµС‚
+      * СѓРєР°Р·Р°С‚РµР»СЊ РЅР° РЅРµРіРѕ
       */
     QGraphicsItem * getPaperItem();
 
@@ -56,17 +56,18 @@ public slots:
       *                 const QFont   &fnt = QFont("Times", 14, QFont::Bold),
       *                 const QColor  &col = Qt::black);
       *
-      * @brief  Создает новый элемент TextItem и размещает его на текущей сцене
+      * @brief  РЎРѕР·РґР°РµС‚ РЅРѕРІС‹Р№ СЌР»РµРјРµРЅС‚ TextItem Рё СЂР°Р·РјРµС‰Р°РµС‚ РµРіРѕ РЅР° С‚РµРєСѓС‰РµР№ СЃС†РµРЅРµ
       */
 
     void addBaseElem(const QString &tag = QString("[XXX]"),const QString &text=QString(),
                      const QPointF &ps  = QPointF(100.0,100.0),
                      const QFont   &fnt = QFont("Times", 14, QFont::Bold),
-                     const QColor  &col = Qt::black);
+                     const QColor  &col = Qt::black,
+                     const qreal m_angle = 0);
 
 private:
     /**
-      * @var bool m_mode Режим показа элементов Тэг/Значение
+      * @var bool m_mode Р РµР¶РёРј РїРѕРєР°Р·Р° СЌР»РµРјРµРЅС‚РѕРІ РўСЌРі/Р—РЅР°С‡РµРЅРёРµ
       */
     bool m_mode;
     qreal m_angle;
@@ -74,8 +75,8 @@ private:
     QList<ItemPos>   m_TextItems;        // currently selected textitem & start positions
     QUndoStack*      m_undoStack;        // undo stack for undo & redo of commands
 
-    int m_Number;                        // При создании сцены она получает номер от 0 до 8
-    //Меню для элементов
+    int m_Number;                        // РџСЂРё СЃРѕР·РґР°РЅРёРё СЃС†РµРЅС‹ РѕРЅР° РїРѕР»СѓС‡Р°РµС‚ РЅРѕРјРµСЂ РѕС‚ 0 РґРѕ 8
+    //РњРµРЅСЋ РґР»СЏ СЌР»РµРјРµРЅС‚РѕРІ
     QAction *changeFontAction;
     QAction *changeColorAction;
     QAction *rotateRightAction;
