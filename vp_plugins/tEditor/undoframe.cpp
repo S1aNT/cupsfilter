@@ -42,8 +42,6 @@ UndoFrame::UndoFrame(QWidget *parent) :
     undoLimit->setObjectName(QString::fromUtf8("undoLimit"));
 
     hboxLayout->addWidget(undoLimit);
-
-
     vboxLayout->addLayout(hboxLayout);
 
     undoView = new QUndoView(dockWidgetContents);
@@ -54,9 +52,10 @@ UndoFrame::UndoFrame(QWidget *parent) :
 
     setWidget(dockWidgetContents);
     retranslateUi();
-connect (undoLimit, SIGNAL(valueChanged(int)),
-         this, SIGNAL(undoLimitChange(int))
-        );
+
+    connect (undoLimit, SIGNAL(valueChanged(int)),
+             this,      SIGNAL(undoLimitChange(int))
+             );
 }
 
 
