@@ -16,10 +16,12 @@
 #include <QtSql/QSqlDriver>
 #include <QtSql/QSqlQuery>
 #include <QtSql/QSqlError>
+#include <QtSql/QSqlRecord>
+#include <QtSql/QSqlTableModel>
 //#include <QtGui/QGraphicsItem>
 //#include <QtSql/QSqlRelation>
 //#include <QtSql/QSqlRelationalTableModel>
-//#include <QtSql/QSqlRecord>
+
 //#include <QtCore/QRegExp>
 
 using namespace VPrn;
