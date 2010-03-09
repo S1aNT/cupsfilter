@@ -430,13 +430,12 @@ void Tmpl_sql_plugin::saveTemplatesAs(const QString & fileName)
 
 void Tmpl_sql_plugin::doAddBaseElementToPage(int page,const QString &tag)
 {
-    QString e_msg;
-    //QString l_msg = QString(" [%1] ").arg(QString::fromAscii(Q_FUNC_INFO));
-    /// @todo в модель  ЭЛЕМЕНТЫ_СТРАНИЦЫ
-    //myScene *scene = selectScene(page);
     myScene *scene = scenesGrp.value(page);
     if (scene){
         scene->addBaseElem(tag);
+    }else{
+        emit error(VPrn::InternalPluginError,
+                   tr("Ошибка добавления элемента %1 в шаблон\n").arg(tag));
     }
 }
 
