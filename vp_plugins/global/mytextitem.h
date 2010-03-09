@@ -7,14 +7,20 @@
 class myTextItem : public QGraphicsTextItem
 {
 public:
-    QString getTag()  const {return tag;};
-    qreal   getAngle()const {return m_Angle;};
+    myTextItem (QGraphicsItem * parent = 0 );
+    QString getETag()   const {return m_tag;};
+    QString getEText()  const {return m_text;};
+    qreal   getAngle()  const {return m_Angle;};
 
-    void    setTag   (const QString &t);
+    void    setMode  (bool tagTextMode);
+    void    setETag  (const QString &t);
+    void    setEText (const QString &t);
     void    setAngle (qreal Angle);
 
 private:
-    QString tag;
+    QString m_tag;
+    QString m_text;
+    bool    v_mode; //Режим отображения Tag/Text
     qreal m_Angle;
 };
 
