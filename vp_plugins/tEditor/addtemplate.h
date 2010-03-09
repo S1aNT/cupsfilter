@@ -97,19 +97,17 @@ private:
       */
     int getIndexInPSizeModel(const QString pSizeHuman);
     /**
-      * @fn translatePSizeModelIndex2CBoxIndex(int modelIndex)
-      * @brief преобразует ID из таблицы page_size в Индекс ComboBox
-      * поиск соответветствия происходит в модели РАЗМЕР_ЛИСТА
+      * @fn translatePSizeID2CBoxIndex(int psize_id);
+      * @brief Получает в модели РАЗМЕР_ЛИСТА номер строки для ID
       */
-    int translatePSizeID2CBoxIndex(int psize_id);
+    int translatePSizeID2ModelRow(int psize_id);
+
     /**
       * @fn Получает данные из модели ИНФО_ШАБЛОНА и записывает их в поля ввода
-      * Мой аналог QDataWidgetMapper, который "работает" очень своеобразно
       */
     void getData4Models();
     /**
       * @fn Получает данные из полей ввода и записывает их в модель ИНФО_ШАБЛОНА
-      * Мой аналог QDataWidgetMapper, который "работает" очень своеобразно
       */
     void setData4Models();
 };

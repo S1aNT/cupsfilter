@@ -183,7 +183,7 @@ void AddTemplate::getData4Models()
                                 << "\nDateTime " << QDateTime::fromTime_t(cellData.toUInt())
                                 << "\nQString.toInt() " << cellData.toString().toInt(&cnv_ok,10);
                                 */
-                    int indx = translatePSizeID2CBoxIndex(cellData.toInt());
+                    int indx = translatePSizeID2ModelRow(cellData.toInt());
                     ui->pageSizeCBox->setCurrentIndex(indx);
                 }
                 break;
@@ -368,7 +368,6 @@ void AddTemplate::setData4Models()
 void AddTemplate::setCurrentPageSize(const QString &psize)
 {
     // Ищем ID по значению psize;
-    //currentPSizeId = getIndexInPSizeModel(psize);
     currentHumanPSize = psize;
 }
 
@@ -385,70 +384,36 @@ void AddTemplate::setLandscape()
 }
 
 //------------------------------------------------------------------------------
-int AddTemplate::translatePSizeID2CBoxIndex(int psize_id)
+int AddTemplate::translatePSizeID2ModelRow(int psize_id)
 {
-    /// Поиск в
-    int CBoxIndex = -1;
+    int currentId;
+    int modelRow = -1;
     {
-        QString column_psize = tr("Размер листа");
-        QString column_id = tr("Id");
-        QString header;
-        int find_id;
-        QString psize_hum;
-
         for(int i=0; i<pSizeModel->rowCount(); i++){
-            for (int j=0; j<pSizeModel->columnCount(); j++){
-                header = pSizeModel->headerData(j,Qt::Horizontal,
-                                                Qt::DisplayRole).toString();
-                QModelIndex index = pSizeModel->index(i,j);
-                QVariant cell = pSizeModel->data(index,Qt::DisplayRole);
-
-                if (header.compare(column_id,Qt::CaseInsensitive)==0){
-                    find_id = cell.toInt();
-                }
-                if (header.compare(column_psize,Qt::CaseInsensitive)==0){
-                    psize_hum = cell.toString();
-                }
-
-            }
-            if (find_id == psize_id){
-                ///Поиск в комбобоксе индекса соответствующего  строке psize_hum
-                CBoxIndex = i;
+            currentId = pSizeModel->data(pSizeModel->index(i,VPrn::pSize_id)).toInt();
+            if (currentId == psize_id){
+                modelRow = i;
+                break;
             }
         }
     }
-    return CBoxIndex;
+    return modelRow;
 }
 
 int AddTemplate::getIndexInPSizeModel(const QString pSizeHuman)
 {
-    QString header;
-    QString column_psize = tr("Размер листа");
-    QString column_id = tr("Id");
     QString psize_hum;
     int psize_id = -1;
-
-    if (!pSizeHuman.isEmpty()){
-
-        for(int i=0; i<pSizeModel->rowCount(); i++){
-            for (int j=0; j<pSizeModel->columnCount(); j++){
-                header = pSizeModel->headerData(j,Qt::Horizontal,
-                                                Qt::DisplayRole).toString();
-                QModelIndex index = pSizeModel->index(i,j);
-                QVariant cell = pSizeModel->data(index,Qt::DisplayRole);
-                if (header.compare(column_psize,Qt::CaseInsensitive)==0){
-                    psize_hum = cell.toString();
-                }else{
-                    if (header.compare(column_id,Qt::CaseInsensitive)==0){
-                        psize_id = cell.toInt();
-                    }
+    {
+        if (!pSizeHuman.isEmpty()){
+            for(int i=0; i<pSizeModel->rowCount(); i++){
+                psize_hum = pSizeModel->data(pSizeModel->index(i,VPrn::pSize_page)).toString();
+                if (psize_hum.compare(pSizeHuman,Qt::CaseInsensitive) == 0 ){
+                    psize_id   = pSizeModel->data(pSizeModel->index(i,VPrn::pSize_id)).toInt();
+                    break;
                 }
             }
-            if (!psize_hum.isEmpty() && psize_hum.compare(pSizeHuman)){
-                return psize_id;
-            }
         }
-
     }
     return psize_id;
 }
