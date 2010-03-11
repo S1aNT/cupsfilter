@@ -13,8 +13,8 @@
         <file>../safeFatPrinter/images/forward.png</file>
         <file>../safeFatPrinter/images/incoming.png</file>
         <file alias="t_info.png">../safeFatPrinter/images/info.png</file>
-        <file >../safeFatPrinter/images/log.png</file>
-        <file alias ="ok.png">../safeFatPrinter/images/ok.png</file>
+        <file>../safeFatPrinter/images/log.png</file>
+        <file alias="ok.png">../safeFatPrinter/images/ok.png</file>
         <file>../safeFatPrinter/images/outgoing.png</file>
         <file>../safeFatPrinter/images/play.png</file>
         <file alias="view_code">../safeFatPrinter/images/reload.png</file>
@@ -24,8 +24,8 @@
         <file>../safeFatPrinter/images/settings.png</file>
         <file>../safeFatPrinter/images/stop.png</file>
         <file alias="t_needsave.png">../safeFatPrinter/images/kontact_journal.png</file>
-        <file>../safeFatPrinter/images/edit_add.png</file>
-        <file>../safeFatPrinter/images/edit_remove.png</file>
+        <file alias="edit_add.png">../safeFatPrinter/images/edit_add.png</file>
+        <file alias="edit_remove.png">../safeFatPrinter/images/edit_remove.png</file>
         <file>../safeFatPrinter/images/handbook.png</file>
         <file>../safeFatPrinter/images/user-32.png</file>
         <file alias="zoomin.png">../safeFatPrinter/images/zoomin.png</file>
@@ -44,6 +44,5 @@
         <file alias="rotateRight.png">../safeFatPrinter/images/rotateright.png</file>
         <file alias="rotateLeft.png">../safeFatPrinter/images/rotateleft.png</file>
         <file alias="edit.png">../safeFatPrinter/images/edit.png</file>
-
     </qresource>
 </RCC>
