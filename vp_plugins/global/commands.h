@@ -22,10 +22,10 @@ public:
         oldDirect    = m_TextItem->getAngle();
         newDirect    = direct;
         if ( direct  == 89.0 ){
-            setText( QObject::tr("Элемента %1 повернут вправо")
+            setText( QObject::tr("Элемент %1 повернут вправо")
                      .arg( m_TextItem->getETag() ) );
         }else{
-            setText( QObject::tr("Элемента %1 повернут влево")
+            setText( QObject::tr("Элемент %1 повернут влево")
                      .arg( m_TextItem->getETag() ) );
         }
 
