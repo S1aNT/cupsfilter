@@ -1,27 +1,31 @@
 TEMPLATE = lib
 TARGET = auth_plugin
-DESTDIR = ../safeFatPrinter/plugins
+
 CONFIG += plugin\
-	precompile_header 
+          warn_on \
+	  precompile_header 
+
+DESTDIR = ../VPrn/plugin
+
+CONFIG(debug, debug|release) { 
+    message(Build Debug!)
+    RCC_DIR = ../build/$${TARGET}/debug/rcc
+    MOC_DIR = ../build/$${TARGET}/debug/moc
+    OBJECTS_DIR = ../build/$${TARGET}/debug/obj
+    mac|unix: TARGET = $$join(TARGET,,,_debug)
+    win32: TARGET = $$join(TARGET,,d)
+}
+else { 
+    message(Build Release!)
+    RCC_DIR = ../build/$${TARGET}/release/rcc
+    MOC_DIR = ../build/$${TARGET}/release/moc
+    OBJECTS_DIR = ../build/$${TARGET}/release/obj
+}
+
 INCLUDEPATH += ../interfaces \
     ../global
 
 LANGUAGE  = C++
-
-CONFIG(debug, debug|release) {
-    message(Build Debug!)
-    RCC_DIR = ../build/$${TARGET}/debug/rcc
-    MOC_DIR = ../build/$${TARGET}/debug/moc
-    OBJECTS_DIR = ../build/debug/obj
-
-    mac|unix: TARGET = $$join(TARGET,,,_debug)
-    win32: TARGET = $$join(TARGET,,d)
-} else {
-    message(Build Release!)
-    RCC_DIR = ../build/$${TARGET}/release/rcc
-    MOC_DIR = ../build/$${TARGET}/release/moc
-    OBJECTS_DIR = ../build/release/obj
-}
 
 # Use Precompiled headers (PCH)
 PRECOMPILED_HEADER  = ../global/pre_header.h
