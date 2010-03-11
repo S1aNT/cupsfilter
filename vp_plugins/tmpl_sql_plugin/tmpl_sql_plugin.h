@@ -24,12 +24,15 @@
 #include "myscene.h"
 #include "mytypes.h"
 
-#include <QObject>
-#include <QSqlDatabase>
+
+#include <QtGui/QUndoStack>
+#include <QtGui/QUndoGroup>
+
+#include <QtCore/QObject>
 #include <QtCore/QHash>
-#include <QUndoStack>
-#include <QUndoGroup>
-#include <QMap>
+#include <QtCore/QMap>
+
+#include <QtSql/QSqlDatabase>
 
 class QSqlQuery;
 class QSqlQueryModel;
@@ -75,6 +78,7 @@ public:
     QUndoGroup            * getUndoGrp() const   {return undoGrp;};
     QMap <int,myScene *>    getScenesGroup()     {return scenesGrp;}
     QMap <int,QString>      getFilesGroup()      {return filesGrp;}
+
     //-------------------------------------------------------------------
 
     /**
@@ -103,13 +107,13 @@ signals:
 
 public slots:
     /**
-      * @fn void setTagValue(const QHash <QString, QString> &tagValue);
+      * @fn void setTagValue(QPair<QString, QString> &tagValue);
       * @brief Предназначенна для записи в шаблон значений полей
-      * пробегает по всем элементам хеша и ищет соответсвитвие в списке
+      * пробегает по всем элементам QPair и ищет соответсвитвие в списке
       * элементов шаблона после чего делает update таблицы elem и обновление
       * элементов отображения
       */
-    void setTagValue(const QHash<QString, QString> &tagValue);
+    void setTagValue(QHash<QString, QString> &tagValue);
     /**
       * @fn Открытие шаблона
       * @brief работает так если драйвер БД загружен и установленно соединение,
@@ -166,6 +170,11 @@ private:
     QString spool_dir;
     QString current_sid;
 
+
+    /**
+      * @var QHash<QString, QString> m_tagValue;
+      */
+    QHash <QString, QString> m_tagValue;
 
     /**
       * @var QMap <int,QString> filesGrp;  список файлов pdf

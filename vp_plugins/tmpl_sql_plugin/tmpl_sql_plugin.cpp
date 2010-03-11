@@ -179,15 +179,14 @@ bool Tmpl_sql_plugin::openDataBase(const QString & t_fileName)
 
 //************************* Public slots *************************************
 
-void Tmpl_sql_plugin::setTagValue(const QHash <QString, QString> &tagValue)
+void Tmpl_sql_plugin::setTagValue(QHash<QString, QString> &tagValue)
 {
+/*
     QSqlQuery query(DB_);
     bool Ok = true;
     {
-        /**
-          * @brief Проверка что соединение с БД установленно
-          * (драйвер был загружен), БД Открыта
-          */
+        /// Проверка что соединение с БД установленно (драйвер был загружен), БД Открыта
+
         Ok &= isDBConnected() && isDBOpened();
 
         if (Ok){
@@ -217,6 +216,7 @@ void Tmpl_sql_plugin::setTagValue(const QHash <QString, QString> &tagValue)
                     tr("Ошибка [%1] при записи значений в БД шаблона")
                     .arg(query.lastError().text()));
     }
+    */
 }
 
 void Tmpl_sql_plugin::convert2Pdf()
