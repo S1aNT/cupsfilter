@@ -5,6 +5,7 @@
 
 namespace VPrn{
 
+#define MY_DEBUG 1
 #define POINT_TO_CM(cm) ((cm)/28.3465058)
 #define POINT_TO_MM(mm) ((mm)/2.83465058)     ////////  0.352777778
 #define POINT_TO_DM(dm) ((dm)/283.465058)
@@ -82,7 +83,8 @@ enum pluginsError {
 	DBOpeningError,
         SQLQueryError,
         SQLCommonError,
-        InternalPluginError
+        InternalPluginError,
+        AuthCommonError
 };
 
 
@@ -96,11 +98,27 @@ enum pluginsError {
      ThirdPage    = 5,
      FourthPage   = 7,
  };
-     
+
+  enum trayIcons {
+      InfoType,
+      WarnType,
+      CritType
+  };
+
+  enum trayStatus {
+      GateKeeperStarted,
+      UserAuthorized,
+      UserLogin,
+      DoPrintJob,
+      DoReportJob,
+      WarningState,
+      ErrorState
+  };
 }
 
 
-
+Q_DECLARE_METATYPE(VPrn::trayIcons);
+Q_DECLARE_METATYPE(VPrn::trayStatus);
 Q_DECLARE_METATYPE(VPrn::pSizeColumnOrder);
 Q_DECLARE_METATYPE(VPrn::tInfoColumnOrder);
 Q_DECLARE_METATYPE(VPrn::elemColumnOrder);
