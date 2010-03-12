@@ -9,8 +9,6 @@ public:
     virtual ~Auth_plugin() {}
     virtual void init (const QString &mandat_filename)=0;
     virtual void init ()=0;
-    virtual QString getUserName() = 0;
-    virtual QString getUserMandat() = 0;
 };
 
 
