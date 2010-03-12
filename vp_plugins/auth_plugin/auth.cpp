@@ -8,15 +8,9 @@
 #include <QRegExp>
 
 #include "auth.h"
-#include "tech_global.h"
 
-using namespace SafeVirtualPrinter;
+using namespace VPrn;
 
-
-Auth::Auth()
-{
-
-}
 
 void Auth::init (const QString &mandat_filename)
 {
@@ -57,12 +51,12 @@ void Auth::init (const QString &mandat_filename)
         if (!buf.isEmpty()){
             emit get_User_name_mandat(user_name,user_mandat);
         }else{
-            emit error(tr("Ошибка преобразования имени пользователя %1 в Latin1.")
+            emit error(VPrn::AuthCommonError,tr("Ошибка преобразования имени пользователя %1 в Latin1.")
                        .arg(user_name));
         }
 
     }else{
-        emit error(tr("Error: Файл мандата не найден!"));
+        emit error(VPrn::FileIOError,tr("Error: Файл мандата [%1] не найден!").arg(mandat_filename));
     }
 
 }
@@ -70,6 +64,7 @@ void Auth::init (const QString &mandat_filename)
 QString Auth::ask4System()
 {
     QString logon_user_name;
+
 #if defined(Q_OS_UNIX)
     logon_user_name = QString(getenv("USERNAME"));
 #elif defined(Q_OS_WIN)
@@ -79,7 +74,10 @@ QString Auth::ask4System()
     logon_user_name = log_settings.value("Logon User Name").toString();
 #endif
 
+#if defined(MY_DEBUG)
     logon_user_name ="usr1";
+#endif
+
     return logon_user_name;
 }
 
@@ -108,11 +106,9 @@ void  Auth::init ()
     if (!buf.isEmpty()){
         emit get_User_name_mandat(user_name,user_mandat);
     }else{
-        emit error(tr("Ошибка преобразования имени пользователя %1 в Latin1.")
+        emit error(VPrn::AuthCommonError,tr("Ошибка преобразования имени пользователя %1 в Latin1.")
                    .arg(user_name));
     }
-
-    emit get_User_name_mandat(user_name,user_mandat);
 }
 
 Q_EXPORT_PLUGIN2(auth, Auth);

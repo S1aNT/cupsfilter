@@ -5,8 +5,12 @@
 #include <windows.h>
 #include <stdio.h>
 #include "auth_plugin.h"
+#include "mytypes.h"
+
+using namespace VPrn;
 
 class QString;
+
 
 #define PLUGIN_API __declspec(dllimport)
 typedef PLUGIN_API LPWSTR (*DLLGETCURRENTUSER)(void);
@@ -20,15 +24,12 @@ class Auth : public QObject, Auth_plugin
     Q_INTERFACES(Auth_plugin)
 
 public:
-    Auth();
+    Auth(){};
     void init (const QString &mandat_filename);
     void init ();
-    QString getUserName(){return user_name;};
-    QString getUserMandat(){return user_mandat;};
 
 signals:
-    void error(QString error_message);
-    //void needShowAuthWindow(QString &userName);
+    void error(pluginsError errCode,QString error_message);
     void get_User_name_mandat(QString &userName,QString &userMandat);
 private:
     // Получить имя пользователя из реестра
