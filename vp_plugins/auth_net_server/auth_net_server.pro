@@ -4,7 +4,6 @@ TEMPLATE = app
 TARGET = auth_net_server
 CONFIG += warn_on \
     qt \
-    console \
     precompile_header
 DESTDIR = ../VPrn
 CONFIG(debug, debug|release) { 
