@@ -32,8 +32,6 @@ int main(int argc, char *argv[])
 
     QApplication::setQuitOnLastWindowClosed(false);
     Server server;
-    server.show();
-    server.setVisible(false);
-
+        server.show();
     return app.exec();
 }
