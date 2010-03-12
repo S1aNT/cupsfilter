@@ -5,7 +5,8 @@
         <file alias="print.png">../images/print_16.png</file>
         <file alias="shield.png">../images/shield_16.png</file>
         <file alias="stop.png">../images/stop_16.png</file>
-        <file alias="user.png">../images/user_16.png</file>
+        <file alias="user.png">../images/user_32.png</file>
         <file alias="warning.png">../images/warning_16.png</file>
+        <file alias="error.png">../images/error.png</file>
     </qresource>
 </RCC>
