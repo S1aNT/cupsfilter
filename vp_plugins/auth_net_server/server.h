@@ -32,6 +32,22 @@ class Server : public QDialog
 public:
     Server(QWidget *parent = 0);
     void setVisible(bool visible);
+    /**
+      * @fn bool isReady();
+      * @brief Возращает статус GateKeeper готов ли он к работе или нет
+      */
+    bool isReady(){return m_GateKeeperReady;};
+
+    /**
+      * @fn QString lastError();
+      * @brief Возвращает последнюю возникшую ошибку
+      */
+    QString lastError(){return m_lastError;};
+    /**
+      * @fn void showCriticalInfo(constQStrin & info)
+      * @brief  Отображает критическую ошибку и завершает работу программы
+      */
+    void showCriticalInfo(const QString & info);
 
 protected:
     void closeEvent(QCloseEvent *event);
@@ -64,23 +80,32 @@ private slots:
       */
     void setUserName(QString & login,QString &mandat);
 private:
-    void createIconGroupBox();
-    void createMessageGroupBox();
+
     void createActions();
     void createTrayIcon();
 
     /**
-      * @fn void loadPlugins()
+      * @fn void init();
+      * @brief Производит первоначальную загрузку приложения,
+      */
+    void init();
+
+    /**
+      * @fn bool loadPlugins()
       * @brief загрузка плагинов
       */
-    void loadPlugins();
+    bool loadPlugins();
 
     /**
       * @fn void setTrayStatus(trayStatus t_stat,const QString & t_msg);
       * @brief Устаналивает иконку и сообщение в зависимости от статуса
       */
-
     void setTrayStatus (trayStatus t_stat, const QString &t_msg);
+    /**
+      * @fn bool readConfig();
+      * @brief читаем ini файл
+      */
+    bool readConfig();
     /**
       * @var mainGear; Основной модуль программы
       * @var myNet_plugin; Указатель на сетевой плагин
@@ -88,6 +113,7 @@ private:
       * @var u_login; Текущий логин пользователя
       * @var u_mandat; Текущий мандат пользователя
       * @var currentStatus Текущее статусное сообщение
+      * @var m_GateKeeperReady; Шлюз готов к работе или нет
       */
     serverGears *myServerGears;
     Inet_plugin *myNet_plugin;
@@ -95,25 +121,45 @@ private:
     QString u_login;
     QString u_mandat;    
     QString currentStatus;
+    bool m_GateKeeperReady;
 
+    /**
+      * @brief --------- Блок переменных из ini файла ------------------------
+      * @var serverHostName; Сетевое имя демона или IP адрес
+      * @var serverPort;     Порт для связи c демоном
+      * @var localSrvName;   Имя локального сервера
+      * @var spoolDir;       Каталог для временных файлов
+      * @var ticket_fname;   Имя файла в котором храняться параметры авторизации UNIX only
+      * @var m_lastError; последнее сообщение об ошибке
+      *------------------------------------------------------------------------
+      */
+    QString serverHostName;
+    int serverPort;
+    QString localSrvName;
+    QString spoolDir;
+    QString ticket_fname;
+    QString m_lastError;
+
+
+    // Набор графических элементов
     QGroupBox *groupBox;
     QFormLayout *formLayout;
     QLabel *login_label;
-    QLineEdit *lineEdit;
+    QLineEdit *login_LE;
     QLabel *mandat_label;
-    QLineEdit *lineEdit_2;
+    QLineEdit *mandat_LE;
     QGroupBox *groupBox_2;
-    QPlainTextEdit *demonStatePlainTextEdit;
+    QLineEdit *demonState_LE;
     QPushButton *quitButton;
     QGridLayout *gridLayout;
 
+    // Действия
     QAction *minimizeAction;
     QAction *restoreAction;
     QAction *quitAction;
 
     QSystemTrayIcon *trayIcon;
     QMenu *trayIconMenu;
-
 };
 
 #endif
