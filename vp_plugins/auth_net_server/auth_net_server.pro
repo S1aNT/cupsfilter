@@ -29,12 +29,13 @@ DEPENDPATH += .
 INCLUDEPATH += ../interfaces \
     ../global
 HEADERS = server.h \
-          servergears.h     \
+    servergears.h \
     ../interfaces/auth_plugin.h \
-    ../interfaces/inet_plugin.h  \
-    ../global/mytypes.h
+    ../interfaces/inet_plugin.h \
+    ../global/mytypes.h \
+    ../global/message.h
 SOURCES = server.cpp \
     main.cpp \
-    servergears.cpp
+    servergears.cpp \
+    ../global/message.cpp
 RESOURCES = images.qrc
-FORMS += form.ui
