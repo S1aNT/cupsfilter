@@ -106,13 +106,13 @@ enum pluginsError {
   };
 
   enum trayStatus {
-      GateKeeperStarted,
-      UserAuthorized,
-      UserLogin,
-      DoPrintJob,
-      DoReportJob,
-      WarningState,
-      ErrorState
+      gk_Started,
+      gk_UserAuthorized,
+      gk_UserLogin,
+      gk_DoPrintJob,
+      gk_DoReportJob,
+      gk_WarningState,
+      gk_ErrorState
   };
 }
 
