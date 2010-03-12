@@ -124,4 +124,3 @@ void Server::sendFortune()
     connect(server, SIGNAL(newConnection()), this, SLOT(sendFortune()));
 
 */
-           mainGearmainGear

@@ -21,7 +21,7 @@
 
 Server::Server(QWidget *parent)
     : QDialog(parent)
-    , mainGear(0)
+    , myServerGears(0)
     , myNet_plugin(0)
     , myAuth_plugin(0)
 {
@@ -108,7 +108,7 @@ iconComboBox->addItem(QIcon(":/images/warning_16.png"), tr("Bad"));
     createTrayIcon();
     trayIcon->show();
     // Создаем основной объект
-    mainGears = myGears();
+    myServerGears = new serverGears();
     loadPlugins();
 }
 
@@ -198,7 +198,7 @@ void Server::errorInfo(pluginsError eCode,QString e_msg)
 }
 
 //------------------------------------------------------------------------------
-void Server::loadPlugin()
+void Server::loadPlugins()
 {
     QDir pluginsDir(qApp->applicationDirPath());
 

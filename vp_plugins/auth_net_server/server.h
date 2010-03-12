@@ -1,7 +1,7 @@
 #ifndef SERVER_H
 #define SERVER_H
 
-#include "mygears.h"
+#include "servergears.h"
 #include "auth_plugin.h"
 #include "inet_plugin.h"
 #include "mytypes.h"
@@ -56,17 +56,17 @@ private:
     void createTrayIcon();
 
     /**
-      * @fn void loadPlugin()
+      * @fn void loadPlugins()
       * @brief загрузка плагинов
       */
-    void loadPlugin();
+    void loadPlugins();
 
     /**
       * @var mainGear; Основной модуль программы
       * @var myNet_plugin; Указатель на сетевой плагин
       * @var myAuth_plugin; Указатель на плагин авторизаци (Нужен ли ?)
       */
-    myGears *mainGear;
+    serverGears *myServerGears;
     Inet_plugin *myNet_plugin;
     Auth_plugin *myAuth_plugin;
 
