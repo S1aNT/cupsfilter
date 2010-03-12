@@ -32,6 +32,6 @@ PRECOMPILED_HEADER  = ../global/pre_header.h
 HEADERS += ../global/pre_header.h \
 	auth.h \
     ../interfaces/auth_plugin.h \
-    ../global/tech_global.h 
+    ../global/mytypes.h 
 SOURCES = auth.cpp 
 
