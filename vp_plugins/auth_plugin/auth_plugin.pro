@@ -5,7 +5,7 @@ CONFIG += plugin\
           warn_on \
 	  precompile_header 
 
-DESTDIR = ../VPrn/plugin
+DESTDIR = ../VPrn/plugins
 
 CONFIG(debug, debug|release) { 
     message(Build Debug!)
