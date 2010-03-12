@@ -7,9 +7,10 @@
 
 #include "inet_plugin.h"
 
-#include "tech_global.h"
+#include "mytypes.h"
 
-using namespace SafeVirtualPrinter;
+using namespace VPrn;
+
 
 
 class net_plugin :public QObject, Inet_plugin
@@ -25,7 +26,7 @@ public:
 
 signals:
     void serverResponse(QString &line);
-    void error(QString error_message);
+    void error(pluginsError errCode,QString error_message);
 
 
 private:
