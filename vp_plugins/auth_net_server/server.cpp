@@ -11,6 +11,7 @@
 #include <QtGui/QHBoxLayout>
 #include <QtGui/QVBoxLayout>
 #include <QtGui/QGridLayout>
+#include <QtGui/QGroupBox>
 #include <QtGui/QLabel>
 
 #include <QtCore/QObject>
@@ -24,6 +25,8 @@ Server::Server(QWidget *parent)
     , myServerGears(0)
     , myNet_plugin(0)
     , myAuth_plugin(0)
+    , u_login(QString())
+    , u_mandat(QString())
 {
 
     /** @brief информационная форма
@@ -44,7 +47,7 @@ Server::Server(QWidget *parent)
     groupBox = new QGroupBox(this);
     groupBox->setObjectName(QString::fromUtf8("groupBox"));
     groupBox->setGeometry(QRect(9, 5, 261, 81));
-
+    groupBox->setTitle(tr("Параметры авторизации"));
     gridLayout = new QGridLayout(groupBox);
     gridLayout->setObjectName(QString::fromUtf8("gridLayout"));
 
@@ -76,40 +79,49 @@ Server::Server(QWidget *parent)
     groupBox_2 = new QGroupBox(this);
     groupBox_2->setObjectName(QString::fromUtf8("groupBox_2"));
     groupBox_2->setGeometry(QRect(10, 90, 261, 79));
+    groupBox_2->setTitle(tr("Состояние сервера печати"));
 
     demonStatePlainTextEdit = new QPlainTextEdit(groupBox_2);
     demonStatePlainTextEdit->setObjectName(QString::fromUtf8("plainTextEdit"));
     demonStatePlainTextEdit->setGeometry(QRect(10, 16, 241, 51));
     demonStatePlainTextEdit->setReadOnly(true);
 
-
     quitButton = new QPushButton(this);
     quitButton->setObjectName(QString::fromUtf8("pushButton"));
     quitButton->setGeometry(QRect(98, 178, 75, 23));
+    quitButton->setText(tr("Свернуть"));
 
     QObject::connect (quitButton,SIGNAL(clicked()),
                       this,SLOT(close()));
 
-    setWindowTitle(tr("Посредник"));
+    setWindowTitle(tr("GateKeeper"));
 
-    currentIcon = QIcon(":/shield.png");
-    currentStatus = QObject::tr("Посредник запущен");
-    /*
-iconComboBox->addItem(, tr("Bad"));
-iconComboBox->addItem(QIcon(":/images/monitor_16.png"), tr("Heart"));
-iconComboBox->addItem(QIcon(":/images/print_16.png"), tr("Trash"));
-iconComboBox->addItem(QIcon(":/images/key_16.png"), tr("Bad"));
-iconComboBox->addItem(QIcon(":/images/stop_16.png"), tr("Heart"));
-iconComboBox->addItem(QIcon(":/images/user_16.png"), tr("Trash"));
-iconComboBox->addItem(QIcon(":/images/warning_16.png"), tr("Bad"));
-
-  */
     createActions();
-    createTrayIcon();
-    trayIcon->show();
+    createTrayIcon();    
+    setTrayStatus(VPrn::GateKeeperStarted,tr("Успешно загружен"));
+
     // Создаем основной объект
     myServerGears = new serverGears();
     loadPlugins();
+}
+
+void Server::showTrayMessage(trayIcons msg_type,
+                             const QString & msg_title,
+                             const QString & msg_body)
+{
+    QSystemTrayIcon::MessageIcon icon;
+    switch (msg_type){
+    case InfoType:
+        icon = QSystemTrayIcon::Information;
+        break;
+    case WarnType:
+        icon = QSystemTrayIcon::Warning;
+        break;
+    case CritType:
+        icon = QSystemTrayIcon::Critical;
+        break;
+    }
+    trayIcon->showMessage(msg_title, msg_body, icon, 7 * 1000);
 }
 
 void Server::setVisible(bool visible)
@@ -153,11 +165,7 @@ void Server::createTrayIcon()
     trayIconMenu->addAction(quitAction);
 
     trayIcon = new QSystemTrayIcon(this);
-    trayIcon->setContextMenu(trayIconMenu);
-
-    trayIcon->setIcon(currentIcon);
-    setWindowIcon(currentIcon);
-    trayIcon->setToolTip(currentStatus);
+    trayIcon->setContextMenu(trayIconMenu);    
 }
 
 //************************** PRIVATE SLOTS *************************************
@@ -177,14 +185,6 @@ void Server::iconActivated(QSystemTrayIcon::ActivationReason reason)
     //    }
 }
 
-void Server::showMessage()
-{
-    //    QSystemTrayIcon::MessageIcon icon = QSystemTrayIcon::MessageIcon(
-    //            typeComboBox->itemData(typeComboBox->currentIndex()).toInt());
-    //    trayIcon->showMessage(titleEdit->text(), bodyEdit->toPlainText(), icon,
-    //                          durationSpinBox->value() * 1000);
-}
-
 void Server::messageClicked()
 {
     QMessageBox::information(0, tr("Systray"),
@@ -195,6 +195,68 @@ void Server::messageClicked()
 void Server::errorInfo(pluginsError eCode,QString e_msg)
 {
 
+}
+
+void Server::setUserName(QString & login,QString &mandat)
+{
+    u_login = login;
+    u_mandat = mandat;
+    trayStatus my_TrayStatus;
+    QString t_msg;
+    if (u_login.isEmpty()){
+        my_TrayStatus = VPrn::ErrorState;
+        t_msg = tr("Ошибка авторизации пользователя.Не удалось получить логин!");
+    }else{
+        if (u_mandat.isEmpty()){
+            my_TrayStatus = VPrn::UserLogin;
+            t_msg = tr("Пользователь зарегистрирован в ОС");
+        }else{
+            my_TrayStatus = VPrn::UserAuthorized;
+            t_msg = tr("Пользователь зарегистрирован в СУРД.");
+        }
+    }
+    setTrayStatus(my_TrayStatus,t_msg);
+}
+
+void Server::setTrayStatus (trayStatus t_stat, const QString &t_msg)
+{
+    trayIcons m_type = VPrn::InfoType;
+    currentStatus = t_msg;
+    QIcon currentIcon;
+
+    switch (t_stat){
+    case GateKeeperStarted:
+        currentIcon = QIcon(":/shield.png");        
+        break;
+    case UserAuthorized:
+        currentIcon = QIcon(":/key.png");
+        break;
+    case UserLogin:
+        currentIcon = QIcon(":/user.png");
+        break;
+    case DoPrintJob:
+        currentIcon = QIcon(":/print.png");
+        break;
+    case DoReportJob:
+        currentIcon = QIcon(":/monitor.png");
+        break;
+    case WarningState:
+        currentIcon = QIcon(":/warning.png");
+        m_type = VPrn::WarnType;
+        break;
+    case ErrorState:
+        currentIcon = QIcon(":/stop.png");
+        m_type = VPrn::CritType;
+        break;
+    }
+    trayIcon->setIcon(currentIcon);
+    trayIcon->setToolTip(currentStatus);
+    setWindowIcon(currentIcon);
+
+    if (!trayIcon->isVisible()){
+        trayIcon->show();
+    }
+    showTrayMessage(m_type,tr("GateKeeper"),t_msg);
 }
 
 //------------------------------------------------------------------------------
@@ -229,9 +291,9 @@ void Server::loadPlugins()
             if (auth_plugin_Interface){
                 myAuth_plugin = auth_plugin_Interface;
 
-                //                connect(plugin, SIGNAL(get_User_name_mandat(QString &,QString &)),
-                //                        this,   SLOT(saveUserName(QString&)) // Мне нужно только имя
-                //                        );                
+                connect(plugin, SIGNAL(get_User_name_mandat(QString &,QString &)),
+                        this,   SLOT(setUserName(QString&,QString&))
+                        );
 #if defined(Q_OS_UNIX)
                 myAuth_plugin->init(ticket_name);
 #elif defined(Q_OS_WIN)

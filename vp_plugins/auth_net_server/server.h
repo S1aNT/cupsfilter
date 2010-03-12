@@ -43,12 +43,26 @@ public slots:
       * @param b_msg Само сообщение
       */
     //void showBaloonMessage(int m_Type,const QString &b_msg);
+    /**
+      * @fn void showTrayMessage(trayIcons msg_type,
+      *                          const QString & msg_title,
+      *                          const QString & msg_body);
+      * @brief Отображает в трее сообщение заданного типа
+      */
+    void showTrayMessage(trayIcons msg_type,
+                         const QString & msg_title,
+                         const QString & msg_body);
 private slots:
 
     void iconActivated(QSystemTrayIcon::ActivationReason reason);
-    void showMessage();
+
     void messageClicked();
     void errorInfo(pluginsError eCode,QString e_msg);
+    /**
+      * @fn void setUserName(const QString & login,const QString &mandat);
+      * @brief Заполнение параметров аторизации пользователя
+      */
+    void setUserName(QString & login,QString &mandat);
 private:
     void createIconGroupBox();
     void createMessageGroupBox();
@@ -62,14 +76,25 @@ private:
     void loadPlugins();
 
     /**
+      * @fn void setTrayStatus(trayStatus t_stat,const QString & t_msg);
+      * @brief Устаналивает иконку и сообщение в зависимости от статуса
+      */
+
+    void setTrayStatus (trayStatus t_stat, const QString &t_msg);
+    /**
       * @var mainGear; Основной модуль программы
       * @var myNet_plugin; Указатель на сетевой плагин
       * @var myAuth_plugin; Указатель на плагин авторизаци (Нужен ли ?)
+      * @var u_login; Текущий логин пользователя
+      * @var u_mandat; Текущий мандат пользователя
+      * @var currentStatus Текущее статусное сообщение
       */
     serverGears *myServerGears;
     Inet_plugin *myNet_plugin;
     Auth_plugin *myAuth_plugin;
-
+    QString u_login;
+    QString u_mandat;    
+    QString currentStatus;
 
     QGroupBox *groupBox;
     QFormLayout *formLayout;
@@ -82,15 +107,13 @@ private:
     QPushButton *quitButton;
     QGridLayout *gridLayout;
 
-
     QAction *minimizeAction;
     QAction *restoreAction;
     QAction *quitAction;
 
     QSystemTrayIcon *trayIcon;
     QMenu *trayIconMenu;
-    QIcon currentIcon;
-    QString currentStatus;
+
 };
 
 #endif
