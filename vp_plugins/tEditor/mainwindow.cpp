@@ -646,7 +646,7 @@ void MainWindow::readGlobal(const QString &app_dir)
         settings.endGroup();
 #if defined(Q_OS_UNIX)
         settings.beginGroup("USED_DIR_FILE");
-        spoolDIR = settings.value("spool_dir").toString();
+        spoolDir = settings.value("spool_dir").toString();
         ticket_fname=settings.value("session_ticket").toString();
         settings.endGroup();
 
