@@ -79,6 +79,11 @@ private slots:
       * @brief Заполнение параметров аторизации пользователя
       */
     void setUserName(QString & login,QString &mandat);
+    /**
+      * @fn void runTEditor()
+      * @brief Запуск редактора шаблонов как отдельного приложения
+      */
+    void runTEditor();
 private:
 
     void createActions();
@@ -131,6 +136,7 @@ private:
       * @var spoolDir;       Каталог для временных файлов
       * @var ticket_fname;   Имя файла в котором храняться параметры авторизации UNIX only
       * @var m_lastError; последнее сообщение об ошибке
+      * @var tEditor_bin полный путь к файлу редактора шаблонов
       *------------------------------------------------------------------------
       */
     QString serverHostName;
@@ -139,7 +145,7 @@ private:
     QString spoolDir;
     QString ticket_fname;
     QString m_lastError;
-
+    QString tEditor_bin;
 
     // Набор графических элементов
     QGroupBox *groupBox;
@@ -157,6 +163,7 @@ private:
     QAction *minimizeAction;
     QAction *restoreAction;
     QAction *quitAction;
+    QAction *runEditorAction;
 
     QSystemTrayIcon *trayIcon;
     QMenu *trayIconMenu;

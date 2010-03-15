@@ -103,20 +103,25 @@ void Server::init()
     {
         Ok &= readConfig();
         if ( Ok ){
-            m_GateKeeperReady = Ok;
-            setTrayStatus(VPrn::gk_Started,tr("Успешно загружен"));
             Ok &= loadPlugins();
-            if (Ok){
+            if (Ok && !localSrvName.isEmpty()){
                 // Создаем основной объект
                 myServerGears = new serverGears(this,localSrvName);
+                if ( myServerGears->isError()){
+                    Ok &= false;
+                    setTrayStatus(VPrn::gk_ErrorState,myServerGears->lastError());
+                }else{
+                   setTrayStatus(VPrn::gk_Started,tr("Готов работать!"));
+                }
             }else{
                 setTrayStatus(VPrn::gk_ErrorState,tr("Ошибка при загрузке плагинов"));
             }
         }else{
-            demonState_LE->setText(tr("Ошибка конфигурации"));
+            //demonState_LE->setText(tr("Ошибка конфигурации"));
             setTrayStatus(VPrn::gk_ErrorState,tr("Ошибка при чтении файла конфигурации"));
         }
     }
+    m_GateKeeperReady = Ok;
 }
 
 void Server::showTrayMessage(trayIcons msg_type,
@@ -147,14 +152,14 @@ void Server::setVisible(bool visible)
 
 void Server::closeEvent(QCloseEvent *event)
 {
-        if (trayIcon->isVisible()) {
-            QMessageBox::information(this, tr("GateKeeper"),
-                                     tr("Данная программа будет продолжать работу в системном трее.\n"
-                                        "Для завершения работы, выберите Выход "
-                                        "в контекстном меню программы. "));
-            hide();
-            event->ignore();
-        }
+    if (trayIcon->isVisible()) {
+        QMessageBox::information(this, tr("GateKeeper"),
+                                 tr("Данная программа будет продолжать работу в системном трее.\n"
+                                    "Для завершения работы, выберите Выход "
+                                    "в контекстном меню программы. "));
+        hide();
+        event->ignore();
+    }
 
 }
 
@@ -168,6 +173,9 @@ void Server::createActions()
 
     quitAction = new QAction(tr("Выход"), this);
     connect(quitAction, SIGNAL(triggered()), qApp, SLOT(quit()));
+
+    runEditorAction  = new QAction(tr("Запуск редактора"), this);
+    connect(runEditorAction, SIGNAL(triggered()), this, SLOT(runTEditor()));
 }
 
 void Server::createTrayIcon()
@@ -175,6 +183,8 @@ void Server::createTrayIcon()
     trayIconMenu = new QMenu(this);
     trayIconMenu->addAction(minimizeAction);
     trayIconMenu->addAction(restoreAction);
+    trayIconMenu->addSeparator();
+    trayIconMenu->addAction(runEditorAction);
     trayIconMenu->addSeparator();
     trayIconMenu->addAction(quitAction);
 
@@ -220,23 +230,23 @@ void Server::setUserName(QString & login,QString &mandat)
     u_login = login;
     u_mandat = mandat;
     trayStatus my_TrayStatus;
-    QString t_msg;
+    QString info_msg;
     if (u_login.isEmpty()){
         my_TrayStatus = VPrn::gk_ErrorState;
-        t_msg = tr("Ошибка авторизации пользователя.Не удалось получить логин!");
+        info_msg = tr("Ошибка авторизации пользователя.Не удалось получить логин!");
     }else{
         login_LE->setText(login);
 
         if (u_mandat.isEmpty()){
             my_TrayStatus = VPrn::gk_UserLogin;
-            t_msg = tr("Пользователь зарегистрирован в ОС");
+            info_msg = tr("Пользователь зарегистрирован в ОС");
         }else{
             my_TrayStatus = VPrn::gk_UserAuthorized;
-            t_msg = tr("Пользователь зарегистрирован в СУРД.");
+            info_msg = tr("Пользователь зарегистрирован в СУРД.");
             mandat_LE->setText(mandat);
         }
     }
-    setTrayStatus(my_TrayStatus,t_msg);
+    setTrayStatus(my_TrayStatus,info_msg);
 
 }
 
@@ -269,6 +279,7 @@ void Server::setTrayStatus (trayStatus t_stat, const QString &t_msg)
     case gk_ErrorState:
         currentIcon = QIcon(":/error.png");
         m_type = VPrn::CritType;
+        m_GateKeeperReady = false;
         break;
     }
     trayIcon->setIcon(currentIcon);
@@ -279,6 +290,15 @@ void Server::setTrayStatus (trayStatus t_stat, const QString &t_msg)
         trayIcon->show();
     }
     showTrayMessage(m_type,tr("GateKeeper"),t_msg);
+    demonState_LE->setText(t_msg);
+}
+
+void Server::runTEditor()
+{
+    if (tEditor_bin.isEmpty()){
+        setTrayStatus(VPrn::gk_ErrorState,tr("Ошибка в файле параметров.\nПуть к редактору шаблонов не задан"));
+    }else{
+    }
 }
 
 //------------------------------------------------------------------------------
@@ -376,13 +396,14 @@ bool Server::readConfig()
             settings.endGroup();
 #if defined(Q_OS_UNIX)
             settings.beginGroup("USED_DIR_FILE");
-            spoolDir = settings.value("spool_dir").toString();
-            ticket_fname=settings.value("session_ticket").toString();
+            spoolDir     = settings.value("spool_dir").toString();
+            ticket_fname = settings.value("session_ticket").toString();
+            tEditor_bin  = settings.value("tEditor_bin").toString();
             settings.endGroup();
-
 #elif defined(Q_OS_WIN)
             settings.beginGroup("USED_DIR_FILE");
             spoolDir= settings.value("spool_dir").toString();
+            tEditor_bin  = settings.value("tEditor_bin").toString();
             settings.endGroup();
 #endif
             // Тестируем переменные
@@ -393,13 +414,13 @@ bool Server::readConfig()
                  serverPort > 9999  ){
                 Ok = false;
                 m_lastError =  tr("Отсутствует или имеет не верное значение один из параметров,"
-                           "в файле конфигурации");
+                                  "в файле конфигурации");
 
             }
         }else{
             Ok  = false;
             m_lastError = tr("Файл [%1] с настройками программы не найден!")
-                    .arg(ini_path);
+                          .arg(ini_path);
         }
     }
     return Ok;
