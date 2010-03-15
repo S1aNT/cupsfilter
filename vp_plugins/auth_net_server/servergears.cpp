@@ -1,126 +1,205 @@
 #include "servergears.h"
-#include <QByteArray>
-#include <QDataStream>
+#include <QDebug>
+#include <QtCore/QByteArray>
+#include <QtCore/QDataStream>
+#include <QtCore/QUuid>
+
 
 serverGears::serverGears(QObject *parent,const QString &srvName)
-    : QObject(parent)
-    , connState(false)
-    , currentDataBlock(0)
-    , blockSize(0)
+    : QLocalServer(parent)   
+    , packetSize(0)
+    , e_state(false)
+    , e_info(QString())
 
 {
+    /// Регистрируем типы @todo Надо сделать отдельную функцию,
+    /// в которой регистрировать все типы и вызвать ее из main
+
+    qRegisterMetaType<VPrn::MessageType>("MessageType");
+
     m_serverName = srvName;
-    socket = new QLocalSocket(this);
-    connect(socket, SIGNAL(readyRead()),
-            this,   SLOT(readData()));
-    connect(socket, SIGNAL(error(QLocalSocket::LocalSocketError)),
-            this,   SLOT  (prepareError(QLocalSocket::LocalSocketError)));
-    socket->connectToServer(m_serverName);
-    connState = socket->waitForConnected(1000);
+    /// Создаем локальный сервер
+    m_server = new QLocalServer(this);
+    if (!m_server->listen(m_serverName)) {
+        setError(tr("Не могу запустить локальный сервер: %1.")
+                 .arg(m_server->errorString()));       
+    }else{
+        connect(m_server, SIGNAL(newConnection()),
+                this,     SLOT(client_init()));
+
+    }
 }
+
+
 
 //------------------------- PRIVATE SLOTS --------------------------------------
-void serverGears::readData()
-{
-    QByteArray block;
-    QDataStream in(socket);
-    in.setVersion(QDataStream::Qt_4_0);
 
-    if (blockSize == 0) {
-        if (socket->bytesAvailable() < (int)sizeof(quint16))
-            return;
-        in >> blockSize;
-    }
-    if (in.atEnd())
-        return;
-    in >> block;
-    // Анализ ответа полученного от сервера
-}
 
 void serverGears::prepareError(QLocalSocket::LocalSocketError socketError)
 {
-/*
+    QLocalSocket *client = (QLocalSocket*)sender();
+    QString clientName = clients_uuid[client];
+
     switch (socketError) {
-    case QLocalSocket::ServerNotFoundError:
-        QMessageBox::information(this, tr("Fortune Client"),
-                                 tr("The host was not found. Please check the "
-                                    "host name and port settings."));
-        break;
     case QLocalSocket::ConnectionRefusedError:
-        QMessageBox::information(this, tr("Fortune Client"),
-                                 tr("The connection was refused by the peer. "
-                                    "Make sure the fortune server is running, "
-                                    "and check that the host name and port "
-                                    "settings are correct."));
+        setError(tr("Соединение было сброшенно клиентом [%1]").arg(clientName));
         break;
     case QLocalSocket::PeerClosedError:
         break;
     default:
-        QMessageBox::information(this, tr("Fortune Client"),
-                                 tr("The following error occurred: %1.")
-                                 .arg(socket->errorString()));
+        setError(tr("При работе с клиентом [%1] произошла ошибка:%2")
+                 .arg( clientName, client->errorString() )
+                 );
+    }
+}
+
+void serverGears::readyRead()
+{
+    QLocalSocket *client = (QLocalSocket*)sender();
+    QString clientName = clients_uuid[client];
+
+    //Свяжем поток и сокет
+    QDataStream in ( client );
+    in.setVersion(QDataStream::Qt_4_0);
+
+    while (client->bytesAvailable() > 0){
+        if (packetSize == -1) {
+            //Определим количество байт доступных для чтения;
+            //на этом шаге необходимо получить больше 4-х байт
+            if( client->bytesAvailable() < sizeof(qint32) ){
+                return;
+            }
+            //Читаем размер пакета
+            in >> packetSize;
+        }
+        //Проверим что в сокет пришел весь пакет а не его огрызки
+        if (client->bytesAvailable() < packetSize){
+            return;
+        }
+        //Сбросим размер пакета, для обработки следующего
+        packetSize = -1;
+
+        //Прочтем и проверим формат протокола
+        qint32 m_format;
+        in >> m_format;
+        if( m_format != format ) {
+            setError(tr("Ошибка в формате протокола, при обмене данными с клиентом %1")
+                     .arg(clientName));   
+            return;
+        }
+
+        // Прочтем тип сообщения
+        int m_Type;
+        in >> m_Type;
+
+        //Прочтем само сообщение
+        QByteArray msg;
+        in >> msg;
+        Message message( this );
+        message.setType((MessageType) m_Type); //Проверить как конвертирует
+        message.setMessage( msg );
+        //message.prepareMessage();
+
+        // Обработка сообщения
+        parseMessage(message,client);
+        //foreach(QLocalSocket *client, clients)
+    }
+}
+
+void serverGears::disconnected()
+{
+    QLocalSocket *client = (QLocalSocket*)sender();
+    qDebug() << "Client disconnected:" << client->fullServerName();
+
+    clients.remove(client);
+
+    QString clientName = clients_uuid[client];
+    clients_uuid.remove(client);
+
+    foreach(QLocalSocket *client, clients){
+        // Оповестим тех кто заинтересован в том что клиент отвалился
+        //client->write(QString("Server:" + user + " has left.\n").toUtf8());
     }
 
-*/
 }
 
-//-------------------------- PRIVATE -------------------------------------------
-void serverGears::sendCommand(const QString &cmd)
+void serverGears::client_init()
 {
-    QByteArray block;
-    QDataStream out(&block, QIODevice::WriteOnly);
-    out.setVersion(QDataStream::Qt_4_0);
-    out << (quint16)0;
+    QLocalSocket *client = m_server->nextPendingConnection();
+    clients.insert(client);
+    //generate Universally Unique Identifier (UUID).
+    QString client_uuid=QUuid::createUuid().toString().replace("{","").replace("}","");
+    clients_uuid.insert(client,client_uuid);
 
-    out << cmd;
-    out.device()->seek(0);
-    out << (quint16)(block.size() - sizeof(quint16));
+    qDebug() << "New client from:"
+             << client->fullServerName()
+             << "UUID " << client_uuid;
 
-    socket->write(block);
-    socket->flush();
+    connect(client, SIGNAL(readyRead()),
+            this,   SLOT(readyRead()));
+    connect(client, SIGNAL(disconnected()),
+            this,   SLOT(disconnected()));
+    connect(client, SIGNAL(error(QLocalSocket::LocalSocketError)),
+            this,   SLOT(prepareError(QLocalSocket::LocalSocketError)));
+
 }
 
+//-------------------------- PROTECTED -----------------------------------------
 /*
-void Server::sendFortune()
+void serverGears::incomingConnection(quintptr socketDescriptor)
 {
+    qDebug() << Q_FUNC_INFO;
+    QLocalSocket *client = new QLocalSocket(this);
+    client->setSocketDescriptor(socketDescriptor);
+    clients.insert(client);
 
-    QByteArray block;
-    QDataStream out(&block, QIODevice::WriteOnly);
-    out.setVersion(QDataStream::Qt_4_0);
-    out << (quint16)0;
-    out << fortunes.at(qrand() % fortunes.size());
-    out.device()->seek(0);
-    out << (quint16)(block.size() - sizeof(quint16));
+    //generate Universally Unique Identifier (UUID).
+    QString client_uuid=QUuid::createUuid().toString().replace("{","").replace("}","");
+    clients_uuid.insert(client,client_uuid);
 
-    QLocalSocket *clientConnection = server->nextPendingConnection();
-    connect(clientConnection, SIGNAL(disconnected()),
-            clientConnection, SLOT(deleteLater()));
+    qDebug() << "New client from:"
+             << client->fullServerName()
+             << "UUID " << client_uuid;
 
-    clientConnection->write(block);
-    clientConnection->flush();
-    clientConnection->disconnectFromServer();
+    connect(client, SIGNAL(readyRead()),
+            this,   SLOT(readyRead()));
+    connect(client, SIGNAL(disconnected()),
+            this,   SLOT(disconnected()));
+    connect(client, SIGNAL(error(QLocalSocket::LocalSocketError)),
+            this,   SLOT(prepareError(QLocalSocket::LocalSocketError)));
+}
+*/
+//-------------------------- PRIVATE -------------------------------------------
+
+
+void serverGears::setError(const QString &info)
+{
+    e_state = true;
+    e_info  = info;
+}
+
+void serverGears::parseMessage( const Message &m_msg, QLocalSocket *client)
+{
+    Message message( this );
+    QString clientName = clients_uuid[client];
+    QByteArray msg_body;
+
+    switch (m_msg.type()){
+        // Клиент только подключился, сообщим ему что он авторизирован и вернем
+        // ему присвоенный uuid.Тело сообщения  пустое
+    case VPrn::Que_Register:
+        message.setType(VPrn::Ans_Register);
+        message.setMessage( clientName.toUtf8() ); // Пробразуем в QByteArray
+        sendMessage(message,client);
+        break;
+    }
 
 }
 
-    server = new QLocalServer(this);
-    if (!server->listen("fortune")) {
-        QMessageBox::critical(this, tr("Fortune Server"),
-                              tr("Unable to start the server: %1.")
-                              .arg(server->errorString()));
-        close();
-        return;
-    }
+void serverGears::sendMessage( const Message &m_msg, QLocalSocket *client)
+{
+    //Сформируем пакет И пошлем его ветром гонимого клиенту
+    client->write(m_msg.createPacket());
+    client->flush();
+}
 
-
-    fortunes << tr("You've been leading a dog's life. Stay off the furniture.")
-             << tr("You've got to think about tomorrow.")
-             << tr("You will be surprised by a loud noise.")
-             << tr("You will feel hungry again in another hour.")
-             << tr("You might have mail.")
-             << tr("You cannot kill time without injuring eternity.")
-             << tr("Computers are not intelligent. They only think they are.");
-
-    //connect(quitButton, SIGNAL(clicked()), this, SLOT(close()));
-    connect(server, SIGNAL(newConnection()), this, SLOT(sendFortune()));
-
-*/
