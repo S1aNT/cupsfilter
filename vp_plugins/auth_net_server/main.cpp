@@ -10,6 +10,7 @@
 #include <QtCore/QTextCodec>
 
 #include "server.h"
+#include "config.h"
 
 int main(int argc, char *argv[])
 {
@@ -19,7 +20,7 @@ int main(int argc, char *argv[])
     QTextCodec::setCodecForTr(codec);
     QTextCodec::setCodecForCStrings(codec);
     QTextCodec::setCodecForLocale(codec);
-
+    qInstallMsgHandler(myMessageOutput);
     QApplication app(argc, argv);
 
 
