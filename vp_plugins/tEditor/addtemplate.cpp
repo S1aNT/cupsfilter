@@ -7,7 +7,7 @@
 #include <QtCore/QDateTime>
 #include <QtGui/QMessageBox>
 #include <QtGui/QFont>
-#include <qtGui/QFileDialog>
+#include <QtGui/QFileDialog>
 #include <QtSql/QSqlQueryModel>
 #include <QtSql/QSqlError>
 #include <QtSql/QSqlTableModel>
