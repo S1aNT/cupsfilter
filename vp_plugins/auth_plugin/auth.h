@@ -2,8 +2,12 @@
 #define AUTH_H
 
 #include <QObject>
+#if defined(Q_OS_WIN)
 #include <windows.h>
+#endif
+
 #include <stdio.h>
+
 #include "auth_plugin.h"
 #include "mytypes.h"
 
@@ -11,12 +15,13 @@ using namespace VPrn;
 
 class QString;
 
-
+#if defined(Q_OS_WIN)
 #define PLUGIN_API __declspec(dllimport)
 typedef PLUGIN_API LPWSTR (*DLLGETCURRENTUSER)(void);
 typedef PLUGIN_API LPWSTR (*DLLGETCURRENTSECLABEL)(void);
 typedef PLUGIN_API bool (*DLLISAUTHUSER)(void);
 typedef PLUGIN_API LPCTSTR (*ABOUTPLUGIN)(void);
+#endif
 
 class Auth : public QObject, Auth_plugin
 {

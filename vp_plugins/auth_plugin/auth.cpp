@@ -18,7 +18,7 @@ void Auth::init (const QString &mandat_filename)
     QString e_msg;
     // Проверим факт существования по указанному пути
     if (QFile::exists(mandat_filename)) {
-        QFile  ticket (mandat_filename);
+        QFile ticket (mandat_filename);
         QString text;
         if (ticket.open(QIODevice::ReadOnly)) {
             QTextStream in_stream(&ticket);
@@ -74,15 +74,17 @@ QString Auth::ask4System()
     logon_user_name = log_settings.value("Logon User Name").toString();
 #endif
 
-#if defined(MY_DEBUG)
+    //!!!!!!!  Для отладки !!!!!!!
     logon_user_name ="usr1";
-#endif
 
     return logon_user_name;
 }
 
 void  Auth::init ()
-{// проверка существования агента безопастности
+{
+#if defined(Q_OS_WIN)
+
+    // проверка существования агента безопастности
     // определим из реестра путь к библиотеке ldap_plus.dll
     QSettings settings("HKEY_LOCAL_MACHINE\\SOFTWARE\\pGina",QSettings::NativeFormat);
     plugin_path =settings.value("pathPlugin").toString(); // returns "full path"
@@ -98,6 +100,8 @@ void  Auth::init ()
         user_name =QString::fromUtf16((ushort*)pluginGetUSER());
         user_mandat =QString::fromUtf16((ushort*)pluginGetCurrentSecLabel());
     }
+#endif
+
     if (user_name.isEmpty()){
         user_name = ask4System();
     }
