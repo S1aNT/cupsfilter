@@ -32,9 +32,12 @@ void net_plugin::init(const QString &host, int port,const QString &sid)
     this->Port = port;
     this->Sid=sid;
     client = new QTcpSocket(this);
-    connect(client, SIGNAL(readyRead()), this, SLOT(readyRead()));
-    connect(client, SIGNAL(connected()), this, SLOT(onConnected()));
-    connect(client, SIGNAL(error(QAbstractSocket::SocketError)),this, SLOT(selectError(QAbstractSocket::SocketError)));
+    connect(client, SIGNAL(readyRead()),
+            this, SLOT(readyRead()));
+    connect(client, SIGNAL(connected()),
+            this, SLOT(onConnected()));
+    connect(client, SIGNAL(error(QAbstractSocket::SocketError)),
+            this, SLOT(selectError(QAbstractSocket::SocketError)));
     client->connectToHost(HostName, Port);
 }
 
@@ -55,7 +58,7 @@ void net_plugin::selectError(QAbstractSocket::SocketError err)
     default:
         e_msg = QObject::trUtf8("Error code %1").arg(err,0,10);
     }
-    emit error(e_msg);
+    emit error(VPrn::NetworkTransError,e_msg);
 }
 
 void net_plugin::sendData(const QString &cmd)
