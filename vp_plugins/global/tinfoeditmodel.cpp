@@ -1,5 +1,5 @@
 #include <QtSql>
-#include "tInfoEditModel.h"
+#include "tinfoeditmodel.h"
 
 TemplateInfoEditModel::TemplateInfoEditModel(QObject *parent)
     : QSqlQueryModel(parent)
