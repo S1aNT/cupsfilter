@@ -8,7 +8,7 @@
 serverGears::serverGears(QObject *parent,const QString &srvName)
     : QLocalServer(parent)   
     , packetSize(0)
-    , e_state(false)
+    , m_state(VPrn::InitStep)
     , e_info(QString())
 
 {
@@ -23,6 +23,7 @@ serverGears::serverGears(QObject *parent,const QString &srvName)
     if (!m_server->listen(m_serverName)) {
         setError(tr("Не могу запустить локальный сервер: %1.")
                  .arg(m_server->errorString()));       
+        setState(VPrn::NotListenError);
     }else{
         connect(m_server, SIGNAL(newConnection()),
                 this,     SLOT(client_init()));
@@ -31,6 +32,10 @@ serverGears::serverGears(QObject *parent,const QString &srvName)
 }
 
 
+LocalServerState serverGears::state() const
+{
+    return m_state;
+}
 
 //------------------------- PRIVATE SLOTS --------------------------------------
 
@@ -51,6 +56,7 @@ void serverGears::prepareError(QLocalSocket::LocalSocketError socketError)
                  .arg( clientName, client->errorString() )
                  );
     }
+    setState(VPrn::NetworkCommonError);
 }
 
 void serverGears::readyRead()
@@ -144,38 +150,18 @@ void serverGears::client_init()
 
 }
 
-//-------------------------- PROTECTED -----------------------------------------
-/*
-void serverGears::incomingConnection(quintptr socketDescriptor)
-{
-    qDebug() << Q_FUNC_INFO;
-    QLocalSocket *client = new QLocalSocket(this);
-    client->setSocketDescriptor(socketDescriptor);
-    clients.insert(client);
 
-    //generate Universally Unique Identifier (UUID).
-    QString client_uuid=QUuid::createUuid().toString().replace("{","").replace("}","");
-    clients_uuid.insert(client,client_uuid);
-
-    qDebug() << "New client from:"
-             << client->fullServerName()
-             << "UUID " << client_uuid;
-
-    connect(client, SIGNAL(readyRead()),
-            this,   SLOT(readyRead()));
-    connect(client, SIGNAL(disconnected()),
-            this,   SLOT(disconnected()));
-    connect(client, SIGNAL(error(QLocalSocket::LocalSocketError)),
-            this,   SLOT(prepareError(QLocalSocket::LocalSocketError)));
-}
-*/
 //-------------------------- PRIVATE -------------------------------------------
 
 
 void serverGears::setError(const QString &info)
 {
-    e_state = true;
     e_info  = info;
+}
+void serverGears::setState(LocalServerState state)
+{
+    m_state = state;
+    emit stateChanged(m_state);
 }
 
 void serverGears::parseMessage( const Message &m_msg, QLocalSocket *client)

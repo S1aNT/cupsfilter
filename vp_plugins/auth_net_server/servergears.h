@@ -8,8 +8,8 @@
 #include <QtCore/QMap>
 #include <QtCore/QSet>
 
-#include <QtNetWork/QLocalServer>
-#include <QtNetWork/QLocalSocket>
+#include <QtNetwork/QLocalServer>
+#include <QtNetwork/QLocalSocket>
 
 
 class QByteArray;
@@ -23,12 +23,13 @@ class serverGears : public QLocalServer
 public:
     explicit serverGears(QObject *parent = 0,const QString &srvName = QString());    
 
-    bool isError(){return e_state;};
-    QString lastError(){return e_info;};
+    QString lastError() const {return e_info;};
+    LocalServerState state() const;
 
 signals:
     void messageReady( const Message &msg );
     void networkProtocolError();
+    void stateChanged(LocalServerState state);
 
 //public slots:
 private slots:
@@ -64,7 +65,7 @@ private:
       * @var m_serverName;     Имя локального сервера для общения с Локальным миром
       * @var packetSize;       Размер передаваемого блока данных
       * @var currentDataBlock; Текущий полученный блок данных
-      * @var e_state;          Статус Есть ошибка или нет
+      * @var m_state;          Статус Локального сервера
       * @var e_info;           Последняя возникшая ошибка
       * @var clients;          Список подключенных клиентов
       * @var clients_name;     Список имен подключенных клиентов
@@ -73,7 +74,7 @@ private:
     QString m_serverName;    
     QLocalServer *m_server;
     qint32 packetSize;
-    bool e_state;
+    LocalServerState m_state;
     QString e_info;
     QSet<QLocalSocket *> clients;
     QMap<QLocalSocket *,QString> clients_uuid;
@@ -95,7 +96,7 @@ private:
       * @brief Устанавливает состояние ошибки,  записывает новое описание ошибки
       */
     void setError(const QString &info);
-
+    void setState(LocalServerState state);
 };
 
 #endif // SERVERGEARS_H
