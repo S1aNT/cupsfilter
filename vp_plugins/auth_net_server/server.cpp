@@ -193,6 +193,11 @@ void Server::createTrayIcon()
 
 }
 
+void Server::appendStartMsg(const QString & msg)
+{
+    showTrayMessage(InfoType,tr("GateKeeper"),msg);
+}
+
 //************************** PRIVATE SLOTS *************************************
 void Server::iconActivated(QSystemTrayIcon::ActivationReason reason)
 {

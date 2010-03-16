@@ -53,6 +53,11 @@ protected:
     void closeEvent(QCloseEvent *event);
 public slots:
     /**
+       @fn void appendStartMsg(const QString & msg);
+       @brief Служит для получения сообщения при старте другой копии программы 
+     */
+    void appendStartMsg(const QString & msg);
+    /**
       * @fn void showBaloonMessage(int m_Type,const QString &b_msg)
       * @brief показывает сообщение в трее
       * @param m_Type тип сообщения critical,warning,information
