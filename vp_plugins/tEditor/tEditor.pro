@@ -41,7 +41,9 @@ HEADERS += ../global/pre_header.h \
     view.h \
     mainwindow.h \
     cmdframe.h \
-    undoframe.h
+    undoframe.h \
+    ../global/loc_client.h\
+    ../global/message.h
 SOURCES += main.cpp \
     ../global/myscene.cpp \
     ../global/mytextitem.cpp \
@@ -50,7 +52,9 @@ SOURCES += main.cpp \
     view.cpp \
     mainwindow.cpp \
     cmdframe.cpp \
-    undoframe.cpp
+    undoframe.cpp \
+    ../global/loc_client.cpp \
+    ../global/message.cpp
 FORMS += addtemplate.ui 
 RESOURCES += images.qrc
 TRANSLATIONS = tEditor_ru.ts
