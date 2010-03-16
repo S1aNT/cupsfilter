@@ -5,9 +5,13 @@
  *  net_plugin   Передает демону команды и выдает ответ от демона
 */
 
+#include <QtSingleApplication>
 #include <QtGui/QSystemTrayIcon>
 #include <QtGui/QMessageBox>
+#include <QtGui/QLabel>
 #include <QtCore/QTextCodec>
+
+
 
 #include "server.h"
 #include "config.h"
@@ -21,7 +25,8 @@ int main(int argc, char *argv[])
     QTextCodec::setCodecForCStrings(codec);
     QTextCodec::setCodecForLocale(codec);
     qInstallMsgHandler(myMessageOutput);
-    QApplication app(argc, argv);
+
+    QtSingleApplication app(argc, argv, true);
 
 
     if (!QSystemTrayIcon::isSystemTrayAvailable()) {
@@ -31,8 +36,20 @@ int main(int argc, char *argv[])
         return 1;
     }
 
+    if (app.sendMessage(QObject::tr("Потребован повторный запуск приложения!"))
+        || app.isRunning())
+        return 0;
+
     QApplication::setQuitOnLastWindowClosed(false);
+
     Server server;
-        server.show();
+    server.show();
+    app.setActivationWindow(&server);
+
+    QObject::connect(&app, SIGNAL(messageReceived(const QString&)),
+		     &server, SLOT(appendStartMsg(const QString&)));
+
+    
+
     return app.exec();
 }
