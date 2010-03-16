@@ -72,7 +72,6 @@ private slots:
 
     void iconActivated(QSystemTrayIcon::ActivationReason reason);
 
-    void messageClicked();
     void errorInfo(pluginsError eCode,QString e_msg);
     /**
       * @fn void setUserName(const QString & login,const QString &mandat);
@@ -84,6 +83,11 @@ private slots:
       * @brief «апуск редактора шаблонов как отдельного приложени€
       */
     void runTEditor();
+    /**
+      * @fn void do_SGStateChanged(LocalServerState m_state);
+      * @brief  ак только состо€ние слота изменилось, его надо обработать
+      */
+    void do_SGStateChanged(LocalServerState m_state);
 private:
 
     void createActions();

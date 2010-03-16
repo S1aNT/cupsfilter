@@ -107,12 +107,8 @@ void Server::init()
             if (Ok && !localSrvName.isEmpty()){
                 // Создаем основной объект
                 myServerGears = new serverGears(this,localSrvName);
-                if ( myServerGears->isError()){
-                    Ok &= false;
-                    setTrayStatus(VPrn::gk_ErrorState,myServerGears->lastError());
-                }else{
-                   setTrayStatus(VPrn::gk_Started,tr("Готов работать!"));
-                }
+                connect (myServerGears,SIGNAL(stateChanged(LocalServerState)),
+                         this, SLOT(do_SGStateChanged(LocalServerState)));
             }else{
                 setTrayStatus(VPrn::gk_ErrorState,tr("Ошибка при загрузке плагинов"));
             }
@@ -213,13 +209,6 @@ void Server::iconActivated(QSystemTrayIcon::ActivationReason reason)
     }
 }
 
-void Server::messageClicked()
-{
-    QMessageBox::information(0, tr("Systray"),
-                             tr("Sorry, I already gave what help I could.\n"
-                                "Maybe you should try asking a human?"));
-}
-
 void Server::errorInfo(pluginsError eCode,QString e_msg)
 {
 
@@ -247,7 +236,6 @@ void Server::setUserName(QString & login,QString &mandat)
         }
     }
     setTrayStatus(my_TrayStatus,info_msg);
-
 }
 
 void Server::setTrayStatus (trayStatus t_stat, const QString &t_msg)
@@ -293,6 +281,30 @@ void Server::setTrayStatus (trayStatus t_stat, const QString &t_msg)
     demonState_LE->setText(t_msg);
 }
 
+void Server::do_SGStateChanged(LocalServerState m_state)
+{
+    switch (m_state){
+    case InitStep:
+        break;
+    case ReadyForJob:
+        setTrayStatus(VPrn::gk_Started,tr("Готов работать!"));
+        break;
+    case DoPrintJob:
+        break;
+    case DoSQLJob:
+        break;
+    case NotListenError:
+        break;
+    case PluginNotLoadError:        
+    case NetworkCommonError:        
+    case DemonFreeSpaceError:        
+    case DemonResponceFailed:        
+    case DemonAuthFailed:
+        setTrayStatus(VPrn::gk_ErrorState,myServerGears->lastError());
+        break;
+    }
+}
+
 void Server::runTEditor()
 {
     if (tEditor_bin.isEmpty()){
@@ -309,11 +321,11 @@ bool Server::loadPlugins()
     Inet_plugin *net_plugin_Interface;
     Auth_plugin *auth_plugin_Interface;
 
-#if defined(Q_OS_WIN)
     if (pluginsDir.dirName().toLower() == "debug" ||
         pluginsDir.dirName().toLower() == "release")
         pluginsDir.cdUp();
-#elif defined(Q_OS_MAC)
+
+#if defined(Q_OS_MAC)
     if (pluginsDir.dirName() == "MacOS") {
         pluginsDir.cdUp();
         pluginsDir.cdUp();
@@ -342,7 +354,7 @@ bool Server::loadPlugins()
                                 this,   SLOT(setUserName(QString&,QString&))
                                 );
 #if defined(Q_OS_UNIX)
-                        myAuth_plugin->init(ticket_name);
+                        myAuth_plugin->init(ticket_fname);
 #elif defined(Q_OS_WIN)
                         myAuth_plugin->init();
 #endif
