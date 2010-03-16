@@ -1,6 +1,6 @@
 QT += sql \
     network
-TEMPLATE = app
+TEMPLATE += app
 TARGET = auth_net_server
 CONFIG += warn_on \
     qt \
@@ -27,14 +27,19 @@ LANGUAGE = C++
 PRECOMPILED_HEADER = ../global/pre_header.h
 DEPENDPATH += .
 INCLUDEPATH += ../interfaces \
-    ../global
-HEADERS = server.h \
-    servergears.h \
-    ../interfaces/auth_plugin.h \
-    ../interfaces/inet_plugin.h \
+    ../global \
+    ../qt_single_apps
+
+include(../qt_single_apps/qtsingleapplication.pri)
+
+HEADERS += server.h \
+          servergears.h \
+         ../interfaces/auth_plugin.h \
+         ../interfaces/inet_plugin.h \
     ../global/mytypes.h \
     ../global/message.h
-SOURCES = server.cpp \
+
+SOURCES += server.cpp \
     main.cpp \
     servergears.cpp \
     ../global/message.cpp
