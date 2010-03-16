@@ -23,7 +23,7 @@ class UndoFrame;
 class EditPagesModel;
 
 //#include "itmpl_plugin.h"
-//#include "templ_info.h"
+#include "loc_client.h"
 #include "itmpl_sql_plugin.h"
 #include "auth_plugin.h"
 #include "addtemplate.h"
@@ -60,6 +60,12 @@ private slots:
     void do_CmdButtonClick(const QString &line);// Нажали командную кнопку
     //void do_angle_direct();
     void do_viewCode();
+    /**
+      * @fn void do_stateChanged(LocalClientState state);
+      * @brief Как только состояние сокета связанного с  ХРАНИТЕЛЕМ_ВРАТ
+      * изменилось надо приять меры
+      */
+      void do_stateChanged(LocalClientState state);
 signals:
     void addBaseElementToPage(int, const QString &line);
     void addImgElementToPage(int , const QString &templ_fn);
@@ -74,10 +80,6 @@ private:
     void error(QString e_msg,bool admin);
     void printTempl();
     void readGlobal(const QString &app_dir);
-    /**
-     * @fn Поворачивает страницу на 90 градусов по часовой или против
-     */
-    //void flipPage(bool angle_direct);
 
     Auth_plugin *auth_plugin;
     Itmpl_sql_plugin *tmpl_plugin;
@@ -107,22 +109,17 @@ private:
     QAction *aboutAct;
     QAction *aboutQtAct;
     QAction *quitAct;
-    //QAction *flipAction;
     QAction *addBaseElem;
-    //QAction *portretAct;
-    //QAction *landscapeAct;
     QAction *viewCodeAct;
     QAction *showUndoStackAct;
 
-
-
     // Приватные данные
     QString userName;
-
     QString currentTemplates;
     QStringListModel *page_size_model;
     QStringList elemList;
     bool templ_load; // Признак что шаблон загружен
+    bool secondChance; // Если установлен то уже была попытка загрузить ХРАНИТЕЛЯ_ВРАТы
 
     AddTemplate *TProperDlg;
     cmdFrame * CmdButtonBox;
@@ -134,8 +131,12 @@ private:
     QString spoolDir;
     QString ticket_fname;
     QString local_t_path; // Путь к локальным шаблонам пользователя
-    QString global_t_path;
-    QString ftpTemplatesDir;
+    QString global_t_path;    
+    // Путь к gatekeeper любое приложение из большой тройки, может его запустить если он еще не запущен
+    QString gatekeeper_bin;
+    QString link_name; // Название локального сервера
+    LocalClient * m_LocalClient; // Локальный клиентик для связи с чисто локальным сервером ака Хранителем Врат
+
     /**
       * @var QSqlQueryModel * pagesModel; Указатель на модель СТРАНИЦЫ_ШАБЛОНА
       */

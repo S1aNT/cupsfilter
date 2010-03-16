@@ -9,6 +9,7 @@
 #include <QtCore/QUuid>
 #include <QtCore/QSettings>
 #include <QtCore/QPluginLoader>
+#include <QtCore/QProcess>
 
 #include <QtGui/QDesktopWidget>
 #include <QtGui/QMainWindow>
@@ -20,12 +21,10 @@
 
 #include <QtSql/QSqlQueryModel>
 
-
-#include <QtGui/QTableView>
-
 MainWindow::MainWindow():
         auth_plugin(0)
         , tmpl_plugin(0)
+        , secondChance(false)
 {
 
     this->readGlobal(qApp->applicationDirPath());
@@ -73,8 +72,16 @@ MainWindow::MainWindow():
     setWindowTitle(tr("Редактор шаблонов"));
     setUnifiedTitleAndToolBarOnMac(true);
 
+
     // Создадим модель
     page_size_model = new QStringListModel(this);
+
+    m_LocalClient = new LocalClient(this);
+    connect (m_LocalClient, SIGNAL(stateChanged(LocalClientState)),
+             this, SLOT(do_stateChanged(LocalClientState))
+             );
+    // Устанавливаем соединение с локальным сервером
+    m_LocalClient->setServerName(link_name);
 
     //Все структуры созданы - грузим апельсины бочками
     loadPlugins();
@@ -92,7 +99,8 @@ MainWindow::MainWindow():
                      SIGNAL(clicked(const QString &)),
                      this,
                      SLOT(do_CmdButtonClick(const QString &))
-                     );
+                     );    
+
 }
 
 void MainWindow::loadPlugins()
@@ -102,17 +110,18 @@ void MainWindow::loadPlugins()
     Itmpl_sql_plugin *tmpl_plugin_Interface;
     Auth_plugin *auth_plugin_Interface;
 
-#if defined(Q_OS_WIN)
     if (pluginsDir.dirName().toLower() == "debug" ||
         pluginsDir.dirName().toLower() == "release")
         pluginsDir.cdUp();
-#elif defined(Q_OS_MAC)
+
+#if defined(Q_OS_MAC)
     if (pluginsDir.dirName() == "MacOS") {
         pluginsDir.cdUp();
         pluginsDir.cdUp();
         pluginsDir.cdUp();
     }
 #endif
+
     pluginsDir.cd("plugins");
     foreach (QString fileName, pluginsDir.entryList(QDir::Files)){
         QPluginLoader pluginMessageer(pluginsDir.absoluteFilePath(fileName));
@@ -134,7 +143,7 @@ void MainWindow::loadPlugins()
                         );
 
 #if defined(Q_OS_UNIX)
-                auth_plugin->init(ticket_name);
+                auth_plugin->init(ticket_fname);
 #elif defined(Q_OS_WIN)
                 auth_plugin->init();
 #endif
@@ -171,7 +180,7 @@ void MainWindow::loadPlugins()
                         );
                 connect(printAct, SIGNAL(triggered()),
                         plugin, SLOT(convert2Pdf())
-                       );
+                        );
                 tmpl_plugin->init(spoolDir,sid);
                 // Получим названия стандартных кнопок для шаблона
                 elemList = tmpl_plugin->getBaseElemNameList();
@@ -382,6 +391,35 @@ void MainWindow::do_viewCode()
     }
 }
 
+void MainWindow::do_stateChanged(LocalClientState state)
+{
+    switch (state){
+    case VPrn::Connected:
+        // Меняем иконку приложения на []-[]
+        break;
+    case VPrn::HostNotFound:
+        // Меняем иконку на перечеркнутый комп,делаем попытку запустить еще раз приложение
+        // Если ранее такой попытки не было
+        if (!secondChance){
+            // Запуск GateKeeper
+            if ( !gatekeeper_bin.isEmpty()){
+/*
+                if (QProcess::startDetached (gatekeeper_bin)){
+                    // Попытка номер 2
+                    m_LocalClient->setServerName(link_name);
+                    secondChance = true;
+                }
+*/
+            }else{
+                emit error(tr("Ошибка при запуске GateKeeper"),true);
+            }
+
+
+        }
+        break;
+    }
+}
+
 void MainWindow::toggleAntialiasing()
 {
     // Данные режим работает на всех страницах шаблона
@@ -395,18 +433,7 @@ void MainWindow::toggleAntialiasing()
 }
 
 //******************************************************************************
-void createView(const QString &title, QAbstractItemModel * model )
-{
-    static int offset = 0;
 
-    QTableView *view = new QTableView;
-    view->setModel(model);
-    view->setWindowTitle(title);
-    view->move(100 + offset, 100 + offset);
-    view->verticalHeader()->setVisible(true);
-    offset += 20;
-    view->show();
-}
 
 //------------------------------- Private function
 void MainWindow::loadFromFile(const QString &file_name)
@@ -527,7 +554,7 @@ void MainWindow::createActions()
             this,     SLOT(saveTemplatesAs()));
 
     saveAct = new QAction(QIcon(":/t_save.png"),
-                            tr("Сохранение шаблона"),this);
+                          tr("Сохранение шаблона"),this);
     saveAct->setShortcut(QKeySequence::Save);
     saveAct->setStatusTip(tr("Сохранение текущего варианта шаблона"));
 
@@ -633,7 +660,7 @@ void MainWindow::readGlobal(const QString &app_dir)
 {
     // Читаем файл настроек
     // TODO add emit log_message
-    QString l_msg = QString("[%1]").arg(QString::fromAscii(Q_FUNC_INFO));
+    // QString l_msg = QString("[%1]").arg(QString::fromAscii(Q_FUNC_INFO));
     QString e_msg;
     QString ini_path =QString("%1/Technoserv/safe_printer.ini").arg(app_dir);
 
@@ -642,35 +669,29 @@ void MainWindow::readGlobal(const QString &app_dir)
         settings.setIniCodec("UTF-8");
         settings.beginGroup("SERVICE");
         serverHostName = settings.value("server").toString();
-        serverPort = settings.value("port").toInt();
+        serverPort     = settings.value("port").toInt();
+        link_name      = settings.value("link_name").toString();
         settings.endGroup();
+
+        settings.beginGroup("USED_DIR_FILE");
+        spoolDir       = settings.value("spool_dir").toString();
+
 #if defined(Q_OS_UNIX)
-        settings.beginGroup("USED_DIR_FILE");
-        spoolDir = settings.value("spool_dir").toString();
-        ticket_fname=settings.value("session_ticket").toString();
-        settings.endGroup();
-
-        settings.beginGroup("TEMPLATES");
-        local_t_path=settings.value("local_templates").toString();
-        global_t_path=settings.value("global_templates").toString();
-        ftpTemplatesDir=settings.value("ftp_templates_dir",).toString();
-        settings.endGroup();
-#elif defined(Q_OS_WIN)
-        settings.beginGroup("USED_DIR_FILE");
-        spoolDir= settings.value("spool_dir").toString();
-        settings.endGroup();
-
-        settings.beginGroup("TEMPLATES");
-        local_t_path=settings.value("local_templates").toString();
-        global_t_path=settings.value("global_templates").toString();
-        ftpTemplatesDir=settings.value("ftp_templates_dir").toString();
-        settings.endGroup();
+        ticket_fname   = settings.value("session_ticket").toString();
 #endif
+        gatekeeper_bin = settings.value("gatekeeper_bin").toString();
+        settings.endGroup();        
+
+        settings.beginGroup("TEMPLATES");
+        local_t_path  = settings.value("local_templates").toString();
+        global_t_path = settings.value("global_templates").toString();
+        settings.endGroup();
 
     }else{
         e_msg = QObject::trUtf8("Файл с настройками программы %1 не найден!").arg(ini_path);
         errorA(e_msg);
     }
 }
+
 
 //******************************************************************************
