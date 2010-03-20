@@ -111,23 +111,13 @@ namespace VPrn{
         gk_ErrorState
     };
 
-    enum MessageType {
-        Que_Register     = 5010,     // Запрос на регистрацию
-        Ans_Register     = 5015,     // Ответ о регистрации
-        Que_ServerStatus = 5020,     // Запрос у сервера его состояния
-        Ans_ServerStatus = 5025,     // Ответ сервера его состояние
-        GiveAuthData     = 5030,     // Запрос индетификационных данных от сервера
-        NoType           = 99999
-
-    };
-    
     enum ProtocolError { 
         InvalidFormat =0, 
         InvalidVersion = 1 
     };
 
     enum LocalServerState{
-        InitStep,
+        InitServerState,
         ReadyForJob,        // Готов к работе
         DoPrintJob,         //
         DoSQLJob,           //
@@ -143,7 +133,9 @@ namespace VPrn{
 
     };
 
-    enum LocalClientState{
+
+    enum socketState {
+        InitClientState,
         Connected,
         Disconnected,
         Auhtorized,
@@ -151,6 +143,27 @@ namespace VPrn{
         InternalError
     };
 
+
+    enum MessageType {
+//Глобальные сообщения (для передачи/приема с мишиным Демоном)
+        Que_RegisterGlobal     = 10,     // Запрос на регистрацию клиента у Миши
+        Ans_RegisterGlobal     = 1010,   // Клиент зарегистрирован 
+
+        Que_AUTHOR_USER        = 100,    // Запрос на авторизация пользователя к ресурсу П ИНТЕ 
+        Ans_PRINT_ALLOWED      = 1100,   // печать разрешена
+        Ans_PRINT_DENIED       = 1101,   // печать запрещена
+        Ans_PRINTER_NOT_FOUND  = 1102,   // принтер не найден
+
+// Локальные сообщения (для обмена с моим сервисом)
+        Que_Register     = 5010,     // Запрос на регистрацию
+        Ans_Register     = 5015,     // Ответ о регистрации
+        Que_ServerStatus = 5020,     // Запрос у сервера его состояния
+        Ans_ServerStatus = 5025,     // Ответ сервера его состояние
+        GiveAuthData     = 5030,     // Запрос индетификационных данных от сервера
+        NoType           = 99999
+
+    };
+    
 
     enum{
        REGISTER_ANS     = 1010,
@@ -193,8 +206,8 @@ namespace VPrn{
 
 }
 
+Q_DECLARE_METATYPE(VPrn::socketState);
 Q_DECLARE_METATYPE(VPrn::LocalServerState);
-Q_DECLARE_METATYPE(VPrn::LocalClientState);
 Q_DECLARE_METATYPE(VPrn::ProtocolError);
 Q_DECLARE_METATYPE(VPrn::MessageType);
 Q_DECLARE_METATYPE(VPrn::trayIcons);
