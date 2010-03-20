@@ -25,7 +25,11 @@ public:
 
     QString lastError() const {return e_info;};
     LocalServerState state() const;
-
+    /**
+      * @fn QString getUuid() const;
+      * @brief Генерирует иникальный номер, преобразет его в строку и возвращает
+      */
+    QString getUuid() const;
 signals:
     void messageReady( const Message &msg );
     void networkProtocolError();

@@ -8,7 +8,7 @@
 serverGears::serverGears(QObject *parent,const QString &srvName)
     : QLocalServer(parent)   
     , packetSize(0)
-    , m_state(VPrn::InitStep)
+    , m_state(VPrn::InitServerState)
     , e_info(QString())
 
 {
@@ -37,6 +37,10 @@ LocalServerState serverGears::state() const
     return m_state;
 }
 
+QString serverGears::getUuid() const
+{
+    return QUuid::createUuid().toString().replace("{","").replace("}","");
+}
 //------------------------- PRIVATE SLOTS --------------------------------------
 
 
@@ -122,24 +126,18 @@ void serverGears::disconnected()
     QString clientName = clients_uuid[client];
     clients_uuid.remove(client);
 
-    foreach(QLocalSocket *client, clients){
+    //foreach(QLocalSocket *client, clients){
         // Оповестим тех кто заинтересован в том что клиент отвалился
         //client->write(QString("Server:" + user + " has left.\n").toUtf8());
-    }
+    //}
 
 }
 
 void serverGears::client_init()
 {
     QLocalSocket *client = m_server->nextPendingConnection();
-    clients.insert(client);
-    //generate Universally Unique Identifier (UUID).
-    QString client_uuid=QUuid::createUuid().toString().replace("{","").replace("}","");
-    clients_uuid.insert(client,client_uuid);
-
-    qDebug() << "New client from:"
-             << client->fullServerName()
-             << "UUID " << client_uuid;
+    clients.insert(client);    
+    clients_uuid.insert(client,this->getUuid());
 
     connect(client, SIGNAL(readyRead()),
             this,   SLOT(readyRead()));
