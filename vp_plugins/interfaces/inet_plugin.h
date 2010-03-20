@@ -1,17 +1,22 @@
 #ifndef INET_PLUGIN_H
 #define INET_PLUGIN_H
 
-//#include <QString>
+#include "mytypes.h"
+//#include  "message.h"
+
+using namespace VPrn;
+
 class QString;
+class Message;
 
 //! [0]
 class Inet_plugin{
 
 public:
     virtual ~Inet_plugin() {}
-    virtual void init(const QString &host,int port,const QString &sid)=0;
-    virtual void sendData(const QString &cmd)=0;
-    //virtual bool state()=0;
+    virtual void init(const QString &host,int port,const QString &sid) = 0 ;
+    virtual void sendMessage( const Message &m_msg) = 0;
+    virtual socketState state() const = 0;
 
 };
 
