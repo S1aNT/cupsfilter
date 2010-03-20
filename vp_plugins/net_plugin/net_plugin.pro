@@ -29,5 +29,9 @@ INCLUDEPATH += ../interfaces \
 # Use Precompiled headers (PCH)
 HEADERS += net_plugin.h \
     ../interfaces/inet_plugin.h \
-    ../global/mytypes.h
-SOURCES = net_plugin.cpp
+    ../global/mytypes.h \
+    ../global/message.h
+
+SOURCES = net_plugin.cpp \
+    ../global/message.cpp
+
