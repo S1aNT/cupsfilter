@@ -4,7 +4,7 @@ TEMPLATE += app
 TARGET = auth_net_server
 CONFIG += warn_on \
     qt \
-    console\
+    console \
     precompile_header
 DESTDIR = ../VPrn
 CONFIG(debug, debug|release) { 
@@ -29,18 +29,15 @@ DEPENDPATH += .
 INCLUDEPATH += ../interfaces \
     ../global \
     ../qt_single_apps
-
 include(../qt_single_apps/qtsingleapplication.pri)
-
 HEADERS += server.h \
-          servergears.h \
-         ../interfaces/auth_plugin.h \
-         ../interfaces/inet_plugin.h \
+    servergears.h \
+    ../interfaces/auth_plugin.h \
+    ../interfaces/inet_plugin.h \
     ../global/mytypes.h \
-    ../global/message.h
-
+    ../global/message.h 
 SOURCES += server.cpp \
     main.cpp \
     servergears.cpp \
-    ../global/message.cpp
+    ../global/message.cpp 
 RESOURCES = images.qrc
