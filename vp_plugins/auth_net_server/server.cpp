@@ -14,6 +14,7 @@
 #include <QtGui/QGroupBox>
 #include <QtGui/QLabel>
 #include <QtGui/QLineEdit>
+#include <QtGui/QCheckBox>
 
 #include <QtCore/QObject>
 #include <QtCore/QDir>
@@ -21,6 +22,8 @@
 #include <QtCore/QSettings>
 #include <QtCore/QCoreApplication>
 #include <QCloseEvent>
+
+
 
 Server::Server(QWidget *parent)
     : QDialog(parent)
@@ -38,9 +41,9 @@ Server::Server(QWidget *parent)
       * Статус демона (Есть связь/Нет связи/Нет места на диске)
       */
 
-    resize(280, 210);
-    setMinimumSize(QSize(280, 185));
-    setMaximumSize(QSize(280, 185));
+    resize(280, 240);
+    setMinimumSize(QSize(280, 240));
+    setMaximumSize(QSize(280, 240));
     QFont font;
     font.setFamily(QString::fromUtf8("Times New Roman"));
     font.setPointSize(12);
@@ -74,7 +77,7 @@ Server::Server(QWidget *parent)
     gridLayout->addWidget(mandat_LE, 1, 1, 1, 1);
 
     groupBox_2 = new QGroupBox(this);
-    groupBox_2->setGeometry(QRect(10, 90, 261, 51));
+    groupBox_2->setGeometry(QRect(10, 90, 261, 101));
     groupBox_2->setTitle(tr("Состояние сервера"));
 
     demonState_LE = new QLineEdit(groupBox_2);
@@ -82,8 +85,20 @@ Server::Server(QWidget *parent)
     demonState_LE->setReadOnly(true);
     demonState_LE->setEnabled(false);
 
+    authCheckBox = new QCheckBox(groupBox_2);
+    authCheckBox->setEnabled(false);
+    authCheckBox->setChecked(false);
+    authCheckBox->setText(tr("Плагин авторизации загружен"));
+    authCheckBox->setGeometry(QRect(10, 50, 241, 17));
+
+    netCheckBox = new QCheckBox(groupBox_2);
+    netCheckBox->setEnabled(false);
+    netCheckBox->setChecked(false);
+    netCheckBox->setText(tr("Плагин сетевого обмена загружен"));
+    netCheckBox->setGeometry(QRect(10, 70, 241, 17));
+
     quitButton = new QPushButton(this);    
-    quitButton->setGeometry(QRect(100, 150, 75, 23));
+    quitButton->setGeometry(QRect(100, 200, 75, 23));
     quitButton->setText(tr("Свернуть"));
 
     QObject::connect (quitButton,SIGNAL(clicked()),
@@ -109,6 +124,15 @@ void Server::init()
                 myServerGears = new serverGears(this,localSrvName);
                 connect (myServerGears,SIGNAL(stateChanged(LocalServerState)),
                          this, SLOT(do_SGStateChanged(LocalServerState)));
+
+                // Инициализация плагинов
+#if defined(Q_OS_UNIX)
+                myAuth_plugin->init(ticket_fname);
+#elif defined(Q_OS_WIN)
+                myAuth_plugin->init();
+#endif
+                myNet_plugin->init(serverHostName, serverPort,myServerGears->getUuid());
+
             }else{
                 setTrayStatus(VPrn::gk_ErrorState,tr("Ошибка при загрузке плагинов"));
             }
@@ -241,6 +265,7 @@ void Server::setUserName(QString & login,QString &mandat)
         }
     }
     setTrayStatus(my_TrayStatus,info_msg);
+    authCheckBox->setChecked(true);
 }
 
 void Server::setTrayStatus (trayStatus t_stat, const QString &t_msg)
@@ -289,7 +314,7 @@ void Server::setTrayStatus (trayStatus t_stat, const QString &t_msg)
 void Server::do_SGStateChanged(LocalServerState m_state)
 {
     switch (m_state){
-    case InitStep:
+    case InitServerState:
         break;
     case ReadyForJob:
         setTrayStatus(VPrn::gk_Started,tr("Готов работать!"));
@@ -313,8 +338,18 @@ void Server::do_SGStateChanged(LocalServerState m_state)
 void Server::runTEditor()
 {
     if (tEditor_bin.isEmpty()){
-        setTrayStatus(VPrn::gk_ErrorState,tr("Ошибка в файле параметров.\nПуть к редактору шаблонов не задан"));
+        setTrayStatus(VPrn::gk_ErrorState,
+                      tr("Ошибка в файле параметров.\nПуть к редактору шаблонов не задан"));
     }else{
+    }
+}
+
+void Server::recive_message(const Message &msg)
+{
+    switch (msg.type()){
+    case VPrn::Ans_RegisterGlobal:
+        netCheckBox->setChecked(true);
+        break;
     }
 }
 
@@ -358,11 +393,6 @@ bool Server::loadPlugins()
                         connect(plugin, SIGNAL(get_User_name_mandat(QString &,QString &)),
                                 this,   SLOT(setUserName(QString&,QString&))
                                 );
-#if defined(Q_OS_UNIX)
-                        myAuth_plugin->init(ticket_fname);
-#elif defined(Q_OS_WIN)
-                        myAuth_plugin->init();
-#endif
                     }
                 }
                 if (!myNet_plugin){
@@ -370,18 +400,16 @@ bool Server::loadPlugins()
                     net_plugin_Interface = qobject_cast<Inet_plugin *> (plugin);
                     if (net_plugin_Interface) {
                         needUnloadPlugin = false;
+                        // Сохраним указатель на плагин как данные класса
+                        myNet_plugin = net_plugin_Interface;
+
                         connect(plugin, SIGNAL(error(pluginsError,QString )),
                                 this,   SLOT (errorInfo(pluginsError,QString ))
                                 );
-                        // Сохраним указатель на плагин как данные класса
-                        myNet_plugin = net_plugin_Interface;
-                        /*
-                                        connect(plugin, SIGNAL(serverResponse(QString &)),
-                                                this,   SLOT(parseServerResponse(QString &))
-                                                );
-                                        myNet_plugin->init(serverHostName, serverPort,sid);
-                                        QString  msg= QObject::trUtf8("Плагин: [Работы с сетью] успешно загружен.");
-                        */
+                        /// @todo  Переделать на отправку прием сообщений!!!
+                        connect(plugin, SIGNAL(messageReady(Message)),
+                                this,   SLOT(recive_message(Message))
+                                );                        
                     }
                 }
             }

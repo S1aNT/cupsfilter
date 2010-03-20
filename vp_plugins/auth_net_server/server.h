@@ -21,6 +21,7 @@ class QMenu;
 class QPlainTextEdit;
 class QDialogButtonBox;
 class QGridLayout;
+class QCheckBox;
 QT_END_NAMESPACE
 
 using namespace VPrn;
@@ -93,6 +94,11 @@ private slots:
       * @brief Как только состояние слота изменилось, его надо обработать
       */
     void do_SGStateChanged(LocalServerState m_state);
+    /**
+      * @fn net_connected(Message msg);
+      * @brief Включаем флажок сеть установленна и доступна
+      */
+    void recive_message(const Message &msg);
 private:
 
     void createActions();
@@ -155,18 +161,22 @@ private:
     QString ticket_fname;
     QString m_lastError;
     QString tEditor_bin;
+    QString sid;
 
     // Набор графических элементов
-    QGroupBox *groupBox;
+    QGroupBox   *groupBox;
     QFormLayout *formLayout;
-    QLabel *login_label;
-    QLineEdit *login_LE;
-    QLabel *mandat_label;
-    QLineEdit *mandat_LE;
-    QGroupBox *groupBox_2;
-    QLineEdit *demonState_LE;
+    QLabel      *login_label;
+    QLineEdit   *login_LE;
+    QLabel      *mandat_label;
+    QLineEdit   *mandat_LE;
+    QGroupBox   *groupBox_2;
+    QLineEdit   *demonState_LE;
     QPushButton *quitButton;
     QGridLayout *gridLayout;
+    QCheckBox   *authCheckBox;
+    QCheckBox   *netCheckBox;
+
 
     // Действия
     QAction *minimizeAction;
