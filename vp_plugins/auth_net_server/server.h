@@ -90,10 +90,10 @@ private slots:
       */
     void runTEditor();
     /**
-      * @fn void do_SGStateChanged(LocalServerState m_state);
-      * @brief Как только состояние слота изменилось, его надо обработать
+      * @fn void do_ChekPointChanged(MyCheckPoints m_scheckPoint);
+      * @brief Как только состояние сокета изменилось, его надо обработать
       */
-    void do_SGStateChanged(LocalServerState m_state);
+    void do_ChekPointChanged(MyCheckPoints m_scheckPoint);
     /**
       * @fn net_connected(Message msg);
       * @brief Включаем флажок сеть установленна и доступна

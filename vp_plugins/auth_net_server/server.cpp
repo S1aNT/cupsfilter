@@ -122,8 +122,8 @@ void Server::init()
             if (Ok && !localSrvName.isEmpty()){
                 // Создаем основной объект
                 myServerGears = new serverGears(this,localSrvName);
-                connect (myServerGears,SIGNAL(stateChanged(LocalServerState)),
-                         this, SLOT(do_SGStateChanged(LocalServerState)));
+                connect (myServerGears,SIGNAL(checkPointChanged(MyCheckPoints)),
+                         this, SLOT(do_ChekPointChanged(MyCheckPoints)));
 
                 // Инициализация плагинов
 #if defined(Q_OS_UNIX)
@@ -311,25 +311,24 @@ void Server::setTrayStatus (trayStatus t_stat, const QString &t_msg)
     demonState_LE->setText(t_msg);
 }
 
-void Server::do_SGStateChanged(LocalServerState m_state)
+void Server::do_ChekPointChanged(MyCheckPoints m_scheckPoint)
 {
-    switch (m_state){
-    case InitServerState:
-        break;
-    case ReadyForJob:
+    switch (m_scheckPoint){
+    case VPrn::loc_ServerStart:
         setTrayStatus(VPrn::gk_Started,tr("Готов работать!"));
         break;
-    case DoPrintJob:
+    case VPrn::loc_NewClientStarted:
+        showTrayMessage(InfoType,tr("GateKeeper"),tr("Подключен новый клиент!"));
         break;
-    case DoSQLJob:
+
+    case VPrn::loc_MessageRecive:
+        showTrayMessage(InfoType,tr("GateKeeper"),tr("Полученно сообщение!"));
         break;
-    case NotListenError:
+    case VPrn::loc_Disconnected:
+        showTrayMessage(InfoType,tr("GateKeeper"),tr("Локальный клиент отключен!"));
         break;
-    case PluginNotLoadError:        
-    case NetworkCommonError:        
-    case DemonFreeSpaceError:        
-    case DemonResponceFailed:        
-    case DemonAuthFailed:
+    case VPrn::loc_CantStartListen:
+    case VPrn::glob_Error:
         setTrayStatus(VPrn::gk_ErrorState,myServerGears->lastError());
         break;
     }
