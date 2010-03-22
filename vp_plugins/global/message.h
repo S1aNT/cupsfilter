@@ -23,7 +23,11 @@ class Message : public QObject
 
 public:
     explicit Message(QObject *parent = 0);
-
+    /**
+      * @fn void clear();
+      * @brief Очистка сообщения
+      */
+    void clear();
     /**
       * @brief Создает и возвращает пакет данных готовый для передачи
       * @param msg Сообщение включаемое в пакет

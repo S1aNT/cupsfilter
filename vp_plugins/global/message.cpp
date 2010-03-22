@@ -5,7 +5,7 @@
 
 Message::Message(QObject *parent)
     : QObject(parent)
-    , messageType( NoType )
+    , messageType( VPrn::NoMsgType )
     , msgData()
     , ready( false )
 
@@ -38,9 +38,10 @@ QByteArray Message::messageData() const
     return msgData;
 }
 
-void Message::prepareMessage()
+void Message::clear()
 {
-
+    setType(VPrn::NoMsgType);
+    msgData.clear();
 }
 
 QByteArray Message::createPacket() const
