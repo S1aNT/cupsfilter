@@ -24,7 +24,7 @@ public:
     explicit serverGears(QObject *parent = 0,const QString &srvName = QString());    
 
     QString lastError() const {return e_info;};
-    LocalServerState state() const;
+    MyCheckPoints checkPoints() const;
     /**
       * @fn QString getUuid() const;
       * @brief Генерирует иникальный номер, преобразет его в строку и возвращает
@@ -33,7 +33,7 @@ public:
 signals:
     void messageReady( const Message &msg );
     void networkProtocolError();
-    void stateChanged(LocalServerState state);
+    void checkPointChanged(MyCheckPoints cp);
 
 //public slots:
 private slots:
@@ -78,7 +78,7 @@ private:
     QString m_serverName;    
     QLocalServer *m_server;
     qint32 packetSize;
-    LocalServerState m_state;
+    MyCheckPoints m_checkPoint;
     QString e_info;
     QSet<QLocalSocket *> clients;
     QMap<QLocalSocket *,QString> clients_uuid;
@@ -100,7 +100,7 @@ private:
       * @brief Устанавливает состояние ошибки,  записывает новое описание ошибки
       */
     void setError(const QString &info);
-    void setState(LocalServerState state);
+    void setCheckPoint(MyCheckPoints cp);
 };
 
 #endif // SERVERGEARS_H

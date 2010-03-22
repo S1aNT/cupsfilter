@@ -8,7 +8,7 @@
 serverGears::serverGears(QObject *parent,const QString &srvName)
     : QLocalServer(parent)   
     , packetSize(0)
-    , m_state(VPrn::InitServerState)
+    , m_checkPoint(VPrn::glob_Init)
     , e_info(QString())
 
 {
@@ -23,18 +23,18 @@ serverGears::serverGears(QObject *parent,const QString &srvName)
     if (!m_server->listen(m_serverName)) {
         setError(tr("Не могу запустить локальный сервер: %1.")
                  .arg(m_server->errorString()));       
-        setState(VPrn::NotListenError);
+        setCheckPoint(VPrn::loc_CantStartListen);
     }else{
         connect(m_server, SIGNAL(newConnection()),
                 this,     SLOT(client_init()));
-
+        setCheckPoint(VPrn::loc_ServerStart);
     }
 }
 
 
-LocalServerState serverGears::state() const
+MyCheckPoints serverGears::checkPoints() const
 {
-    return m_state;
+    return m_checkPoint;
 }
 
 QString serverGears::getUuid() const
@@ -60,7 +60,7 @@ void serverGears::prepareError(QLocalSocket::LocalSocketError socketError)
                  .arg( clientName, client->errorString() )
                  );
     }
-    setState(VPrn::NetworkCommonError);
+    setCheckPoint(VPrn::net_CommonError);
 }
 
 void serverGears::readyRead()
@@ -130,7 +130,7 @@ void serverGears::disconnected()
         // Оповестим тех кто заинтересован в том что клиент отвалился
         //client->write(QString("Server:" + user + " has left.\n").toUtf8());
     //}
-
+    setCheckPoint(VPrn::loc_Disconnected);
 }
 
 void serverGears::client_init()
@@ -145,7 +145,7 @@ void serverGears::client_init()
             this,   SLOT(disconnected()));
     connect(client, SIGNAL(error(QLocalSocket::LocalSocketError)),
             this,   SLOT(prepareError(QLocalSocket::LocalSocketError)));
-
+    setCheckPoint(VPrn::loc_NewClientStarted);
 }
 
 
@@ -156,25 +156,33 @@ void serverGears::setError(const QString &info)
 {
     e_info  = info;
 }
-void serverGears::setState(LocalServerState state)
+
+void serverGears::setCheckPoint(MyCheckPoints cp)
 {
-    m_state = state;
-    emit stateChanged(m_state);
+    m_checkPoint = cp;
+    emit checkPointChanged(m_checkPoint);
 }
 
 void serverGears::parseMessage( const Message &m_msg, QLocalSocket *client)
 {
+    setCheckPoint(VPrn::loc_MessageRecive);
+
     Message message( this );
+
     QString clientName = clients_uuid[client];
     QByteArray msg_body;
 
+    qDebug() << "Resive Message type " << m_msg.type()
+             << "from Client "  << clientName;
+
     switch (m_msg.type()){
         // Клиент только подключился, сообщим ему что он авторизирован и вернем
-        // ему присвоенный uuid.Тело сообщения  пустое
+        // ему присвоенный uuid.Тело сообщения uuid
     case VPrn::Que_Register:
         message.setType(VPrn::Ans_Register);
         message.setMessage( clientName.toUtf8() ); // Пробразуем в QByteArray
         sendMessage(message,client);
+        qDebug() << Q_FUNC_INFO <<  "client_uuid = " << clientName;
         break;
     }
 
@@ -182,6 +190,11 @@ void serverGears::parseMessage( const Message &m_msg, QLocalSocket *client)
 
 void serverGears::sendMessage( const Message &m_msg, QLocalSocket *client)
 {
+    QString clientName = clients_uuid[client];
+
+    qDebug() << "Send Message type " << m_msg.type()
+             << "to Client "  << clientName;
+
     //Сформируем пакет И пошлем его ветром гонимого клиенту
     client->write(m_msg.createPacket());
     client->flush();
