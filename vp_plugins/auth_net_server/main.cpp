@@ -24,7 +24,7 @@ int main(int argc, char *argv[])
     QTextCodec::setCodecForTr(codec);
     QTextCodec::setCodecForCStrings(codec);
     QTextCodec::setCodecForLocale(codec);
-    qInstallMsgHandler(myMessageOutput);
+    //qInstallMsgHandler(myMessageOutput);
 
     QtSingleApplication app(argc, argv, true);
 
