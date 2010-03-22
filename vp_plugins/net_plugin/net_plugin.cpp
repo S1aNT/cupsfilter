@@ -11,7 +11,7 @@ net_plugin::net_plugin(QObject *parent)
     , client(0)
     , packetSize(-1)
     , Sid(QString())
-    , m_state(VPrn::InitClientState)
+  //  , m_state(VPrn::InitClientState)
     , e_info(QString())
 {
 
@@ -49,10 +49,10 @@ void net_plugin::sendMessage(const Message &m_msg)
     client->flush();
 }
 
-socketState net_plugin::state() const
-{
-    return m_state;
-}
+//socketState net_plugin::state() const
+//{
+//    return m_state;
+//}
 
 //---------------------------- PRIVATE -----------------------------------------
  void net_plugin::setError(const QString &info)
@@ -60,11 +60,11 @@ socketState net_plugin::state() const
      e_info = info;
  }
 
- void net_plugin::setState(socketState state)
- {
-     m_state = state;
-     emit stateChanged(m_state);
- }
+// void net_plugin::setState(socketState state)
+// {
+//     m_state = state;
+//     emit stateChanged(m_state);
+// }
 
 //---------------------------- PRIVATE SLOTS -----------------------------------
 void net_plugin::readyRead()
@@ -146,7 +146,7 @@ void net_plugin::selectError(QAbstractSocket::SocketError err)
         e_msg = QObject::trUtf8("Код ошибки %1").arg(err,0,10);
     }
     emit error(VPrn::NetworkTransError,e_msg);
-    setState(VPrn::InternalError);
+    //setState(VPrn::InternalError);
 }
 
 Q_EXPORT_PLUGIN2(Inet_plugin, net_plugin);

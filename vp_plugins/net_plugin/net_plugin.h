@@ -19,7 +19,7 @@ class net_plugin :public QObject, Inet_plugin
 
 public:
     net_plugin(QObject *parent=0);
-    socketState state() const;
+    //socketState state() const;
     void init(const QString &host,int port,const QString &sid);
     void sendMessage(const Message &m_msg);
 
@@ -31,7 +31,7 @@ signals:
       * формате Message передается основному приложению
       */
     void messageReady( const Message &msg );
-    void stateChanged(socketState state);
+    //void stateChanged(socketState state);
 
 private slots:
     void readyRead();
@@ -59,7 +59,7 @@ private:
     QTcpSocket *client;  
     qint32 packetSize;
     QString Sid;
-    socketState m_state;
+    //socketState m_state;
     QString e_info;
     /**
       * @fn setError(const QString &info);
@@ -70,7 +70,7 @@ private:
       * @fn void setState(socketState state);
       * @brief Меняет состояние и испускает соответсвующий сигнал
       */
-    void setState(socketState state);
+    //void setState(socketState state);
 };
 
 
