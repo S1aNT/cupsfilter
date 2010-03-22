@@ -111,38 +111,31 @@ namespace VPrn{
         gk_ErrorState
     };
 
-    enum ProtocolError { 
-        InvalidFormat =0, 
-        InvalidVersion = 1 
+
+
+//
+    enum MyCheckPoints{
+         // Глобальные "отметки" имеют префикс glob_
+         glob_Init,
+         glob_Error,
+         glob_RemoteDaemonReady,
+         glob_RemoteDemonNotReady,
+         // Локальные  "отметки" имеют префикс loc_  Работают с QLocalSocket/QLocalServer
+         loc_CantStartListen,      // Не могу запустить локальный сервер, порт занят
+         loc_Connected,            // Присоедиен к локальному серверу
+         loc_Disconnected,         // Отсоденился от локального сервера
+         loc_ServerNotFound,       // Локальный сервер не найден
+         loc_ServerStart,          // Локальный сервер запущен
+         loc_LocalServerReady,     // Локальный сервер готов к работе (Есть имя и мандат)
+         loc_LocalServerNeedMandat,// Локальный сервер готов к работе,(Есть имя но нет Мандата)
+         loc_NewClientStarted,     // К локальному серверу подключился новый клиент
+         loc_MessageRecive,        // Полученно сообщение в локальный сокет (в клиенте или в сервере)
+         // Сетевые    "отметки" имеют префикс net_ Работают с QTcpSocket/QTcpServer
+         net_HostNotFound,         // Удаленный сервер не найден
+         net_Connected,            // Соединен с удаленным сервером
+         net_Disconnected,         // Отсодинен от удаленного сервера
+         net_CommonError           // Ошибка сети
     };
-
-    enum LocalServerState{
-        InitServerState,
-        ReadyForJob,        // Готов к работе
-        DoPrintJob,         //
-        DoSQLJob,           //
-
-
-        NotListenError,     // Не могу занять порт на прослушивание, значит уже есть копия
-        PluginNotLoadError, //
-        NetworkCommonError,   //
-        DemonFreeSpaceError,//
-
-        DemonResponceFailed,//
-        DemonAuthFailed,
-
-    };
-
-
-    enum socketState {
-        InitClientState,
-        Connected,
-        Disconnected,
-        Auhtorized,
-        HostNotFound,
-        InternalError
-    };
-
 
     enum MessageType {
 //Глобальные сообщения (для передачи/приема с мишиным Демоном)
@@ -159,8 +152,10 @@ namespace VPrn{
         Ans_Register     = 5015,     // Ответ о регистрации
         Que_ServerStatus = 5020,     // Запрос у сервера его состояния
         Ans_ServerStatus = 5025,     // Ответ сервера его состояние
-        GiveAuthData     = 5030,     // Запрос индетификационных данных от сервера
-        NoType           = 99999
+//Служебные сообщения   
+        Err_Message      = 7000,     // Локальный сервер передает сообщение об ошибке
+                                     // Подробности в теле сообщения 
+        NoMsgType        = 0
 
     };
     
@@ -203,12 +198,23 @@ namespace VPrn{
 
     };
 
+    enum CoreOptionFlag {
+         NoOptions = 0x0,
+         LocalRegister = 0x1,
+         ShowAll = 0x2,
+         SqueezeBlank = 0x4
+     };
+
+    Q_FLAGS(CoreOptions CoreOptionFlag);
+    Q_DECLARE_FLAGS(CoreOptions, CoreOptionFlag);
+    Q_DECLARE_OPERATORS_FOR_FLAGS(CoreOptions);
+
+
 
 }
 
-Q_DECLARE_METATYPE(VPrn::socketState);
-Q_DECLARE_METATYPE(VPrn::LocalServerState);
-Q_DECLARE_METATYPE(VPrn::ProtocolError);
+
+Q_DECLARE_METATYPE(VPrn::MyCheckPoints);
 Q_DECLARE_METATYPE(VPrn::MessageType);
 Q_DECLARE_METATYPE(VPrn::trayIcons);
 Q_DECLARE_METATYPE(VPrn::trayStatus);
