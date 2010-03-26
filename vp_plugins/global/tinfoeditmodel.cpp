@@ -83,20 +83,20 @@ void TemplateInfoEditModel::refresh()
              "c_time,m_time,author,margin_top,margin_bottom,"
              "margin_left,margin_right,page_size.p_witdh,page_size.p_height  "
              "FROM template INNER JOIN page_size ON template.page_size_id=page_size.id");
-          setHeaderData(tInfo_id,     Qt::Horizontal, tr("ID"));                 // 0
-          setHeaderData(tInfo_name,   Qt::Horizontal, tr("Имя шаблона"));        // 1
-          setHeaderData(tInfo_desc,   Qt::Horizontal, tr("Описание"));           // 2
-          setHeaderData(tInfo_pageID, Qt::Horizontal, tr("PSize_id"));           // 3
-          setHeaderData(tInfo_angle,  Qt::Horizontal, tr("Поворот (град.)"));    // 4
-          setHeaderData(tInfo_ctime,  Qt::Horizontal, tr("Время создания"));     // 5
-          setHeaderData(tInfo_mtime,  Qt::Horizontal, tr("Время изменения"));    // 6
-          setHeaderData(tInfo_author, Qt::Horizontal, tr("Автор"));              // 7
-          setHeaderData(tInfo_mtop,   Qt::Horizontal, tr("Отступ сверху (мм)")); // 8
-          setHeaderData(tInfo_mbottom,Qt::Horizontal, tr("Отступ снизу (мм)"));  // 9
-          setHeaderData(tInfo_mleft,  Qt::Horizontal, tr("Отступ слева (мм)"));  // 10
-          setHeaderData(tInfo_mright, Qt::Horizontal, tr("Отступ справа (мм)")); // 11
-          setHeaderData(tInfo_p_width, Qt::Horizontal,  tr("Ширина (мм)")); // 12
-          setHeaderData(tInfo_p_height, Qt::Horizontal, tr("Высота (мм)")); // 13
+          setHeaderData(tInfo_id,     Qt::Horizontal, QObject::trUtf8("ID"));                 // 0
+          setHeaderData(tInfo_name,   Qt::Horizontal, QObject::trUtf8("Имя шаблона"));        // 1
+          setHeaderData(tInfo_desc,   Qt::Horizontal, QObject::trUtf8("Описание"));           // 2
+          setHeaderData(tInfo_pageID, Qt::Horizontal, QObject::trUtf8("PSize_id"));           // 3
+          setHeaderData(tInfo_angle,  Qt::Horizontal, QObject::trUtf8("Поворот (град.)"));    // 4
+          setHeaderData(tInfo_ctime,  Qt::Horizontal, QObject::trUtf8("Время создания"));     // 5
+          setHeaderData(tInfo_mtime,  Qt::Horizontal, QObject::trUtf8("Время изменения"));    // 6
+          setHeaderData(tInfo_author, Qt::Horizontal, QObject::trUtf8("Автор"));              // 7
+          setHeaderData(tInfo_mtop,   Qt::Horizontal, QObject::trUtf8("Отступ сверху (мм)")); // 8
+          setHeaderData(tInfo_mbottom,Qt::Horizontal, QObject::trUtf8("Отступ снизу (мм)"));  // 9
+          setHeaderData(tInfo_mleft,  Qt::Horizontal, QObject::trUtf8("Отступ слева (мм)"));  // 10
+          setHeaderData(tInfo_mright, Qt::Horizontal, QObject::trUtf8("Отступ справа (мм)")); // 11
+          setHeaderData(tInfo_p_width, Qt::Horizontal,  QObject::trUtf8("Ширина (мм)")); // 12
+          setHeaderData(tInfo_p_height, Qt::Horizontal, QObject::trUtf8("Высота (мм)")); // 13
 
 }
 

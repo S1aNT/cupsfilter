@@ -20,62 +20,56 @@ mySocketClient::mySocketClient(QLocalSocket *parent)
 
 void mySocketClient::readyRead()
 {
-    //QLocalSocket *client = (QLocalSocket*)sender();
-    //QString clientName = clients_uuid[client];
-
-    //Свяжем поток и сокет
+    qDebug() << Q_FUNC_INFO << QObject::trUtf8(" Recive %1 bytes \n").arg(this->bytesAvailable(),0,10);
+    //РЎРІСЏР¶РµРј РїРѕС‚РѕРє Рё СЃРѕРєРµС‚
     QDataStream in ( this );
     in.setVersion(QDataStream::Qt_4_0);
 
     while (this->bytesAvailable() > 0){
         if (packetSize == -1) {
-            //Определим количество байт доступных для чтения;
-            //на этом шаге необходимо получить больше 4-х байт
+            //РћРїСЂРµРґРµР»РёРј РєРѕР»РёС‡РµСЃС‚РІРѕ Р±Р°Р№С‚ РґРѕСЃС‚СѓРїРЅС‹С… РґР»СЏ С‡С‚РµРЅРёСЏ;
+            //РЅР° СЌС‚РѕРј С€Р°РіРµ РЅРµРѕР±С…РѕРґРёРјРѕ РїРѕР»СѓС‡РёС‚СЊ Р±РѕР»СЊС€Рµ 4-С… Р±Р°Р№С‚
             if( this->bytesAvailable() < sizeof(qint32) ){
                 return;
             }
-            //Читаем размер пакета
+            //Р§РёС‚Р°РµРј СЂР°Р·РјРµСЂ РїР°РєРµС‚Р°
             in >> packetSize;
         }
-        //Проверим что в сокет пришел весь пакет а не его огрызки
+        //РџСЂРѕРІРµСЂРёРј С‡С‚Рѕ РІ СЃРѕРєРµС‚ РїСЂРёС€РµР» РІРµСЃСЊ РїР°РєРµС‚ Р° РЅРµ РµРіРѕ РѕРіСЂС‹Р·РєРё
         if (this->bytesAvailable() < packetSize){
             return;
         }
-        //Сбросим размер пакета, для обработки следующего
+        //РЎР±СЂРѕСЃРёРј СЂР°Р·РјРµСЂ РїР°РєРµС‚Р°, РґР»СЏ РѕР±СЂР°Р±РѕС‚РєРё СЃР»РµРґСѓСЋС‰РµРіРѕ
         packetSize = -1;
 
-        //Прочтем и проверим формат протокола
-        qint32 m_format;
-        in >> m_format;
-        if( m_format != format ) {
-            setError(tr("Ошибка в формате протокола, при обмене данными с сервером %1")
-                     .arg(this->serverName()));
-            return;
-        }
+//        //РџСЂРѕС‡С‚РµРј Рё РїСЂРѕРІРµСЂРёРј С„РѕСЂРјР°С‚ РїСЂРѕС‚РѕРєРѕР»Р°
+//        qint32 m_format;
+//        in >> m_format;
+//        if( m_format != format ) {
+//            setError(QObject::trUtf8("РћС€РёР±РєР° РІ С„РѕСЂРјР°С‚Рµ РїСЂРѕС‚РѕРєРѕР»Р°, РїСЂРё РѕР±РјРµРЅРµ РґР°РЅРЅС‹РјРё СЃ СЃРµСЂРІРµСЂРѕРј %1")
+//                     .arg(this->serverName()));
+//            return;
+//        }
 
-        // Прочтем тип сообщения
+        // РџСЂРѕС‡С‚РµРј С‚РёРї СЃРѕРѕР±С‰РµРЅРёСЏ
         int m_Type;
         in >> m_Type;
 
-        //Прочтем само сообщение
+        //РџСЂРѕС‡С‚РµРј СЃР°РјРѕ СЃРѕРѕР±С‰РµРЅРёРµ
         QByteArray msg;
         in >> msg;
         Message message( this );
-        message.setType((MessageType) m_Type); //Проверить как конвертирует
+        message.setType((MessageType) m_Type); //РџСЂРѕРІРµСЂРёС‚СЊ РєР°Рє РєРѕРЅРІРµСЂС‚РёСЂСѓРµС‚
         message.setMessage( msg );        
-        // Отправка сообщения
+        // РћС‚РїСЂР°РІРєР° СЃРѕРѕР±С‰РµРЅРёСЏ
+        qDebug() << "Construct message. Type: " << m_Type << " Body " << msg;
         messageReady( message );
     }
 }
 
 void mySocketClient::do_connected()
 {
-    setCheckPoint(VPrn::loc_Connected);
-    //Запрос авторизации
-    Message msg(this);
-    msg.setType(VPrn::Que_Register);
-    this->sendMessage(msg);
-
+    setCheckPoint(VPrn::loc_Connected);   
 }
 
 void mySocketClient::setCheckPoint(MyCheckPoints m_cpoint)
@@ -96,7 +90,7 @@ void mySocketClient::sendMessage(const Message &msg)
         this->write(msg.createPacket());
         this->flush();
     }else{
-        setError(tr("Попытка записи данных в закрытый сокет!"));
+        setError(QObject::trUtf8("РџРѕРїС‹С‚РєР° Р·Р°РїРёСЃРё РґР°РЅРЅС‹С… РІ Р·Р°РєСЂС‹С‚С‹Р№ СЃРѕРєРµС‚!"));
     }
 }
 
@@ -107,7 +101,7 @@ void mySocketClient:: do_error(QLocalSocket::LocalSocketError r_error)
         setCheckPoint(VPrn::loc_ServerNotFound);
         break;
     default:
-        setError(tr("При работе с % произошла ошибка %2")
+        setError(QObject::trUtf8("РџСЂРё СЂР°Р±РѕС‚Рµ СЃ % РїСЂРѕРёР·РѕС€Р»Р° РѕС€РёР±РєР° %2")
                  .arg(this->serverName(),this->errorString()));
         break;
     }

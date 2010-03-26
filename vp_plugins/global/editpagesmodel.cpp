@@ -88,8 +88,8 @@ void EditPagesModel::refresh()
              " INNER JOIN page_detail ON page_detail_id =  page_detail.id"
              " ORDER BY p_number");
 
-    setHeaderData(VPrn::PD_id,        Qt::Horizontal, tr("Id"));
-    setHeaderData(VPrn::PD_p_number,  Qt::Horizontal, tr("Порядковый номер"));
-    setHeaderData(VPrn::PD_p_name,    Qt::Horizontal, tr("Название страницы"));
-    setHeaderData(VPrn::PD_p_visible, Qt::Horizontal, tr("Видимость страницы"));
+    setHeaderData(VPrn::PD_id,        Qt::Horizontal, QObject::trUtf8("Id"));
+    setHeaderData(VPrn::PD_p_number,  Qt::Horizontal, QObject::trUtf8("p_number"));
+    setHeaderData(VPrn::PD_p_name,    Qt::Horizontal, QObject::trUtf8("p_name"));
+    setHeaderData(VPrn::PD_p_visible, Qt::Horizontal, QObject::trUtf8("p_visible"));
 }

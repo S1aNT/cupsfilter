@@ -1,7 +1,8 @@
 #include "message.h"
-
+#include <QtCore/QDebug>
 #include <QtCore/QMetaType>
 #include <QtCore/QDataStream>
+
 
 Message::Message(QObject *parent)
     : QObject(parent)
@@ -52,12 +53,13 @@ QByteArray Message::createPacket() const
 
     QByteArray packet;
     QDataStream out(&packet, QIODevice::WriteOnly );
+
     out.setVersion(QDataStream::Qt_4_0);
     // ¬ставим размер пакета равный нулю, но отведем под него 4 байта
     out << (qint32)0;
 
     //¬ставим формат протокола
-    out<<VPrn::format;
+    //out<<VPrn::format;
 
     //¬ставим “ип сообщени€ и само сообщение в пакет
     out << ( int ) this->type();
@@ -66,10 +68,15 @@ QByteArray Message::createPacket() const
     out.device()->seek(0);
     // ¬ычислим размер блока данных и запишем их на свое место
     out << (qint32)(packet.size() - sizeof(qint32));
+    int t_size = packet.size();
+    //int t_type = ( int ) this->type();
+    QByteArray t_arr = packet;
 
-//    qDebug() << "\ncreatePacket(): after creating "
-//             << " packet " << packet
-//             << " full packet size: " << packet.size();
+    qDebug() << "\ncreatePacket(): after creating "
+             << " packet " << t_arr
+             << " full packet size: " << t_size;
+
+
     return packet;
 }
 

@@ -180,12 +180,12 @@ void  myScene::contextMenuEvent( QGraphicsSceneContextMenuEvent* event )
         QAction * act = menu.exec(event->screenPos());
         if (act ==setTagAction){
             QString tag = QInputDialog::getText(event->widget(),
-                                                 tr("Введите текст"),
-                                                 tr("Новый тэг элемента:"),
+                                                 QObject::trUtf8("Введите текст"),
+                                                 QObject::trUtf8("Новый тэг элемента:"),
                                                  QLineEdit::Normal, textItem->getETag());
             if (!tag.isEmpty()){
                 m_undoStack->push( new CommandTextItemChangeTag( this, textItem,tag ) );
-                textItem->setEText(tr("Новый..."));
+                textItem->setEText(QObject::trUtf8("Новый..."));
                 textItem->setPlainText(tag);
             }
         }
