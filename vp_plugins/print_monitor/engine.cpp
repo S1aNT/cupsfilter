@@ -10,15 +10,17 @@
 #include <QtCore/QMetaType>
 #include <QtCore/QPluginLoader>
 #include <QtCore/QTimer>
+#include <QtCore/QRegExp>
 
-Engine::Engine(QObject *parent,const QString &app_path)
-    : e_info(QString())
-    , e_state(false)
-    , m_LocalClient(0)
-    , stopLaunch(false)
-    , m_appPath(QString())
-    , gs_plugin(0)
-    , client_uuid(QString())
+Engine::Engine(QObject *parent,const QString &app_path,
+               const QString &client_name)
+                   : e_info(QString())
+                   , e_state(false)
+                   , m_LocalClient(0)
+                   , stopLaunch(false)
+                   , m_appPath(QString())
+                   , gs_plugin(0)
+                   , client_uuid(QString())
 
 {
     qRegisterMetaType<VPrn::MessageType>("MessageType");
@@ -26,18 +28,20 @@ Engine::Engine(QObject *parent,const QString &app_path)
     QString ini_path =QString("%1/Technoserv/safe_printer.ini")
                       .arg(m_appPath);
     this->readConfig(ini_path);
-
+    this->clientName = client_name;
 }
 
 void Engine::init()
 {
     this->setError();
-    this->loadPlugin();
+    if (loadPlugin()){
+        emit pluginsLoad();
+    }
 
     if (!link_name.isEmpty() &&  !gatekeeper_bin.isEmpty()){
         launchAndConnect();
     }else{
-        setError(tr("Ошибка в файле конфигурации. Проверьте параметры:\n"
+        setError(QObject::trUtf8("Ошибка в файле конфигурации. Проверьте параметры:\n"
                     " Раздел [SERVICE] параметр link_name\n"
                     " Раздел [USED_DIR_FILE] параметр gatekeeper_bin"
                     ));
@@ -46,13 +50,21 @@ void Engine::init()
 }
 
 
+void Engine::setUserMandat(const QString & mandat)
+{
+    emit ReciveUserMandat();
+    // Запись в сокет сообщения запрос доступных уровней секретности для
+    Message msg(this);
+    msg.setType(VPrn::Que_SEC_LEVEL);
+    msg.setMessage( mandat.toUtf8() ); // Пробразуем в QByteArray
+    sendMessage2LocalSrv(msg);
+}
 
 void Engine::sendMessage2LocalSrv(const Message &s_msg)
 {
     if (m_LocalClient){
         m_LocalClient->sendMessage(s_msg);
     }
-
 }
 
 //------------------------------- PRIVATE --------------------------------------
@@ -88,7 +100,7 @@ void Engine::readConfig(const QString &ini_file)
         settings.endGroup();
 
     }else{
-        setError(tr("Файл с настройками программы %1 не найден!").arg(ini_file));
+        setError(QObject::trUtf8("Файл с настройками программы %1 не найден!").arg(ini_file));
     }
 }
 
@@ -126,7 +138,7 @@ bool Engine::loadPlugin()
             }
             if ( needUnloadPlugin ){
                 // Выгрузим его нафиг не наш он плагин, сто пудово :)
-                qDebug() << tr("Plugin's [%1] unload").arg(pluginsDir.absoluteFilePath(fileName));
+                qDebug() << QObject::trUtf8("Plugin's [%1] unload").arg(pluginsDir.absoluteFilePath(fileName));
                 pluginMessageer.unload();
             }
         }
@@ -159,7 +171,7 @@ void Engine::launchAndConnect()
                  this, SLOT(parseMessage(const Message &))
                  );
     }
-    emit infoMessage(tr("Устанавливаем соединение с GateKeeper!"));
+    //emit infoMessage(QObject::trUtf8("Устанавливаем соединение с GateKeeper!"));
     // Устанавливаем соединение с локальным сервером
     m_LocalClient->connectToServer(link_name);
 }
@@ -167,15 +179,22 @@ void Engine::launchAndConnect()
 //-------------------------------- PRIVATE SLOTS -------------------------------
 void Engine::do_checkPointChanged(MyCheckPoints r_cpoint)
 {
+    Message msg(this);
+    msg.clear();
     switch (r_cpoint){
 
     case VPrn::loc_Connected:
-        emit infoMessage(tr("Соединение с GateKeeper установленно,запрос авторизации "));
+        //emit infoMessage(QObject::trUtf8("Соединение с GateKeeper установленно,запрос авторизации "));
+        emit LocalSrvRegistr();
+        //Запрос авторизации
+        msg.setType(VPrn::Que_Register);
+        msg.setMessage( clientName.toUtf8() ); // Пробразуем в QByteArray
+        sendMessage2LocalSrv(msg);
         break;
 
     case VPrn::loc_ServerNotFound:
         if (!stopLaunch){
-            emit infoMessage(tr("GateKeeper не запущен,загружаем его!"));
+            //emit infoMessage(QObject::trUtf8("GateKeeper не запущен,загружаем его!"));
 
             QProcess proc;
             // Запуск процесса старта сервера
@@ -195,15 +214,37 @@ void Engine::do_checkPointChanged(MyCheckPoints r_cpoint)
 
 void Engine::parseMessage(const Message &r_msg)
 {
+    qDebug() << Q_FUNC_INFO << "Recive message."
+            << "\nType: "  << r_msg.type()
+            << "\nBody: "  << r_msg.messageData();
+
     Message msg(this);
     msg.clear();
-    switch (r_msg.type()){
-    case VPrn::Ans_Register: // Клиент зарегистрирован
+    QString str;
 
+    switch (r_msg.type()){
+    case VPrn::Ans_PRINTER_LIST:
+        str.append(r_msg.messageData());
+        emit getPrinterList(str);
+        //emit infoMessage(QObject::trUtf8("Получен список принтеров доступных пользователю"));
+        emit RecivePrintersList();
+        break;
+    case VPrn::Ans_STAMP_LIST: // Получили названия уровней секретности, сохраним
+        str.append(r_msg.messageData());
+        secLevelList << str.split(";:;");
+
+        //emit infoMessage(QObject::trUtf8("Получен список уровней секретности доступный пользователю"));
+        emit ReciveSecLevelList();
+        //Запрос списка принтеров доступных пользоваетелю
+        msg.setType(VPrn::Que_GET_PRINTER_LIST);
+        sendMessage2LocalSrv(msg);
+        break;
+
+    case VPrn::Ans_Register: // Клиент зарегистрирован
         // Сохраним полученный от GateKeeper уникальный номер
-        client_uuid.fromUtf8(r_msg.messageData());
-        emit infoMessage(tr("GateKeeper зарегистрировал клиента.UUID = [%1]")
-                         .arg(client_uuid));
+        client_uuid.clear();
+        client_uuid.append(r_msg.messageData());
+        emit LocalSrvRegistr();
         // Запрос у локального сервера его состояния возможные ответы:
         // Не готов к работе (Подробностив теле сообщения)
         // Готов к работе (Есть auth данные пользователя, есть связь с демоном)
@@ -215,11 +256,34 @@ void Engine::parseMessage(const Message &r_msg)
     case VPrn::Err_Message:
         // Получили сообщение об ошибке Формат: КОД~~описание
         break;
-    case VPrn::Ans_ServerStatus:
-        QString info;
-        info.fromUtf8(r_msg.messageData());
-        // Разберем ответ сервера, в формате :
+    case VPrn::Ans_SrvStatusNotReady:      
+        str.append(r_msg.messageData());
+        emit gk_notReady(QObject::trUtf8("GateKeeper не готов к работе по причине [%1]")
+                         .arg(str));
         break;
+    case VPrn::Ans_SrvStatusPartReady:   
+        str.append(r_msg.messageData());
+        emit needAuthUser(str);
+        emit RemoteDemonRegistr();
+        break;
+    case VPrn::Ans_SrvStatusFullReady:
+        str.append(r_msg.messageData());
+        // Разберем ответ сервера, в формате : имя;:;мандат
+        QRegExp rx("(.+);:;(.+)");
+        //rx.setMinimal(true);
+        if(rx.indexIn(str) != -1){
+            QString uName   = rx.cap(1);
+            QString uMandat = rx.cap(2);
+            emit gk_fullReady(uName,uMandat);
+            //Запрос уровней секретности для мандата
+            setUserMandat(uMandat);
+            emit ReciveUserName();
+            emit RemoteDemonRegistr();
+        }else{
+            emit infoMessage(QObject::trUtf8("Ошибка при получении имени и мандата текщего пользователя"));
+        }
+        break;
+
     }
 }
 
