@@ -3,6 +3,7 @@
 
 #include "message.h"
 #include "mytypes.h"
+#include "inet_plugin.h"
 
 #include <QtCore/QObject>
 #include <QtCore/QMap>
@@ -30,6 +31,17 @@ public:
       * @brief Генерирует иникальный номер, преобразет его в строку и возвращает
       */
     QString getUuid() const;
+    /**
+      * @fn void setAuthData(const QString &userName = QString(),const QString &userMandat = QString());
+      * @brief Сохранение данных пользователея Имя и Мандат
+      */
+    void setAuthData(const QString &userName = QString(),const QString &userMandat = QString());
+    /**
+      * @fn void setNetPlugin(Inet_plugin *NetPlugin);
+      * @brief Запомним указатель на загруженный сетевой плагин. вся работа с сетью
+      * идет только внутри @class serverGears
+      */
+    void setNetPlugin(Inet_plugin *NetPlugin);
 signals:
     void messageReady( const Message &msg );
     void networkProtocolError();
@@ -53,17 +65,12 @@ private slots:
       */
     void prepareError(QLocalSocket::LocalSocketError socketError);
 
-    void client_init();
-
-protected:
     /**
-      * @fn void incomingConnection(quintptr socketDescriptor);
-      * @brief Как только происходит новое подключение к локальному серверу,
-      * происходит вызов этой функции, и создание нового Локального сокета
-      * работающего с клиентом
+      * @fn void reciveNetworkMessage(const Message &msg);
+      * @brief Обработка сообщения полученного из сети
       */
-    //void incomingConnection(quintptr socketDescriptor);
-
+    void reciveNetworkMessage(const Message &r_msg);
+    void client_init();
 private:
     /**
       * @var m_serverName;     Имя локального сервера для общения с Локальным миром
@@ -71,8 +78,13 @@ private:
       * @var currentDataBlock; Текущий полученный блок данных
       * @var m_state;          Статус Локального сервера
       * @var e_info;           Последняя возникшая ошибка
+      * @var net_plugin;       Указатель на сетевой плагин
+      * @var u_login;          Текущий логин пользователя
+      * @var u_mandat;         Текущий мандат пользователя
+      * @var netDemonReady;    Истина если произошла успешная авторизация GateKeeper на сетевом демоне
       * @var clients;          Список подключенных клиентов
-      * @var clients_name;     Список имен подключенных клиентов
+      * @var clients_uuid;     Список UUID подключенных клиентов
+      * @var clients_name;     Список имен подключенных клиентов      
       */
 
     QString m_serverName;    
@@ -80,9 +92,16 @@ private:
     qint32 packetSize;
     MyCheckPoints m_checkPoint;
     QString e_info;
+    Inet_plugin *net_plugin;
+    QString u_login;
+    QString u_mandat;
+    bool netDemonReady;
     QSet<QLocalSocket *> clients;
     QMap<QLocalSocket *,QString> clients_uuid;
+    QMap<QLocalSocket *,QString> clients_name;
+
 //-----------------------------------------------------------------------------
+
     /**
       * @fn void parseMessage( const Message &msg, const QLocalSocket *client);
       * @brief Обработка сообщения от конкретного клиента
@@ -101,6 +120,13 @@ private:
       */
     void setError(const QString &info);
     void setCheckPoint(MyCheckPoints cp);
+    /**
+      * @fn QLocalSocket *findClient(const QString &c_uuid);
+      * @brief Ищет по uuid зарегистрированного клиента и возвращает
+      * указатель на него или 0
+      * @returns QLocalSocket * or 0
+      */
+    QLocalSocket *findClient(const QString &c_uuid);
 };
 
 #endif // SERVERGEARS_H
