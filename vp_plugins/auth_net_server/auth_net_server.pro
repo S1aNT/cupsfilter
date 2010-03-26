@@ -4,7 +4,7 @@ TEMPLATE += app
 TARGET = auth_net_server
 CONFIG += warn_on \
     qt \
-    console\
+    console \
     precompile_header
 DESTDIR = ../VPrn
 CONFIG(debug, debug|release) { 
@@ -39,5 +39,6 @@ HEADERS += server.h \
 SOURCES += server.cpp \
     main.cpp \
     servergears.cpp \
-    ../global/message.cpp 
+    ../global/message.cpp
 RESOURCES = images.qrc
+TRANSLATIONS = auth_net_server_ru.ts
