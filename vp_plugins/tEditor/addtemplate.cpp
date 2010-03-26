@@ -76,9 +76,9 @@ void AddTemplate::setEnableGUI(bool mode)
     ui->marginGBox->setEnabled(mode);
 
     if (!mode){
-        text = tr("Закрыть");
+        text = QObject::trUtf8("Закрыть");
     }else{
-        text = tr("Отмена");
+        text = QObject::trUtf8("Отмена");
     }
     ui->addBtn->setVisible(mode);
     ui->cancelBtn->setText(text);
@@ -99,7 +99,7 @@ void AddTemplate::accept()
     }else{
         fileName = QFileDialog::getSaveFileName(this, QObject::trUtf8("Сохранить шаблон как"),
                                                 local_dir,
-                                                tr("Шаблоны (*.tmpl *.TMPL)"));
+                                                QObject::trUtf8("Шаблоны (*.tmpl *.TMPL)"));
         if (!fileName.isEmpty()){
             if (work_mode){
                 emit needCreateEmptyTemplates(fileName);
@@ -353,7 +353,7 @@ void AddTemplate::setData4Models()
                 if (cellData.isValid()){
                     if (!tInfoModel->setData(cellIndex,cellData,Qt::EditRole)){
                         emit error (SQLCommonError,
-                                    tr("При записи в поле [%1] произошла ошибка. %2")
+                                    QObject::trUtf8("При записи в поле [%1] произошла ошибка. %2")
                                     .arg(i).arg(tInfoModel->lastError().text()));
                     }
                 }
