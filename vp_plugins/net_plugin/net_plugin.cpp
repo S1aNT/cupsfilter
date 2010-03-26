@@ -1,5 +1,12 @@
+#define DEBUG_MODE
+
 #include <QDebug>
 
+#ifdef DEBUG_MODE
+#include <QtCore/QRegExp>
+#include <stdlib.h>
+#include <QtCore/QDateTime>
+#endif
 
 #include "net_plugin.h"
 
@@ -11,7 +18,7 @@ net_plugin::net_plugin(QObject *parent)
     , client(0)
     , packetSize(-1)
     , Sid(QString())
-  //  , m_state(VPrn::InitClientState)
+    //  , m_state(VPrn::InitClientState)
     , e_info(QString())
 {
 
@@ -33,20 +40,90 @@ void net_plugin::init(const QString &host, int port,const QString &sid)
             this, SLOT(selectError(QAbstractSocket::SocketError)));
 
     client->connectToHost(HostName, Port);
-/*
-    Для отладки    	
-*/
+#ifdef DEBUG_MODE
     Message message( this );
     message.setType(Ans_RegisterGlobal);
-    //message.setMessage( Sid.toUtf8() ); // Пробразуем в QByteArray
+    QString str = QObject::trUtf8("[%1];:;").arg(Sid);
+    message.setMessage(  str.toUtf8() );
     emit messageReady(message);
+#endif
+
 }
 
-void net_plugin::sendMessage(const Message &m_msg)
+void net_plugin::sendMessage(const Message &s_msg)
 {
+
+#ifdef DEBUG_MODE
+    // При отладке я просто эмулирую ответы Мишиного демона
+    QString m_uuid;
+    QString m_body;
+    QString str;
+    // Генерируем случайное число  1 или 0
+    qsrand(QDateTime::currentDateTime().toTime_t());
+    int r = 0;//(int) (3.0*(qrand()/(RAND_MAX + 1.0)));
+
+    Message loc_msg( this );
+    // Разберем тело ответа на части [кому];:;что_передали
+    str.append(s_msg.messageData());
+
+    QRegExp rx("\\[(.+)\\];:;(.+)");
+    //rx.setMinimal(true);
+
+    if(rx.indexIn(str) != -1){
+        m_uuid  = rx.cap(1);
+        m_body  = rx.cap(2);
+
+        switch (s_msg.type()){
+        case VPrn::Que_MANDAT_LIST:
+            // Типа получили ответ от демона
+            loc_msg.clear();
+            str.clear();
+            if (r == 0){
+                loc_msg.setType(VPrn::Ans_MANDAT_LIST);
+                str = QObject::trUtf8("[%1];:;CC;:;C;:;NS;:;DSP").arg(m_uuid);
+                loc_msg.setMessage(  str.toUtf8() );
+            }else{
+                loc_msg.setType(VPrn::Ans_MANDAT_LIST_EMPTY);
+                str = QObject::trUtf8("[%1];:;").arg(m_uuid);
+                loc_msg.setMessage(  str.toUtf8() );
+            }
+            emit messageReady(loc_msg);
+            break;
+        case VPrn::Que_SEC_LEVEL:
+            //m_body содержит мандат
+            // Формируем ответное сообщение
+            loc_msg.setType(VPrn::Ans_STAMP_LIST);
+            str = QObject::trUtf8("[%1];:;Сов.Секретно;:;Секретно;:;Не Секретно;:;ДСП").arg(m_uuid);
+            loc_msg.setMessage(  str.toUtf8() );
+            emit messageReady(loc_msg);
+            break;
+        case VPrn::Que_GET_PRINTER_LIST:
+            //m_body содержит мандат
+            // Формируем ответное сообщение
+            loc_msg.clear();
+            str.clear();
+            if (r == 0){
+                loc_msg.setType(VPrn::Ans_PRINTER_LIST);
+
+                str = QObject::trUtf8("[%1];:;SL9PRT.DDDD;:;socket://200.0.0.100:9100/?waitof=false###;:;SL9PRT.NEW;:;socket://200.0.0.100:9100/###")
+                      .arg(m_uuid);
+                loc_msg.setMessage(  str.toUtf8() );
+            }else{
+                loc_msg.setType(VPrn::Ans_PRINTER_LIST_EMPTY);
+                str = QObject::trUtf8("[%1];:;").arg(m_uuid);
+                loc_msg.setMessage(  str.toUtf8() );
+            }
+            emit messageReady(loc_msg);
+            break;
+        }
+    }else{
+        setError(QObject::trUtf8("Полученно сообщение неверного формата!"));
+    }
+#else
     //Сформируем пакет И пошлем его ветром гонимого
     client->write(m_msg.createPacket());
     client->flush();
+#endif
 }
 
 //socketState net_plugin::state() const
@@ -55,10 +132,10 @@ void net_plugin::sendMessage(const Message &m_msg)
 //}
 
 //---------------------------- PRIVATE -----------------------------------------
- void net_plugin::setError(const QString &info)
- {
-     e_info = info;
- }
+void net_plugin::setError(const QString &info)
+{
+    e_info = info;
+}
 
 // void net_plugin::setState(socketState state)
 // {
@@ -90,15 +167,6 @@ void net_plugin::readyRead()
         //Сбросим размер пакета, для обработки следующего
         packetSize = -1;
 
-        //Прочтем и проверим формат протокола
-        qint32 m_format;
-        in >> m_format;
-        if( m_format != format ) {
-            setError(tr("Ошибка в формате протокола, при обмене данными с сервером %1")
-                     .arg(HostName));
-            return;
-        }
-
         // Прочтем тип сообщения
         int m_Type;
         in >> m_Type;
@@ -118,10 +186,11 @@ void net_plugin::readyRead()
 void net_plugin::onConnected()
 {
     //QString m_body =QString("/me;:;%1;:;%2").arg(Sid).arg(REGISTER_CMD,0,10);
-/// @todo k МИШЕ УСТРАНИТЬ ДУБЛИРОВАНИЕ ИНФОРМАЦИИ
+    /// @todo k МИШЕ УСТРАНИТЬ ДУБЛИРОВАНИЕ ИНФОРМАЦИИ
     Message message( this );
     message.setType(VPrn::Que_RegisterGlobal);
-    message.setMessage( Sid.toUtf8() ); // Пробразуем в QByteArray
+    QString str = QObject::trUtf8("[%1];:;").arg(Sid);
+    message.setMessage( str.toUtf8() ); // Пробразуем в QByteArray
     sendMessage(message);
 }
 
@@ -132,7 +201,7 @@ void net_plugin::selectError(QAbstractSocket::SocketError err)
     {
     case QAbstractSocket::ConnectionRefusedError :
         e_msg =QObject::trUtf8("Соединение отклоненно удаленным сервером [%1]")
-                .arg(HostName);
+               .arg(HostName);
         break;
     case QAbstractSocket::HostNotFoundError :
         e_msg =QObject::trUtf8("Удаленный сервер не найден!")

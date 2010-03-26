@@ -21,7 +21,7 @@ public:
     net_plugin(QObject *parent=0);
     //socketState state() const;
     void init(const QString &host,int port,const QString &sid);
-    void sendMessage(const Message &m_msg);
+    void sendMessage(const Message &s_msg);
 
 signals:
     void error(pluginsError errCode,QString error_message);
