@@ -81,27 +81,27 @@ void Tmpl_sql_plugin::init(const QString & spool,const QString & sid)
             spool_dir = spool;
             // Формируем пути для файлов
             for (int i=0; i<8;i++){
-                filesGrp.insert(i,tr("%1/%2_page_%3.pdf")
+                filesGrp.insert(i,QObject::trUtf8("%1/%2_page_%3.pdf")
                                     .arg(spool, sid).arg(i,0,10));
             }
             // Заполним список базовых элементов шаблона
 
-            baseElemList << QObject::tr("МБ")
-                    << QObject::tr("Название док-та")
-                    << QObject::tr("Гриф")
-                    << QObject::tr("Пункт перечня")
-                    << QObject::tr("Номер копии")
-                    << QObject::tr("Кол-во листов")
-                    << QObject::tr("Исполнитель")
-                    << QObject::tr("Отпечатал")
-                    << QObject::tr("Телефон")
-                    << QObject::tr("Инв. N")
-                    << QObject::tr("Дата распечатки")
-                    << QObject::tr("Получатель N1")
-                    << QObject::tr("Получатель N2")
-                    << QObject::tr("Получатель N3")
-                    << QObject::tr("Получатель N4")
-                    << QObject::tr("Получатель N5");
+            baseElemList << QObject::QObject::trUtf8("МБ")
+                    << QObject::QObject::trUtf8("Название док-та")
+                    << QObject::QObject::trUtf8("Гриф")
+                    << QObject::QObject::trUtf8("Пункт перечня")
+                    << QObject::QObject::trUtf8("Номер копии")
+                    << QObject::QObject::trUtf8("Кол-во листов")
+                    << QObject::QObject::trUtf8("Исполнитель")
+                    << QObject::QObject::trUtf8("Отпечатал")
+                    << QObject::QObject::trUtf8("Телефон")
+                    << QObject::QObject::trUtf8("Инв. N")
+                    << QObject::QObject::trUtf8("Дата распечатки")
+                    << QObject::QObject::trUtf8("Получатель N1")
+                    << QObject::QObject::trUtf8("Получатель N2")
+                    << QObject::QObject::trUtf8("Получатель N3")
+                    << QObject::QObject::trUtf8("Получатель N4")
+                    << QObject::QObject::trUtf8("Получатель N5");
 
         }else{
             e_msg = QObject::trUtf8("ERROR: каталог %1 не существует\n").arg(spool);
@@ -148,7 +148,7 @@ bool Tmpl_sql_plugin::createConnection()
         DB_ = QSqlDatabase::addDatabase(QLatin1String("QSQLITE"));
         if (DB_.driver()
             && DB_.driver()->lastError().type() == QSqlError::ConnectionError) {
-            emit error(DriverNotLoad,tr("Не могу загрузить драйвер sqlite!"));
+            emit error(DriverNotLoad,QObject::trUtf8("Не могу загрузить драйвер sqlite!"));
             openingOk = false;
         }
 
@@ -167,7 +167,7 @@ bool Tmpl_sql_plugin::openDataBase(const QString & t_fileName)
         }
         if (!Ok){
             emit error(DBOpeningError,
-                       tr("Не могу открыть файл шаблона: %1\nОшибка %2")
+                       QObject::trUtf8("Не могу открыть файл шаблона: %1\nОшибка %2")
                        .arg(t_fileName).arg(DB_.lastError().text()));
             DumpError(DB_.lastError());
             DB_.close();
@@ -205,7 +205,7 @@ void Tmpl_sql_plugin::setTagValue(QHash<QString, QString> &tagValue)
             }
         }else{
             emit error (VPrn::SQLCommonError,
-                        tr("Соединение с БД шаблона не было установленно"));
+                        QObject::trUtf8("Соединение с БД шаблона не было установленно"));
         }
     }
     if (Ok){
@@ -213,7 +213,7 @@ void Tmpl_sql_plugin::setTagValue(QHash<QString, QString> &tagValue)
         update_scenes(tagValue);
     }else{
         emit error (VPrn::SQLQueryError,
-                    tr("Ошибка [%1] при записи значений в БД шаблона")
+                    QObject::trUtf8("Ошибка [%1] при записи значений в БД шаблона")
                     .arg(query.lastError().text()));
     }
     */
@@ -261,14 +261,14 @@ void Tmpl_sql_plugin::convert2Pdf()
                      }else{
                          Ok &=false;
                          emit error(VPrn::InternalPluginError,
-                                    tr("Ошибка преобразования шаблона в pdf.\n"
+                                    QObject::trUtf8("Ошибка преобразования шаблона в pdf.\n"
                                        "Нарушенна структура шаблона"));
                      }
                  }
              }
          }else{
              emit error(VPrn::InternalPluginError,
-                        tr("Ошибка преобразования шаблона в pdf.\n"
+                        QObject::trUtf8("Ошибка преобразования шаблона в pdf.\n"
                            "Необходимо вначале открыть существующий или создать новый шаблон"));
          }
     }
@@ -322,13 +322,13 @@ void Tmpl_sql_plugin::createEmptyTemplate()
                     Ok &= fillModels();
                 }else{
                     emit error(SQLCommonError,
-                               tr("Ошибка создания пустого шаблона в файле %1")
+                               QObject::trUtf8("Ошибка создания пустого шаблона в файле %1")
                                .arg(currentDBFileName));
                 }
             }
         }else{
             Ok = false;
-            emit error(FileNotFound,tr("Ошибка создания временного файла %1")
+            emit error(FileNotFound,QObject::trUtf8("Ошибка создания временного файла %1")
                        .arg(currentDBFileName));
         }
     }
@@ -396,12 +396,12 @@ void Tmpl_sql_plugin::saveTemplates()
                                     }
                                 }
                             }else{
-                                emit error (VPrn::SQLQueryError,tr("Ошибка [%1] при заполнении шаблона")
+                                emit error (VPrn::SQLQueryError,QObject::trUtf8("Ошибка [%1] при заполнении шаблона")
                                             .arg( query.lastError().text() )
                                             );
                             }
                         }else{
-                            emit error (VPrn::SQLQueryError,tr("Ошибка [%1] при очистке шаблона")
+                            emit error (VPrn::SQLQueryError,QObject::trUtf8("Ошибка [%1] при очистке шаблона")
                                         .arg( query.lastError().text() )
                                         );
                         }
@@ -410,7 +410,7 @@ void Tmpl_sql_plugin::saveTemplates()
             }
         }else{
             emit error(VPrn::InternalPluginError,
-                       tr("Ошибка сохранения шаблона.\n"
+                       QObject::trUtf8("Ошибка сохранения шаблона.\n"
                           "Необходимо вначале открыть существующий или создать новый шаблон"));
         }
     }
@@ -432,7 +432,7 @@ void Tmpl_sql_plugin::saveTemplatesAs(const QString & fileName)
                 }
             }else{
                 emit error(FileIOError,
-                           tr("Ошибка сохранения шаблона по заданному пути %1").arg(fileName));
+                           QObject::trUtf8("Ошибка сохранения шаблона по заданному пути %1").arg(fileName));
             }
         }
     }
@@ -445,7 +445,7 @@ void Tmpl_sql_plugin::doAddBaseElementToPage(int page,const QString &tag)
         scene->addBaseElem(tag);
     }else{
         emit error(VPrn::InternalPluginError,
-                   tr("Ошибка добавления элемента %1 в шаблон\n").arg(tag));
+                   QObject::trUtf8("Ошибка добавления элемента %1 в шаблон\n").arg(tag));
     }
 }
 
@@ -546,13 +546,13 @@ bool Tmpl_sql_plugin::isValidFileName(const QString & fileName)
     bool Ok = true;
     {
         if (fileName.isEmpty()){
-            emit error(FileIOError, tr("Имя файла шаблона не заданно!"));
+            emit error(FileIOError, QObject::trUtf8("Имя файла шаблона не заданно!"));
             Ok = false;
         }else{
             QRegExp rx("(.+)tmpl");
             if(rx.indexIn(fileName.toLower()) == -1){
                 emit error(FileIOError,
-                           tr("файла шаблона должен иметь расширение tmpl!"));
+                           QObject::trUtf8("файла шаблона должен иметь расширение tmpl!"));
                 Ok = false;
             }
         }
@@ -564,7 +564,7 @@ void Tmpl_sql_plugin::DumpError (const QSqlError & lastError)
 {
     /*
     emit error(SQLCommonError,
-               tr("Ошибка работы с БД шаблона. %1").arg(lastError.text()));
+               QObject::trUtf8("Ошибка работы с БД шаблона. %1").arg(lastError.text()));
 */
     qDebug()<< "lastError.text() "        << lastError.text() << "\n"
             << "lastError.databaseText() "<< lastError.databaseText() << "\n"
@@ -656,13 +656,13 @@ int Tmpl_sql_plugin::getId4pageSizeTable(QSqlQuery &query,const QString & findSi
                     pageSizeID = query.value(field_id).toInt();
                 }else{
                     emit error(VPrn::SQLCommonError,
-                               tr("Ошибка разбора шаблона.\n"
+                               QObject::trUtf8("Ошибка разбора шаблона.\n"
                                   "Не найдена запись  [%1] в таблице размеров страниц").arg(findSize));
                 }
             }else{
                 qDebug() << "last query = " << query.lastQuery();
                 DumpError(query.lastError());                
-                emit error(VPrn::SQLCommonError, tr("Ошибка разбора шаблона."));
+                emit error(VPrn::SQLCommonError, QObject::trUtf8("Ошибка разбора шаблона."));
             }
         }
     }
@@ -695,8 +695,8 @@ bool Tmpl_sql_plugin::create_emptyDB(QString const&)
                                 "VALUES(?,?,?,?,?,?,?,?,?,?,?);");
             if (Ok){
 
-                query.addBindValue(tr("Новый шаблон"));
-                query.addBindValue(tr("Тут можно кратко описать шаблон..."));
+                query.addBindValue(QObject::trUtf8("Новый шаблон"));
+                query.addBindValue(QObject::trUtf8("Тут можно кратко описать шаблон..."));
                 query.addBindValue(QDateTime::currentDateTime().toTime_t());
                 query.addBindValue(QDateTime::currentDateTime().toTime_t());
                 query.addBindValue(userName);            
@@ -718,42 +718,42 @@ bool Tmpl_sql_plugin::create_emptyDB(QString const&)
                     if (Ok){
 
                         query.addBindValue(VPrn::FirstPage);
-                        query.addBindValue(tr("Лицевая сторона 1-го листа.Экземпляр №1"));
+                        query.addBindValue(QObject::trUtf8("Лицевая сторона 1-го листа.Экземпляр №1"));
                         query.addBindValue(1);
                         Ok &= query.exec();
 
                         query.addBindValue(VPrn::FirstPageN2);
-                        query.addBindValue(tr("Лицевая сторона 1-го листа.Экземпляр №2"));
+                        query.addBindValue(QObject::trUtf8("Лицевая сторона 1-го листа.Экземпляр №2"));
                         query.addBindValue(1);
                         Ok &= query.exec();
 
                         query.addBindValue(VPrn::FirstPageN3);
-                        query.addBindValue(tr("Лицевая сторона 1-го листа.Экземпляр №3"));
+                        query.addBindValue(QObject::trUtf8("Лицевая сторона 1-го листа.Экземпляр №3"));
                         query.addBindValue(1);
                         Ok &= query.exec();
 
                         query.addBindValue(VPrn::FirstPageN4);
-                        query.addBindValue(tr("Лицевая сторона 1-го листа.Экземпляр №4"));
+                        query.addBindValue(QObject::trUtf8("Лицевая сторона 1-го листа.Экземпляр №4"));
                         query.addBindValue(1);
                         Ok &= query.exec();
 
                         query.addBindValue(VPrn::FirstPageN5);
-                        query.addBindValue(tr("Лицевая сторона 1-го листа.Экземпляр №5"));
+                        query.addBindValue(QObject::trUtf8("Лицевая сторона 1-го листа.Экземпляр №5"));
                         query.addBindValue(1);
                         Ok &= query.exec();
 
                         query.addBindValue(VPrn::SecondPage);
-                        query.addBindValue(tr("Лицевая сторона 2-го листа"));
+                        query.addBindValue(QObject::trUtf8("Лицевая сторона 2-го листа"));
                         query.addBindValue(1);
                         Ok &= query.exec();
 
                         query.addBindValue(VPrn::ThirdPage);
-                        query.addBindValue(tr("Обратная сторона каждого листа"));
+                        query.addBindValue(QObject::trUtf8("Обратная сторона каждого листа"));
                         query.addBindValue(1);
                         Ok &= query.exec();
 
                         query.addBindValue(VPrn::FourthPage);
-                        query.addBindValue(tr("Фонарик"));
+                        query.addBindValue(QObject::trUtf8("Фонарик"));
                         query.addBindValue(1);
                         Ok &= query.exec();
                         /// Запишем крепкие связи
@@ -973,7 +973,7 @@ bool Tmpl_sql_plugin::isCreateFile(const QString & fileName)
             Ok &= QFile::remove(fileName);
             if (!Ok){
                 emit error(FileIOError,
-                           tr("Ошибка удаления временного файла %1")
+                           QObject::trUtf8("Ошибка удаления временного файла %1")
                            .arg(fileName));
             }
         }else{
@@ -983,7 +983,7 @@ bool Tmpl_sql_plugin::isCreateFile(const QString & fileName)
                 file.close();
                 Ok &= file.remove();
             }else{
-                emit error(FileIOError,tr("Ошибка создания файла шаблона %1."
+                emit error(FileIOError,QObject::trUtf8("Ошибка создания файла шаблона %1."
                                           "\nError %2")
                            .arg(fileName).arg(file.errorString()));
             }
@@ -1004,13 +1004,13 @@ bool Tmpl_sql_plugin::fillModels()
         /// Заполним модель (только для чтения) список размеров страниц
         pSizeModel->setQuery("select id, page_human,print_paper_size, "
                              "p_witdh,p_height  from page_size",DB_);
-        pSizeModel->setHeaderData(pSize_id, Qt::Horizontal, tr("Id"));
-        pSizeModel->setHeaderData(pSize_page, Qt::Horizontal, tr("Размер листа"));
-        pSizeModel->setHeaderData(pSize_code, Qt::Horizontal, tr("Код"));
-        pSizeModel->setHeaderData(pSize_width, Qt::Horizontal, tr("Ширина (мм)"));
-        pSizeModel->setHeaderData(pSize_height, Qt::Horizontal, tr("Высота (мм)"));
+        pSizeModel->setHeaderData(pSize_id, Qt::Horizontal, QObject::trUtf8("Id"));
+        pSizeModel->setHeaderData(pSize_page, Qt::Horizontal, QObject::trUtf8("Размер листа"));
+        pSizeModel->setHeaderData(pSize_code, Qt::Horizontal, QObject::trUtf8("Код"));
+        pSizeModel->setHeaderData(pSize_width, Qt::Horizontal, QObject::trUtf8("Ширина (мм)"));
+        pSizeModel->setHeaderData(pSize_height, Qt::Horizontal, QObject::trUtf8("Высота (мм)"));
         if (pSizeModel->lastError().isValid()){
-            emit error(SQLQueryError,tr("Ошибка получения свойств шаблона. %1")
+            emit error(SQLQueryError,QObject::trUtf8("Ошибка получения свойств шаблона. %1")
                        .arg(pSizeModel->lastError().text()));
             Ok &= false;
         }
@@ -1019,7 +1019,7 @@ bool Tmpl_sql_plugin::fillModels()
         pagesModel->refresh();
 
         if (pagesModel->lastError().isValid()){
-            emit error(SQLQueryError,tr("Ошибка получения свойств шаблона. %1")
+            emit error(SQLQueryError,QObject::trUtf8("Ошибка получения свойств шаблона. %1")
                        .arg(pagesModel->lastError().text()));
             Ok &= false;
         }
@@ -1032,33 +1032,33 @@ bool Tmpl_sql_plugin::fillModels()
                                   "WHERE page_detail.p_visible = 1 "                                 
                                   ,DB_);
         elemInPageModel->setHeaderData(VPrn::elem_id,
-                                       Qt::Horizontal, tr("Id"));
+                                       Qt::Horizontal, QObject::trUtf8("Id"));
         elemInPageModel->setHeaderData(VPrn::elem_text,
-                                       Qt::Horizontal, tr("Текст"));
+                                       Qt::Horizontal, QObject::trUtf8("Текст"));
         elemInPageModel->setHeaderData(VPrn::elem_tag,
-                                       Qt::Horizontal, tr("Тэг"));
+                                       Qt::Horizontal, QObject::trUtf8("Тэг"));
         elemInPageModel->setHeaderData(VPrn::elem_pos_x,
-                                       Qt::Horizontal, tr("Позиция х"));
+                                       Qt::Horizontal, QObject::trUtf8("Позиция х"));
         elemInPageModel->setHeaderData(VPrn::elem_pos_y,
-                                       Qt::Horizontal, tr("Позиция"));
+                                       Qt::Horizontal, QObject::trUtf8("Позиция"));
         elemInPageModel->setHeaderData(VPrn::elem_color,
-                                       Qt::Horizontal, tr("Цвет шрифта"));
+                                       Qt::Horizontal, QObject::trUtf8("Цвет шрифта"));
         elemInPageModel->setHeaderData(VPrn::elem_font,
-                                       Qt::Horizontal, tr("Шрифт"));
+                                       Qt::Horizontal, QObject::trUtf8("Шрифт"));
         elemInPageModel->setHeaderData(VPrn::elem_angle,
-                                       Qt::Horizontal, tr("Угол поворота"));
+                                       Qt::Horizontal, QObject::trUtf8("Угол поворота"));
         elemInPageModel->setHeaderData(VPrn::elem_border,
-                                       Qt::Horizontal, tr("Граница элемента (1/0)"));
+                                       Qt::Horizontal, QObject::trUtf8("Граница элемента (1/0)"));
         elemInPageModel->setHeaderData(VPrn::elem_img_data,
-                                       Qt::Horizontal, tr("Изображение"));
+                                       Qt::Horizontal, QObject::trUtf8("Изображение"));
         elemInPageModel->setHeaderData(VPrn::elem_always_view,
-                                       Qt::Horizontal, tr("Всегда видим (1/0)"));
+                                       Qt::Horizontal, QObject::trUtf8("Всегда видим (1/0)"));
         elemInPageModel->setHeaderData(VPrn::elem_p_number,
-                                       Qt::Horizontal, tr("Страница шаблона"));
+                                       Qt::Horizontal, QObject::trUtf8("Страница шаблона"));
         elemInPageModel->setHeaderData(VPrn::elem_text_img,
-                                       Qt::Horizontal, tr("Тип элемента текст/картинка (1/0)"));
+                                       Qt::Horizontal, QObject::trUtf8("Тип элемента текст/картинка (1/0)"));
         if (elemInPageModel->lastError().isValid()){
-            emit error(SQLQueryError,tr("Ошибка получения свойств шаблона. %1")
+            emit error(SQLQueryError,QObject::trUtf8("Ошибка получения свойств шаблона. %1")
                        .arg(elemInPageModel->lastError().text()));
             Ok &= false;
         }
@@ -1066,7 +1066,7 @@ bool Tmpl_sql_plugin::fillModels()
         tInfoModel->refresh();
 
         if (tInfoModel->lastError().isValid()){
-            emit error(SQLQueryError,tr("Ошибка получения свойств шаблона. %1")
+            emit error(SQLQueryError,QObject::trUtf8("Ошибка получения свойств шаблона. %1")
                        .arg(tInfoModel->lastError().text()));
             Ok &= false;
         }
