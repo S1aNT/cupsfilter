@@ -30,8 +30,6 @@ Server::Server(QWidget *parent)
     , myServerGears(0)
     , myNet_plugin(0)
     , myAuth_plugin(0)
-    , u_login(QString())
-    , u_mandat(QString())
     , m_GateKeeperReady(false)
 {
 
@@ -52,16 +50,16 @@ Server::Server(QWidget *parent)
 
     groupBox = new QGroupBox(this);
     groupBox->setGeometry(QRect(9, 5, 261, 81));
-    groupBox->setTitle(tr("Параметры авторизации"));
+    groupBox->setTitle(QObject::trUtf8("Параметры авторизации"));
     gridLayout = new QGridLayout(groupBox);
 
     login_label = new QLabel(groupBox);
     login_label->setFont(font);
-    login_label->setText(tr("Логин"));
+    login_label->setText(QObject::trUtf8("Логин"));
 
     mandat_label = new QLabel(groupBox);
     mandat_label->setFont(font);
-    mandat_label->setText(tr("Мандат"));
+    mandat_label->setText(QObject::trUtf8("Мандат"));
 
     login_LE = new QLineEdit(groupBox);
     login_LE->setReadOnly(true);
@@ -78,7 +76,7 @@ Server::Server(QWidget *parent)
 
     groupBox_2 = new QGroupBox(this);
     groupBox_2->setGeometry(QRect(10, 90, 261, 101));
-    groupBox_2->setTitle(tr("Состояние сервера"));
+    groupBox_2->setTitle(QObject::trUtf8("Состояние сервера"));
 
     demonState_LE = new QLineEdit(groupBox_2);
     demonState_LE->setGeometry(QRect(10, 20, 241, 20));
@@ -88,28 +86,28 @@ Server::Server(QWidget *parent)
     authCheckBox = new QCheckBox(groupBox_2);
     authCheckBox->setEnabled(false);
     authCheckBox->setChecked(false);
-    authCheckBox->setText(tr("Плагин авторизации загружен"));
+    authCheckBox->setText(QObject::trUtf8("Плагин авторизации загружен"));
     authCheckBox->setGeometry(QRect(10, 50, 241, 17));
 
     netCheckBox = new QCheckBox(groupBox_2);
     netCheckBox->setEnabled(false);
     netCheckBox->setChecked(false);
-    netCheckBox->setText(tr("Плагин сетевого обмена загружен"));
+    netCheckBox->setText(QObject::trUtf8("Плагин сетевого обмена загружен"));
     netCheckBox->setGeometry(QRect(10, 70, 241, 17));
 
     quitButton = new QPushButton(this);    
     quitButton->setGeometry(QRect(100, 200, 75, 23));
-    quitButton->setText(tr("Свернуть"));
+    quitButton->setText(QObject::trUtf8("Свернуть"));
 
     QObject::connect (quitButton,SIGNAL(clicked()),
                       this,SLOT(close()));
 
-    setWindowTitle(tr("GateKeeper"));
+    setWindowTitle(QObject::trUtf8("GateKeeper"));
 
     createActions();
     createTrayIcon();    
     setVisible(false);
-    init();
+    this->init();
 }
 
 void Server::init()
@@ -118,27 +116,30 @@ void Server::init()
     {
         Ok &= readConfig();
         if ( Ok ){
-            Ok &= loadPlugins();
-            if (Ok && !localSrvName.isEmpty()){
+            if (!localSrvName.isEmpty()){
                 // Создаем основной объект
                 myServerGears = new serverGears(this,localSrvName);
                 connect (myServerGears,SIGNAL(checkPointChanged(MyCheckPoints)),
                          this, SLOT(do_ChekPointChanged(MyCheckPoints)));
+                Ok &= loadPlugins();
+                if (Ok){
+                    myServerGears->setNetPlugin(myNet_plugin);
 
-                // Инициализация плагинов
+                    // Инициализация плагинов
 #if defined(Q_OS_UNIX)
-                myAuth_plugin->init(ticket_fname);
+                    myAuth_plugin->init(ticket_fname);
 #elif defined(Q_OS_WIN)
-                myAuth_plugin->init();
+                    myAuth_plugin->init();
 #endif
-                myNet_plugin->init(serverHostName, serverPort,myServerGears->getUuid());
+                    myNet_plugin->init(serverHostName, serverPort,myServerGears->getUuid());
 
-            }else{
-                setTrayStatus(VPrn::gk_ErrorState,tr("Ошибка при загрузке плагинов"));
+                }else{
+                    setTrayStatus(VPrn::gk_ErrorState,QObject::trUtf8("Ошибка при загрузке плагинов"));
+                }
             }
         }else{
-            //demonState_LE->setText(tr("Ошибка конфигурации"));
-            setTrayStatus(VPrn::gk_ErrorState,tr("Ошибка при чтении файла конфигурации"));
+            //demonState_LE->setText(QObject::trUtf8("Ошибка конфигурации"));
+            setTrayStatus(VPrn::gk_ErrorState,QObject::trUtf8("Ошибка при чтении файла конфигурации"));
         }
     }
     m_GateKeeperReady = Ok;
@@ -173,8 +174,8 @@ void Server::setVisible(bool visible)
 void Server::closeEvent(QCloseEvent *event)
 {
     if (trayIcon->isVisible()) {
-        QMessageBox::information(this, tr("GateKeeper"),
-                                 tr("Данная программа будет продолжать работу в системном трее.\n"
+        QMessageBox::information(this, QObject::trUtf8("GateKeeper"),
+                                 QObject::trUtf8("Данная программа будет продолжать работу в системном трее.\n"
                                     "Для завершения работы, выберите Выход "
                                     "в контекстном меню программы. "));
         hide();
@@ -185,16 +186,16 @@ void Server::closeEvent(QCloseEvent *event)
 
 void Server::createActions()
 {
-    minimizeAction = new QAction(tr("Свернуть в трей"), this);
+    minimizeAction = new QAction(QObject::trUtf8("Свернуть в трей"), this);
     connect(minimizeAction, SIGNAL(triggered()), this, SLOT(hide()));
 
-    restoreAction = new QAction(tr("Восстановить"), this);
+    restoreAction = new QAction(QObject::trUtf8("Восстановить"), this);
     connect(restoreAction, SIGNAL(triggered()), this, SLOT(showNormal()));
 
-    quitAction = new QAction(tr("Выход"), this);
+    quitAction = new QAction(QObject::trUtf8("Выход"), this);
     connect(quitAction, SIGNAL(triggered()), qApp, SLOT(quit()));
 
-    runEditorAction  = new QAction(tr("Запуск редактора"), this);
+    runEditorAction  = new QAction(QObject::trUtf8("Запуск редактора"), this);
     connect(runEditorAction, SIGNAL(triggered()), this, SLOT(runTEditor()));
 }
 
@@ -219,7 +220,7 @@ void Server::createTrayIcon()
 
 void Server::appendStartMsg(const QString & msg)
 {
-    showTrayMessage(InfoType,tr("GateKeeper"),msg);
+    showTrayMessage(InfoType,QObject::trUtf8("GateKeeper"),msg);
 }
 
 //************************** PRIVATE SLOTS *************************************
@@ -245,27 +246,30 @@ void Server::errorInfo(pluginsError eCode,QString e_msg)
 
 void Server::setUserName(QString & login,QString &mandat)
 {
-    u_login = login;
-    u_mandat = mandat;
+    //u_login = login;
+    //u_mandat = mandat;
     trayStatus my_TrayStatus;
     QString info_msg;
-    if (u_login.isEmpty()){
+    if (login.isEmpty()){
         my_TrayStatus = VPrn::gk_ErrorState;
-        info_msg = tr("Ошибка авторизации пользователя.Не удалось получить логин!");
+        info_msg = QObject::trUtf8("Ошибка авторизации пользователя.Не удалось получить логин!");
     }else{
         login_LE->setText(login);
 
-        if (u_mandat.isEmpty()){
+        if (mandat.isEmpty()){
             my_TrayStatus = VPrn::gk_UserLogin;
-            info_msg = tr("Пользователь зарегистрирован в ОС");
+            info_msg = QObject::trUtf8("Пользователь зарегистрирован в ОС");
         }else{
             my_TrayStatus = VPrn::gk_UserAuthorized;
-            info_msg = tr("Пользователь зарегистрирован в СУРД.");
+            info_msg = QObject::trUtf8("Пользователь зарегистрирован в СУРД.");
             mandat_LE->setText(mandat);
         }
     }
     setTrayStatus(my_TrayStatus,info_msg);
     authCheckBox->setChecked(true);
+    if (myServerGears){
+        myServerGears->setAuthData(login,mandat);
+    }
 }
 
 void Server::setTrayStatus (trayStatus t_stat, const QString &t_msg)
@@ -307,25 +311,28 @@ void Server::setTrayStatus (trayStatus t_stat, const QString &t_msg)
     if (!trayIcon->isVisible()){
         trayIcon->show();
     }
-    showTrayMessage(m_type,tr("GateKeeper"),t_msg);
+    showTrayMessage(m_type,QObject::trUtf8("GateKeeper"),t_msg);
     demonState_LE->setText(t_msg);
 }
 
 void Server::do_ChekPointChanged(MyCheckPoints m_scheckPoint)
 {
     switch (m_scheckPoint){
+    case VPrn::net_Connected:
+        netCheckBox->setChecked(true); //Включаем флажок сеть установленна и доступна
+        break;
     case VPrn::loc_ServerStart:
-        setTrayStatus(VPrn::gk_Started,tr("Готов работать!"));
+        setTrayStatus(VPrn::gk_Started,QObject::trUtf8("Готов работать!"));
         break;
     case VPrn::loc_NewClientStarted:
-        showTrayMessage(InfoType,tr("GateKeeper"),tr("Подключен новый клиент!"));
+        showTrayMessage(InfoType,QObject::trUtf8("GateKeeper"),QObject::trUtf8("Подключен новый клиент!"));
         break;
 
-    case VPrn::loc_MessageRecive:
-        showTrayMessage(InfoType,tr("GateKeeper"),tr("Полученно сообщение!"));
-        break;
+//    case VPrn::loc_MessageRecive:
+//        showTrayMessage(InfoType,QObject::trUtf8("GateKeeper"),QObject::trUtf8("Полученно сообщение от локального клиента!"));
+//        break;
     case VPrn::loc_Disconnected:
-        showTrayMessage(InfoType,tr("GateKeeper"),tr("Локальный клиент отключен!"));
+        showTrayMessage(InfoType,QObject::trUtf8("GateKeeper"),QObject::trUtf8("Локальный клиент отключен!"));
         break;
     case VPrn::loc_CantStartListen:
     case VPrn::glob_Error:
@@ -338,19 +345,12 @@ void Server::runTEditor()
 {
     if (tEditor_bin.isEmpty()){
         setTrayStatus(VPrn::gk_ErrorState,
-                      tr("Ошибка в файле параметров.\nПуть к редактору шаблонов не задан"));
+                      QObject::trUtf8("Ошибка в файле параметров.\nПуть к редактору шаблонов не задан"));
     }else{
     }
 }
 
-void Server::recive_message(const Message &msg)
-{
-    switch (msg.type()){
-    case VPrn::Ans_RegisterGlobal:
-        netCheckBox->setChecked(true);
-        break;
-    }
-}
+
 
 //------------------------------------------------------------------------------
 bool Server::loadPlugins()
@@ -401,20 +401,18 @@ bool Server::loadPlugins()
                         needUnloadPlugin = false;
                         // Сохраним указатель на плагин как данные класса
                         myNet_plugin = net_plugin_Interface;
-
                         connect(plugin, SIGNAL(error(pluginsError,QString )),
                                 this,   SLOT (errorInfo(pluginsError,QString ))
                                 );
-                        /// @todo  Переделать на отправку прием сообщений!!!
                         connect(plugin, SIGNAL(messageReady(Message)),
-                                this,   SLOT(recive_message(Message))
-                                );                        
+                                myServerGears,   SLOT(reciveNetworkMessage(Message))
+                                );
                     }
                 }
             }
             if ( needUnloadPlugin ){
                 // Выгрузим его нафиг не наш он плагин, сто пудово :)
-                qDebug() << tr("Plugin's [%1] unload").arg(pluginsDir.absoluteFilePath(fileName));
+                qDebug() << QObject::trUtf8("Plugin's [%1] unload").arg(pluginsDir.absoluteFilePath(fileName));
                 pluginMessageer.unload();
             }
         }
@@ -457,13 +455,13 @@ bool Server::readConfig()
                  serverPort < 1024        ||
                  serverPort > 9999  ){
                 Ok = false;
-                m_lastError =  tr("Отсутствует или имеет не верное значение один из параметров,"
+                m_lastError =  QObject::trUtf8("Отсутствует или имеет не верное значение один из параметров,"
                                   "в файле конфигурации");
 
             }
         }else{
             Ok  = false;
-            m_lastError = tr("Файл [%1] с настройками программы не найден!")
+            m_lastError = QObject::trUtf8("Файл [%1] с настройками программы не найден!")
                           .arg(ini_path);
         }
     }
@@ -474,9 +472,9 @@ void Server::showCriticalInfo(const QString & info)
 {
     QMessageBox msgBox;
     msgBox.setIcon(QMessageBox::Critical);
-    msgBox.setWindowTitle(tr("GateKeeper"));
+    msgBox.setWindowTitle(QObject::trUtf8("GateKeeper"));
     msgBox.setText(info);
-    QPushButton *exitButton  = msgBox.addButton(tr("Выход"), QMessageBox::ActionRole);
+    QPushButton *exitButton  = msgBox.addButton(QObject::trUtf8("Выход"), QMessageBox::ActionRole);
     connect (exitButton,SIGNAL(clicked()), qApp, SLOT(quit()));
     msgBox.exec();
 

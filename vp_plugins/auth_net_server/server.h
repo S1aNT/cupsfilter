@@ -94,11 +94,7 @@ private slots:
       * @brief Как только состояние сокета изменилось, его надо обработать
       */
     void do_ChekPointChanged(MyCheckPoints m_scheckPoint);
-    /**
-      * @fn net_connected(Message msg);
-      * @brief Включаем флажок сеть установленна и доступна
-      */
-    void recive_message(const Message &msg);
+
 private:
 
     void createActions();
@@ -129,17 +125,13 @@ private:
     /**
       * @var mainGear; Основной модуль программы
       * @var myNet_plugin; Указатель на сетевой плагин
-      * @var myAuth_plugin; Указатель на плагин авторизаци (Нужен ли ?)
-      * @var u_login; Текущий логин пользователя
-      * @var u_mandat; Текущий мандат пользователя
+      * @var myAuth_plugin; Указатель на плагин авторизаци @todo (Нужен ли ?)
       * @var currentStatus Текущее статусное сообщение
       * @var m_GateKeeperReady; Шлюз готов к работе или нет
       */
     serverGears *myServerGears;
     Inet_plugin *myNet_plugin;
-    Auth_plugin *myAuth_plugin;
-    QString u_login;
-    QString u_mandat;    
+    Auth_plugin *myAuth_plugin;    
     QString currentStatus;
     bool m_GateKeeperReady;
 
