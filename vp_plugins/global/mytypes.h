@@ -15,6 +15,7 @@ namespace VPrn{
 #define DM_TO_POINT(dm) ((dm)*283.465058)
 #define INCH_TO_POINT(inch) ((inch)*72.0)  
 
+
     static const int ObjectName = 0;
     static const int format = 13;
 
@@ -113,97 +114,96 @@ namespace VPrn{
 
 
 
-//
+    //
     enum MyCheckPoints{
-         // Глобальные "отметки" имеют префикс glob_
-         glob_Init,
-         glob_Error,
-         glob_RemoteDaemonReady,
-         glob_RemoteDemonNotReady,
-         // Локальные  "отметки" имеют префикс loc_  Работают с QLocalSocket/QLocalServer
-         loc_CantStartListen,      // Не могу запустить локальный сервер, порт занят
-         loc_Connected,            // Присоедиен к локальному серверу
-         loc_Disconnected,         // Отсоденился от локального сервера
-         loc_ServerNotFound,       // Локальный сервер не найден
-         loc_ServerStart,          // Локальный сервер запущен
-         loc_LocalServerReady,     // Локальный сервер готов к работе (Есть имя и мандат)
-         loc_LocalServerNeedMandat,// Локальный сервер готов к работе,(Есть имя но нет Мандата)
-         loc_NewClientStarted,     // К локальному серверу подключился новый клиент
-         loc_MessageRecive,        // Полученно сообщение в локальный сокет (в клиенте или в сервере)
-         // Сетевые    "отметки" имеют префикс net_ Работают с QTcpSocket/QTcpServer
-         net_HostNotFound,         // Удаленный сервер не найден
-         net_Connected,            // Соединен с удаленным сервером
-         net_Disconnected,         // Отсодинен от удаленного сервера
-         net_CommonError           // Ошибка сети
+        // Глобальные "отметки" имеют префикс glob_
+        glob_Init,
+        glob_Error,
+        // Локальные  "отметки" имеют префикс loc_  Работают с QLocalSocket/QLocalServer
+        loc_CantStartListen,      // Не могу запустить локальный сервер, порт занят
+        loc_Connected,            // Присоедиен к локальному серверу
+        loc_Disconnected,         // Отсоденился от локального сервера
+        loc_ServerNotFound,       // Локальный сервер не найден
+        loc_ServerStart,          // Локальный сервер запущен
+        loc_LocalServerReady,     // Локальный сервер готов к работе (Есть имя и мандат)
+        loc_LocalServerNeedMandat,// Локальный сервер готов к работе,(Есть имя но нет Мандата)
+        loc_NewClientStarted,     // К локальному серверу подключился новый клиент
+        loc_MessageRecive,        // Полученно сообщение в локальный сокет (в клиенте или в сервере)
+        // Сетевые    "отметки" имеют префикс net_ Работают с QTcpSocket/QTcpServer
+        net_HostNotFound,         // Удаленный сервер не найден
+        net_Connected,            // Соединен с удаленным сервером
+        net_Disconnected,         // Отсодинен от удаленного сервера
+        net_CommonError           // Ошибка сети
     };
 
     enum MessageType {
-//Глобальные сообщения (для передачи/приема с мишиным Демоном)
-        Que_RegisterGlobal     = 10,     // Запрос на регистрацию клиента у Миши
-        Ans_RegisterGlobal     = 1010,   // Клиент зарегистрирован 
+        //Глобальные сообщения (для передачи/приема с мишиным Демоном)
+        Que_RegisterGlobal     = 10,    // Запрос на регистрацию клиента у Миши
+        Ans_RegisterGlobal     = 1010,  // Клиент зарегистрирован 
 
-        Que_AUTHOR_USER        = 100,    // Запрос на авторизация пользователя к ресурсу П ИНТЕ 
-        Ans_PRINT_ALLOWED      = 1100,   // печать разрешена
-        Ans_PRINT_DENIED       = 1101,   // печать запрещена
-        Ans_PRINTER_NOT_FOUND  = 1102,   // принтер не найден
+        Que_AUTHOR_USER        = 100,   // Запрос на авторизация пользователя к ресурсу П ИНТЕ 
+        Ans_PRINT_ALLOWED      = 1100,  // печать разрешена
+        Ans_PRINT_DENIED       = 1101,  // печать запрещена
+        Ans_PRINTER_NOT_FOUND  = 1102,  // принтер не найден
 
-// Локальные сообщения (для обмена с моим сервисом)
-        Que_Register     = 5010,     // Запрос на регистрацию
-        Ans_Register     = 5015,     // Ответ о регистрации
-        Que_ServerStatus = 5020,     // Запрос у сервера его состояния
-        Ans_ServerStatus = 5025,     // Ответ сервера его состояние
-//Служебные сообщения   
-        Err_Message      = 7000,     // Локальный сервер передает сообщение об ошибке
-                                     // Подробности в теле сообщения 
+        Que_SEC_LEVEL          = 300,   //запрос к демону на получение списка уровней секретности       
+        Ans_STAMP_LIST         = 1300,  // Список названий уровней секретности
+
+        Que_GET_PRINTER_LIST   = 400,   // Запрос списка принтеров
+        Ans_PRINTER_LIST       = 1400,  // Ответ список принтеров
+        Ans_PRINTER_LIST_EMPTY = 1401,  // Список принтеров пуст !
+
+        Que_MANDAT_LIST        = 600,
+        Ans_MANDAT_LIST        = 1600,  // Список мандатов к которым допущен пользоватль
+        Ans_MANDAT_LIST_EMPTY  = 1601,  // У данного пользователя нет ни одного мадата
+
+        // Локальные сообщения (для обмена с моим сервисом)
+        Que_Register     = 5010,        // Запрос на регистрацию
+        Ans_Register     = 5015,        // Ответ о регистрации
+        Que_ServerStatus = 5020,        // Запрос у сервера его состояния
+        Ans_SrvStatusNotReady  = 5025,  // Ответ сервера.Не готов к работе Подробности в теле сообщения
+        Ans_SrvStatusPartReady = 5026,  // Ответ сервера.Готов к работе (Есть login пользователя,нет мандата, есть связь с демоном) 
+        Ans_SrvStatusFullReady = 5027,  // Ответ сервера.Готов к работе (Есть auth данные пользователя, есть связь с демоном) 
+
+        //Служебные сообщения
+        Err_Message      = 7000,        // Сообщение об ошибке.Подробности в теле сообщения 
         NoMsgType        = 0
-
-    };
+                       };
     
-
-    enum{
-       REGISTER_ANS     = 1010,
-       PRINT_ALLOWED    = 1100, // печать разрешена
-       PRINT_DENIED     = 1101, // печать запрещена
-       PRINTER_NOT_FOUND   = 1102, //  принтер не найден
-
-
-       PRINTER_LIST_ANS = 1400,
-       PRINTER_LIST_EMPTY=1401,
-       MB_LIST_ANS = 1200,
-       MB_EXIST_AND_BRAK_ANS =1205,
-       MB_EXIST_AND_NOT_BRAK_ANS =1210,
-       MB_NOT_EXIST_ANS=1220,
-       STAMP_LIST_ANS       = 1300, // Список названий уровней секретности
-       MANDAT_LIST_ANS      = 1600, // Список мандатов к которым допущен пользоватль
-       MANDAT_LIST_EMPTY_ANS= 1601  // У данного пользователя нет ни одного мадата
-
+    enum {
+        Page_Intro,
+        Page_Select,
+        Page_SetData,
+        Page_SetBrak,
+        Page_Finish
     };
 
     enum{
-       REGISTER_CMD         = 10,
-
-       AUTHOR_USER          = 100,
-       GET_MB_PRINTS_TODAY_CMD =200,
-
-       RAW_SQL_CMD          = 202,
-       USER_SAY_DOC_GOOD    = 203,
-       USER_SAY_DOC_BAD     = 204,
-
-       GET_SEC_LEVEL_CMD    = 300, //запрос к демону на получение списка уровней секретности
-
-       GET_PRINTER_LIST_CMD = 400,
-       IS_MB_EXIST_CMD      = 500,
-       GET_MANDAT_LIST_CMD  = 600,
-       DISCONNECT           = 5000
-
+        MB_LIST_ANS = 1200,
+        MB_EXIST_AND_BRAK_ANS =1205,
+        MB_EXIST_AND_NOT_BRAK_ANS =1210,
+        MB_NOT_EXIST_ANS=1220,
     };
+
+    enum{
+
+        GET_MB_PRINTS_TODAY_CMD =200,
+
+        RAW_SQL_CMD          = 202,
+        USER_SAY_DOC_GOOD    = 203,
+        USER_SAY_DOC_BAD     = 204,
+
+        IS_MB_EXIST_CMD      = 500,
+        DISCONNECT           = 5000
+
+                           };
 
     enum CoreOptionFlag {
-         NoOptions = 0x0,
-         LocalRegister = 0x1,
-         ShowAll = 0x2,
-         SqueezeBlank = 0x4
-     };
+        NoOptions = 0x0,
+        LocalRegister = 0x1,
+        ShowAll = 0x2,
+        SqueezeBlank = 0x4
+                   };
 
     Q_FLAGS(CoreOptions CoreOptionFlag);
     Q_DECLARE_FLAGS(CoreOptions, CoreOptionFlag);
