@@ -295,12 +295,12 @@ void MainWindow::do_needCreateEmptyTemplates(QString &file_name)
         tmpl_plugin->saveTemplatesAs(file_name);
 
         if (tmpl_plugin->isDBOpened()){
-            statusBar()->showMessage(QObject::tr("Шаблон [%1] создан").arg(file_name),1000);
+            statusBar()->showMessage(QObject::trUtf8("Шаблон [%1] создан").arg(file_name),1000);
             // Теперь загрузим этот же шаблон
             loadFromFile(file_name);
         }else{
             statusBar()->showMessage(
-                    QObject::tr("Не возможно создать или загрузить шаблон [%1]")
+                    QObject::trUtf8("Не возможно создать или загрузить шаблон [%1]")
                     .arg(file_name),1000);
         }
 
