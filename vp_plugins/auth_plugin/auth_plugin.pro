@@ -34,4 +34,4 @@ HEADERS += ../global/pre_header.h \
     ../interfaces/auth_plugin.h \
     ../global/mytypes.h 
 SOURCES = auth.cpp 
-
+TRANSLATIONS = auth_plugin_ru.ts 
