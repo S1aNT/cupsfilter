@@ -63,7 +63,7 @@ UndoFrame::UndoFrame(QWidget *parent) :
 void UndoFrame::setUndoViewGroup(QUndoGroup * undoGroup)
 {
     undoView->setGroup(undoGroup);
-    undoView->setEmptyLabel(tr("Без изменений"));
+    undoView->setEmptyLabel(QObject::trUtf8("Без изменений"));
     undoView->setCleanIcon(QIcon(":/ok.png"));
 }
 
