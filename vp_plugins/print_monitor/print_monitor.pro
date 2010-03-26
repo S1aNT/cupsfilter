@@ -34,11 +34,16 @@ HEADERS += ../global/mytypes.h \
     ../global/message.h \
     ../global/mysocketclient.h \ 
      engine.h \
-    printmonitor.h
+    printmonitor.h \
+    getusernamemandatdlg.h \
+    wizardpages.h
 SOURCES += main.cpp \
     ../global/message.cpp \
     ../global/mysocketclient.cpp \ 
     engine.cpp \
-    printmonitor.cpp 
+    printmonitor.cpp \
+    getusernamemandatdlg.cpp \
+    wizardpages.cpp
 RESOURCES = images.qrc
-FORMS += printmonitor.ui
+FORMS += getusernamemandatdlg.ui
+TRANSLATIONS = print_monitor_ru.ts 
