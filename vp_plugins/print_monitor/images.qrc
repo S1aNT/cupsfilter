@@ -3,6 +3,9 @@
         <file alias="logo.png">../images/logo.png</file>
         <file alias="error.png">../images/error.png</file>
         <file alias="watermark.png">../images/watermark.png</file>
-
+        <file alias="select_mode.png">../images/select_mode.png</file>
+        <file alias="set_date.png">../images/label_64.png</file>
+        <file alias="gears.png">../images/gear_64.png</file>
+        <file alias="set_brak.png">../images/pencil_64.png</file>
     </qresource>
 </RCC>
