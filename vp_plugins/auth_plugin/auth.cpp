@@ -75,8 +75,9 @@ QString Auth::ask4System()
 #endif
 
     //!!!!!!!  Для отладки !!!!!!!
+#if defined (MY_DEBUG)
     logon_user_name ="usr1";
-
+#ednif
     return logon_user_name;
 }
 
