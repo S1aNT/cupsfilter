@@ -1,28 +1,32 @@
 #ifndef GS_PLUGIN_H
 #define GS_PLUGIN_H
-
-class QString;
-class QPixmap;
-class QStringList;
-
+#include "igs_plugin.h"
+#include  "mytypes.h"
 
 #include <QObject>
+#include <QtCore/QLibrary>
 
-#include "igs_plugin.h"
-#include "tech_global.h"
+#if defined(Q_OS_WIN)
+#include <windows.h>
+#define PLUGIN_API __declspec(dllimport)
+typedef PLUGIN_API int CreateAPIInstance(out IntPtr pinstance,
+                                         IntPtr caller_handle);
+#endif
 
-using namespace SafeVirtualPrinter;
+class QString;
+
+using namespace VPrn;
 
 class GS_plugin :public QObject, Igs_plugin
 {
     Q_OBJECT
     Q_INTERFACES(Igs_plugin)
-    Q_ENUMS(TaskState)
-   // Q_ENUMS(ErrorCode)
 public:
 
-    GS_plugin(QObject *parent=0);
-    bool init(const QString &gs_bin,const QString &pdftk_bin,const QString &temp_folder,const QString &gs_rcp_file,const QString &sid);
+            GS_plugin(QObject *parent=0);
+    void init(const QString &gs_bin,const QString &pdftk_bin,const QString &temp_folder,const QString &sid);
+    void convertPs2Pdf(const QString &client_uuid,const QString &input_fn);
+    /*
     QString getFirstPages(){return firstPage_fn;};
     QString getOtherPages(){return otherPages_fn;};
     QPixmap getSnapShot(){return currentPageSnapShot;};
@@ -35,13 +39,24 @@ public:
     void merge_mark_print(const QString &input_fn,const QString &background_fn,
                           const QString &user_name,const QString &printer_name);
     void clearAll();
-
+*/
 signals:
-    void error(QString error_message);
-    void taskStateChanged(TaskState);
+    void error(pluginsError errCode,QString error_message);
+    /**
+      * @fn void JobFinish (const QString &client_uuid,VPrn::Jobs job_id,int code,const QString &output_message);
+      * @param client;         Кто заказал работу
+      * @param job_id;         Какую работу выполняли
+      * @param code;           С каким результатом 0 успешно, 1 и далее ошибка
+      * @param output_message; Расширенный ответ
+      */
+    void JobFinish(const QString &client_uuid,VPrn::Jobs job_id,int code,const QString &output_message);
     void pagesInDoc(int pages);// Как только я определил количество  листов в документе то сразу сообщаю всем об этом
 
 private slots:
+    void threadFinish(const QString &client_uuid,VPrn::Jobs job_id,int code,
+                      const QString &output_message);
+
+    /*
     //TODO добавить для всех этих слотов сигнал маппер и объединить в одну функцию
     //TODO порождаемый поток держать в спящем состоянии и пробуждать при приходе новой команды
     //то есть при инициализации загружать библиотеку gs_lib
@@ -55,6 +70,7 @@ private slots:
     void parseMergeToPrint(int Code,QString output );
     void parseAddPdfMarkThread(int Code,QString output);
     void parseCnv2PngThread(int Code,QString output);
+*/
 private:
     QString gsBin;
     QString tempPath;
@@ -67,13 +83,23 @@ private:
     QString mainPDF;
     QString pdf2png_page;
     QString gs_rcp;
-                   QString  printer;
-                   QString currentPrintPage;
+    QString  printer;
+    QString currentPrintPage;
 
-    QPixmap currentPageSnapShot;
-    int pagesCount; // Число страниц в конвертируемом документе
-protected:
-    void splitPdf(const QString &source_fn,const QString &firts_page_fn,const QString &other_page_fn);
+
+ /**
+  * @fn  void getPageCount(const QString &client_uuid,const QString &input_fn);
+  * @brief Используя pdfTk получим число страниц в pdf документе
+  */
+  void getPageCount(const QString &client_uuid,const QString &input_fn);
+  /**
+    * @fn   void splitPdf(const QString &client_uuid,const QString &main_pdf,
+    *                     const QString &first_page, const QString &other_pages);
+    * @brief Делит файл имеющий более 1 страницы на блоки первая страница, остальные страницы
+    */
+  void splitPdf(const QString &client_uuid,const QString &main_pdf,
+                const QString &first_page, const QString &other_pages);
+
 };
 
 
