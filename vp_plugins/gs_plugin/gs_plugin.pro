@@ -32,7 +32,7 @@ PRECOMPILED_HEADER  = ../global/pre_header.h
 HEADERS += ../global/pre_header.h \
 	gs_plugin.h \
     ../interfaces/igs_plugin.h \
-    ../global/tech_global.h \
+     ../global/mytypes.h \
     proc_thread.h 
 SOURCES = gs_plugin.cpp \
     proc_thread.cpp
