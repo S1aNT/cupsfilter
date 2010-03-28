@@ -34,6 +34,7 @@ HEADERS += server.h \
     servergears.h \
     ../interfaces/auth_plugin.h \
     ../interfaces/inet_plugin.h \
+    ../interfaces/igs_plugin.h  \
     ../global/mytypes.h \
     ../global/message.h 
 SOURCES += server.cpp \
