@@ -97,11 +97,12 @@ void mySocketClient::sendMessage(const Message &msg)
 void mySocketClient:: do_error(QLocalSocket::LocalSocketError r_error)
 {
     switch(r_error){
+    case QLocalSocket::ConnectionRefusedError:
     case QLocalSocket::ServerNotFoundError:
         setCheckPoint(VPrn::loc_ServerNotFound);
         break;
     default:
-        setError(QObject::trUtf8("При работе с % произошла ошибка %2")
+        setError(QObject::trUtf8("При работе с %1 произошла ошибка %2")
                  .arg(this->serverName(),this->errorString()));
         break;
     }

@@ -58,9 +58,6 @@ QByteArray Message::createPacket() const
     // Вставим размер пакета равный нулю, но отведем под него 4 байта
     out << (qint32)0;
 
-    //Вставим формат протокола
-    //out<<VPrn::format;
-
     //Вставим Тип сообщения и само сообщение в пакет
     out << ( int ) this->type();
     out << this->msgData;
