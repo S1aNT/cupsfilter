@@ -2,7 +2,7 @@
 #include "message.h"
 
 
-#include "ui_printmonitor.h"
+//#include "ui_printmonitor.h"
 
 #include <QtCore/QSettings>
 #include <QtCore/QPluginLoader>
@@ -11,28 +11,35 @@
 #include <QtCore/QRegExp>
 #include <QtCore/QPoint>
 
+
 #include <QtNetwork/QLocalSocket>
 
 #include <QtGui/QApplication>
 #include <QtGui/QBrush>
 #include <QtGui/QDesktopWidget>
 #include <QtGui/QMessageBox>
+#include <QtGui/QPixmap>
+#include <QtGui/QMessageBox>
+#include <QtGui/QErrorMessage>
 
 PrintMonitor::PrintMonitor(QWidget *parent)
     : QWizard(parent)
     //, ui(new Ui::PrintMonitor)
 {
+    job_list.enqueue("nothing");// Добавим метку показывающую что очередь печати пуста
     //ui->setupUi(this);
     intro_page = new IntroPage(this);
     select_page  = new SelectPage(this);
+    printData_page = new PrintDataPage(this);
+
     setPage ( VPrn::Page_Intro,  intro_page  );
     setPage ( VPrn::Page_Select, select_page );
-
-    //    setPage(VPrn::Page_SetData, setData_page);
+    setPage ( Page_PrintData,    printData_page );
     //    setPage(VPrn::Page_SetBrak, setBrak_page);
     //    setPage(VPrn::Page_Finish,  finish_page);
 
-    //setStartId(VPrn::Page_Select);
+    eMsgBox = new QErrorMessage(this);
+
     setStartId(VPrn::Page_Intro);
 #ifndef Q_WS_MAC
     setWizardStyle(ModernStyle);
@@ -66,19 +73,29 @@ PrintMonitor::PrintMonitor(QWidget *parent)
     connect(core_app,   SIGNAL( RecivePrintersList() ),
             intro_page, SLOT  ( setRecivePrintersList() )
             );
-
     connect(core_app,SIGNAL( infoMessage(QString) ),
             this,    SLOT  ( showInfoMessage(QString) )
             );
     connect(core_app,SIGNAL( needAuthUser(const QString&) ),
             this,    SLOT  ( do_needAuthUser(const QString&) )
             );
-
     connect(core_app,SIGNAL( gk_notReady(QString) ),
             this,    SLOT  ( showCritMessage(QString) )
             );
-    connect(core_app,SIGNAL( getPrinterList (const QString&)),
-            this,    SLOT  ( setPrinterList (const QString&))
+    connect(core_app,       SIGNAL( getPrinterList (const QString&)),
+            select_page,    SLOT  ( setPrinterList (const QString&))
+            );
+    connect(core_app,       SIGNAL( doc_converted ()),
+            printData_page, SLOT  ( setDocConverted())
+            );
+    connect(core_app,       SIGNAL( getPagesCount  (int)),
+            printData_page, SLOT  ( setPageCounted (int))
+            );
+    connect(core_app,       SIGNAL( next_page()),
+            this,           SLOT  ( print_next())
+            );
+    connect(core_app,SIGNAL( error (const QString&)),
+            eMsgBox, SLOT  ( showMessage (const QString&))
             );
     core_app->init();
 }
@@ -88,56 +105,65 @@ PrintMonitor::~PrintMonitor()
     //    delete ui;
 }
 
-//void PrintMonitor::changeEvent(QEvent *e)
-//{
-//    QWizard::changeEvent(e);
-//    switch (e->type()) {
-//    case QEvent::LanguageChange:
-//        ui->retranslateUi(this);
-//        break;
-//    default:
-//        break;
-//    }
-//}
 
-//int PrintMonitor::nextId() const
-//{
-//    switch (currentId()) {
-//    case Page_Intro:
-//        if (field("loadPlugin*").toBool() &&
-//            field("connect2LocalServer*").toBool() &&
-//            field("connect2RemoteDemon*").toBool() &&
-//            field("reciveUserName*").toBool() &&
-//            field("reciveUserMandat*").toBool() &&
-//            field("reciveSecLabel*").toBool() &&
-//            field("recivePrintersList*").toBool()){
-//            return Page_Select;
-//
-//        } else {
-//            //return Page_Register;
-//            return -1;
-//        }
-//        break;
-//         default:
-//        return -1;
-//    }
-//}
+int PrintMonitor::nextId() const
+{
+    int rez;
+    switch (currentId()) {
+    case VPrn::Page_Intro:
+        if (field("loadPlugin").toBool() &&
+            field("connect2LocalServer").toBool() &&
+            field("connect2RemoteDemon").toBool() &&
+            field("reciveUserName").toBool() &&
+            field("reciveUserMandat").toBool() &&
+            field("reciveSecLabel").toBool() &&
+            field("recivePrintersList").toBool()){
+            rez =  Page_Select;
+            // Запуск процесса конвертации ps -> pdf
+        } else {            
+            rez = VPrn::Page_Intro;
+        }
+        break;
+
+    case VPrn::Page_Select:
+        if (field("markBrakDoc").toBool()){
+            rez =  VPrn::Page_SetBrak;
+        }else{
+            if (field("accountingDoc").toBool()){
+                printData_page->setLabelText(QObject::trUtf8("Учет документа в БД"));                
+                rez = VPrn::Page_PrintData;
+                printData_page->setMode(0);
+            }else {
+                if (field("printDoc").toBool() ){
+                    printData_page->setLabelText(QObject::trUtf8("Печать документа на учтенных листах"));
+                    printData_page->setMode(1);
+                    rez = VPrn::Page_PrintData;
+                }else{
+                    if (field("both_step").toBool()){
+                        printData_page->setLabelText(QObject::trUtf8("Печать документа на учтенных листах, с автоматическим учетом в БД"));
+                        printData_page->setMode(2);
+                        rez = VPrn::Page_PrintData;
+                    }else{
+                        rez = VPrn::Page_Select;
+                    }
+                }
+            }
+        }
+        break;
+    }
+    return rez;
+}
+
+//----------------------------- PUBLIC SLOTS -------------------------------------
+void PrintMonitor::setFile4Work(const QString &input_file)
+{
+    if (input_file.isEmpty() || !QFile::exists(input_file)){
+        this->setToolTip(QObject::trUtf8("Не задан исходный файл для печати!"));
+    }else{
+        job_list.enqueue(input_file);
+    }
+}
 //------------------------- PRIVATE SLOTS --------------------------------------
-void PrintMonitor::showInfoMessage(const QString &info)
-{
-    //    QListWidgetItem *item = new QListWidgetItem(ui->infoListWidget,QListWidgetItem::UserType);
-    //    item->setText(info);
-    //    item->setForeground(QBrush(Qt::black));
-}
-
-void PrintMonitor::showCritMessage(const QString &info)
-{
-    //    QListWidgetItem *item = new QListWidgetItem(ui->infoListWidget,QListWidgetItem::UserType);
-    //    item->setText(info);
-    //    item->setForeground(QBrush(Qt::red));
-
-}
-
 void PrintMonitor::do_needAuthUser(const QString &login_mandat_list)
 {
     QRegExp rx("\\[(.+)\\];:;(.+)");
@@ -156,28 +182,10 @@ void PrintMonitor::do_needAuthUser(const QString &login_mandat_list)
         if (ret == QDialog::Accepted){
             intro_page->setReciveUserName();
             core_app->setUserMandat(UMDlg->getCurrentMandat());
-            showInfoMessage( QObject::trUtf8("Авторизация с консоли") );
+            //showInfoMessage( QObject::trUtf8("Авторизация с консоли") );
         }
     }else{
-        showCritMessage(QObject::trUtf8("Ошибка разбора сообщения сервера."));
-    }
-}
-
-void PrintMonitor::setPrinterList (const QString &pList)
-{
-    QStringList remote_printer;
-    QStringList devices_info;
-    QString pline;
-    remote_printer = pList.split("###;:;");
-    for (int i = 0; i < remote_printer.size(); i++) {
-
-        pline = remote_printer.at(i);
-        pline.replace("###","");
-        devices_info = pline.split(";:;");
-        printer_device_list.insert(devices_info.at(0),devices_info.at(1));
-        pline = devices_info.at(0);
-        printer_list.append(pline.section(".",1,1)); // Имя принтера после точки
-        showInfoMessage( QObject::trUtf8("Добавлен принтер %1").arg(pline.section(".",1,1)) );
+        eMsgBox->showMessage(QObject::trUtf8("Ошибка разбора сообщения сервера."));
     }
 }
 
@@ -190,7 +198,7 @@ void PrintMonitor::showHelp()
     switch (currentId()) {
     case Page_Intro:
         message = QObject::trUtf8("На данном этаме происходит инициализация виртуального защищеного "
-                     "принтера. В случае ошибки иницализации не выбранный пункт укажет на место ошибки.");
+                                  "принтера. В случае ошибки иницализации не выбранный пункт укажет на место ошибки.");
         break;
     default:
         message = QObject::trUtf8("Такая справка лучше, чем ее полное отсутствие.");
@@ -198,11 +206,20 @@ void PrintMonitor::showHelp()
 
     if (lastHelpMessage == message)
         message = QObject::trUtf8("Извините по данному режиму работы нет помощи. "
-                     "Может стоит обратьтиться к системному администратору?");
+                                  "Может стоит обратьтиться к системному администратору?");
 
     QMessageBox::information(this, QObject::trUtf8("Справка Защищенного принтера"), message);
 
     lastHelpMessage = message;
+}
+
+void PrintMonitor::print_next()
+{
+    if (job_list.head() != "nothing"){
+      //  QString p_file = ;
+         core_app->prepareFileToPrint(job_list.dequeue());
+    }
+
 }
 
 //------------------------------- PRVATE ---------------------------------------
