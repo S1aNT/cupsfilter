@@ -4,6 +4,8 @@
 #include "message.h"
 #include "mytypes.h"
 #include "inet_plugin.h"
+#include "igs_plugin.h"
+
 
 #include <QtCore/QObject>
 #include <QtCore/QMap>
@@ -42,11 +44,19 @@ public:
       * идет только внутри @class serverGears
       */
     void setNetPlugin(Inet_plugin *NetPlugin);
+    /**
+      * @fn void setGsPlugin(Igs_plugin *GsPlugin);
+      * @brief Запомним указатель на загруженный плагин. вся работа с ghostscript
+      * идет только внутри @class serverGears
+      */
+
+    void setGsPlugin(Igs_plugin *GsPlugin);
+
 signals:
     void messageReady( const Message &msg );
     void networkProtocolError();
     void checkPointChanged(MyCheckPoints cp);
-
+    void error(const QString &e_info);
 //public slots:
 private slots:
     /**
@@ -70,6 +80,14 @@ private slots:
       * @brief Обработка сообщения полученного из сети
       */
     void reciveNetworkMessage(const Message &r_msg);
+    /**
+      * @fn void doJobFinish(const QString &m_uuid,VPrn::Jobs job_id,int code ,const QString &outpu);
+      * @brief Обработчик сообщений от потока внешних приложений
+      * Плагин @sa gs_plugin Запускает на каждое ресурсоемкое и
+      * продолжительное действие отдельный поток обработки, который сигнализирует
+      * о завершении своей работы, возвращая job_id завершенного задания
+      */
+    void doJobFinish(const QString &m_uuid,VPrn::Jobs job_id,int code ,const QString &output);
     void client_init();
 private:
     /**
@@ -79,6 +97,7 @@ private:
       * @var m_state;          Статус Локального сервера
       * @var e_info;           Последняя возникшая ошибка
       * @var net_plugin;       Указатель на сетевой плагин
+      * @var gs_plugin;        Указатель на плагин работающий с ghostscript
       * @var u_login;          Текущий логин пользователя
       * @var u_mandat;         Текущий мандат пользователя
       * @var netDemonReady;    Истина если произошла успешная авторизация GateKeeper на сетевом демоне
@@ -93,6 +112,7 @@ private:
     MyCheckPoints m_checkPoint;
     QString e_info;
     Inet_plugin *net_plugin;
+    Igs_plugin *gs_plugin;
     QString u_login;
     QString u_mandat;
     bool netDemonReady;

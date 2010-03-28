@@ -1,10 +1,12 @@
 #include "servergears.h"
-#include <QDebug>
+#include <QtCore/QDebug>
 #include <QtCore/QByteArray>
 #include <QtCore/QDataStream>
 #include <QtCore/QUuid>
 #include <QtCore/QRegExp>
 #include <QtCore/QMapIterator>
+
+#include <QtGui/QMessageBox>
 
 
 serverGears::serverGears(QObject *parent,const QString &srvName)
@@ -13,6 +15,7 @@ serverGears::serverGears(QObject *parent,const QString &srvName)
     , m_checkPoint(VPrn::glob_Init)
     , e_info(QString())
     , net_plugin(0)
+    , gs_plugin(0)
     , u_login(QString())
     , u_mandat(QString())
     , netDemonReady(false)
@@ -28,7 +31,12 @@ serverGears::serverGears(QObject *parent,const QString &srvName)
     m_server = new QLocalServer(this);
     if (!m_server->listen(m_serverName)) {
         setError(QObject::trUtf8("Не могу запустить локальный сервер: %1.")
-                 .arg(m_server->errorString()));       
+                 .arg(m_server->errorString()));
+        /*
+        QMessageBox::critical(0, tr("Fortune Server"),
+                                    tr("Unable to start the server: %1.")
+                                    .arg(m_server->errorString()));
+*/
         setCheckPoint(VPrn::loc_CantStartListen);
     }else{
         connect(m_server, SIGNAL(newConnection()),
@@ -56,8 +64,21 @@ void serverGears::setAuthData(const QString &userName,const QString &userMandat)
 
 void serverGears::setNetPlugin(Inet_plugin *NetPlugin)
 {
-    net_plugin = NetPlugin;
+    if (NetPlugin){
+        net_plugin = NetPlugin;
+    }else{
+        setError(QObject::trUtf8("Ошибка при попытке использования сетевого плагина."));
+    }
 }
+void serverGears::setGsPlugin(Igs_plugin *GsPlugin)
+{
+    if (GsPlugin){
+        gs_plugin =GsPlugin;
+    }else{
+        setError(QObject::trUtf8("Ошибка при попытке использования сетевого плагина."));
+    }
+}
+
 //------------------------- PRIVATE SLOTS --------------------------------------
 void serverGears::prepareError(QLocalSocket::LocalSocketError socketError)
 {
@@ -108,16 +129,6 @@ void serverGears::readyRead()
         }
         //Сбросим размер пакета, для обработки следующего
         packetSize = -1;
-        /*
-        //Прочтем и проверим формат протокола
-        qint32 m_format;
-        in >> m_format;
-        if( m_format != format ) {
-            setError(QObject::trUtf8("Ошибка в формате протокола, при обмене данными с клиентом %1")
-                     .arg(clientName));   
-            return;
-        }
-*/
         // Прочтем тип сообщения
         int m_Type;
         in >> m_Type;
@@ -224,6 +235,37 @@ void serverGears::reciveNetworkMessage(const Message &r_msg)
     }
 }
 
+void serverGears::doJobFinish(const QString &m_uuid, VPrn::Jobs job_id,int code ,const QString &output)
+{
+    Message loc_msg(this);
+    QString str;
+    QLocalSocket *client(0);
+    // По UUID определим какому клиенту надо было это сообщение
+    client = findClient(m_uuid);
+    if (client){
+        // Жив еще голубчик так уж и быть вернем ему результаты,рабского труда
+        if (code !=0){
+            // Рабский поток, умер от непосильного труда, посмертное сообщение в output
+            loc_msg.setType(VPrn:: Err_Message);
+            loc_msg.setMessage( output.toUtf8() );
+        }else{
+            switch(job_id){
+            case VPrn::job_ConvertPs2Pdf:
+                loc_msg.setType(VPrn::Ans_Convert2PdfFinish);
+                break;
+            case VPrn::job_CalcPageCount:
+                loc_msg.setType(VPrn::Ans_PageCounting);
+                loc_msg.setMessage( output.toUtf8() );  // число страниц в документе
+                break;
+            }
+        }
+        // Запись в локальный слот клиенту
+        sendMessage(loc_msg,client);
+    }else{
+        setError(QObject::trUtf8("Ответ клиенту который уже отсоединился!"));
+    }
+}
+
 void serverGears::client_init()
 {
     QLocalSocket *client = m_server->nextPendingConnection();
@@ -243,8 +285,8 @@ void serverGears::client_init()
 //-------------------------- PRIVATE -------------------------------------------
 void serverGears::setError(const QString &info)
 {
-    /// @todo Испускать сигнал об ошибке !!!
     e_info  = info;
+    emit error(e_info);
 }
 
 void serverGears::setCheckPoint(MyCheckPoints cp)
@@ -265,6 +307,11 @@ void serverGears::parseMessage( const Message &m_msg, QLocalSocket *client)
             << "from Client "  << clientUUID;
 
     switch (m_msg.type()){
+    case VPrn:: Que_Convert2Pdf:
+        /// Клиент потребовал преобразовать ps файл в pdf
+        str.append(m_msg.messageData()); /// В теле сообщения полный путь к файлу
+        gs_plugin->convertPs2Pdf(clientUUID,str);
+        break;
     case VPrn::Que_Register:
         /// Клиент только подключился, в теле сообщения его самоназвание запомним его 
         /// сообщим ему что он авторизирован и вернем присвоенный uuid в теле сообщения uuid        
