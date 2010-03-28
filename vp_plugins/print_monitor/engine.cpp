@@ -41,14 +41,21 @@ void Engine::init()
     if (!link_name.isEmpty() &&  !gatekeeper_bin.isEmpty()){
         launchAndConnect();
     }else{
-        setError(QObject::trUtf8("Ошибка в файле конфигурации. Проверьте параметры:\n"
+        emit error(QObject::trUtf8("Ошибка в файле конфигурации. Проверьте параметры:\n"
                     " Раздел [SERVICE] параметр link_name\n"
-                    " Раздел [USED_DIR_FILE] параметр gatekeeper_bin"
-                    ));
+                    " Раздел [USED_DIR_FILE] параметр gatekeeper_bin"));
     }
 
 }
 
+void  Engine::prepareFileToPrint(const QString & file_name)
+{
+    // Запись в сокет сообщения требую  преобразовать ps -> pdf
+    Message msg(this);
+    msg.setType(VPrn::Que_Convert2Pdf);
+    msg.setMessage( file_name.toUtf8() ); // Пробразуем в QByteArray
+    sendMessage2LocalSrv(msg);
+}
 
 void Engine::setUserMandat(const QString & mandat)
 {
@@ -149,7 +156,8 @@ bool Engine::loadPlugin()
 void Engine::setError(const QString &info)
 {
     e_info  = info;
-    e_state = true;   
+    //e_state = true;
+    emit error(e_info);
 }
 
 void Engine::setError()

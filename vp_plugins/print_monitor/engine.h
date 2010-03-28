@@ -20,15 +20,20 @@ public:
     Engine(QObject*parent = 0,const QString &app_path = QString(),
            const QString &client_name = QString());
     /**
+      @fn void prepareFileToPrint(const QString & file_name);
+      @brief Отпаравляет запрос на GateKeeper с требованием конвертировать ps -> pdf
+      */
+    void prepareFileToPrint(const QString & file_name);
+    /**
       * @fn bool isError();
       * @brief Если ошибка вернет истину
       */
-    bool isError(){return e_state;};
+    bool isError(){return e_state;}
     /**
       * @fn QString lastError()
       * @brief Возвращает текстовое описание последней ошибки
       */
-    QString lastError() const {return e_info;};
+    QString lastError() const {return e_info;}
 
     //VPrn::CoreOptions options() const;
     //void setOptions(VPrn::CoreOptions s_opt);
@@ -44,7 +49,7 @@ public:
       * @fn QStringList &getSecLevelList() const;
       * @brief Возвращает список уровней секретности
       */
-    QStringList getSecLevelList() const {return secLevelList;};
+    QStringList getSecLevelList() const {return secLevelList;}
 signals:
     void infoMessage(const QString &info);
     void gk_notReady(const QString &ext_info); // локальный сервер не готов к работе
@@ -52,7 +57,6 @@ signals:
     void needAuthUser(const QString &login_mandat_list);
     void gk_fullReady(const QString &login,const QString &mandat);
     //Локальный сервер вернул список принтеров доступных данному пользователю
-
     void getPrinterList(const QString &prn_list);
     // Успешная загрузка плагинов
     void pluginsLoad();
@@ -63,6 +67,17 @@ signals:
     void ReciveUserMandat();
     void RecivePrintersList();
     void ReciveSecLevelList();
+    // Документ успешно конвертирован в pdf
+    void doc_converted();
+    // Подсчитали количество страниц
+    void getPagesCount (int p_count);
+    /**
+      * @fn void error(const QString &e_info);
+      * @brief При возникновении ошибки, сигнал передает описание ошибки
+      * @todo Убрать функции @sa @fn QString lastError() @sa @fn bool isError()
+      */
+    void error(const QString &e_info);
+
 private slots:
     void do_checkPointChanged(MyCheckPoints r_cpoint);
     /**
