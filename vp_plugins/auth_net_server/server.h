@@ -4,10 +4,13 @@
 #include "servergears.h"
 #include "auth_plugin.h"
 #include "inet_plugin.h"
+#include "igs_plugin.h"
+
 #include "mytypes.h"
 
 #include <QDialog>
 #include <QtGui/QSystemTrayIcon>
+#include <QtGui/QErrorMessage>
 
 QT_BEGIN_NAMESPACE
 class QLabel;
@@ -22,6 +25,7 @@ class QPlainTextEdit;
 class QDialogButtonBox;
 class QGridLayout;
 class QCheckBox;
+class QErrorMessage;
 QT_END_NAMESPACE
 
 using namespace VPrn;
@@ -35,18 +39,18 @@ public:
     void setVisible(bool visible);
     /**
       * @fn bool isReady();
-      * @brief Возращает статус GateKeeper готов ли он к работе или нет
+      * @brief Р’РѕР·СЂР°С‰Р°РµС‚ СЃС‚Р°С‚СѓСЃ GateKeeper РіРѕС‚РѕРІ Р»Рё РѕРЅ Рє СЂР°Р±РѕС‚Рµ РёР»Рё РЅРµС‚
       */
     bool isReady(){return m_GateKeeperReady;};
 
     /**
       * @fn QString lastError();
-      * @brief Возвращает последнюю возникшую ошибку
+      * @brief Р’РѕР·РІСЂР°С‰Р°РµС‚ РїРѕСЃР»РµРґРЅСЋСЋ РІРѕР·РЅРёРєС€СѓСЋ РѕС€РёР±РєСѓ
       */
     QString lastError(){return m_lastError;};
     /**
       * @fn void showCriticalInfo(constQStrin & info)
-      * @brief  Отображает критическую ошибку и завершает работу программы
+      * @brief  РћС‚РѕР±СЂР°Р¶Р°РµС‚ РєСЂРёС‚РёС‡РµСЃРєСѓСЋ РѕС€РёР±РєСѓ Рё Р·Р°РІРµСЂС€Р°РµС‚ СЂР°Р±РѕС‚Сѓ РїСЂРѕРіСЂР°РјРјС‹
       */
     void showCriticalInfo(const QString & info);
 
@@ -55,21 +59,21 @@ protected:
 public slots:
     /**
        @fn void appendStartMsg(const QString & msg);
-       @brief Служит для получения сообщения при старте другой копии программы 
+       @brief РЎР»СѓР¶РёС‚ РґР»СЏ РїРѕР»СѓС‡РµРЅРёСЏ СЃРѕРѕР±С‰РµРЅРёСЏ РїСЂРё СЃС‚Р°СЂС‚Рµ РґСЂСѓРіРѕР№ РєРѕРїРёРё РїСЂРѕРіСЂР°РјРјС‹ 
      */
     void appendStartMsg(const QString & msg);
     /**
       * @fn void showBaloonMessage(int m_Type,const QString &b_msg)
-      * @brief показывает сообщение в трее
-      * @param m_Type тип сообщения critical,warning,information
-      * @param b_msg Само сообщение
+      * @brief РїРѕРєР°Р·С‹РІР°РµС‚ СЃРѕРѕР±С‰РµРЅРёРµ РІ С‚СЂРµРµ
+      * @param m_Type С‚РёРї СЃРѕРѕР±С‰РµРЅРёСЏ critical,warning,information
+      * @param b_msg РЎР°РјРѕ СЃРѕРѕР±С‰РµРЅРёРµ
       */
     //void showBaloonMessage(int m_Type,const QString &b_msg);
     /**
       * @fn void showTrayMessage(trayIcons msg_type,
       *                          const QString & msg_title,
       *                          const QString & msg_body);
-      * @brief Отображает в трее сообщение заданного типа
+      * @brief РћС‚РѕР±СЂР°Р¶Р°РµС‚ РІ С‚СЂРµРµ СЃРѕРѕР±С‰РµРЅРёРµ Р·Р°РґР°РЅРЅРѕРіРѕ С‚РёРїР°
       */
     void showTrayMessage(trayIcons msg_type,
                          const QString & msg_title,
@@ -81,17 +85,17 @@ private slots:
     void errorInfo(pluginsError eCode,QString e_msg);
     /**
       * @fn void setUserName(const QString & login,const QString &mandat);
-      * @brief Заполнение параметров аторизации пользователя
+      * @brief Р—Р°РїРѕР»РЅРµРЅРёРµ РїР°СЂР°РјРµС‚СЂРѕРІ Р°С‚РѕСЂРёР·Р°С†РёРё РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ
       */
     void setUserName(QString & login,QString &mandat);
     /**
       * @fn void runTEditor()
-      * @brief Запуск редактора шаблонов как отдельного приложения
+      * @brief Р—Р°РїСѓСЃРє СЂРµРґР°РєС‚РѕСЂР° С€Р°Р±Р»РѕРЅРѕРІ РєР°Рє РѕС‚РґРµР»СЊРЅРѕРіРѕ РїСЂРёР»РѕР¶РµРЅРёСЏ
       */
     void runTEditor();
     /**
       * @fn void do_ChekPointChanged(MyCheckPoints m_scheckPoint);
-      * @brief Как только состояние сокета изменилось, его надо обработать
+      * @brief РљР°Рє С‚РѕР»СЊРєРѕ СЃРѕСЃС‚РѕСЏРЅРёРµ СЃРѕРєРµС‚Р° РёР·РјРµРЅРёР»РѕСЃСЊ, РµРіРѕ РЅР°РґРѕ РѕР±СЂР°Р±РѕС‚Р°С‚СЊ
       */
     void do_ChekPointChanged(MyCheckPoints m_scheckPoint);
 
@@ -102,60 +106,70 @@ private:
 
     /**
       * @fn void init();
-      * @brief Производит первоначальную загрузку приложения,
+      * @brief РџСЂРѕРёР·РІРѕРґРёС‚ РїРµСЂРІРѕРЅР°С‡Р°Р»СЊРЅСѓСЋ Р·Р°РіСЂСѓР·РєСѓ РїСЂРёР»РѕР¶РµРЅРёСЏ,
       */
     void init();
 
     /**
       * @fn bool loadPlugins()
-      * @brief загрузка плагинов
+      * @brief Р·Р°РіСЂСѓР·РєР° РїР»Р°РіРёРЅРѕРІ
       */
     bool loadPlugins();
 
     /**
       * @fn void setTrayStatus(trayStatus t_stat,const QString & t_msg);
-      * @brief Устаналивает иконку и сообщение в зависимости от статуса
+      * @brief РЈСЃС‚Р°РЅР°Р»РёРІР°РµС‚ РёРєРѕРЅРєСѓ Рё СЃРѕРѕР±С‰РµРЅРёРµ РІ Р·Р°РІРёСЃРёРјРѕСЃС‚Рё РѕС‚ СЃС‚Р°С‚СѓСЃР°
       */
     void setTrayStatus (trayStatus t_stat, const QString &t_msg);
     /**
       * @fn bool readConfig();
-      * @brief читаем ini файл
+      * @brief С‡РёС‚Р°РµРј ini С„Р°Р№Р»
       */
     bool readConfig();
     /**
-      * @var mainGear; Основной модуль программы
-      * @var myNet_plugin; Указатель на сетевой плагин
-      * @var myAuth_plugin; Указатель на плагин авторизаци @todo (Нужен ли ?)
-      * @var currentStatus Текущее статусное сообщение
-      * @var m_GateKeeperReady; Шлюз готов к работе или нет
+      * @var mainGear; РћСЃРЅРѕРІРЅРѕР№ РјРѕРґСѓР»СЊ РїСЂРѕРіСЂР°РјРјС‹
+      * @var myNet_plugin; РЈРєР°Р·Р°С‚РµР»СЊ РЅР° СЃРµС‚РµРІРѕР№ РїР»Р°РіРёРЅ
+      * @var myAuth_plugin; РЈРєР°Р·Р°С‚РµР»СЊ РЅР° РїР»Р°РіРёРЅ Р°РІС‚РѕСЂРёР·Р°С†Рё @todo (РќСѓР¶РµРЅ Р»Рё ?)
+      * @var currentStatus РўРµРєСѓС‰РµРµ СЃС‚Р°С‚СѓСЃРЅРѕРµ СЃРѕРѕР±С‰РµРЅРёРµ
+      * @var m_GateKeeperReady; РЁР»СЋР· РіРѕС‚РѕРІ Рє СЂР°Р±РѕС‚Рµ РёР»Рё РЅРµС‚
+      * @var m_lastError;   РїРѕСЃР»РµРґРЅРµРµ СЃРѕРѕР±С‰РµРЅРёРµ РѕР± РѕС€РёР±РєРµ
       */
     serverGears *myServerGears;
     Inet_plugin *myNet_plugin;
-    Auth_plugin *myAuth_plugin;    
+    Auth_plugin *myAuth_plugin;
+    Igs_plugin  *myGs_plugin;
+
+    bool    m_GateKeeperReady;
+    QString m_lastError;
     QString currentStatus;
-    bool m_GateKeeperReady;
+    QString current_sid;
 
     /**
-      * @brief --------- Блок переменных из ini файла ------------------------
-      * @var serverHostName; Сетевое имя демона или IP адрес
-      * @var serverPort;     Порт для связи c демоном
-      * @var localSrvName;   Имя локального сервера
-      * @var spoolDir;       Каталог для временных файлов
-      * @var ticket_fname;   Имя файла в котором храняться параметры авторизации UNIX only
-      * @var m_lastError; последнее сообщение об ошибке
-      * @var tEditor_bin полный путь к файлу редактора шаблонов
+      * @brief --------- Р‘Р»РѕРє РїРµСЂРµРјРµРЅРЅС‹С… РёР· ini С„Р°Р№Р»Р° ------------------------
+      * @var serverHostName; РЎРµС‚РµРІРѕРµ РёРјСЏ РґРµРјРѕРЅР° РёР»Рё IP Р°РґСЂРµСЃ
+      * @var serverPort;     РџРѕСЂС‚ РґР»СЏ СЃРІСЏР·Рё c РґРµРјРѕРЅРѕРј
+      * @var localSrvName;   РРјСЏ Р»РѕРєР°Р»СЊРЅРѕРіРѕ СЃРµСЂРІРµСЂР°
+      * @var ticket_fname;   РРјСЏ С„Р°Р№Р»Р° РІ РєРѕС‚РѕСЂРѕРј С…СЂР°РЅСЏС‚СЊСЃСЏ РїР°СЂР°РјРµС‚СЂС‹ Р°РІС‚РѕСЂРёР·Р°С†РёРё UNIX only
+      * @var gsBin;            РџСѓС‚СЊ Рє РёСЃРїРѕР»РЅСЏРµРјРѕРјСѓ С„Р°Р№Р»Сѓ gs
+      * @var pdftkBin;         РџСѓС‚СЊ Рє РёСЃРїРѕР»РЅСЏРµРјРѕРјСѓ С„Р°Р№Р»Сѓ pdfTk
+      * @var spoolDir;         РџСѓС‚СЊ Рє РєР°С‚Р°Р»РѕРіСѓ РІСЂРµРјРµРЅРЅС‹С… С„Р°Р№Р»РѕРІ
+      * @var local_t_path;     РџСѓС‚СЊ Рє Р»РѕРєР°Р»СЊРЅС‹Рј С€Р°Р±Р»РѕРЅР°Рј
+      * @var global_t_path;    РџСѓС‚СЊ Рє РіР»РѕР±Р°Р»СЊРЅС‹Рј С€Р°Р±Р»РѕРЅР°Рј
+      * @var tEditor_bin;      РџСѓС‚СЊ Рє  С„Р°Р№Р»Сѓ СЂРµРґР°РєС‚РѕСЂР° С€Р°Р±Р»РѕРЅРѕРІ
       *------------------------------------------------------------------------
       */
     QString serverHostName;
-    int serverPort;
+    int     serverPort;
     QString localSrvName;
-    QString spoolDir;
     QString ticket_fname;
-    QString m_lastError;
-    QString tEditor_bin;
-    QString sid;
+    QString gsBin;
+    QString pdftkBin;
+    QString spoolDir;
+    QString local_t_path;
+    QString global_t_path;
+    QString tEditor_bin; 
 
-    // Набор графических элементов
+    // РќР°Р±РѕСЂ РіСЂР°С„РёС‡РµСЃРєРёС… СЌР»РµРјРµРЅС‚РѕРІ
     QGroupBox   *groupBox;
     QFormLayout *formLayout;
     QLabel      *login_label;
@@ -169,8 +183,7 @@ private:
     QCheckBox   *authCheckBox;
     QCheckBox   *netCheckBox;
 
-
-    // Действия
+    // Р”РµР№СЃС‚РІРёСЏ
     QAction *minimizeAction;
     QAction *restoreAction;
     QAction *quitAction;
@@ -178,6 +191,8 @@ private:
 
     QSystemTrayIcon *trayIcon;
     QMenu *trayIconMenu;
+    // РћСЃРЅРѕРІРЅРѕРµ РѕРєРѕС€РєРѕ РѕС€РёР±РѕРє
+    QErrorMessage * myEMsgBox;
 };
 
 #endif

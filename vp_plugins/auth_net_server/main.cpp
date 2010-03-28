@@ -31,7 +31,7 @@ int main(int argc, char *argv[])
 
     if (!QSystemTrayIcon::isSystemTrayAvailable()) {
         QMessageBox::critical(0, QObject::trUtf8("Auth_net_Server"),
-                              QObject::trUtf8Utf8("Не могу определить тип system tray "
+                              QObject::trUtf8("Не могу определить тип system tray "
                                           " для вашей системы."));
         return 1;
     }

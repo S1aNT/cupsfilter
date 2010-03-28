@@ -1,6 +1,5 @@
 #include "server.h"
 
-
 #include <QtNetwork/QLocalServer>
 #include <QtNetwork/QLocalSocket>
 
@@ -15,13 +14,15 @@
 #include <QtGui/QLabel>
 #include <QtGui/QLineEdit>
 #include <QtGui/QCheckBox>
+#include <QtGui/QCloseEvent>
+#include <QtGui/QErrorMessage>
 
 #include <QtCore/QObject>
 #include <QtCore/QDir>
 #include <QtCore/QPluginLoader>
 #include <QtCore/QSettings>
 #include <QtCore/QCoreApplication>
-#include <QCloseEvent>
+
 
 
 
@@ -30,8 +31,10 @@ Server::Server(QWidget *parent)
     , myServerGears(0)
     , myNet_plugin(0)
     , myAuth_plugin(0)
+    , myGs_plugin(0)
     , m_GateKeeperReady(false)
 {
+    myEMsgBox = new QErrorMessage(this);
 
     /** @brief информационная форма
       * Имя юзера -- ПУПКИН
@@ -39,9 +42,9 @@ Server::Server(QWidget *parent)
       * Статус демона (Есть связь/Нет связи/Нет места на диске)
       */
 
-    resize(280, 240);
+    resize(300, 240);
     setMinimumSize(QSize(280, 240));
-    setMaximumSize(QSize(280, 240));
+    setMaximumSize(QSize(300, 240));
     QFont font;
     font.setFamily(QString::fromUtf8("Times New Roman"));
     font.setPointSize(12);
@@ -75,11 +78,11 @@ Server::Server(QWidget *parent)
     gridLayout->addWidget(mandat_LE, 1, 1, 1, 1);
 
     groupBox_2 = new QGroupBox(this);
-    groupBox_2->setGeometry(QRect(10, 90, 261, 101));
+    groupBox_2->setGeometry(QRect(10, 90, 270, 101));
     groupBox_2->setTitle(QObject::trUtf8("Состояние сервера"));
-
+    groupBox_2->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Fixed);
     demonState_LE = new QLineEdit(groupBox_2);
-    demonState_LE->setGeometry(QRect(10, 20, 241, 20));
+    demonState_LE->setGeometry(QRect(10, 20, 260, 20));
     demonState_LE->setReadOnly(true);
     demonState_LE->setEnabled(false);
 
@@ -87,13 +90,13 @@ Server::Server(QWidget *parent)
     authCheckBox->setEnabled(false);
     authCheckBox->setChecked(false);
     authCheckBox->setText(QObject::trUtf8("Плагин авторизации загружен"));
-    authCheckBox->setGeometry(QRect(10, 50, 241, 17));
+    authCheckBox->setGeometry(QRect(10, 50, 260, 17));
 
     netCheckBox = new QCheckBox(groupBox_2);
     netCheckBox->setEnabled(false);
     netCheckBox->setChecked(false);
-    netCheckBox->setText(QObject::trUtf8("Плагин сетевого обмена загружен"));
-    netCheckBox->setGeometry(QRect(10, 70, 241, 17));
+    netCheckBox->setText(QObject::trUtf8("Сетевой плагин загружен."));
+    netCheckBox->setGeometry(QRect(10, 70, 260, 17));
 
     quitButton = new QPushButton(this);    
     quitButton->setGeometry(QRect(100, 200, 75, 23));
@@ -120,26 +123,36 @@ void Server::init()
                 // Создаем основной объект
                 myServerGears = new serverGears(this,localSrvName);
                 connect (myServerGears,SIGNAL(checkPointChanged(MyCheckPoints)),
-                         this, SLOT(do_ChekPointChanged(MyCheckPoints)));
-                Ok &= loadPlugins();
-                if (Ok){
-                    myServerGears->setNetPlugin(myNet_plugin);
+                         this, SLOT(do_ChekPointChanged(MyCheckPoints))
+                         );
+                connect ( myServerGears, SIGNAL ( error( QString) ),
+                          myEMsgBox,     SLOT   ( showMessage( QString) ) );
 
+                Ok &= loadPlugins();
+
+                if (Ok){
+                    current_sid = myServerGears->getUuid();
+
+                    myServerGears->setNetPlugin(myNet_plugin);                    
                     // Инициализация плагинов
+                    myGs_plugin->init(gsBin, pdftkBin,spoolDir,current_sid);
 #if defined(Q_OS_UNIX)
-                    myAuth_plugin->init(ticket_fname);
+                    //myAuth_plugin->init(ticket_fname);
+                    myAuth_plugin->init();
 #elif defined(Q_OS_WIN)
                     myAuth_plugin->init();
 #endif
-                    myNet_plugin->init(serverHostName, serverPort,myServerGears->getUuid());
+                    myNet_plugin->init(serverHostName, serverPort,current_sid);
 
                 }else{
-                    setTrayStatus(VPrn::gk_ErrorState,QObject::trUtf8("Ошибка при загрузке плагинов"));
+                    setTrayStatus(VPrn::gk_ErrorState,
+                                  QObject::trUtf8("Ошибка при загрузке плагинов"));
                 }
             }
         }else{
             //demonState_LE->setText(QObject::trUtf8("Ошибка конфигурации"));
-            setTrayStatus(VPrn::gk_ErrorState,QObject::trUtf8("Ошибка при чтении файла конфигурации"));
+            setTrayStatus(VPrn::gk_ErrorState,
+                          QObject::trUtf8("Ошибка при чтении файла конфигурации"));
         }
     }
     m_GateKeeperReady = Ok;
@@ -176,8 +189,8 @@ void Server::closeEvent(QCloseEvent *event)
     if (trayIcon->isVisible()) {
         QMessageBox::information(this, QObject::trUtf8("GateKeeper"),
                                  QObject::trUtf8("Данная программа будет продолжать работу в системном трее.\n"
-                                    "Для завершения работы, выберите Выход "
-                                    "в контекстном меню программы. "));
+                                                 "Для завершения работы, выберите Выход "
+                                                 "в контекстном меню программы. "));
         hide();
         event->ignore();
     }
@@ -241,7 +254,36 @@ void Server::iconActivated(QSystemTrayIcon::ActivationReason reason)
 
 void Server::errorInfo(pluginsError eCode,QString e_msg)
 {
-
+    QString eType;
+    switch (eCode){
+    case VPrn::NoError:
+        eType = "NoError";
+        break;
+    case VPrn::FileNotFound:
+        eType = "FileNotFound";
+    case VPrn::FileIOError:
+        eType = "FileIOError";
+    case VPrn::UnknownError:
+        eType = "UnknownError";
+    case VPrn::DriverNotLoad:
+        eType = "DriverNotLoad";
+    case VPrn::NotConnectedToDB:
+        eType = "NotConnectedToDB";
+    case VPrn::DBOpeningError:
+        eType = "DBOpeningError";
+    case VPrn::SQLQueryError:
+        eType = "SQLQueryError";
+    case VPrn::SQLCommonError:
+        eType = "SQLCommonError";
+    case VPrn::InternalPluginError:
+        eType = "InternalPluginError";
+    case VPrn::AuthCommonError:
+        eType = "AuthCommonError";
+    case VPrn::NetworkTransError:
+        eType = "NetworkTransError";
+        break;
+    }
+    myEMsgBox->showMessage(e_msg,eType);
 }
 
 void Server::setUserName(QString & login,QString &mandat)
@@ -325,14 +367,16 @@ void Server::do_ChekPointChanged(MyCheckPoints m_scheckPoint)
         setTrayStatus(VPrn::gk_Started,QObject::trUtf8("Готов работать!"));
         break;
     case VPrn::loc_NewClientStarted:
-        showTrayMessage(InfoType,QObject::trUtf8("GateKeeper"),QObject::trUtf8("Подключен новый клиент!"));
+        showTrayMessage(InfoType,QObject::trUtf8("GateKeeper"),
+                        QObject::trUtf8("Подключен новый клиент!"));
         break;
 
-//    case VPrn::loc_MessageRecive:
-//        showTrayMessage(InfoType,QObject::trUtf8("GateKeeper"),QObject::trUtf8("Полученно сообщение от локального клиента!"));
-//        break;
+        //    case VPrn::loc_MessageRecive:
+        //        showTrayMessage(InfoType,QObject::trUtf8("GateKeeper"),QObject::trUtf8("Полученно сообщение от локального клиента!"));
+        //        break;
     case VPrn::loc_Disconnected:
-        showTrayMessage(InfoType,QObject::trUtf8("GateKeeper"),QObject::trUtf8("Локальный клиент отключен!"));
+        showTrayMessage(InfoType,QObject::trUtf8("GateKeeper"),
+                        QObject::trUtf8("Локальный клиент отключен!"));
         break;
     case VPrn::loc_CantStartListen:
     case VPrn::glob_Error:
@@ -343,11 +387,11 @@ void Server::do_ChekPointChanged(MyCheckPoints m_scheckPoint)
 
 void Server::runTEditor()
 {
-    if (tEditor_bin.isEmpty()){
-        setTrayStatus(VPrn::gk_ErrorState,
-                      QObject::trUtf8("Ошибка в файле параметров.\nПуть к редактору шаблонов не задан"));
-    }else{
-    }
+    //    if (tEditor_bin.isEmpty()){
+    //        setTrayStatus(VPrn::gk_ErrorState,
+    //                      QObject::trUtf8("Ошибка в файле параметров.\nПуть к редактору шаблонов не задан"));
+    //    }else{
+    //    }
 }
 
 
@@ -359,6 +403,7 @@ bool Server::loadPlugins()
 
     Inet_plugin *net_plugin_Interface;
     Auth_plugin *auth_plugin_Interface;
+    Igs_plugin  *gs_plugin_Interface;
 
     if (pluginsDir.dirName().toLower() == "debug" ||
         pluginsDir.dirName().toLower() == "release")
@@ -378,6 +423,21 @@ bool Server::loadPlugins()
         if (plugin) {
             bool needUnloadPlugin = true;
             {
+                if (!myGs_plugin){
+                    /// Загрузка плагина работы с ghostscript
+                    gs_plugin_Interface = qobject_cast<Igs_plugin *> (plugin);
+                    if (gs_plugin_Interface){
+                        needUnloadPlugin = false;
+                        myGs_plugin = gs_plugin_Interface;
+
+                        connect(plugin, SIGNAL (error(pluginsError,QString )),
+                                this,   SLOT   (errorInfo(pluginsError,QString ))
+                                );
+                        connect (plugin,       SIGNAL( jobFinish(VPrn::Jobs,int,const QString &)),
+                                 myServerGears,SLOT  ( doJobFinish(VPrn::Jobs,int,const QString &))
+                                 );
+                    }
+                }
                 if (!myAuth_plugin){
                     /// Загрузка плагина авторизации
                     auth_plugin_Interface = qobject_cast<Auth_plugin *>(plugin);
@@ -417,7 +477,7 @@ bool Server::loadPlugins()
             }
         }
     }
-    return (myNet_plugin && myAuth_plugin);
+    return (myNet_plugin && myAuth_plugin && myGs_plugin);
 
 }
 
@@ -436,27 +496,44 @@ bool Server::readConfig()
             serverPort     = settings.value("port").toInt();
             localSrvName   = settings.value("link_name").toString();
             settings.endGroup();
+
+            settings.beginGroup("POSTSCRIPT");
+            gsBin = settings.value("gs_bin").toString();
+            settings.endGroup();
+            settings.beginGroup("PDF");
+            pdftkBin = settings.value("pdfTK").toString();
+            settings.endGroup();
+
+            settings.beginGroup("USED_DIR_FILE");
+            spoolDir       = settings.value("spool_dir").toString();
 #if defined(Q_OS_UNIX)
-            settings.beginGroup("USED_DIR_FILE");
-            spoolDir     = settings.value("spool_dir").toString();
             ticket_fname = settings.value("session_ticket").toString();
-            tEditor_bin  = settings.value("tEditor_bin").toString();
-            settings.endGroup();
-#elif defined(Q_OS_WIN)
-            settings.beginGroup("USED_DIR_FILE");
-            spoolDir= settings.value("spool_dir").toString();
-            tEditor_bin  = settings.value("tEditor_bin").toString();
-            settings.endGroup();
 #endif
+            tEditor_bin  = settings.value("tEditor_bin").toString();
+            settings.endGroup();
+
+            settings.beginGroup("TEMPLATES");
+            local_t_path  = settings.value("local_templates").toString();
+            global_t_path = settings.value("global_templates").toString();
+            settings.endGroup();
+            qDebug() << "\nserverHostName " << serverHostName
+                    << "\nlocalSrvName "   << localSrvName
+                    << "\nspoolDir"        << spoolDir
+                    << "\ngsBin"           << gsBin
+                    << "\npdftkBin"        << pdftkBin
+                    << "\nserverPort"      << serverPort;
+
             // Тестируем переменные
             if ( serverHostName.isEmpty() ||
                  localSrvName.isEmpty()   ||
                  spoolDir.isEmpty()       ||
+                 gsBin.isEmpty()          ||
+                 pdftkBin.isEmpty()       ||
                  serverPort < 1024        ||
                  serverPort > 9999  ){
                 Ok = false;
                 m_lastError =  QObject::trUtf8("Отсутствует или имеет не верное значение один из параметров,"
-                                  "в файле конфигурации");
+                                               "в файле конфигурации");
 
             }
         }else{
