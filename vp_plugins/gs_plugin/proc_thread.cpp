@@ -6,12 +6,11 @@
 
 
 
-ProcessT::ProcessT( QObject *parent,VPrn::Jobs job_id,const QString &client)
+ProcessT::ProcessT( QObject *parent,const QString &jobKey)
     : QThread( parent )
 {
-    m_JobId    = job_id;
-    client_id  = client;
     m_ChanMode = QProcess::SeparateChannels;
+    job_key = jobKey;
 }
 
 ProcessT::~ProcessT()
@@ -39,7 +38,7 @@ void ProcessT::run()
     proc.start( m_Command, m_Args );
     if (!proc.waitForStarted()) {
         m_Output =QString("Ошибка при запуске приложения %1").arg(m_Command);
-        emit jobFinish(client_id,m_JobId,-1, m_Output );
+        emit jobFinish(job_key,-1, m_Output );
         qDebug()<< m_Output;
     }else{
         proc.waitForFinished(-1);
@@ -48,9 +47,9 @@ void ProcessT::run()
         qDebug() << QString("Exit code %1").arg(proc.exitCode());
 
         //emit commandOutput(proc.exitCode(), m_Output );
-        emit jobFinish(client_id,m_JobId,proc.exitCode(), m_Output );
+        emit jobFinish(job_key,proc.exitCode(), m_Output );
         qDebug() << Q_FUNC_INFO << "Command execution finished,"<<m_Output
-                << " for job " << m_JobId;
+                << " for job_key " << job_key;
     }
 }
 
