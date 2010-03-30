@@ -4,8 +4,11 @@ TARGET = auth_plugin
 CONFIG += plugin\
           warn_on \
 	  precompile_header 
-
-DESTDIR = ../VPrn/plugins
+win32 {
+DESTDIR = d:/opt/vprn/plugins
+}else{
+DESTDIR =/opt/vprn/plugins
+}
 
 CONFIG(debug, debug|release) { 
     message(Build Debug!)
