@@ -3,6 +3,7 @@
 #include <QDebug>
 
 #ifdef DEBUG_MODE
+
 #include <QtCore/QRegExp>
 #include <stdlib.h>
 #include <QtCore/QDateTime>
