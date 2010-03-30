@@ -3,7 +3,8 @@
 ######################################################################
 
 TEMPLATE	= subdirs
-SUBDIRS	= safeFatPrinter \
+SUBDIRS	= print_monitor \
+        auth_net_server \
 	tEditor \
 	print_monitor \
 	net_plugin \
