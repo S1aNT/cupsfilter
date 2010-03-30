@@ -11,6 +11,8 @@
 
 using namespace VPrn;
 
+#define MY_DEBUG
+
 int main(int argc, char *argv[])
 {
 
@@ -25,7 +27,7 @@ int main(int argc, char *argv[])
 
     QString in_file;
 #if defined (MY_DEBUG)
-    in_file="test.ps";
+   in_file="/opt/vprn/test.ps";
 #else
     QStringList aList=app.arguments();
     if (aList.size()< 2){
@@ -45,9 +47,9 @@ int main(int argc, char *argv[])
       * не отвалилась ли
       */
 
-    if (app.sendMessage(in_file)
+    if (app.sendMessage(QObject::trUtf8("Попытка запуска второй копии приложения!"))
         || app.isRunning())
-        return 0;        
+        return 0;
     QString translatorFileName = QLatin1String("qt_");
     translatorFileName += QLocale::system().name();
     QTranslator *translator = new QTranslator(&app);
@@ -55,14 +57,12 @@ int main(int argc, char *argv[])
                          QLibraryInfo::location(QLibraryInfo::TranslationsPath)))
         app.installTranslator(translator);
 
-    PrintMonitor monitor;    
+    PrintMonitor monitor(0,in_file);
 
     QObject::connect(&app, SIGNAL(messageReceived(const QString&)),
                      &monitor, SLOT(appendStartMsg(const QString&)));
 
-    app.setActivationWindow(&monitor);    
-    monitor.setFile4Work(in_file);
-    app.processEvents();
+    app.setActivationWindow(&monitor);
     monitor.show();
     return app.exec();
 }
