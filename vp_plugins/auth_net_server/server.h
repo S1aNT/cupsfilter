@@ -41,13 +41,13 @@ public:
       * @fn bool isReady();
       * @brief Возращает статус GateKeeper готов ли он к работе или нет
       */
-    bool isReady(){return m_GateKeeperReady;};
+    bool isReady(){return m_GateKeeperReady;}
 
     /**
       * @fn QString lastError();
       * @brief Возвращает последнюю возникшую ошибку
       */
-    QString lastError(){return m_lastError;};
+    QString lastError(){return m_lastError;}
     /**
       * @fn void showCriticalInfo(constQStrin & info)
       * @brief  Отображает критическую ошибку и завершает работу программы
@@ -59,7 +59,11 @@ protected:
 public slots:
     /**
        @fn void appendStartMsg(const QString & msg);
-       @brief Служит для получения сообщения при старте другой копии программы 
+<<<<<<< .mine
+       @brief Служит для получения сообщения при старте другой копии программы
+=======
+       @brief Служит для получения сообщения при старте другой копии программы
+>>>>>>> .r895
      */
     void appendStartMsg(const QString & msg);
     /**
@@ -165,9 +169,11 @@ private:
     QString gsBin;
     QString pdftkBin;
     QString spoolDir;
+
     QString local_t_path;
     QString global_t_path;
-    QString tEditor_bin; 
+    QString tEditor_bin;
+
 
     // Набор графических элементов
     QGroupBox   *groupBox;
