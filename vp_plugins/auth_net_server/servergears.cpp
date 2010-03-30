@@ -10,9 +10,8 @@
 
 
 serverGears::serverGears(QObject *parent,const QString &srvName)
-    : QLocalServer(parent)   
+    : QLocalServer(parent)
     , packetSize(-1)
-    , m_checkPoint(VPrn::glob_Init)
     , e_info(QString())
     , net_plugin(0)
     , gs_plugin(0)
@@ -21,22 +20,13 @@ serverGears::serverGears(QObject *parent,const QString &srvName)
     , netDemonReady(false)
 
 {
-    /// Регистрируем типы @todo Надо сделать отдельную функцию,
-    /// в которой регистрировать все типы и вызвать ее из main
-
-    qRegisterMetaType<VPrn::MessageType>("MessageType");
-
     m_serverName = srvName;
     /// Создаем локальный сервер
     m_server = new QLocalServer(this);
     if (!m_server->listen(m_serverName)) {
         setError(QObject::trUtf8("Не могу запустить локальный сервер: %1.")
-                 .arg(m_server->errorString()));
-        /*
-        QMessageBox::critical(0, tr("Fortune Server"),
-                                    tr("Unable to start the server: %1.")
-                                    .arg(m_server->errorString()));
-*/
+                          .arg(m_server->errorString()));
+
         setCheckPoint(VPrn::loc_CantStartListen);
     }else{
         connect(m_server, SIGNAL(newConnection()),
@@ -115,7 +105,7 @@ void serverGears::readyRead()
             if( client->bytesAvailable() < (int)sizeof(qint32) ){
                 return;
             }
-            //Читаем размер пакета            
+            //Читаем размер пакета
             //client->read(reinterpret_cast<char*>(&packetSize), sizeof(qint32));
             in >> packetSize;
 
@@ -235,10 +225,10 @@ void serverGears::reciveNetworkMessage(const Message &r_msg)
     }
 }
 
+
 void serverGears::doJobFinish(const QString &m_uuid, VPrn::Jobs job_id,int code ,const QString &output)
 {
     Message loc_msg(this);
-    QString str;
     QLocalSocket *client(0);
     // По UUID определим какому клиенту надо было это сообщение
     client = findClient(m_uuid);
@@ -257,6 +247,12 @@ void serverGears::doJobFinish(const QString &m_uuid, VPrn::Jobs job_id,int code 
                 loc_msg.setType(VPrn::Ans_PageCounting);
                 loc_msg.setMessage( output.toUtf8() );  // число страниц в документе
                 break;
+            case VPrn::job_SplitPageFirst:
+                loc_msg.setType(VPrn::Ans_PageSplittedFirst);
+                break;
+            case VPrn::job_SplitPageOther:
+                loc_msg.setType(VPrn::Ans_PageSplittedOther);
+                break;
             }
         }
         // Запись в локальный слот клиенту
@@ -265,6 +261,8 @@ void serverGears::doJobFinish(const QString &m_uuid, VPrn::Jobs job_id,int code 
         setError(QObject::trUtf8("Ответ клиенту который уже отсоединился!"));
     }
 }
+
+
 
 void serverGears::client_init()
 {
@@ -280,7 +278,6 @@ void serverGears::client_init()
             this,   SLOT(prepareError(QLocalSocket::LocalSocketError)));
     setCheckPoint(VPrn::loc_NewClientStarted);
 }
-
 
 //-------------------------- PRIVATE -------------------------------------------
 void serverGears::setError(const QString &info)
@@ -301,22 +298,35 @@ void serverGears::parseMessage( const Message &m_msg, QLocalSocket *client)
 
     Message message( this );
 
-    QString clientUUID = clients_uuid[client];   
+    QString clientUUID = clients_uuid[client];
     QString str;
     qDebug() << "Resive Message type " << m_msg.type()
             << "from Client "  << clientUUID;
 
     switch (m_msg.type()){
+
     case VPrn:: Que_Convert2Pdf:
         /// Клиент потребовал преобразовать ps файл в pdf
         str.append(m_msg.messageData()); /// В теле сообщения полный путь к файлу
-        gs_plugin->convertPs2Pdf(clientUUID,str);
+        if (gs_plugin){
+            gs_plugin->convertPs2Pdf(clientUUID,str);
+        }
         break;
+        /// Клиент потребовал загрузить шаблон, внести в него данные,
+        /// сформировать pdf для страниц соответсвующих шаблону и вернуть 8 картинок
+        /// в котрых на документ наложен соответсвующий шаблон
+
+    //case VPrn::Que_LoadTemptates:
+//QPixmap pix ("C:/images/wallpaper1.jpg") ;
+//QPixmap* pix2 =  pix.scaled(80,80, Qt::KeepAspectRatio, Qt::FastTransformation);
+
+       // break;
+
     case VPrn::Que_Register:
-        /// Клиент только подключился, в теле сообщения его самоназвание запомним его 
-        /// сообщим ему что он авторизирован и вернем присвоенный uuid в теле сообщения uuid        
+        /// Клиент только подключился, в теле сообщения его самоназвание запомним его
+        /// сообщим ему что он авторизирован и вернем присвоенный uuid в теле сообщения uuid
         str.append(m_msg.messageData());
-        clients_name.insert(client, str);        
+        clients_name.insert(client, str);
         message.setType(VPrn::Ans_Register);
         message.setMessage(  clientUUID.toUtf8() ); // Пробразуем в QByteArray
         sendMessage(message,client);
@@ -325,7 +335,7 @@ void serverGears::parseMessage( const Message &m_msg, QLocalSocket *client)
     case VPrn::Que_ServerStatus:
         // Клиент запросил состояние сервера
         message.clear();
-        str.clear();        
+        str.clear();
         if (!netDemonReady){
             str = QObject::trUtf8("Нет ответа от шлюза в СУРД или отсутсвует сетевое соединение");
             message.setType(VPrn::Ans_SrvStatusNotReady);
@@ -341,7 +351,10 @@ void serverGears::parseMessage( const Message &m_msg, QLocalSocket *client)
                     str = QObject::trUtf8("[%1];:;%2").arg( clientUUID,u_login );
                     message.setMessage( str.toUtf8() );
                     //Запись в сетевой канал
-                    net_plugin->sendMessage(message);
+                    if (net_plugin){
+                        net_plugin->sendMessage(message);
+                    }
+
                 }else{
                     str = QObject::trUtf8("%1;:;%2").arg(u_login,u_mandat);
                     message.setType(VPrn::Ans_SrvStatusFullReady);
@@ -377,7 +390,10 @@ void serverGears::parseMessage( const Message &m_msg, QLocalSocket *client)
             str = QObject::trUtf8("[%1];:;%2").arg(clientUUID,u_mandat);
             message.setMessage( str.toUtf8() );
             //Запись в сетевой канал
-            net_plugin->sendMessage(message);
+            if (net_plugin){
+                net_plugin->sendMessage(message);
+            }
+
         }
         break;
     case VPrn::Que_GET_PRINTER_LIST:
@@ -392,10 +408,12 @@ void serverGears::parseMessage( const Message &m_msg, QLocalSocket *client)
             str = QObject::trUtf8("[%1];:;%2;:;%3").arg(clientUUID,u_login,u_mandat);
             message.setMessage( str.toUtf8() );
             //Запись в сетевой канал
-            net_plugin->sendMessage(message);
+            if (net_plugin){
+                net_plugin->sendMessage(message);
+            }
         }
         break;
-    }   
+    }
 }
 
 void serverGears::sendMessage( const Message &m_msg, QLocalSocket *client)
@@ -416,9 +434,9 @@ QLocalSocket *serverGears::findClient(const QString &c_uuid)
     QMapIterator<QLocalSocket *,QString>  i(clients_uuid);
     while (i.hasNext()) {
         i.next();
+        qDebug() << "\nClient Key: " << i.key() << " value: " << i.value();
         if (i.value() == c_uuid ){
-            client = i.key();
-            break;
+            return i.key();
         }
     }
     return client;
