@@ -75,6 +75,7 @@ QString Auth::ask4System()
     logon_user_name = log_settings.value("Logon User Name").toString();
 #endif
 
+
 #if defined (MY_DEBUG)
     logon_user_name ="usr1";
 #endif
