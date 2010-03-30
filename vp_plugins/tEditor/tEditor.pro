@@ -9,7 +9,7 @@ INCLUDEPATH += ../interfaces \
 TARGET = tEditor
 LANGUAGE = C++
 
-DESTDIR = ../VPrn
+DESTDIR = /opt/vprn/
 
 CONFIG(debug, debug|release) { 
     message(Build Debug!)
