@@ -3,8 +3,8 @@
 
 
 mySocketClient::mySocketClient(QLocalSocket *parent)
-        : packetSize(-1)
-        , m_chekpoints(VPrn::glob_Init)
+        : QLocalSocket (parent)
+        , packetSize(-1)
         , e_info(QString())
 {
     connect(this,SIGNAL(connected()),
@@ -60,7 +60,7 @@ void mySocketClient::readyRead()
         in >> msg;
         Message message( this );
         message.setType((MessageType) m_Type); //Проверить как конвертирует
-        message.setMessage( msg );        
+        message.setMessage( msg );
         // Отправка сообщения
         qDebug() << "Construct message. Type: " << m_Type << " Body " << msg;
         messageReady( message );
@@ -69,7 +69,7 @@ void mySocketClient::readyRead()
 
 void mySocketClient::do_connected()
 {
-    setCheckPoint(VPrn::loc_Connected);   
+    setCheckPoint(VPrn::loc_Connected);
 }
 
 void mySocketClient::setCheckPoint(MyCheckPoints m_cpoint)

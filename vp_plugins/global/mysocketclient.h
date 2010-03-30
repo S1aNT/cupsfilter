@@ -24,7 +24,7 @@ public:
 
 
     explicit mySocketClient(QLocalSocket *parent = 0);
-    QString lastError() const {return e_info;};    
+    QString lastError() const {return e_info;}
     void sendMessage(const Message &msg);
 
 signals:
@@ -48,8 +48,9 @@ private:
       */
 
     qint32 packetSize;
-    MyCheckPoints m_chekpoints;
+
     QString e_info;
+     MyCheckPoints m_chekpoints;
     /**
       * @fn setError(const QString &info);
       * @brief Устанавливает состояние ошибки,  записывает новое описание ошибки
