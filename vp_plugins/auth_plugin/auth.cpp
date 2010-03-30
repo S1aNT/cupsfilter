@@ -11,6 +11,7 @@
 
 using namespace VPrn;
 
+#define MY_DEBUG
 
 void Auth::init (const QString &mandat_filename)
 {
@@ -74,10 +75,9 @@ QString Auth::ask4System()
     logon_user_name = log_settings.value("Logon User Name").toString();
 #endif
 
-    //!!!!!!!  Для отладки !!!!!!!
 #if defined (MY_DEBUG)
     logon_user_name ="usr1";
-#ednif
+#endif
     return logon_user_name;
 }
 
