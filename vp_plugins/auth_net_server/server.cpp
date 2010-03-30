@@ -34,6 +34,13 @@ Server::Server(QWidget *parent)
     , myGs_plugin(0)
     , m_GateKeeperReady(false)
 {
+
+    /// Регистрируем типы @todo Надо сделать отдельную функцию,
+    /// в которой регистрировать все типы и вызвать ее из main
+
+    qRegisterMetaType<VPrn::MessageType>("MessageType");
+
+
     myEMsgBox = new QErrorMessage(this);
 
     /** @brief информационная форма
@@ -98,7 +105,7 @@ Server::Server(QWidget *parent)
     netCheckBox->setText(QObject::trUtf8("Сетевой плагин загружен."));
     netCheckBox->setGeometry(QRect(10, 70, 260, 17));
 
-    quitButton = new QPushButton(this);    
+    quitButton = new QPushButton(this);
     quitButton->setGeometry(QRect(100, 200, 75, 23));
     quitButton->setText(QObject::trUtf8("Свернуть"));
 
@@ -108,7 +115,7 @@ Server::Server(QWidget *parent)
     setWindowTitle(QObject::trUtf8("GateKeeper"));
 
     createActions();
-    createTrayIcon();    
+    createTrayIcon();
     setVisible(false);
     this->init();
 }
@@ -131,9 +138,8 @@ void Server::init()
                 Ok &= loadPlugins();
 
                 if (Ok){
-                    current_sid = myServerGears->getUuid();
 
-                    myServerGears->setNetPlugin(myNet_plugin);                    
+                    current_sid = myServerGears->getUuid();
                     // Инициализация плагинов
                     myGs_plugin->init(gsBin, pdftkBin,spoolDir,current_sid);
 #if defined(Q_OS_UNIX)
@@ -144,6 +150,8 @@ void Server::init()
 #endif
                     myNet_plugin->init(serverHostName, serverPort,current_sid);
 
+                    myServerGears->setNetPlugin(myNet_plugin);
+                    myServerGears->setGsPlugin(myGs_plugin);
                 }else{
                     setTrayStatus(VPrn::gk_ErrorState,
                                   QObject::trUtf8("Ошибка при загрузке плагинов"));
@@ -179,7 +187,7 @@ void Server::showTrayMessage(trayIcons msg_type,
 
 void Server::setVisible(bool visible)
 {
-    minimizeAction->setEnabled(visible); 
+    minimizeAction->setEnabled(visible);
     restoreAction->setEnabled(!visible);
     QDialog::setVisible(visible);
 }
@@ -191,8 +199,12 @@ void Server::closeEvent(QCloseEvent *event)
                                  QObject::trUtf8("Данная программа будет продолжать работу в системном трее.\n"
                                                  "Для завершения работы, выберите Выход "
                                                  "в контекстном меню программы. "));
-        hide();
-        event->ignore();
+        if (m_GateKeeperReady){
+            hide();
+            event->ignore();
+        }else{
+            event->accept();
+        }
     }
 
 }
@@ -223,7 +235,7 @@ void Server::createTrayIcon()
     trayIconMenu->addAction(quitAction);
 
     trayIcon = new QSystemTrayIcon(this);
-    trayIcon->setContextMenu(trayIconMenu);    
+    trayIcon->setContextMenu(trayIconMenu);
 
     //connect(trayIcon, SIGNAL(messageClicked()), this, SLOT(messageClicked()));
     connect(trayIcon, SIGNAL(activated(QSystemTrayIcon::ActivationReason)),
@@ -322,7 +334,7 @@ void Server::setTrayStatus (trayStatus t_stat, const QString &t_msg)
 
     switch (t_stat){
     case gk_Started:
-        currentIcon = QIcon(":/shield.png");        
+        currentIcon = QIcon(":/shield.png");
         break;
     case gk_UserAuthorized:
         currentIcon = QIcon(":/key.png");
@@ -387,14 +399,8 @@ void Server::do_ChekPointChanged(MyCheckPoints m_scheckPoint)
 
 void Server::runTEditor()
 {
-    //    if (tEditor_bin.isEmpty()){
-    //        setTrayStatus(VPrn::gk_ErrorState,
-    //                      QObject::trUtf8("Ошибка в файле параметров.\nПуть к редактору шаблонов не задан"));
-    //    }else{
-    //    }
+
 }
-
-
 
 //------------------------------------------------------------------------------
 bool Server::loadPlugins()
@@ -433,11 +439,14 @@ bool Server::loadPlugins()
                         connect(plugin, SIGNAL (error(pluginsError,QString )),
                                 this,   SLOT   (errorInfo(pluginsError,QString ))
                                 );
-                        connect (plugin,       SIGNAL( jobFinish(VPrn::Jobs,int,const QString &)),
-                                 myServerGears,SLOT  ( doJobFinish(VPrn::Jobs,int,const QString &))
+                        connect (plugin,
+                                 SIGNAL( jobFinish(const QString &,VPrn::Jobs,int,const QString &)),
+                                 myServerGears,
+                                 SLOT  ( doJobFinish(const QString &,VPrn::Jobs,int,const QString &))
                                  );
                     }
                 }
+
                 if (!myAuth_plugin){
                     /// Загрузка плагина авторизации
                     auth_plugin_Interface = qobject_cast<Auth_plugin *>(plugin);
@@ -478,11 +487,10 @@ bool Server::loadPlugins()
         }
     }
     return (myNet_plugin && myAuth_plugin && myGs_plugin);
-
 }
 
 bool Server::readConfig()
-{    
+{
     bool Ok = true;
     {
         // Читаем файл настроек
@@ -540,6 +548,18 @@ bool Server::readConfig()
             Ok  = false;
             m_lastError = QObject::trUtf8("Файл [%1] с настройками программы не найден!")
                           .arg(ini_path);
+        }
+    }
+    if (Ok){
+        //Проверка что файлик трубы не существует, посмотреть где он сохраняется под окошками
+        QString file_pipe;
+#if defined(Q_OS_UNIX)
+        file_pipe = QString ("/tmp/%1").arg(localSrvName);
+#elif defined (Q_OS_WIN)
+        file_pipe = QString ("/%1/temp/%1").arg(QString(getenv("SYSTEMROOT")),localSrvName);
+#endif
+        if (QFile::exists(file_pipe)){
+            QFile::remove(file_pipe);
         }
     }
     return Ok;
