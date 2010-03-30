@@ -14,7 +14,7 @@ namespace VPrn{
 #define MM_TO_POINT(mm) ((mm)*2.83465058)
 #define CM_TO_POINT(cm) ((cm)*28.3465058)     /////// 28.346456693
 #define DM_TO_POINT(dm) ((dm)*283.465058)
-#define INCH_TO_POINT(inch) ((inch)*72.0)  
+#define INCH_TO_POINT(inch) ((inch)*72.0)
 
 
     static const int ObjectName = 0;
@@ -78,7 +78,7 @@ namespace VPrn{
         UnknownError,
         DriverNotLoad,
         NotConnectedToDB,
-	DBOpeningError,
+        DBOpeningError,
         SQLQueryError,
         SQLCommonError,
         InternalPluginError,
@@ -118,7 +118,7 @@ namespace VPrn{
     ///
     enum MyCheckPoints{
         /// Глобальные "отметки" имеют префикс glob_
-        glob_Init,
+        //glob_Init,
         glob_Error,
         /// Локальные  "отметки" имеют префикс loc_  Работают с QLocalSocket/QLocalServer
         loc_CantStartListen,      /// Не могу запустить локальный сервер, порт занят
@@ -137,12 +137,13 @@ namespace VPrn{
         net_CommonError           /// Ошибка сети
     };
 
-    enum Jobs{
-        job_NoJob,                /// При инициализации задается пустая работа
+    enum Jobs{ /// Задания (работы)
         job_ConvertPs2Pdf,        /// Задача конвертирования ps в pdf
         job_CalcPageCount,        /// Задача подсчета страниц в pdf файле
-
+        job_SplitPageFirst,       /// Разбиение документа на первую стр.
+        job_SplitPageOther        /// Разбиение документа на последующие стр.
     };
+
 
     enum MessageType {
         ///Глобальные сообщения (для передачи/приема с мишиным Демоном)
@@ -176,9 +177,12 @@ namespace VPrn{
 
         Que_Convert2Pdf        = 5050,  /// Запрос на преобразование исходлного ps файла в pdf
         Ans_Convert2PdfFinish  = 5051,  /// После успешного преобразования сообщим об этом клиенту
-        Ans_PageCounting       = 5052,  /// вернем число страниц в документеPageCounting
+        Ans_PageCounting       = 5052,  /// Вернем число страниц в документеPageCounting
+        Ans_PageSplittedFirst  = 5053,  /// Разбиение документа на первую страницу завершено
+        Ans_PageSplittedOther  = 5054,  /// Разбиение документа на последующую страницу завершено
         ///Служебные сообщения
         Err_Message      = 7000,        /// Сообщение об ошибке.Подробности в теле сообщения
+
         NoMsgType        = 0
        };
     
