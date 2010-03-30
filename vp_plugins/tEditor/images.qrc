@@ -1,48 +1,48 @@
 <RCC>
     <qresource prefix="/">
-        <file alias="t_new.png">../safeFatPrinter/images/filenew.png</file>
-        <file alias="t_open.png">../safeFatPrinter/images/fileopen.png</file>
-        <file alias="t_save.png">../safeFatPrinter/images/filesave.png</file>
-        <file alias="t_print.png">../safeFatPrinter/images/fileprint.png</file>
-        <file>../safeFatPrinter/images/backup.png</file>
-        <file>../safeFatPrinter/images/blocklist.png</file>
-        <file>../safeFatPrinter/images/cancel.png</file>
-        <file>../safeFatPrinter/images/editdelete.png</file>
-        <file>../safeFatPrinter/images/error.png</file>
-        <file>../safeFatPrinter/images/exit.png</file>
-        <file>../safeFatPrinter/images/forward.png</file>
-        <file>../safeFatPrinter/images/incoming.png</file>
-        <file alias="t_info.png">../safeFatPrinter/images/info.png</file>
-        <file>../safeFatPrinter/images/log.png</file>
-        <file alias="ok.png">../safeFatPrinter/images/ok.png</file>
-        <file>../safeFatPrinter/images/outgoing.png</file>
-        <file>../safeFatPrinter/images/play.png</file>
-        <file alias="view_code">../safeFatPrinter/images/reload.png</file>
-        <file>../safeFatPrinter/images/restart.png</file>
-        <file>../safeFatPrinter/images/run.png</file>
-        <file alias="t_save.png">../safeFatPrinter/images/save.png</file>
-        <file>../safeFatPrinter/images/settings.png</file>
-        <file>../safeFatPrinter/images/stop.png</file>
-        <file alias="t_needsave.png">../safeFatPrinter/images/kontact_journal.png</file>
-        <file alias="edit_add.png">../safeFatPrinter/images/edit_add.png</file>
-        <file alias="edit_remove.png">../safeFatPrinter/images/edit_remove.png</file>
-        <file>../safeFatPrinter/images/handbook.png</file>
-        <file>../safeFatPrinter/images/user-32.png</file>
-        <file alias="zoomin.png">../safeFatPrinter/images/zoomin.png</file>
-        <file alias="zoomout.png">../safeFatPrinter/images/zoomout.png</file>
-        <file>../safeFatPrinter/images/print.png</file>
-        <file>../safeFatPrinter/images/savetmpl.png</file>
-        <file>../safeFatPrinter/images/face_page.png</file>
-        <file>../safeFatPrinter/images/over_face_page.png</file>
-        <file alias="portret.png">../safeFatPrinter/images/portret.png</file>
-        <file alias="landscape.png">../safeFatPrinter/images/landscape.png</file>
-        <file alias="undo.png">../safeFatPrinter/images/undo.png</file>
-        <file alias="redo.png">../safeFatPrinter/images/redo.png</file>
-        <file alias="ok.png">../safeFatPrinter/images/ok.png</file>
-        <file alias="colorDialog.png">../safeFatPrinter/images/colorDialog.png</file>
-        <file alias="fontDialog.png">../safeFatPrinter/images/fontDialog.png</file>
-        <file alias="rotateRight.png">../safeFatPrinter/images/rotateright.png</file>
-        <file alias="rotateLeft.png">../safeFatPrinter/images/rotateleft.png</file>
-        <file alias="edit.png">../safeFatPrinter/images/edit.png</file>
+        <file alias="t_new.png">../images/filenew.png</file>
+        <file alias="t_open.png">../images/fileopen.png</file>
+        <file alias="t_save.png">../images/filesave.png</file>
+        <file alias="t_print.png">../images/fileprint.png</file>
+        <file>../images/backup.png</file>
+        <file>../images/blocklist.png</file>
+        <file>../images/cancel.png</file>
+        <file>../images/editdelete.png</file>
+        <file>../images/error.png</file>
+        <file>../images/exit.png</file>
+        <file>../images/forward.png</file>
+        <file>../images/incoming.png</file>
+        <file alias="t_info.png">../images/info.png</file>
+        <file>../images/log.png</file>
+        <file alias="ok.png">../images/ok.png</file>
+        <file>../images/outgoing.png</file>
+        <file>../images/play.png</file>
+        <file alias="view_code">../images/reload.png</file>
+        <file>../images/restart.png</file>
+        <file>../images/run.png</file>
+        <file alias="t_save.png">../images/save.png</file>
+        <file>../images/settings.png</file>
+        <file>../images/stop.png</file>
+        <file alias="t_needsave.png">../images/kontact_journal.png</file>
+        <file alias="edit_add.png">../images/edit_add.png</file>
+        <file alias="edit_remove.png">../images/edit_remove.png</file>
+        <file>../images/handbook.png</file>
+        <file>../images/user-32.png</file>
+        <file alias="zoomin.png">../images/zoomin.png</file>
+        <file alias="zoomout.png">../images/zoomout.png</file>
+        <file>../images/print.png</file>
+        <file>../images/savetmpl.png</file>
+        <file>../images/face_page.png</file>
+        <file>../images/over_face_page.png</file>
+        <file alias="portret.png">../images/portret.png</file>
+        <file alias="landscape.png">../images/landscape.png</file>
+        <file alias="undo.png">../images/undo.png</file>
+        <file alias="redo.png">../images/redo.png</file>
+        <file alias="ok.png">../images/ok.png</file>
+        <file alias="colorDialog.png">../images/colordialog.png</file>
+        <file alias="fontDialog.png">../images/fontdialog.png</file>
+        <file alias="rotateRight.png">../images/rotateright.png</file>
+        <file alias="rotateLeft.png">../images/rotateleft.png</file>
+        <file alias="edit.png">../images/edit.png</file>
     </qresource>
 </RCC>
