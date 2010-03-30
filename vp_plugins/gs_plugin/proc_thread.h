@@ -2,7 +2,8 @@
 #define PROC_THREAD_H
 
 #include "mytypes.h"
-#include <QThread>
+#include <QtCore/QThread>
+
 
 using namespace VPrn;
 class QString;
@@ -25,9 +26,7 @@ public:
       * Constructor. Creats a new ProcessT object.
       * @param parent The QObject parent of this object.
     */
-    ProcessT( QObject *parent = 0 ,
-              VPrn::Jobs job_id = VPrn::job_NoJob,
-              const QString &client = QString());
+    ProcessT( QObject *parent = 0 ,const QString &jobkey = QString());
     /**
       * Destructor.
     */
@@ -44,14 +43,17 @@ public:
       * @param args The command line arguments.
       * @param mode The process channel modes of the command which will be executed.
       */
-    void setCommand( const QString &name, const QStringList &args, const QProcess::ProcessChannelMode &mode = QProcess::SeparateChannels );
+    void setCommand( const QString &name,
+                     const QStringList &args,
+                     const QProcess::ProcessChannelMode &mode = QProcess::SeparateChannels );
     /**
       * Execute the given command. Calls setCommand() first and then just starts the thread if it's not running.
       * @param name The name of the program.
       * @param args The command line arguments.
       * @param mode The process channel modes of the command which will be executed.
       */
-    void execute( const QString &name, const QStringList &args, const QProcess::ProcessChannelMode &mode = QProcess::SeparateChannels );
+    void execute( const QString &name, const QStringList &args,
+                  const QProcess::ProcessChannelMode &mode = QProcess::SeparateChannels );
     /**
       * Sets the environment that QProcess will use when starting a process to the environment
       * @param environment  consists of a list of key=value pairs will add to evn
@@ -63,15 +65,14 @@ signals:
       * @param output The output of the command which was executed.
       */
     //void commandOutput(int Code,QString output);
-    void jobFinish(const QString & client,VPrn::Jobs job_id,int Code,const QString &output);
+    void jobFinish(const QString & jobKey,int Code,const QString &output);
 private:
     QString m_Command;
     QStringList m_Args;
     QStringList n_Env;
     QProcess::ProcessChannelMode m_ChanMode;
     QString m_Output;
-    VPrn::Jobs m_JobId; // Какую задачу выполняет поток
-    QString client_id;  // В чьих интересах вкалывать приходиться
+    QString job_key;
 };
 
 #endif //PROC_THREAD_H
