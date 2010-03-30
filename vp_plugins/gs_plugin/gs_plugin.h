@@ -6,12 +6,8 @@
 #include <QObject>
 #include <QtCore/QLibrary>
 
-#if defined(Q_OS_WIN)
-#include <windows.h>
-#define PLUGIN_API __declspec(dllimport)
-typedef PLUGIN_API int CreateAPIInstance(out IntPtr pinstance,
-                                         IntPtr caller_handle);
-#endif
+#include <QtCore/QMap>
+
 
 class QString;
 
@@ -22,8 +18,7 @@ class GS_plugin :public QObject, Igs_plugin
     Q_OBJECT
     Q_INTERFACES(Igs_plugin)
 public:
-
-            GS_plugin(QObject *parent=0);
+    GS_plugin(QObject *parent=0);
     void init(const QString &gs_bin,const QString &pdftk_bin,const QString &temp_folder,const QString &sid);
     void convertPs2Pdf(const QString &client_uuid,const QString &input_fn);
     /*
@@ -43,18 +38,19 @@ public:
 signals:
     void error(pluginsError errCode,QString error_message);
     /**
-      * @fn void JobFinish (const QString &client_uuid,VPrn::Jobs job_id,int code,const QString &output_message);
+      * @fn void jobFinish (const QString &client_uuid,
+      *                      VPrn::Jobs job_id,int code,
+      *                      const QString &output_message);
       * @param client;         Кто заказал работу
       * @param job_id;         Какую работу выполняли
       * @param code;           С каким результатом 0 успешно, 1 и далее ошибка
       * @param output_message; Расширенный ответ
       */
-    void JobFinish(const QString &client_uuid,VPrn::Jobs job_id,int code,const QString &output_message);
-    void pagesInDoc(int pages);// Как только я определил количество  листов в документе то сразу сообщаю всем об этом
+    void jobFinish(const QString &client_uuid,VPrn::Jobs job_id,int code,
+                   const QString &output_message);
 
 private slots:
-    void threadFinish(const QString &client_uuid,VPrn::Jobs job_id,int code,
-                      const QString &output_message);
+    void threadFinish(const QString &jobKey,int code,const QString &output_message);
 
     /*
     //TODO добавить для всех этих слотов сигнал маппер и объединить в одну функцию
@@ -67,7 +63,7 @@ private slots:
     void parseFirstPageThread(int Code,QString output);
     void parseOtherPageThread(int Code,QString output);
     void parseMergeThread(int Code,QString output);
-    void parseMergeToPrint(int Code,QString output );
+   void parseMergeToPrint(int Code,QString output );
     void parseAddPdfMarkThread(int Code,QString output);
     void parseCnv2PngThread(int Code,QString output);
 */
@@ -83,22 +79,41 @@ private:
     QString mainPDF;
     QString pdf2png_page;
     QString gs_rcp;
-    QString  printer;
+    QString printer;
     QString currentPrintPage;
 
 
- /**
+    /**
   * @fn  void getPageCount(const QString &client_uuid,const QString &input_fn);
   * @brief Используя pdfTk получим число страниц в pdf документе
   */
-  void getPageCount(const QString &client_uuid,const QString &input_fn);
-  /**
+    void getPageCount(const QString &client_uuid,const QString &input_fn);
+    /**
     * @fn   void splitPdf(const QString &client_uuid,const QString &main_pdf,
     *                     const QString &first_page, const QString &other_pages);
-    * @brief Делит файл имеющий более 1 страницы на блоки первая страница, остальные страницы
+    * @brief Делит файл имеющий на блоки первая страница, остальные страницы
     */
-  void splitPdf(const QString &client_uuid,const QString &main_pdf,
-                const QString &first_page, const QString &other_pages);
+    void splitPdf(const QString &client_uuid,const QString &main_pdf,
+                  const QString &first_page, const QString &other_pages);
+
+    /**
+      * @fn void start_proc(const QString &client_uuid,const QString &bin,
+                            QStringList &arg_list,VPrn::Jobs job_id);
+      * @brief Запускает отдельный поток вычислений, в интересах клиента
+      */
+    void start_proc(const QString &client_uuid,const QString &bin,
+                    QStringList &arg_list,VPrn::Jobs job_id);
+    /**
+      * @fn  QString getUuid() const
+      * @brief служебная функция генерирует ключ
+      */
+    QString getUuid() const;
+    /**
+      * @var clients_list; Список uuid,client_id
+      * @var jobs_list;   Список uuid,job_id
+      */
+    QMap <QString,QString> clients_list;
+    QMap <QString,VPrn::Jobs> jobs_list;
 
 };
 
