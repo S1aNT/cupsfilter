@@ -24,9 +24,9 @@ class serverGears : public QLocalServer
     Q_OBJECT
 
 public:
-    explicit serverGears(QObject *parent = 0,const QString &srvName = QString());    
+    explicit serverGears(QObject *parent = 0,const QString &srvName = QString());
 
-    QString lastError() const {return e_info;};
+    QString lastError() const {return e_info;}
     MyCheckPoints checkPoints() const;
     /**
       * @fn QString getUuid() const;
@@ -103,19 +103,20 @@ private:
       * @var netDemonReady;    Истина если произошла успешная авторизация GateKeeper на сетевом демоне
       * @var clients;          Список подключенных клиентов
       * @var clients_uuid;     Список UUID подключенных клиентов
-      * @var clients_name;     Список имен подключенных клиентов      
+      * @var clients_name;     Список имен подключенных клиентов
       */
 
-    QString m_serverName;    
+    QString m_serverName;
     QLocalServer *m_server;
     qint32 packetSize;
-    MyCheckPoints m_checkPoint;
+
     QString e_info;
     Inet_plugin *net_plugin;
     Igs_plugin *gs_plugin;
     QString u_login;
     QString u_mandat;
     bool netDemonReady;
+    MyCheckPoints m_checkPoint;
     QSet<QLocalSocket *> clients;
     QMap<QLocalSocket *,QString> clients_uuid;
     QMap<QLocalSocket *,QString> clients_name;
