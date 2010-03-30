@@ -11,7 +11,11 @@ INCLUDEPATH += ../interfaces \
 
 TARGET = tmpl_sql_plugin
 
-DESTDIR = ../VPrn/plugins
+win32 {
+DESTDIR = d:/opt/vprn/plugins
+}else{
+DESTDIR =/opt/vprn/plugins
+}
 
 CONFIG(debug, debug|release) { 
     message(Build Debug!)
