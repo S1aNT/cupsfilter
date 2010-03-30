@@ -6,7 +6,12 @@ CONFIG += warn_on \
     qt \
     console \
     precompile_header
-DESTDIR = ../VPrn
+win32 {
+   DESTDIR = d:/opt/vprn
+}else{
+   DESTDIR = /opt/vprn
+}
+
 CONFIG(debug, debug|release) { 
     message(Build Debug!)
     RCC_DIR = ../build/$${TARGET}/debug/rcc
