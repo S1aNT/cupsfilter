@@ -137,6 +137,7 @@ namespace VPrn{
         net_CommonError           /// Ошибка сети
     };
 
+
     enum Jobs{ /// Задания (работы)
         job_ConvertPs2Pdf,        /// Задача конвертирования ps в pdf
         job_CalcPageCount,        /// Задача подсчета страниц в pdf файле
@@ -184,8 +185,9 @@ namespace VPrn{
         Err_Message      = 7000,        /// Сообщение об ошибке.Подробности в теле сообщения
 
         NoMsgType        = 0
+
        };
-    
+
     enum {
         Page_Intro,
         Page_Select,
