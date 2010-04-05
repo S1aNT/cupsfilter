@@ -1,13 +1,16 @@
 #ifndef ITMPL_SQL_PLUGIN_H
 #define ITMPL_SQL_PLUGIN_H
+#include "mytypes.h"
 
-class QString;
-class QStandardItemModel;
-class QSqlQueryModel;
-class QSqlTableModel;
-class QStringList;
-class QUndoGroup;
+using namespace VPrn;
 
+QT_FORWARD_DECLARE_CLASS( QString )
+QT_FORWARD_DECLARE_CLASS( QStandardItemModel )
+QT_FORWARD_DECLARE_CLASS( QSqlQueryModel )
+QT_FORWARD_DECLARE_CLASS( QSqlTableModel )
+QT_FORWARD_DECLARE_CLASS( QStringList )
+QT_FORWARD_DECLARE_CLASS( QUndoGroup )
+QT_FORWARD_DECLARE_CLASS( QByteArray )
 
 class myScene;
 class TemplateInfoEditModel;
@@ -16,6 +19,7 @@ class EditPagesModel;
 #include <QHash>
 #include <QMap>
 #include <QPair>
+
 
 class Itmpl_sql_plugin{
 
@@ -40,17 +44,19 @@ public:
     virtual EditPagesModel         * getPagesModel() const = 0;
     virtual QUndoGroup             * getUndoGrp()    const = 0;
     virtual QMap <int,myScene *>     getScenesGroup()      = 0;
-    virtual QMap <int,QString >      getFilesGroup()       = 0;    
+    virtual QMap <int,QString >      getFilesGroup()       = 0;
     virtual void saveTemplatesAs(const QString & fileName) = 0;
     virtual void saveTemplates () = 0 ;
     virtual bool isDBOpened    () = 0;
     virtual bool isDBConnected () =0 ;
-    
+
     virtual void doAddBaseElementToPage(int page,const QString &text) = 0;
     virtual void convert2Pdf() = 0;
     virtual void setUserName (const QString &user) = 0;
-    virtual void setTagValue(QHash<QString, QString> &tagValue) = 0;
     virtual void setViewMode () =0 ;
+    virtual QStringList loadAndFillTemplateCreatePages(const QString &c_uuid,
+                                        const QByteArray client_data) = 0;
+
 
 };
 
