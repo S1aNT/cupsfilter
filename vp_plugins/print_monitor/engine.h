@@ -1,11 +1,14 @@
 #ifndef ENGINE_H
 #define ENGINE_H
 #include "QtCore/QObject"
+#include <QtCore/QFileInfo>
 
-class QLocalSocket;
+QT_FORWARD_DECLARE_CLASS ( QStringList )
+QT_FORWARD_DECLARE_CLASS ( QLocalSocket )
+
 class mySocketClient;
 class Message;
-class QStringList;
+
 
 #include "mytypes.h"
 #include "igs_plugin.h"
@@ -15,10 +18,17 @@ using namespace VPrn;
 class Engine :public QObject
 {
     Q_OBJECT
-public:    
+public:
 
     Engine(QObject*parent = 0,const QString &app_path = QString(),
            const QString &client_name = QString());
+    /**
+      * @fn ~Engine();
+      * @brief В деструкторе проверяем живость соденения и если оно есть прибиваем его
+      */
+    ~Engine();
+
+    void init();
     /**
       @fn void prepareFileToPrint(const QString & file_name);
       @brief Отпаравляет запрос на GateKeeper с требованием конвертировать ps -> pdf
@@ -35,29 +45,68 @@ public:
       */
     QString lastError() const {return e_info;}
 
-    //VPrn::CoreOptions options() const;
-    //void setOptions(VPrn::CoreOptions s_opt);
-    void sendMessage2LocalSrv(const Message &s_msg);
-    void init();
     /**
-      * @fn  void setUserMandat(const QString & mandat);
+      * @fn  void setUserMandat(const QString & u_name,const QString & u_mandat);
       * @brief При авторизации с консоли юзер выбрам мандат
       * передадим его демону и запросим список уровней секретности для данного мандата
       */
-    void setUserMandat(const QString & mandat);
+    void setUserMandat(const QString & u_name,const QString & u_mandat);
     /**
       * @fn QStringList &getSecLevelList() const;
       * @brief Возвращает список уровней секретности
       */
     QStringList getSecLevelList() const {return secLevelList;}
+    /**
+      * @fn QStringList &getTemplatesList() const;
+      * @brief Возвращает список шаблонов
+      */
+    QStringList getTemplatesList() const {return templatesList; }
+
+    /**
+     * @fn void authUserToPrinter(const QString &printer_uri);
+     * @brief Авторизация текщего пользователя на доступ к выбранному принтеру
+     */
+    void authUserToPrinter(const QString &printer_uri);
+    /**
+      * @fn void checkMB( const QString &sql_query);
+      * @brief Отправляет локальному серверу запрос на проверку существования
+      * документа с заданными атрибутами (МБ,номер экз. и название документа
+      * в БД учета
+      */
+    void checkMB( const QString &sql_query );
+    /**
+      * @fn void registerMB ( const QString &sql_query );
+      * @brief Запрос на регистрацию документа в БД учета
+      */
+    void registerMB ( const QString &sql_query );
+
+    void doMergeDocWithTemplates (QByteArray field_data,bool preview_mode);
 signals:
+    // Вернем путь к шаблону
+    void setTemplatesFileName( QString t_path);
+    // Результат наложения шаблона на документ
+    void MergeDocWithTemplates( bool flag,const QString &info);
+    // список путей к сформированным  страницам предпросмотра
+    void PreviewPages (QByteArray page_list);
+    // Список путей уже сформированным документам готовым для печати
+    void ReadyForPrintPages(QByteArray page_list);
+    // Получено требование завершить работу
+    void reciveGoodBayMsg(const QString &shutdown_info);
+    // Требуется передать демону дополнительные параметы документа для его регистрации
+    // в бд учета
+    void needRegisterDocInBase();
+    //Документ зарегистрирован в БД УЧЕТА
+    void RegisterDocInBase(bool flag,const QString &info);
+    // Результат авторизации доступа к устройству
+    void authToDevice(bool flag,const QString &info);
+
     void infoMessage(const QString &info);
     void gk_notReady(const QString &ext_info); // локальный сервер не готов к работе
     // Требуется авторизовать пользователя есть имя, и связь с демоном
     void needAuthUser(const QString &login_mandat_list);
     void gk_fullReady(const QString &login,const QString &mandat);
     //Локальный сервер вернул список принтеров доступных данному пользователю
-    void getPrinterList(const QString &prn_list);
+    void getPrinterList(QStringList &prn_list);
     // Успешная загрузка плагинов
     void pluginsLoad();
     // Регистрация на локальном сервере
@@ -71,12 +120,21 @@ signals:
     void doc_converted();
     // Подсчитали количество страниц
     void getPagesCount (int p_count);
+    // Когда завершенно разбиение страниц испускается соответсвующий сигнал
+    void firstPageSplitted();
+    void otherPageSplitted();
     /**
       * @fn void error(const QString &e_info);
       * @brief При возникновении ошибки, сигнал передает описание ошибки
       * @todo Убрать функции @sa @fn QString lastError() @sa @fn bool isError()
       */
     void error(const QString &e_info);
+public slots:
+    /**
+      * @fn void convertTemplatesNameToFilePath(QString t_name);
+      * @brief Преобразование имени шаблона в полный путь к его файлу
+      */
+    void convertTemplatesNameToFilePath(QString t_name);
 
 private slots:
     void do_checkPointChanged(MyCheckPoints r_cpoint);
@@ -104,7 +162,7 @@ private:
       * @var local_t_path;     Путь к локальным шаблонам
       * @var global_t_path;    Путь к глобальным шаблонам
       *
-      * @brief Локальные переменные      
+      * @brief Локальные переменные
       * @var clientName;       Имя клиента приложения для индетификации в GateKeeper
       * @var e_info;           Последняя возникшая ошибка
       * @var e_state;          Статус Локального сокета
@@ -134,17 +192,23 @@ private:
     Igs_plugin *gs_plugin;
     QString client_uuid; // Уникальный номер полученный от GateKeeper
     QStringList secLevelList;
+    QStringList templatesList;
+    QString currentUserName;
+    QString currentUserMandat;
 
+    QList <QFileInfo> templatesFileInfoList;
+    QMap <QString,QString> printer_device_list;
+
+    /**
+      * @fn void sendMessage2LocalSrv(const Message &s_msg);
+      * @brief отправка сообщения локальному серверу
+      */
+    void sendMessage2LocalSrv(const Message &s_msg);
     /**
       * @fn void readConfig();
       * @brief Читаем установки из ini файла
       */
     void readConfig(const QString &ini_file);
-    /**
-      * @fn bool loadPlugin();
-      * @brief Загружаем и настраиваем плагины
-      */
-    bool loadPlugin();
 
     /**
       * @fn setError(const QString &info);
@@ -156,6 +220,25 @@ private:
       * @brief Устанавливает состояние ошибки = НЕТ ошибки
       */
     void setError();
+
+    /**
+      * @fn void setFileList(const QString &t_path,const QString &prefix);
+      * @brief Основная функция которая записывает список шаблонов в templatesList
+      */
+    void setFileList(const QString &t_path,const QString &prefix);
+
+    /**
+      * @fn QString findPrinterInDeviceURIList(const QString &prn);
+      * @brief Поиск в списке device_uri выбранного пользователем принтера
+      * и возврат его  device_uri для авторизации
+      */
+    QString findPrinterInDeviceURIList(const QString &prn);
+    /**
+      * @fn void convertDeviceURIListToPrinterList(const QString & device_uri_list);
+      * @brief Сформирует из списка device_uri список принтеров, согласно
+      * канонам дзенбуддизма и отправит сигнал с этим списком
+      */
+    void convertDeviceURIListToPrinterList(const QString & device_uri_list);
 };
 
 
