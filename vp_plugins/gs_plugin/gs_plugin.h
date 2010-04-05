@@ -8,8 +8,11 @@
 
 #include <QtCore/QMap>
 
+/** @todo Сделать загрузку библиотеки gs если под виндой понятно как это сделать,
+  * хотя и не очень удобно делать, тот с линуксом засада, не пойму как
+  */
 
-class QString;
+QT_FORWARD_DECLARE_CLASS (QString)
 
 using namespace VPrn;
 
@@ -19,22 +22,13 @@ class GS_plugin :public QObject, Igs_plugin
     Q_INTERFACES(Igs_plugin)
 public:
     GS_plugin(QObject *parent=0);
-    void init(const QString &gs_bin,const QString &pdftk_bin,const QString &temp_folder,const QString &sid);
+
+    void init(const QString &gs_bin,const QString &pdftk_bin,
+              const QString &temp_folder);
     void convertPs2Pdf(const QString &client_uuid,const QString &input_fn);
-    /*
-    QString getFirstPages(){return firstPage_fn;};
-    QString getOtherPages(){return otherPages_fn;};
-    QPixmap getSnapShot(){return currentPageSnapShot;};
-    void convertPs2Pdf(const QString &input_fn);
-    void getPageCount(const QString &input_fn);
-    void convertPdf2Png(const QString &fn, int convertedPage);
-    void merge2Pdf(const QString &input_fn,const QString &background_fn,const QString &output_fn);
-    void printPdf(const QString &print_fn,const QString &printer_name);
-    void addPdfMark(const QString &input_fn,const QString &user_name, const QString &host_name,quint16 host_ip);
-    void merge_mark_print(const QString &input_fn,const QString &background_fn,
-                          const QString &user_name,const QString &printer_name);
-    void clearAll();
-*/
+
+    void final_clear();
+
 signals:
     void error(pluginsError errCode,QString error_message);
     /**
@@ -52,47 +46,24 @@ signals:
 private slots:
     void threadFinish(const QString &jobKey,int code,const QString &output_message);
 
-    /*
-    //TODO добавить для всех этих слотов сигнал маппер и объединить в одну функцию
-    //TODO порождаемый поток держать в спящем состоянии и пробуждать при приходе новой команды
-    //то есть при инициализации загружать библиотеку gs_lib
-    // а не создавать каждый раз заново.
-    void parseCnvThread(int Code,QString output);
-    void parsePageCountThread(int Code,QString output);
-    void parsePrintThread(int Code,QString output);
-    void parseFirstPageThread(int Code,QString output);
-    void parseOtherPageThread(int Code,QString output);
-    void parseMergeThread(int Code,QString output);
-   void parseMergeToPrint(int Code,QString output );
-    void parseAddPdfMarkThread(int Code,QString output);
-    void parseCnv2PngThread(int Code,QString output);
-*/
 private:
     QString gsBin;
     QString tempPath;
     QString pdftkBin;
+    QString gs_rcp;
     QStringList args;
     QStringList myEnv; // Мои переменные среды для gs
-    QString Sid;
-    QString firstPage_fn;
-    QString otherPages_fn;
-    QString mainPDF;
-    QString pdf2png_page;
-    QString gs_rcp;
-    QString printer;
-    QString currentPrintPage;
-
 
     /**
-  * @fn  void getPageCount(const QString &client_uuid,const QString &input_fn);
-  * @brief Используя pdfTk получим число страниц в pdf документе
-  */
+      * @fn  void getPageCount(const QString &client_uuid,const QString &input_fn);
+      * @brief Используя pdfTk получим число страниц в pdf документе
+      */
     void getPageCount(const QString &client_uuid,const QString &input_fn);
     /**
-    * @fn   void splitPdf(const QString &client_uuid,const QString &main_pdf,
-    *                     const QString &first_page, const QString &other_pages);
-    * @brief Делит файл имеющий на блоки первая страница, остальные страницы
-    */
+      * @fn void splitPdf(const QString &client_uuid,const QString &main_pdf,
+      *                     const QString &first_page, const QString &other_pages);
+      * @brief Делит файл имеющий на блоки первая страница, остальные страницы
+      */
     void splitPdf(const QString &client_uuid,const QString &main_pdf,
                   const QString &first_page, const QString &other_pages);
 
