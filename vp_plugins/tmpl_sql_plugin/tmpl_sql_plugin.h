@@ -31,7 +31,8 @@
 #include <QtCore/QObject>
 #include <QtCore/QHash>
 #include <QtCore/QMap>
-
+#include <QtCore/QByteArray>
+#include <QtGui/QPrinter>
 #include <QtSql/QSqlDatabase>
 
 class QSqlQuery;
@@ -39,6 +40,7 @@ class QSqlQueryModel;
 class QSqlRelationalTableModel;
 class QSqlError;
 class QSqlTableModel;
+
 class myScene;
 
 using namespace VPrn;
@@ -49,7 +51,7 @@ class Tmpl_sql_plugin : public QObject , Itmpl_sql_plugin
     Q_INTERFACES(Itmpl_sql_plugin)
 public:
 
-            Tmpl_sql_plugin(QObject *parent = 0);
+    Tmpl_sql_plugin(QObject *parent = 0);
     ~Tmpl_sql_plugin();
     /**
       * @fn init(const QString & spool,const QString & sid)
@@ -58,8 +60,8 @@ public:
     void init(const QString & spool,const QString & sid);
 
 
-    inline bool isDBOpened()   {return m_dbOpened;};
-    inline bool isDBConnected(){return m_dbConnect;};
+    inline bool isDBOpened()   {return m_dbOpened;}
+    inline bool isDBConnected(){return m_dbConnect;}
 
     /**
       * @brief Геттеры возвращают константные указатели на
@@ -71,11 +73,11 @@ public:
       * @fn getScenesGroup();      список сцен, со связанными стеками Undo
       * @fn getFilesGroup();       список путей к pdf файлам myScene -> pdf
       */
-    TemplateInfoEditModel * getInfoModel() const {return tInfoModel;};
-    QSqlQueryModel        * getPSizeModel()const {return pSizeModel;};
-    EditPagesModel        * getPagesModel()const {return pagesModel;};
+    TemplateInfoEditModel * getInfoModel() const {return tInfoModel;}
+    QSqlQueryModel        * getPSizeModel()const {return pSizeModel;}
+    EditPagesModel        * getPagesModel()const {return pagesModel;}
     QStringList             getBaseElemNameList() const;
-    QUndoGroup            * getUndoGrp() const   {return undoGrp;};
+    QUndoGroup            * getUndoGrp() const   {return undoGrp;}
     QMap <int,myScene *>    getScenesGroup()     {return scenesGrp;}
     QMap <int,QString>      getFilesGroup()      {return filesGrp;}
 
@@ -90,7 +92,7 @@ public:
       * @fn void setUserName (const QString &user){userName = user;};
       * @brief Устанавливает имя пользователя полученное от плагина Auth
       */
-    void setUserName (const QString &user){userName = user;};
+    void setUserName (const QString &user){userName = user;}
     /**
       * @fn void printAllPage2Pdf();
       * @brief Если шаблон успешно загружен и вышстоящее приложение потребовало
@@ -99,21 +101,28 @@ public:
       * и их номера
       *
       */
-    void printAllPage2Pdf();
+    //void printAllPage2Pdf();
+
+    /**
+      * @fn QStringList fillTemplatesCreatePages(const QString &c_uuid,
+      *                                   const QByteArray client_data);
+      * @brief Загружает требуемый шаблон, заполняет его требумыми данными и
+      * формирует pdf страницы шаблона,данные получаются путем чтения client_data
+      * как форматированно потока данных.Особенность, что QGraphicsScene
+      * создается одна и страницы в ней формируются последовательно.
+      * @param const QString &c_uuid        Уникальный номер клиента
+      * @param const QByteArray client_data Массив данных переданных клиентом
+      * @return Возращает true  в случае успешного разбора, иначе false
+      */
+      QStringList loadAndFillTemplateCreatePages(const QString &c_uuid,
+                                        QByteArray client_data);
+
 signals:
     void error(pluginsError errCode,QString error_message);
     void allTemplatesPagesParsed();
     void allPagesConverted();
 
 public slots:
-    /**
-      * @fn void setTagValue(QPair<QString, QString> &tagValue);
-      * @brief Предназначенна для записи в шаблон значений полей
-      * пробегает по всем элементам QPair и ищет соответсвитвие в списке
-      * элементов шаблона после чего делает update таблицы elem и обновление
-      * элементов отображения
-      */
-    void setTagValue(QHash<QString, QString> &tagValue);
     /**
       * @fn Открытие шаблона
       * @brief работает так если драйвер БД загружен и установленно соединение,
@@ -125,11 +134,11 @@ public slots:
       * @brief если драйвер БД загружен и установленно соединение,
       * то создадим БД в заданном файле и наполним его начальным содержимым
       * Пустой шаблон создается в следующем порядке:
-      * 1. проверка что файл заданный как БД шаблона не существует, но мождет быть создан
-      *    - имя файла проходит проверку на валидность (имя_файла.tmpl)
-      *    - такой файл в заданном месте можно создать
-      * 2. Проверка того что драйвер БД загружен, соединение по умолчанию установленно
-      * 3. Открытие БД и создание структуры базы
+      * @li 1. Проверка что файл заданный как БД шаблона не существует, но мождет быть создан
+      * @li имя файла проходит проверку на валидность (имя_файла.tmpl)
+      * @li такой файл в заданном месте можно создать
+      * @li 2. Проверка того что драйвер БД загружен, соединение по умолчанию установленно
+      * @li 3. Открытие БД и создание структуры базы
       */
     void createEmptyTemplate();
     /**
@@ -156,11 +165,7 @@ public slots:
       * @brief Преобразует текущий загруженный шаблон в набор pdf страниц
       */
     void convert2Pdf();
-private:    
-
-    bool m_dbOpened;
-    bool m_dbConnect;
-
+private:
     /**
       * @var userName;    имя текущего пользователя полученное от подсистемы авторизации
       * @var spool_dir    каталог для временных файлов
@@ -170,45 +175,35 @@ private:
     QString spool_dir;
     QString current_sid;
 
+    bool view_code_state;
+
+    /**
+      * @var Singleton DB connection
+      */
+    QSqlDatabase DB_;
+    bool m_dbOpened;
+    bool m_dbConnect;
+    QString m_connectionName;
 
     /**
       * @var QHash<QString, QString> m_tagValue;
+      * @var QMap <int,QString> filesGrp;       Список файлов pdf
+      * @var QMap <int,myScene *> scenesGrp;    Список сцен
+      * @var QMap <int,QGraphicsItem *> pageItems;  Список элементов, привязанных к странице
+      * @var QUndoGroup * undoGrp;              Группа стеков Undo
+      * @var baseElemList;                      Список базовых элементов
+      * @var currentDBFileName;                 Имя файла текущей открытой БД
+      * @var TemplateInfoEditModel *tInfoModel; Модель ИНФО_ШАБЛОНА
+      * @var QSqlQueryModel * pSizeModel;       Модель РАЗМЕРЫ_ЛИСТА
       */
-    QHash <QString, QString> m_tagValue;
 
-    /**
-      * @var QMap <int,QString> filesGrp;  список файлов pdf
-      */
     QMap <int,QString> filesGrp;
-    /**
-      * @var QMap <int,myScene *> scenesGrp; Список сцен
-      */
     QMap <int,myScene *> scenesGrp;
-    /**
-      * @var QUndoGroup * undoGrp; Группа стеков Undo
-      */
+
     QUndoGroup * undoGrp;
-
-    bool view_code_state;
-
-    QString m_connectionName;
-    /**
-      * @var baseElemList; список базовых элементов
-      */
     QStringList baseElemList;
-
-    /**
-      * @var currentDBFileName Имя файла текущей открытой БД
-      */
     QString currentDBFileName;
-    /**
-      * @var Модель ИНФО_ШАБЛОНА
-      */
     TemplateInfoEditModel  * tInfoModel;
-
-    /**
-      * @var Модель РАЗМЕРЫ_ЛИСТА
-      */
     QSqlQueryModel * pSizeModel;
 
     /**
@@ -227,11 +222,6 @@ private:
       * text|tag|pos_x|pos_y|color|font|angle|border|img_data|always_view
       */
     QSqlQueryModel * elemInPageModel;
-
-    /**
-      * @var Singleton DB connection
-      */
-    QSqlDatabase DB_;
 
     /**
       * @fn Открываем существующую БД
@@ -297,13 +287,16 @@ private:
       * @brief Возвращает id Записи в таблице размеров страниц
       */
     int getId4pageSizeTable(QSqlQuery &query,const QString & findSize);
+
+
+
     /**
-      * @fn void update_scenes(const QHash<QString, QString> &hash)
-      * @brief проходит по всем элементам каждой сцены и проверяет
+      * @fn bool saveDataToBase(const QHash<QString, QString> &hash);
+      * @brief проходит по всем элементам каждой страницы и проверяет
       * есть ли там элемент с тегом = tag если есть, то записывает ему новое
       * значение, координаты элемента не меняются
       */
-    void update_scenes(const QHash<QString, QString> &hash);
+    bool saveDataToBase(const QHash<QString, QString> &hash);
 
 };
 
