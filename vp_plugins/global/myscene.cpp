@@ -19,8 +19,9 @@ using namespace VPrn;
 myScene::myScene(int Number, QUndoStack* undoStack, QObject *parent )
     : QGraphicsScene(parent)
     , m_mode (true)
+    , m_angle(0.0)
+    , m_undoStack(0)
     , m_Number(-1)
-
 {
     // initialise variables
     m_undoStack     = undoStack;
@@ -29,16 +30,31 @@ myScene::myScene(int Number, QUndoStack* undoStack, QObject *parent )
     m_Number = Number;
 }
 
+
 QUndoStack *myScene::undoStack() const
 {
     return m_undoStack;
 }
 
+void  myScene::createPageForPrint(qreal width,qreal height)
+{
+    this->clear();
+    this->setSceneRect(0, 0, width,height);
+    this->setBackgroundBrush(Qt::white);
+    /// рисуем границы (@todo при печати надо их убирать)
+
+    QGraphicsRectItem *paper_rect =
+            new QGraphicsRectItem (QRectF(0,0, width,height));
+    paper_rect->setPen(QPen(Qt::black));
+    paper_rect->setBrush(QBrush(Qt::white));
+    paper_rect->setZValue(-1000.0);
+    paper_rect->setData(ObjectName, "Paper");
+    this->addItem(paper_rect);
+}
+
 void  myScene::createPage(qreal width,qreal height,qreal m_top,qreal m_bottom,
                           qreal m_right,qreal m_left)
 {
-
-
     this->clear();
     this->setSceneRect(0, 0, width,height);
     this->setBackgroundBrush(Qt::white);
@@ -81,13 +97,12 @@ QGraphicsItem * myScene::getPaperItem()
 }
 
 
-
 void myScene::addBaseElem(const QString &tag,const QString &text,const QPointF &ps,
                           const QFont &fnt,const QColor &col,const qreal m_angle)
 {
 
 
-    myTextItem * pItem = new myTextItem();
+    myTextItem * pItem = new myTextItem(this->getPaperItem());
 
     pItem->setPos(ps);
     pItem->setFont(fnt);
@@ -113,10 +128,13 @@ void myScene::addBaseElem(const QString &tag,const QString &text,const QPointF &
     pItem->setFlag(QGraphicsItem::ItemIsFocusable, true);
 
     pItem->setData(ObjectName, "tElem");
-    pItem->setParentItem( this->getPaperItem() );
-    m_undoStack->push( new CommandTextItemAdd( this, pItem ) );
+    if (m_undoStack){
+        m_undoStack->push( new CommandTextItemAdd( this, pItem ) );
+        m_undoStack->push( new CommandTextItemRotate( this, pItem,m_angle ) );
+    }else{
+        pItem->setAngle(m_angle);
 
-    m_undoStack->push( new CommandTextItemRotate( this, pItem,m_angle ) );
+    }
 }
 
 void myScene::selectItems()
@@ -161,28 +179,27 @@ void  myScene::contextMenuEvent( QGraphicsSceneContextMenuEvent* event )
     }else{
         qreal angle;
         QMenu menu;
-        setTagAction   = menu.addAction(QIcon(":/edit.png"),
-                                      QObject::trUtf8("Изменить значение тега"));
+        setTagAction      = menu.addAction(QIcon(":/edit.png"),
+                                           QObject::trUtf8("Изменить значение тега"));
         changeFontAction  = menu.addAction(QIcon(":/fontDialog.png"),
                                            QObject::trUtf8("Изменить шрифт"));
         changeColorAction = menu.addAction(QIcon(":/colorDialog.png"),
                                            QObject::trUtf8("Изменить цвет"));
         menu.addSeparator();
         rotateRightAction = menu.addAction(QIcon(":/rotateRight.png"),
-                                           QObject::trUtf8("Вращать по часовой стрелке"));
-        rotateLeftAction = menu.addAction(QIcon(":/rotateLeft.png"),
-                                          QObject::trUtf8("Вращать против часовой стрелке"));
+                                           QObject::trUtf8("Вращать вправо на 90град."));
+        rotateLeftAction  = menu.addAction(QIcon(":/rotateLeft.png"),
+                                           QObject::trUtf8("Вращать влево на 90град."));
         menu.addSeparator();
 
-        menu.addSeparator();
         delElemAction = menu.addAction(QObject::trUtf8("Удалить элемент"));
 
         QAction * act = menu.exec(event->screenPos());
         if (act ==setTagAction){
             QString tag = QInputDialog::getText(event->widget(),
-                                                 QObject::trUtf8("Введите текст"),
-                                                 QObject::trUtf8("Новый тэг элемента:"),
-                                                 QLineEdit::Normal, textItem->getETag());
+                                                QObject::trUtf8("Введите текст"),
+                                                QObject::trUtf8("Новый тэг элемента:"),
+                                                QLineEdit::Normal, textItem->getETag());
             if (!tag.isEmpty()){
                 m_undoStack->push( new CommandTextItemChangeTag( this, textItem,tag ) );
                 textItem->setEText(QObject::trUtf8("Новый..."));
@@ -194,12 +211,12 @@ void  myScene::contextMenuEvent( QGraphicsSceneContextMenuEvent* event )
 
         }
         if (act == rotateRightAction){
-            angle = 90.0;
+            angle = -90.0;
             m_undoStack->push( new CommandTextItemRotate( this, textItem,angle ) );
 
         }
         if (act == rotateLeftAction){
-            angle = -90.0;
+            angle = 90.0;
             m_undoStack->push( new CommandTextItemRotate( this, textItem,angle) );
 
         }
@@ -222,19 +239,19 @@ void  myScene::contextMenuEvent( QGraphicsSceneContextMenuEvent* event )
     }
 }
 
- void  myScene::setViewMode()
- {
-     m_mode = (m_mode == true ) ? m_mode = false : m_mode = true;
+void  myScene::setViewMode()
+{
+    m_mode = (m_mode == true ) ? m_mode = false : m_mode = true;
 
-     ///Пройдем по каждому элементу сцены и изменим отображаемый элемент
-     QList<QGraphicsItem *> mTxtItem;
-     mTxtItem = this->items();
-     foreach (QGraphicsItem *item, mTxtItem){
-       if ( dynamic_cast<myTextItem*>( item ) ){
-           dynamic_cast<myTextItem*>( item )->setMode(m_mode);
-       }
-     }
- }
+    ///Пройдем по каждому элементу сцены и изменим отображаемый элемент
+    QList<QGraphicsItem *> mTxtItem;
+    mTxtItem = this->items();
+    foreach (QGraphicsItem *item, mTxtItem){
+        if ( dynamic_cast<myTextItem*>( item ) ){
+            dynamic_cast<myTextItem*>( item )->setMode(m_mode);
+        }
+    }
+}
 
 
 
