@@ -4,8 +4,12 @@
 #include "mytypes.h"
 #include "engine.h"
 #include "getusernamemandatdlg.h"
-#include "wizardpages.h"
 
+#include "intorpage.h"
+#include "selectpage.h"
+#include "printdatapage.h"
+#include "checkdatapage.h"
+#include "previewpage.h"
 
 #include <QtGui/QWizard>
 #include <QtCore/QMap>
@@ -23,22 +27,21 @@ class QErrorMessage;
 
 class PrintMonitor : public QWizard {
     Q_OBJECT
-public:    
+public:
 
-    PrintMonitor(QWidget *parent = 0);
+    PrintMonitor(QWidget *parent = 0,const QString &input_file = QString());
     ~PrintMonitor();
 
+    //int nextId() const;
+public slots:
+    void appendStartMsg(const QString &start_msg);
 
-    int nextId() const;
-public slots:   
-    /**
-      * @fn void setFile4Work(const QString &input_file);
-      * @brief На вход виртуального принтера поступает файл в формате ps
-      * После проверки на валидность, т.е файл есть и доступен, он помещается в очередь
-      * печати, которая обрабатывается на GateKeeper
-      */
-    void setFile4Work(const QString &input_file);
 private slots:
+    /**
+      * @fn void onGoodBayMsg(const QString &shutdown_info);
+      * @brief Печальная весть, Хранитель_Врат умирает, пора и нам на покой
+      */
+    void onGoodBayMsg(const QString &shutdown_info);
     /**
       * @fn void do_needAuthUser(const QString &login_mandat_list);
       * @param QString &login_mandat_list сообщение в формате:
@@ -49,23 +52,45 @@ private slots:
     void do_needAuthUser(const QString &login_mandat_list);
     void showHelp();
     /**
-      * @fn void print_next();
+      * @fn void sendFileToConvertor();
       * @brief отправляет на обработку следующий файл из очереди печати
       */
-    void print_next();
-    //protected:
-    //    void changeEvent(QEvent *e);
+    void sendFileToConvertor();
+
+    /**
+      * @fn void  onReciveSecLevelList();
+      * @brief Получили сообщение что готов список уровней секретности
+      * Запишем его в соответсвующее поле страницы print_data
+      */
+    void onReciveSecLevelList();
+    /**
+      * @fn void check_docMB();
+      * @brief Поля ввода прошли формальную проверку на корректность заполнения
+      * необходимо проверить МБ документа по базе
+      */
+    void check_docMB();
+    /**
+      * @fn on_needRegisterDocInBase();
+      * @brief Необходимо передать демону sql запрос на регистрацию документа
+      */
+    void onNeedRegisterDocInBase();
+    /**
+      * @fn void onSelectPreview(bool mode);
+      * @brief Пользовательвыбрал режи предпросмотра страниц (Все/частично)
+      * отправим запрос на оъединение документа и шаблона
+      */
+    void onSelectPreview(bool mode);
 private:
     //    Ui::PrintMonitor *ui;
     /**
-      * @var core_app;      Основной объект программы
-      * @var UMDlg;         Диалоговое окно выбора мандата
-      * @var m_InputFile;   Основной обрабатываемый файл
-      * @var intro_page;    Стартовая страница
-      * @var select_page;   Страница выбора режимов работы
+      * @var core_app;       Основной объект программы
+      * @var UMDlg;          Диалоговое окно выбора мандата
+      * @var m_InputFile;    Основной обрабатываемый файл
+      * @var intro_page;     Стартовая страница
+      * @var select_page;    Страница выбора режимов работы
       * @var printData_page; Страница заполнения карточки документа
       * @var job_list;       Очередь документов на печать,
-        возникает если была попытка запуска еще одной копии приложения
+      * @var printer_device_list; Список device_uri для авторизации
       */
     Engine               * core_app;
     getUserNameMandatDlg * UMDlg;
@@ -73,11 +98,15 @@ private:
     IntroPage            * intro_page;
     SelectPage           * select_page;
     PrintDataPage        * printData_page;
+    CheckDataPage        * checkData_page;
+    PreViewPage          * preview_page;
     QErrorMessage        * eMsgBox;
     QQueue <QString>       job_list;
 
+
     //-------------------------------------------------------------------------
     QPoint getDeskTopCenter(int width,int height);
+
 };
 
 
