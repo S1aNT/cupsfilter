@@ -21,7 +21,7 @@ public:
         m_scene      = scene;
         oldDirect    = m_TextItem->getAngle();
         newDirect    = direct;
-        if ( direct  == 89.0 ){
+        if ( direct  == 90 ){
             setText( QObject::tr("Элемент %1 повернут вправо")
                      .arg( m_TextItem->getETag() ) );
         }else{
