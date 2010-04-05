@@ -21,32 +21,28 @@ int main(int argc, char *argv[])
     QTextCodec::setCodecForTr(codec);
     QTextCodec::setCodecForCStrings(codec);
     QTextCodec::setCodecForLocale(codec);
-    //qInstallMsgHandler(myMessageOutput);
+    qInstallMsgHandler(myMessageOutput);
 
     QtSingleApplication app(argc, argv, true);
 
     QString in_file;
 #if defined (MY_DEBUG)
-   in_file="/opt/vprn/test.ps";
+
+#if defined (Q_OS_WIN32)
+    in_file="d:/opt/vprn/test.ps";
+#elif defined (Q_OS_UNIX)
+    in_file="/opt/vprn/test.ps";
+#endif
+
 #else
     QStringList aList=app.arguments();
-    if (aList.size()< 2){
+    if (aList.size()< 1){
         QMessageBox::critical(0,QObject::trUtf8("Обратитесь к системному администратору"),
                               QObject::trUtf8("Ошибка запуска приложения, не достаточно параметров запуска"));
         return 1;
     }
     QString in_file=aList.at(1);
-#endif
-    /**
-      @todo На базе сообщения организовать очередь печати !
-      * После того как пользователь заканчивает работу с текущим документом
-      * Происходит проверка очереди, нет ли там ожидающих документов,
-      * если есть, то весь цикл запускается заново, но с шага 2 так как
-      * логин, мандат уже есть, связь с локальным сервером установленна,
-      * единственная проверка которая необходима, эта связь с мишиным демоном,
-      * не отвалилась ли
-      */
-
+#endif    
     if (app.sendMessage(QObject::trUtf8("Попытка запуска второй копии приложения!"))
         || app.isRunning())
         return 0;
