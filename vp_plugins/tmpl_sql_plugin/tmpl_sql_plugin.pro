@@ -17,7 +17,7 @@ DESTDIR = d:/opt/vprn/plugins
 DESTDIR =/opt/vprn/plugins
 }
 
-CONFIG(debug, debug|release) { 
+CONFIG(debug, debug|release) {
     message(Build Debug!)
     RCC_DIR = ../build/$${TARGET}/debug/rcc
     MOC_DIR = ../build/$${TARGET}/debug/moc
@@ -26,7 +26,7 @@ CONFIG(debug, debug|release) {
     mac|unix: TARGET = $$join(TARGET,,,_debug)
     win32: TARGET = $$join(TARGET,,d)
 }
-else { 
+else {
     message(Build Release!)
     RCC_DIR = ../build/$${TARGET}/release/rcc
     MOC_DIR = ../build/$${TARGET}/release/moc
@@ -37,14 +37,14 @@ LANGUAGE = C++
 # Use Precompiled headers (PCH)
 PRECOMPILED_HEADER = ../global/pre_header.h
 HEADERS += ../global/pre_header.h \
-           ../global/tech_global.h \
+           ../interfaces/itmpl_sql_plugin.h  \
            ../global/mytypes.h \
            ../global/tinfoeditmodel.h \
            ../global/myscene.h \
            ../global/mytextitem.h \
            ../global/commands.h \
            ../global/editpagesmodel.h \
-           tmpl_sql_plugin.h 
+           tmpl_sql_plugin.h
 SOURCES = tmpl_sql_plugin.cpp \
     ../global/tinfoeditmodel.cpp \
     ../global/myscene.cpp \
