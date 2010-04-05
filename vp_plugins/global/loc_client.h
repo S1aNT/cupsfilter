@@ -24,7 +24,7 @@ public:
     ~LocalClient();
    void setServerName(const QString &sName);
    QString lastError() const;
-   LocalClientState state() const;
+   //LocalClientState state() const;
 
 public slots:
     void readData();
@@ -33,7 +33,7 @@ public slots:
 signals:
     void error(const QString eInfo);
     void connected();
-    void stateChanged(LocalClientState state);
+    //void stateChanged(LocalClientState state);
 
 private:
     QLocalSocket * socket;
@@ -41,12 +41,12 @@ private:
     QString e_info;
     bool ready;
     qint32 packetSize;
-    LocalClientState m_state;
+    //LocalClientState m_state;
 
     void setError(const QString &info);
     void sendMessage( const Message &m_msg);
     void parseMessage(const Message &m_msg);
-    void setState(LocalClientState state);
+    //void setState(LocalClientState state);
 };
 
 

@@ -27,14 +27,14 @@ void LocalClient::makeHandShake()
 {
     Message message( this );
     message.setType(VPrn::Que_Register);
-    sendMessage(message);    
-    setState(VPrn::Connected);
+    sendMessage(message);
+    //setState(VPrn::Connected);
 }
 
-LocalClientState LocalClient::state() const
-{
-    return m_state;
-}
+//LocalClientState LocalClient::state() const
+//{
+//    return m_state;
+//}
 
 void LocalClient::sendMessage( const Message &m_msg)
 {
@@ -55,7 +55,7 @@ void LocalClient::parseMessage(const Message &m_msg)
 
     switch (m_msg.type()) {
     case VPrn::Ans_Register:
-        setState(VPrn::Auhtorized);
+        //setState(VPrn::Auhtorized);
         break;
     }
 }
@@ -69,7 +69,7 @@ void LocalClient::setServerName(const QString &sName)
         m_srvName = sName;
         socket->connectToServer(m_srvName);
         if (socket->waitForConnected(1000)){
-            setState(VPrn::Connected);
+            //setState(VPrn::Connected);
             qDebug("Connected!");
         }
     }else{
@@ -81,7 +81,7 @@ LocalClient::~LocalClient()
 {
     if (socket->state() == QLocalSocket::ConnectedState){
         socket->disconnectFromServer();
-        setState(VPrn::Disconnected);
+        //setState(VPrn::Disconnected);
     }
 }
 
@@ -138,7 +138,7 @@ void LocalClient::prepareError(QLocalSocket::LocalSocketError socketError)
 
         break;
     case QLocalSocket::ServerNotFoundError:
-        setState(VPrn::HostNotFound);
+        //setState(VPrn::HostNotFound);
         break;
     default:
         setError(tr("При работе с сервером %1 произошла ошибка :%2")
@@ -152,13 +152,13 @@ void LocalClient::setError(const QString &info)
 {
     e_info  = info;
     qDebug() << "Error info " << info;
-    setState(VPrn::InternalError);
+    //setState(VPrn::InternalError);
     emit error(info);
 }
 
-void LocalClient::setState(LocalClientState state)
-{
-    m_state = state;
-    emit stateChanged(m_state);
-}
+//void LocalClient::setState(LocalClientState state)
+//{
+//    m_state = state;
+//    emit stateChanged(m_state);
+//}
 
