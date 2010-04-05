@@ -5,7 +5,7 @@
 #include "auth_plugin.h"
 #include "inet_plugin.h"
 #include "igs_plugin.h"
-
+#include "itmpl_sql_plugin.h"
 #include "mytypes.h"
 
 #include <QDialog>
@@ -59,11 +59,7 @@ protected:
 public slots:
     /**
        @fn void appendStartMsg(const QString & msg);
-<<<<<<< .mine
        @brief Служит для получения сообщения при старте другой копии программы
-=======
-       @brief Служит для получения сообщения при старте другой копии программы
->>>>>>> .r895
      */
     void appendStartMsg(const QString & msg);
     /**
@@ -72,6 +68,7 @@ public slots:
       * @param m_Type тип сообщения critical,warning,information
       * @param b_msg Само сообщение
       */
+
     //void showBaloonMessage(int m_Type,const QString &b_msg);
     /**
       * @fn void showTrayMessage(trayIcons msg_type,
@@ -102,9 +99,19 @@ private slots:
       * @brief Как только состояние сокета изменилось, его надо обработать
       */
     void do_ChekPointChanged(MyCheckPoints m_scheckPoint);
-
+    /**
+      * @fn void dead_hands();
+      * @brief Мертвая рука запускает массовое убийство загруженных плагинов,
+      * и завершает приложение.
+      */
+    void dead_hands();
+    /**
+      * @fn void clearClientSpool( const QString &client_uuid );
+      * @brief клиент отключился, значит файлы созданные gs ему больше не нужны,
+      * почистим каталог, на радость обишникам
+      */
+    void clearClientSpool( const QString &client_uuid );
 private:
-
     void createActions();
     void createTrayIcon();
 
@@ -132,9 +139,11 @@ private:
     bool readConfig();
     /**
       * @var mainGear; Основной модуль программы
-      * @var myNet_plugin; Указатель на сетевой плагин
+      * @var myNet_plugin;  Указатель на сетевой плагин
       * @var myAuth_plugin; Указатель на плагин авторизаци @todo (Нужен ли ?)
-      * @var currentStatus Текущее статусное сообщение
+      * @var myGs_plugin;   Указатель на плагин работы ghostscript
+      * @var myTmpl_plugin; Указатель на плагин работы с шаблоном
+      * @var currentStatus; Текущее статусное сообщение
       * @var m_GateKeeperReady; Шлюз готов к работе или нет
       * @var m_lastError;   последнее сообщение об ошибке
       */
@@ -142,6 +151,7 @@ private:
     Inet_plugin *myNet_plugin;
     Auth_plugin *myAuth_plugin;
     Igs_plugin  *myGs_plugin;
+    Itmpl_sql_plugin *myTmpl_plugin;
 
     bool    m_GateKeeperReady;
     QString m_lastError;
@@ -199,6 +209,8 @@ private:
     QMenu *trayIconMenu;
     // Основное окошко ошибок
     QErrorMessage * myEMsgBox;
+
+    QObjectList pluginList ;
 };
 
 #endif

@@ -17,14 +17,12 @@
 #include <QtGui/QCloseEvent>
 #include <QtGui/QErrorMessage>
 
+#include <QtCore/QTimer>
 #include <QtCore/QObject>
 #include <QtCore/QDir>
 #include <QtCore/QPluginLoader>
 #include <QtCore/QSettings>
 #include <QtCore/QCoreApplication>
-
-
-
 
 Server::Server(QWidget *parent)
     : QDialog(parent)
@@ -32,6 +30,7 @@ Server::Server(QWidget *parent)
     , myNet_plugin(0)
     , myAuth_plugin(0)
     , myGs_plugin(0)
+    , myTmpl_plugin(0)
     , m_GateKeeperReady(false)
 {
 
@@ -40,14 +39,7 @@ Server::Server(QWidget *parent)
 
     qRegisterMetaType<VPrn::MessageType>("MessageType");
 
-
     myEMsgBox = new QErrorMessage(this);
-
-    /** @brief информационная форма
-      * Имя юзера -- ПУПКИН
-      * Мандат юзера СС
-      * Статус демона (Есть связь/Нет связи/Нет места на диске)
-      */
 
     resize(300, 240);
     setMinimumSize(QSize(280, 240));
@@ -135,23 +127,49 @@ void Server::init()
                 connect ( myServerGears, SIGNAL ( error( QString) ),
                           myEMsgBox,     SLOT   ( showMessage( QString) ) );
 
+                connect ( myServerGears, SIGNAL ( clearClientSpool (const QString &) ),
+                          this,          SLOT   ( clearClientSpool (const QString &) ) );
                 Ok &= loadPlugins();
 
                 if (Ok){
 
                     current_sid = myServerGears->getUuid();
                     // Инициализация плагинов
-                    myGs_plugin->init(gsBin, pdftkBin,spoolDir,current_sid);
+
 #if defined(Q_OS_UNIX)
                     //myAuth_plugin->init(ticket_fname);
                     myAuth_plugin->init();
 #elif defined(Q_OS_WIN)
                     myAuth_plugin->init();
 #endif
+                    /// @todo Переделать только spoolDir реально нужен
+                    myTmpl_plugin->init(spoolDir,current_sid);
+
+                    /// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                    QStringList t_pages;
+                    QByteArray data;
+                    QHash <QString, QString> m_tagValue;
+
+                    QDataStream out(&data, QIODevice::WriteOnly );
+                    out.setVersion(QDataStream::Qt_3_0);
+                    // Запишем выбранный пользователем шаблон
+                    out << QString("d:/opt/local_templates/1.tmpl");
+                    // save hash
+                    out << m_tagValue;
+
+                    //t_pages = myTmpl_plugin->loadAndFillTemplateCreatePages(current_sid,data);
+
+                    /// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
                     myNet_plugin->init(serverHostName, serverPort,current_sid);
+
+                    //qDebug() << "\nmyGs_plugin:" << myGs_plugin << "gsBin:" << gsBin  << "pdftkBin:" << pdftkBin  << "spoolDir:" << spoolDir;
+                    myGs_plugin->init(gsBin, pdftkBin,spoolDir);
 
                     myServerGears->setNetPlugin(myNet_plugin);
                     myServerGears->setGsPlugin(myGs_plugin);
+                    myServerGears->setTmplPlugin(myTmpl_plugin);
+
                 }else{
                     setTrayStatus(VPrn::gk_ErrorState,
                                   QObject::trUtf8("Ошибка при загрузке плагинов"));
@@ -218,7 +236,7 @@ void Server::createActions()
     connect(restoreAction, SIGNAL(triggered()), this, SLOT(showNormal()));
 
     quitAction = new QAction(QObject::trUtf8("Выход"), this);
-    connect(quitAction, SIGNAL(triggered()), qApp, SLOT(quit()));
+    connect(quitAction, SIGNAL(triggered()),this, SLOT(dead_hands()));
 
     runEditorAction  = new QAction(QObject::trUtf8("Запуск редактора"), this);
     connect(runEditorAction, SIGNAL(triggered()), this, SLOT(runTEditor()));
@@ -372,6 +390,12 @@ void Server::setTrayStatus (trayStatus t_stat, const QString &t_msg)
 void Server::do_ChekPointChanged(MyCheckPoints m_scheckPoint)
 {
     switch (m_scheckPoint){
+    case VPrn::loc_NeedShutdown:
+        showTrayMessage(InfoType,QObject::trUtf8("GateKeeper"),
+                        QObject::trUtf8("Последний клиент отключен, завершаю работу."));
+        QTimer::singleShot(3000,quitAction,SLOT(trigger()));
+
+        break;
     case VPrn::net_Connected:
         netCheckBox->setChecked(true); //Включаем флажок сеть установленна и доступна
         break;
@@ -402,14 +426,45 @@ void Server::runTEditor()
 
 }
 
+void Server::dead_hands()
+{
+    // Всем клиентам говорим GoodBye, так как клиенты, у меня беспомощные без сервера,
+    // то при закрытии его отправим клиента сообщение выгружаться !!!
+    if (myServerGears){
+        myServerGears->sayGoodBayAllClients();
+    }
+    // Очищаем файлы созданные самим gs, потом будем выгружать библиотеку
+    if (myGs_plugin){
+        myGs_plugin->final_clear();
+    }
+
+    QTimer::singleShot(500,qApp,SLOT(quit()));
+}
+
+void Server::clearClientSpool( const QString &client_uuid )
+{
+    // Великая чистка 37 года,чистим ВСЕ файлы созданные в интересах клиента
+    QDir dir(spoolDir);
+    QStringList filters;
+    filters << QObject::trUtf8("*%1*.*").arg( client_uuid );
+    dir.setFilter(QDir::Files | QDir::Hidden | QDir::NoSymLinks);
+    dir.setNameFilters(filters);
+    QFileInfoList list = dir.entryInfoList();
+    for (int i = 0; i < list.size(); ++i) {
+        QFileInfo fileInfo = list.at(i);
+        QFile::remove(fileInfo.absoluteFilePath());
+    }
+
+}
 //------------------------------------------------------------------------------
 bool Server::loadPlugins()
 {
     QDir pluginsDir(qApp->applicationDirPath());
 
-    Inet_plugin *net_plugin_Interface;
-    Auth_plugin *auth_plugin_Interface;
-    Igs_plugin  *gs_plugin_Interface;
+    Inet_plugin      *net_plugin_Interface;
+    Auth_plugin      *auth_plugin_Interface;
+    Igs_plugin       *gs_plugin_Interface;
+    Itmpl_sql_plugin *tmpl_plugin_Interface;
 
     if (pluginsDir.dirName().toLower() == "debug" ||
         pluginsDir.dirName().toLower() == "release")
@@ -424,11 +479,22 @@ bool Server::loadPlugins()
 #endif
     pluginsDir.cd("plugins");
     foreach (QString fileName, pluginsDir.entryList(QDir::Files)){
-        QPluginLoader pluginMessageer(pluginsDir.absoluteFilePath(fileName));
-        QObject *plugin = pluginMessageer.instance();
+        QPluginLoader pluginManager(pluginsDir.absoluteFilePath(fileName));
+        QObject *plugin = pluginManager.instance();
         if (plugin) {
             bool needUnloadPlugin = true;
             {
+                if (!myTmpl_plugin){
+                    tmpl_plugin_Interface = qobject_cast<Itmpl_sql_plugin *> (plugin);
+                    if ( tmpl_plugin_Interface ){
+                        needUnloadPlugin = false;
+                        myTmpl_plugin = tmpl_plugin_Interface;
+
+                        connect(plugin, SIGNAL (error(pluginsError,QString )),
+                                this,   SLOT   (errorInfo(pluginsError,QString ))
+                                );
+                    }
+                }
                 if (!myGs_plugin){
                     /// Загрузка плагина работы с ghostscript
                     gs_plugin_Interface = qobject_cast<Igs_plugin *> (plugin);
@@ -446,7 +512,6 @@ bool Server::loadPlugins()
                                  );
                     }
                 }
-
                 if (!myAuth_plugin){
                     /// Загрузка плагина авторизации
                     auth_plugin_Interface = qobject_cast<Auth_plugin *>(plugin);
@@ -482,7 +547,7 @@ bool Server::loadPlugins()
             if ( needUnloadPlugin ){
                 // Выгрузим его нафиг не наш он плагин, сто пудово :)
                 qDebug() << QObject::trUtf8("Plugin's [%1] unload").arg(pluginsDir.absoluteFilePath(fileName));
-                pluginMessageer.unload();
+                pluginManager.unload();
             }
         }
     }
@@ -549,30 +614,17 @@ bool Server::readConfig()
             m_lastError = QObject::trUtf8("Файл [%1] с настройками программы не найден!")
                           .arg(ini_path);
         }
-    }
+    }        
+#if defined(Q_OS_UNIX)
     if (Ok){
         //Проверка что файлик трубы не существует, посмотреть где он сохраняется под окошками
         QString file_pipe;
-#if defined(Q_OS_UNIX)
-        file_pipe = QString ("/tmp/%1").arg(localSrvName);
-#elif defined (Q_OS_WIN)
-        file_pipe = QString ("/%1/temp/%1").arg(QString(getenv("SYSTEMROOT")),localSrvName);
-#endif
+        file_pipe = QString ("/tmp/=%1").arg(localSrvName);
         if (QFile::exists(file_pipe)){
             QFile::remove(file_pipe);
         }
     }
+#endif
     return Ok;
 }
 
-void Server::showCriticalInfo(const QString & info)
-{
-    QMessageBox msgBox;
-    msgBox.setIcon(QMessageBox::Critical);
-    msgBox.setWindowTitle(QObject::trUtf8("GateKeeper"));
-    msgBox.setText(info);
-    QPushButton *exitButton  = msgBox.addButton(QObject::trUtf8("Выход"), QMessageBox::ActionRole);
-    connect (exitButton,SIGNAL(clicked()), qApp, SLOT(quit()));
-    msgBox.exec();
-
-}
