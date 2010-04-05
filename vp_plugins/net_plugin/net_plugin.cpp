@@ -58,13 +58,15 @@ void net_plugin::sendMessage(const Message &s_msg)
     // При отладке я просто эмулирую ответы Мишиного демона
     QString m_uuid;
     QString m_body;
+    QString doc_list;
     QString str;
-    // Генерируем случайное число  1 или 0
+    // Генерируем случайное число  1 или 0 или 2
+
     qsrand(QDateTime::currentDateTime().toTime_t());
     int r = 0;//(int) (3.0*(qrand()/(RAND_MAX + 1.0)));
 
     Message loc_msg( this );
-    // Разберем тело ответа на части [кому];:;что_передали
+    // Разберем тело ответа на части [кому возвращать данные];:;что_передали
     str.append(s_msg.messageData());
 
     QRegExp rx("\\[(.+)\\];:;(.+)");
@@ -73,30 +75,85 @@ void net_plugin::sendMessage(const Message &s_msg)
     if(rx.indexIn(str) != -1){
         m_uuid  = rx.cap(1);
         m_body  = rx.cap(2);
-
+        loc_msg.clear();
+        str.clear();
+        //формируем ответное сообщение на запрос вроде как пришедшее от Мишиного демона
         switch (s_msg.type()){
+
+        case VPrn::Que_RegisterDocInBase:
+            loc_msg.setType( VPrn::Ans_RegisterDocInBase );
+            str = QObject::trUtf8("[%1];:;Документ успешно зарегистрирован в БД учета!.").arg(m_uuid);
+            break;
+        case VPrn::Que_GET_MB_LISTS:
+            loc_msg.setType( VPrn::Ans_MB_LIST );
+            /**
+              * @short  Демон вернул список, в формате
+              * ДАТА;:;МБ;:;номер_экз.;:;Название_документа;:;число страниц;:;статус
+              */
+            // Формируем список документов
+            doc_list.append(QObject::trUtf8("123456789;:;МБ-12/12;:;1;:;Приказ по кадрам;:;52;:;РАСПЕЧАТАН###"));
+            doc_list.append(QObject::trUtf8("123456789;:;МБ-12/12;:;2;:;Приказ по кадрам;:;52;:;РАСПЕЧАТАН###"));
+            doc_list.append(QObject::trUtf8("123456789;:;МБ-12/12;:;3;:;Приказ по кадрам;:;52;:;БРАК###"));
+            doc_list.append(QObject::trUtf8("123456789;:;МБ-12/12;:;4;:;Приказ по кадрам;:;52;:;БРАК###"));
+            doc_list.append(QObject::trUtf8("123456789;:;МБ-12/12;:;5;:;Приказ по кадрам;:;52;:;РАСПЕЧАТАН###"));
+            doc_list.append(QObject::trUtf8("123456789;:;МБ-12/14;:;1;:;Приказ по кадрам 2;:;52;:;РАСПЕЧАТАН###"));
+            doc_list.append(QObject::trUtf8("123456789;:;МБ-12/14;:;2;:;Приказ по кадрам 2;:;52;:;РАСПЕЧАТАН###"));
+            doc_list.append(QObject::trUtf8("123456789;:;МБ-12/14;:;3;:;Приказ по кадрам 2;:;52;:;БРАК###"));
+            doc_list.append(QObject::trUtf8("123456789;:;МБ-12/14;:;4;:;Приказ по кадрам 2;:;52;:;БРАК###"));
+            doc_list.append(QObject::trUtf8("123456789;:;МБ-12/14;:;5;:;Приказ по кадрам 2;:;52;:;БРАК###"));
+            str = QObject::trUtf8("[%1];:;%2").arg(m_uuid,doc_list);
+            break;
+        case VPrn::Que_CHECK_DOC_ATR:
+            if (r == 0){
+                loc_msg.setType( VPrn::Ans_CHECK_DOC_ATR_EQU );
+            }
+            if (r == 1){
+                loc_msg.setType( VPrn::Ans_CHECK_DOC_ATR_NEQ );
+            }
+            str = QObject::trUtf8("[%1];:;empty").arg(m_uuid);
+            break;
+        case VPrn::Que_IS_MB_EXIST:
+            if (r == 0){
+                loc_msg.setType( VPrn::Ans_MB_NOT_EXIST );
+            }
+            if (r == 1){
+                loc_msg.setType( VPrn::Ans_MB_EXIST_AND_BRAK );
+            }
+            if (r == 2){
+                loc_msg.setType( VPrn::Ans_MB_EXIST_AND_NOT_BRAK );
+            }
+            str = QObject::trUtf8("[%1];:;empty").arg(m_uuid);
+            break;
+        case VPrn::Que_AUTHOR_USER:
+            if (r == 0){
+                loc_msg.setType(VPrn::Ans_PRINT_ALLOWED);
+            }
+            if (r == 1){
+                loc_msg.setType(VPrn::Ans_PRINT_DENIED);
+            }
+            if (r == 2){
+                loc_msg.setType(VPrn::Ans_PRINTER_NOT_FOUND);
+            }
+            str = QObject::trUtf8("[%1];:;empty").arg(m_uuid);
+
+            break;
         case VPrn::Que_MANDAT_LIST:
-            // Типа получили ответ от демона
-            loc_msg.clear();
-            str.clear();
             if (r == 0){
                 loc_msg.setType(VPrn::Ans_MANDAT_LIST);
                 str = QObject::trUtf8("[%1];:;CC;:;C;:;NS;:;DSP").arg(m_uuid);
-                loc_msg.setMessage(  str.toUtf8() );
+
             }else{
                 loc_msg.setType(VPrn::Ans_MANDAT_LIST_EMPTY);
-                str = QObject::trUtf8("[%1];:;").arg(m_uuid);
-                loc_msg.setMessage(  str.toUtf8() );
+                str = QObject::trUtf8("[%1];:;empty").arg(m_uuid);
+
             }
-            emit messageReady(loc_msg);
             break;
         case VPrn::Que_SEC_LEVEL:
             //m_body содержит мандат
             // Формируем ответное сообщение
             loc_msg.setType(VPrn::Ans_STAMP_LIST);
             str = QObject::trUtf8("[%1];:;Сов.Секретно;:;Секретно;:;Не Секретно;:;ДСП").arg(m_uuid);
-            loc_msg.setMessage(  str.toUtf8() );
-            emit messageReady(loc_msg);
+
             break;
         case VPrn::Que_GET_PRINTER_LIST:
             //m_body содержит мандат
@@ -105,18 +162,18 @@ void net_plugin::sendMessage(const Message &s_msg)
             str.clear();
             if (r == 0){
                 loc_msg.setType(VPrn::Ans_PRINTER_LIST);
-
                 str = QObject::trUtf8("[%1];:;SL9PRT.DDDD;:;socket://200.0.0.100:9100/?waitof=false###;:;SL9PRT.NEW;:;socket://200.0.0.100:9100/###")
                       .arg(m_uuid);
-                loc_msg.setMessage(  str.toUtf8() );
+
             }else{
                 loc_msg.setType(VPrn::Ans_PRINTER_LIST_EMPTY);
-                str = QObject::trUtf8("[%1];:;").arg(m_uuid);
-                loc_msg.setMessage(  str.toUtf8() );
+                str = QObject::trUtf8("[%1];:;empty").arg(m_uuid);
+
             }
-            emit messageReady(loc_msg);
             break;
         }
+        loc_msg.setMessage(  str.toUtf8() );
+        emit messageReady(loc_msg);
     }else{
         setError(QObject::trUtf8("Полученно сообщение неверного формата!"));
     }
