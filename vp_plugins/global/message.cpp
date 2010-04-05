@@ -54,7 +54,7 @@ QByteArray Message::createPacket() const
     QByteArray packet;
     QDataStream out(&packet, QIODevice::WriteOnly );
 
-    out.setVersion(QDataStream::Qt_4_0);
+    out.setVersion(QDataStream::Qt_3_0);
     // Вставим размер пакета равный нулю, но отведем под него 4 байта
     out << (qint32)0;
 
