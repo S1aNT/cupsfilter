@@ -11,14 +11,14 @@ LANGUAGE = C++
 
 DESTDIR = /opt/vprn/
 
-CONFIG(debug, debug|release) { 
+CONFIG(debug, debug|release) {
     message(Build Debug!)
     RCC_DIR = ../build/$${TARGET}/debug/rcc
     MOC_DIR = ../build/$${TARGET}/debug/moc
     OBJECTS_DIR = ../build/$${TARGET}/debug/obj
     DESTDIR = $${DESTDIR}/debug
 }
-else { 
+else {
     message(Build Release!)
     RCC_DIR = ../build/$${TARGET}/release/rcc
     MOC_DIR = ../build/$${TARGET}/release/moc
@@ -30,31 +30,31 @@ else {
 PRECOMPILED_HEADER = ../global/pre_header.h
 HEADERS += ../global/pre_header.h \
     ../global/config.h \
-    ../global/tech_global.h \
-    ../global/config.h \
     ../global/mytypes.h \
     ../global/myscene.h \
     ../global/mytextitem.h \
     ../global/editpagesmodel.h \
+    ../global/loc_client.h\
+    ../global/message.h \
     ../interfaces/itmpl_sql_plugin.h \
     addtemplate.h \
     view.h \
     mainwindow.h \
     cmdframe.h \
-    undoframe.h \
-    ../global/loc_client.h\
-    ../global/message.h
+    undoframe.h
+
 SOURCES += main.cpp \
     ../global/myscene.cpp \
     ../global/mytextitem.cpp \
     ../global/editpagesmodel.cpp \
+    ../global/loc_client.cpp \
+    ../global/message.cpp \
     addtemplate.cpp \
     view.cpp \
     mainwindow.cpp \
     cmdframe.cpp \
     undoframe.cpp \
-    ../global/loc_client.cpp \
-    ../global/message.cpp
-FORMS += addtemplate.ui 
+
+FORMS += addtemplate.ui
 RESOURCES += images.qrc
 TRANSLATIONS = tEditor_ru.ts
