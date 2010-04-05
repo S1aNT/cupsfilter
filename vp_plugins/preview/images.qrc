@@ -1,0 +1,8 @@
+<RCC>
+    <qresource prefix="/">
+        <file alias="zoomin.xpm">../images/zoomminus.xpm</file>
+        <file alias="zoomout.xpm">../images/zoomplus.xpm</file>
+        <file alias="zoomtofit.xpm">../images/zoomtofit.xpm</file>
+        <file alias="zoomtofull.xpm">../images/original.xpm</file>
+    </qresource>
+</RCC>
