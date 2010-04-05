@@ -1,7 +1,9 @@
 #ifndef MY_TYPES_H
 #define MY_TYPES_H
 
-#include <QMetaType>
+#include <QtCore/QMetaType>
+#include <QtCore/QMap>
+#include <QtGui/QPixmap>
 
 namespace VPrn{
 
@@ -16,8 +18,10 @@ namespace VPrn{
 #define DM_TO_POINT(dm) ((dm)*283.465058)
 #define INCH_TO_POINT(inch) ((inch)*72.0)
 
+typedef QMap <int,QPixmap> PixmapList;
 
     static const int ObjectName = 0;
+    static const int ObjectData = 1;
     static const int format = 13;
 
     static const char PARTSEPARATOR = ':';
@@ -130,6 +134,7 @@ namespace VPrn{
         loc_LocalServerNeedMandat,/// Локальный сервер готов к работе,(Есть имя но нет Мандата)
         loc_NewClientStarted,     /// К локальному серверу подключился новый клиент
         loc_MessageRecive,        /// Полученно сообщение в локальный сокет (в клиенте или в сервере)
+        loc_NeedShutdown,         /// Отключился последний клиент, завершим работу
         /// Сетевые    "отметки" имеют префикс net_ Работают с QTcpSocket/QTcpServer
         net_HostNotFound,         /// Удаленный сервер не найден
         net_Connected,            /// Соединен с удаленным сервером
@@ -156,12 +161,69 @@ namespace VPrn{
         Ans_PRINT_DENIED       = 1101,  /// печать запрещена
         Ans_PRINTER_NOT_FOUND  = 1102,  /// принтер не найден
 
+        /**
+          * @short  Запрос списка МБ за период:
+          * В теле запроса заданы следующие параметры:
+          * @param u_name;       Логин пользователя  \
+                                                      ->Необходимы для авторизации на роль
+          * @param u_mandat;     Мандат пользователя /
+          * @param begin_period; Начало периода
+          * @param end_period;   Конец периода
+          * @param printer;      Принтер, конкретный или все
+          */
+        Que_GET_MB_LISTS       = 200,
+        /**
+          * @short  Демон вернул список, в формате (Дата в формате time_t)
+          * Дата;:;МБ;:;номер_экз.;:;Название_документа;:;число страниц;:;статус
+          */
+        Ans_MB_LIST           = 1200,
+
         Que_SEC_LEVEL          = 300,   ///запрос к демону на получение списка уровней секретности
         Ans_STAMP_LIST         = 1300,  /// Список названий уровней секретности
 
         Que_GET_PRINTER_LIST   = 400,   /// Запрос списка принтеров
         Ans_PRINTER_LIST       = 1400,  /// Ответ список принтеров
         Ans_PRINTER_LIST_EMPTY = 1401,  /// Список принтеров пуст !
+
+        /**
+          * @short  Запрос есть ли в базе документ:  заданным МБ и номером экз
+          *  в теле сообщения содержиться sql запрос к базе данных
+          */
+        Que_IS_MB_EXIST           = 500,
+        Ans_MB_NOT_EXIST          = 1500, /// Документ в базе не был зарегистрирован
+        /**
+          *@short Документ в БД зарегистрирован, помечен как брак, запустип
+          * дополнительную проверку на совпадение остальных полей
+          */
+        Ans_MB_EXIST_AND_BRAK     = 1505,
+        /**
+          *@short Документ в БД зарегистрирован, помечен как распечатан, запустип
+          * дополнительную проверку на совпадение остальных полей
+          */
+        Ans_MB_EXIST_AND_NOT_BRAK = 1510,
+        /**
+          *@short Дополнительна проверка, сопадают ли атрибуты документа,
+          * с атрибутами введенными пользователем
+          * в теле сообщения содержиться атрибуты документа МБ....
+          */
+
+        Que_CHECK_DOC_ATR         = 550,
+        /**
+          * @short Документ есть в БД, совпали атрибуты, поле отпечатал не проверяется
+          */
+        Ans_CHECK_DOC_ATR_EQU     = 1550,
+        /**
+          * @short Документ есть в БД, не совпали атрибуты, поле отпечатал не проверяется
+          */
+        Ans_CHECK_DOC_ATR_NEQ     = 1551,
+
+        /**
+          * @short Регистрация документа в БД учета
+          *  в теле сообщения содержиться sql запрос к базе данных
+          */
+        Que_RegisterDocInBase     = 570,
+
+        Ans_RegisterDocInBase     = 1570, /// Регистрация в БД учета завершена
 
         Que_MANDAT_LIST        = 600,
         Ans_MANDAT_LIST        = 1600,  /// Список мандатов к которым допущен пользоватль
@@ -181,11 +243,36 @@ namespace VPrn{
         Ans_PageCounting       = 5052,  /// Вернем число страниц в документеPageCounting
         Ans_PageSplittedFirst  = 5053,  /// Разбиение документа на первую страницу завершено
         Ans_PageSplittedOther  = 5054,  /// Разбиение документа на последующую страницу завершено
+
+        /**
+          * @short  Запрос на формирование документа пред.В теле запроса:
+          *   Данные относятся к плагину tmpl_sql_plugin
+          * @li Полный путь к выбранному пользователем шаблону
+          * @li Набор данных из полей ввода,
+          */
+        Que_CreateFormatedFullDoc  = 5100, /// Полный документ
+        Que_CreateFormatedPartDoc  = 5200, /// Только его часть
+
+        /// @short Ans_TemplateNotFound  - Шаблон не найден или поврежден, в теле сообщения подробности
+        Ans_TemplateNotFound   = 5101,
+        /// @short Ans_SourceDocNotFound - Исходный документ не найден или не верного формата, в теле сообщения подробности
+        Ans_SourceDocNotFound  = 5102,
+        /** @short Ans_CreateFormatedDoc - Документ успешно конвертирован,
+          * в теле сообщения:
+            * @li Кол-во файлов
+            * @li список путей к файлам изображений стр.
+          */
+        Ans_CreateFormatedDoc  = 5103,
+
+        /// @short Полный документ для печати, в теле сообщения принтер, набор данных
+        Que_CreateFormatedFullDocAndPrint = 5300,  /// Сообщение уходит в сеть к демону
+        Ans_PrintFormatedDoc        = 5301,  /// Документ распечатан, ответ от демона
+        Ans_PrintFormatedDoc_Error  = 5302,  /// Документ не распечатан, ответ от демона подробности в теле
+
         ///Служебные сообщения
-        Err_Message      = 7000,        /// Сообщение об ошибке.Подробности в теле сообщения
-
+        GoodBay          = 7000,        /// GateKeeper завершает работу и Вам пора
+        Err_Message      = 7001,        /// Сообщение об ошибке.Подробности в теле сообщения
         NoMsgType        = 0
-
        };
 
     enum {
@@ -193,25 +280,21 @@ namespace VPrn{
         Page_Select,
         Page_SetBrak,
         Page_PrintData,
+        Page_CheckData,
+        Page_Preview,
         Page_Finish
     };
 
-    enum{
-        MB_LIST_ANS = 1200,
-        MB_EXIST_AND_BRAK_ANS =1205,
-        MB_EXIST_AND_NOT_BRAK_ANS =1210,
-        MB_NOT_EXIST_ANS=1220,
-    };
 
     enum{
 
-        GET_MB_PRINTS_TODAY_CMD =200,
+
 
         RAW_SQL_CMD          = 202,
         USER_SAY_DOC_GOOD    = 203,
         USER_SAY_DOC_BAD     = 204,
 
-        IS_MB_EXIST_CMD      = 500,
+
         DISCONNECT           = 5000
 
    };
