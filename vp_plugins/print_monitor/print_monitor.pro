@@ -6,15 +6,20 @@ CONFIG += warn_on \
     qt \
     console \
     precompile_header
-DESTDIR = ../VPrn
-CONFIG(debug, debug|release) { 
+win32{
+   DESTDIR = d:/opt/vprn
+}else{
+   DESTDIR = /opt/vprn
+}
+
+CONFIG(debug, debug|release) {
     message(Build Debug!)
     RCC_DIR = ../build/$${TARGET}/debug/rcc
     MOC_DIR = ../build/$${TARGET}/debug/moc
     OBJECTS_DIR = ../build/$${TARGET}/debug/obj
     DESTDIR = $${DESTDIR}/debug
 }
-else { 
+else {
     message(Build Release!)
     RCC_DIR = ../build/$${TARGET}/release/rcc
     MOC_DIR = ../build/$${TARGET}/release/moc
@@ -32,18 +37,26 @@ INCLUDEPATH += ../interfaces \
 include(../qt_single_apps/qtsingleapplication.pri)
 HEADERS += ../global/mytypes.h \
     ../global/message.h \
-    ../global/mysocketclient.h \ 
+    ../global/mysocketclient.h \
      engine.h \
     printmonitor.h \
     getusernamemandatdlg.h \
-    wizardpages.h
+    intorpage.h \
+    selectpage.h \
+    printdatapage.h \
+    checkdatapage.h \
+    previewpage.h
 SOURCES += main.cpp \
     ../global/message.cpp \
-    ../global/mysocketclient.cpp \ 
+    ../global/mysocketclient.cpp \
     engine.cpp \
     printmonitor.cpp \
     getusernamemandatdlg.cpp \
-    wizardpages.cpp
+    intorpage.cpp \
+    selectpage.cpp \
+    printdatapage.cpp \
+    checkdatapage.cpp \
+    previewpage.cpp
 RESOURCES = images.qrc
 FORMS += getusernamemandatdlg.ui
-TRANSLATIONS = print_monitor_ru.ts 
+TRANSLATIONS = print_monitor_ru.ts
