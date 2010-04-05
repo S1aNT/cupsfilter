@@ -8,7 +8,7 @@
  * \section intro_sec Introduction
  *
  * <b>Developer</b>:
- * - имя
+ * - пїЅпїЅпїЅ
  *
  * \section requirements Requirements
  * The application OMSp_MBT_ComposTest.dll requires the following external stuff:
@@ -22,15 +22,15 @@
  * \section About_sec About this documentation
  *
  * \subsection step1 Location
- *  
+ *
  * This documentation can be found on file://dir1/dir2/index.html
- * 
+ *
  * \subsection step2 Updating
- * 
+ *
  * <b>Requirements</b>
  * - Installed <b><i>doxygen</i></b> package (from http://www.stack.nl/~dimitri/doxygen)
- * - Optional: Installed <b><i>graphviz</i></b> tool for diagrams (from http://www.graphviz.org) 
- *   <br><sup><b>Note:</b> you have add the <b>bin</b> path of the installation to the 
+ * - Optional: Installed <b><i>graphviz</i></b> tool for diagrams (from http://www.graphviz.org)
+ *   <br><sup><b>Note:</b> you have add the <b>bin</b> path of the installation to the
  *   <tt>PATH</tt> environment variable</sup>
  *
  * <b>Generating</b>

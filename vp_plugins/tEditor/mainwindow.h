@@ -65,7 +65,7 @@ private slots:
       * @brief Как только состояние сокета связанного с  ХРАНИТЕЛЕМ_ВРАТ
       * изменилось надо приять меры
       */
-      void do_stateChanged(LocalClientState state);
+      //void do_stateChanged(LocalClientState state);
 signals:
     void addBaseElementToPage(int, const QString &line);
     void addImgElementToPage(int , const QString &templ_fn);
@@ -131,7 +131,7 @@ private:
     QString spoolDir;
     QString ticket_fname;
     QString local_t_path; // Путь к локальным шаблонам пользователя
-    QString global_t_path;    
+    QString global_t_path;
     // Путь к gatekeeper любое приложение из большой тройки, может его запустить если он еще не запущен
     QString gatekeeper_bin;
     QString link_name; // Название локального сервера

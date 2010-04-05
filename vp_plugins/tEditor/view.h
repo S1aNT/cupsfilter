@@ -16,10 +16,10 @@ public:
     View(QWidget *parent = 0);
     void setAngle(qreal angle);
     QGraphicsView *gr_view() const;
-    void setTabNumber(int ord){tabNumber = ord;};
-    int  getTabNumber(){return tabNumber;};
-    void setUndoStack(QUndoStack *stack){m_UndoStack = stack;};
-    QUndoStack *undoStack() const{return m_UndoStack;};
+    void setTabNumber(int ord){tabNumber = ord;}
+    int  getTabNumber(){return tabNumber;}
+    void setUndoStack(QUndoStack *stack){m_UndoStack = stack;}
+    QUndoStack *undoStack() const{return m_UndoStack;}
 
 public slots:
     //void flipPage(int Btn);

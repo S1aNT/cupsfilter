@@ -77,9 +77,9 @@ MainWindow::MainWindow():
     page_size_model = new QStringListModel(this);
 
     m_LocalClient = new LocalClient(this);
-    connect (m_LocalClient, SIGNAL(stateChanged(LocalClientState)),
-             this, SLOT(do_stateChanged(LocalClientState))
-             );
+//    connect (m_LocalClient, SIGNAL(stateChanged(LocalClientState)),
+//             this, SLOT(do_stateChanged(LocalClientState))
+//             );
     // Устанавливаем соединение с локальным сервером
     m_LocalClient->setServerName(link_name);
 
@@ -99,7 +99,7 @@ MainWindow::MainWindow():
                      SIGNAL(clicked(const QString &)),
                      this,
                      SLOT(do_CmdButtonClick(const QString &))
-                     );    
+                     );
 
 }
 
@@ -199,7 +199,7 @@ void MainWindow::loadPlugins()
 
                 editMenu->addAction(undoAct);
                 editMenu->addAction(redoAct);
-                editMenu->addSeparator();                
+                editMenu->addSeparator();
 
                 // Получим набор сцен и соопоставим его страницам отображения
 
@@ -215,7 +215,7 @@ void MainWindow::loadPlugins()
                         scene = i.value();
                         vPage = m_View.value(page);
                         vPage->gr_view()->setScene(scene);
-                        vPage->setUndoStack(i.value()->undoStack());                        
+                        vPage->setUndoStack(i.value()->undoStack());
                     }else{
                         emit error(tr("Ошибочное число страниц [%1] в шаблоне").arg(i.key(),0,10)
                                    ,true);
@@ -391,34 +391,34 @@ void MainWindow::do_viewCode()
     }
 }
 
-void MainWindow::do_stateChanged(LocalClientState state)
-{
-    switch (state){
-    case VPrn::Connected:
-        // Меняем иконку приложения на []-[]
-        break;
-    case VPrn::HostNotFound:
-        // Меняем иконку на перечеркнутый комп,делаем попытку запустить еще раз приложение
-        // Если ранее такой попытки не было
-        if (!secondChance){
-            // Запуск GateKeeper
-            if ( !gatekeeper_bin.isEmpty()){
-/*
-                if (QProcess::startDetached (gatekeeper_bin)){
-                    // Попытка номер 2
-                    m_LocalClient->setServerName(link_name);
-                    secondChance = true;
-                }
-*/
-            }else{
-                emit error(tr("Ошибка при запуске GateKeeper"),true);
-            }
-
-
-        }
-        break;
-    }
-}
+//void MainWindow::do_stateChanged(LocalClientState state)
+//{
+//    switch (state){
+//    case VPrn::Connected:
+//        // Меняем иконку приложения на []-[]
+//        break;
+//    case VPrn::HostNotFound:
+//        // Меняем иконку на перечеркнутый комп,делаем попытку запустить еще раз приложение
+//        // Если ранее такой попытки не было
+//        if (!secondChance){
+//            // Запуск GateKeeper
+//            if ( !gatekeeper_bin.isEmpty()){
+///*
+//                if (QProcess::startDetached (gatekeeper_bin)){
+//                    // Попытка номер 2
+//                    m_LocalClient->setServerName(link_name);
+//                    secondChance = true;
+//                }
+//*/
+//            }else{
+//                emit error(tr("Ошибка при запуске GateKeeper"),true);
+//            }
+//
+//
+//        }
+//        break;
+//    }
+//}
 
 void MainWindow::toggleAntialiasing()
 {
@@ -455,8 +455,8 @@ void MainWindow::loadFromFile(const QString &file_name)
                 QString p_name;
                 View * vPage(0);
                 pagesModel = tmpl_plugin->getPagesModel();
-                for (int i=0;i<pagesModel->rowCount();i++){                    
-                    p_visible = pagesModel->data(pagesModel->index(i,VPrn::PD_p_visible)).toInt();                    
+                for (int i=0;i<pagesModel->rowCount();i++){
+                    p_visible = pagesModel->data(pagesModel->index(i,VPrn::PD_p_visible)).toInt();
                     if ( p_visible == 1 ){
                         p_name = pagesModel->data(pagesModel->index(i,VPrn::PD_p_name)).toString();
                         p_number  = pagesModel->data(pagesModel->index(i,VPrn::PD_p_number)).toInt();
@@ -680,7 +680,7 @@ void MainWindow::readGlobal(const QString &app_dir)
         ticket_fname   = settings.value("session_ticket").toString();
 #endif
         gatekeeper_bin = settings.value("gatekeeper_bin").toString();
-        settings.endGroup();        
+        settings.endGroup();
 
         settings.beginGroup("TEMPLATES");
         local_t_path  = settings.value("local_templates").toString();
