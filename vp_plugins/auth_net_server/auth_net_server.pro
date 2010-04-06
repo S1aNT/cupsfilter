@@ -8,14 +8,14 @@ CONFIG += warn_on \
     precompile_header
 win32:DESTDIR = d:/opt/vprn
 else:DESTDIR = /opt/vprn
-CONFIG(debug, debug|release) { 
+CONFIG(debug, debug|release) {
     message(Build Debug!)
     RCC_DIR = ../build/$${TARGET}/debug/rcc
     MOC_DIR = ../build/$${TARGET}/debug/moc
     OBJECTS_DIR = ../build/$${TARGET}/debug/obj
     DESTDIR = $${DESTDIR}/debug
 }
-else { 
+else {
     message(Build Release!)
     RCC_DIR = ../build/$${TARGET}/release/rcc
     MOC_DIR = ../build/$${TARGET}/release/moc
@@ -38,10 +38,12 @@ HEADERS += server.h \
     ../interfaces/igs_plugin.h \
     ../interfaces/itmpl_sql_plugin.h \
     ../global/mytypes.h \
-    ../global/message.h 
+    ../global/message.h \
+    ../global/templatesinfo.h
 SOURCES += server.cpp \
     main.cpp \
     servergears.cpp \
-    ../global/message.cpp
+    ../global/message.cpp \
+../global/templatesinfo.cpp
 RESOURCES = images.qrc
 TRANSLATIONS = auth_net_server_ru.ts
