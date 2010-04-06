@@ -29,9 +29,18 @@ MessageType Message::type() const
     return messageType;
 }
 
-void Message::setMessage( const QByteArray &msg )
+void Message::setMessageData( const QByteArray &m_data )
 {
-    msgData = msg;
+    msgData = m_data;
+}
+
+void Message::setMessageData( QStringList &m_list )
+{
+    if (!m_list.isEmpty()) {
+        msgData.clear();
+        QDataStream out(&msgData, QIODevice::WriteOnly );
+        out << m_list;
+    }
 }
 
 QByteArray Message::messageData() const
@@ -43,6 +52,7 @@ void Message::clear()
 {
     setType(VPrn::NoMsgType);
     msgData.clear();
+
 }
 
 QByteArray Message::createPacket() const

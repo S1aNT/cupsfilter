@@ -54,8 +54,9 @@ public:
       * @param msg const QByteArray &
       * @brief Запись msg во внутреннюю структуру и разбор его как сообщения
       */
-    void setMessage( const QByteArray &msg );
+    void setMessageData( const QByteArray &m_data );
 
+    void setMessageData( QStringList &m_list );
     /**
      * @brief messageData свойство: Возвращает данные подготовленные для пересылки
      * @return QByteArray
