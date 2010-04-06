@@ -45,7 +45,7 @@ void net_plugin::init(const QString &host, int port,const QString &sid)
     Message message( this );
     message.setType(Ans_RegisterGlobal);
     QString str = QObject::trUtf8("[%1];:;").arg(Sid);
-    message.setMessage(  str.toUtf8() );
+    message.setMessageData(  str.toUtf8() );
     emit messageReady(message);
 #endif
 
@@ -172,7 +172,7 @@ void net_plugin::sendMessage(const Message &s_msg)
             }
             break;
         }
-        loc_msg.setMessage(  str.toUtf8() );
+        loc_msg.setMessageData(  str.toUtf8() );
         emit messageReady(loc_msg);
     }else{
         setError(QObject::trUtf8("Полученно сообщение неверного формата!"));
@@ -234,7 +234,7 @@ void net_plugin::readyRead()
         in >> msg;
         Message message( this );
         message.setType((MessageType) m_Type); //Проверить как конвертирует
-        message.setMessage( msg );
+        message.setMessageData( msg );
 
         // Отправка сообщения
         emit messageReady(message);
@@ -248,7 +248,7 @@ void net_plugin::onConnected()
     Message message( this );
     message.setType(VPrn::Que_RegisterGlobal);
     QString str = QObject::trUtf8("[%1];:;").arg(Sid);
-    message.setMessage( str.toUtf8() ); // Пробразуем в QByteArray
+    message.setMessageData( str.toUtf8() ); // Пробразуем в QByteArray
     sendMessage(message);
 }
 
