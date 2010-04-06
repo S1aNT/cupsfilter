@@ -1,4 +1,6 @@
 #include "servergears.h"
+#include "templatesinfo.h"
+
 #include <QtCore/QDebug>
 #include <QtCore/QByteArray>
 #include <QtCore/QDataStream>
@@ -86,7 +88,7 @@ void serverGears::sayGoodBayAllClients()
     QString str;
     str = QObject::trUtf8("Так как GateKeeper получил команду на завершение работы, приложение будет закрыто!");
     loc_msg.setType(VPrn::GoodBay);
-    loc_msg.setMessage(  str.toUtf8() ); // Пробразуем в QByteArray
+    loc_msg.setMessageData(  str.toUtf8() ); // Пробразуем в QByteArray
 
     foreach(QLocalSocket *client, clients){
         // Скажем все пора завершать работу! Большой папа уходит в мир иной
@@ -153,7 +155,7 @@ void serverGears::readyRead()
         in >> msg;
         Message message( this );
         message.setType((MessageType) m_Type); //Проверить как конвертирует
-        message.setMessage( msg );
+        message.setMessageData( msg );
         //message.prepareMessage();
 
         // Обработка сообщения
@@ -190,15 +192,16 @@ void serverGears::reciveNetworkMessage(const Message &r_msg)
 
             if (client){
                 switch (r_msg.type()){
+
                 case VPrn::Ans_RegisterDocInBase:
                     // Получили ответ о регистрации документа , отдадим его клиенту
                     loc_msg.setType( VPrn::Ans_RegisterDocInBase );
-                    loc_msg.setMessage( m_body.toUtf8() );
+                    loc_msg.setMessageData( m_body.toUtf8() );
                     break;
                 case VPrn::Ans_MB_NOT_EXIST:
                     str = QObject::trUtf8("Документ в базе учета не зарегистрирован!");
                     loc_msg.setType(  VPrn::Ans_MB_NOT_EXIST );
-                    loc_msg.setMessage(  str.toUtf8() );
+                    loc_msg.setMessageData(  str.toUtf8() );
                     break;
 
                 case VPrn::Ans_MB_EXIST_AND_BRAK:
@@ -224,47 +227,47 @@ void serverGears::reciveNetworkMessage(const Message &r_msg)
                 case VPrn::Ans_MB_LIST:
                     // Получили затребованный список документов, отдами его клиенту
                     loc_msg.setType( VPrn::Ans_MB_LIST );
-                    loc_msg.setMessage( r_msg.messageData() );
+                    loc_msg.setMessageData( r_msg.messageData() );
                     break;
                 case VPrn::Ans_PRINT_ALLOWED:
                     str = QObject::trUtf8("Вам разрешена печать на выбранный принтер!");
                     loc_msg.setType(VPrn::Ans_PRINT_ALLOWED);
-                    loc_msg.setMessage(  str.toUtf8() );
+                    loc_msg.setMessageData( str.toUtf8() );
                     break;
                 case VPrn::Ans_PRINT_DENIED:
                     str = QObject::trUtf8("Вам запрещена печать на выбранный принтер!");
                     loc_msg.setType(VPrn::Ans_PRINT_DENIED);
-                    loc_msg.setMessage(  str.toUtf8() );
+                    loc_msg.setMessageData(  str.toUtf8() );
                     break;
                 case VPrn::Ans_PRINTER_NOT_FOUND:
                     str = QObject::trUtf8("Выбранный Вами принтер, в настоящее время отключен от системы или удален!");
                     loc_msg.setType(VPrn::Ans_PRINTER_NOT_FOUND);
-                    loc_msg.setMessage(  str.toUtf8() );
+                    loc_msg.setMessageData(  str.toUtf8() );
                     break;
                 case VPrn::Ans_PRINTER_LIST:
                     loc_msg.setType(VPrn::Ans_PRINTER_LIST);
-                    loc_msg.setMessage( m_body.toUtf8() );
+                    loc_msg.setMessageData( m_body.toUtf8() );
                     break;
                 case VPrn::Ans_PRINTER_LIST_EMPTY:
                     loc_msg.setType(VPrn::Ans_SrvStatusNotReady);
                     str = QObject::trUtf8("Данному пользователю не назначен ни один принтер!");
-                    loc_msg.setMessage(  str.toUtf8() );
+                    loc_msg.setMessageData(  str.toUtf8() );
                     break;
                 case VPrn::Ans_MANDAT_LIST:
                     loc_msg.clear();
                     loc_msg.setType(VPrn::Ans_SrvStatusPartReady);
                     str = QObject::trUtf8("[%1];:;%2").arg(this->u_login,m_body);
-                    loc_msg.setMessage(  str.toUtf8() );
+                    loc_msg.setMessageData(  str.toUtf8() );
                     break;
                 case VPrn::Ans_MANDAT_LIST_EMPTY:
                     loc_msg.setType(VPrn::Ans_SrvStatusNotReady);
                     str = QObject::trUtf8("Данному пользователю не назначен ни один мандат!");
-                    loc_msg.setMessage(  str.toUtf8() );
+                    loc_msg.setMessageData(  str.toUtf8() );
                     break;
                 case VPrn::Ans_STAMP_LIST:
                     //m_body содержит список уровней секретности
                     loc_msg.setType(VPrn::Ans_STAMP_LIST);
-                    loc_msg.setMessage(  m_body.toUtf8() );
+                    loc_msg.setMessageData(  m_body.toUtf8() );
                     break;
                 }
                 if (loc_msg.type() != VPrn::NoMsgType ){
@@ -290,7 +293,7 @@ void serverGears::doJobFinish(const QString &m_uuid, VPrn::Jobs job_id,int code
         if (code !=0){
             // Рабский поток, умер от непосильного труда, посмертное сообщение в output
             loc_msg.setType(VPrn:: Err_Message);
-            loc_msg.setMessage( output.toUtf8() );
+            loc_msg.setMessageData( output.toUtf8() );
         }else{
             switch(job_id){
             case VPrn::job_ConvertPs2Pdf:
@@ -298,7 +301,7 @@ void serverGears::doJobFinish(const QString &m_uuid, VPrn::Jobs job_id,int code
                 break;
             case VPrn::job_CalcPageCount:
                 loc_msg.setType(VPrn::Ans_PageCounting);
-                loc_msg.setMessage( output.toUtf8() );  // число страниц в документе
+                loc_msg.setMessageData( output.toUtf8() );  // число страниц в документе
                 break;
             case VPrn::job_SplitPageFirst:
                 loc_msg.setType(VPrn::Ans_PageSplittedFirst);
@@ -368,6 +371,7 @@ void serverGears::setCheckPoint(MyCheckPoints cp)
 void serverGears::parseMessage( const Message &m_msg, const QString &c_uuid)
 {
     QLocalSocket *client(0);
+
     Message message( this );
     QString str;
 
@@ -376,11 +380,24 @@ void serverGears::parseMessage( const Message &m_msg, const QString &c_uuid)
     client = findClient(c_uuid);
     if (client){
         switch (m_msg.type()){
+        case VPrn::Que_GiveMeTemplatesList:
+            {
+                // Вернем модель МЕТАДанные о шаблонах преобразованную для передачи в сокет
+                TemplatesInfo tInfo;
+                QStringList list;
+                if (!list.isEmpty() && tmpl_plugin){
+                    tmpl_plugin->getMetaInfo(c_uuid,list,tInfo.model() );
+                    message.setType ( VPrn::Ans_GiveMeTemplatesList );
+                    message.setMessageData( tInfo.toByteArray() );
+                    sendMessage( message,client );
+                }
+            }
+            break;
         case VPrn::Que_RegisterDocInBase:
             str.append(m_msg.messageData()); /// В теле сообщения query_sql;
             // Просто перешлем в сеть
             message.setType   ( VPrn::Que_RegisterDocInBase );
-            message.setMessage(
+            message.setMessageData(
                     QString("[%1];:;%2;:;%3").arg( c_uuid, str, u_login )
                     .toUtf8() );
             //Запись в сетевой канал
@@ -392,7 +409,7 @@ void serverGears::parseMessage( const Message &m_msg, const QString &c_uuid)
             str.append(m_msg.messageData()); /// В теле сообщения query_sql;
             // Просто перешлем в сеть
             message.setType   ( VPrn::Que_GET_MB_LISTS );
-            message.setMessage(
+            message.setMessageData(
                     QString("[%1];:;%2;:;%3").arg( c_uuid, str, u_login )
                     .toUtf8() );
             //Запись в сетевой канал
@@ -404,7 +421,7 @@ void serverGears::parseMessage( const Message &m_msg, const QString &c_uuid)
             str.append(m_msg.messageData()); /// В теле сообщения query_sql;
             // Просто перешлем в сеть
             message.setType   ( VPrn::Que_IS_MB_EXIST );
-            message.setMessage(
+            message.setMessageData(
                     QString("[%1];:;%2;:;%3").arg( c_uuid, str, u_login )
                     .toUtf8() );
             //Запись в сетевой канал
@@ -416,7 +433,7 @@ void serverGears::parseMessage( const Message &m_msg, const QString &c_uuid)
             str.append(m_msg.messageData()); /// В теле сообщения query_sql;
             // Просто перешлем в сеть
             message.setType   ( VPrn::Que_CHECK_DOC_ATR );
-            message.setMessage(
+            message.setMessageData(
                     QString("[%1];:;%2;:;%3").arg( c_uuid, str, u_login )
                     .toUtf8() );
             //Запись в сетевой канал
@@ -429,7 +446,7 @@ void serverGears::parseMessage( const Message &m_msg, const QString &c_uuid)
             str.append(m_msg.messageData()); /// В теле сообщения device_uri;
             // Просто перешлем в сеть
             message.setType(VPrn::Que_AUTHOR_USER);
-            message.setMessage(
+            message.setMessageData(
                     QString("[%1];:;%2;:;%3;:;%4").arg( c_uuid, str, u_mandat,u_login )
                     .toUtf8() );
             if (net_plugin){
@@ -466,7 +483,7 @@ void serverGears::parseMessage( const Message &m_msg, const QString &c_uuid)
             //clients_name.insert( lient, str);
 
             message.setType(VPrn::Ans_Register);
-            message.setMessage(  c_uuid.toUtf8() ); // Пробразуем в QByteArray
+            message.setMessageData(  c_uuid.toUtf8() ); // Пробразуем в QByteArray
             sendMessage( message,client) ;
 
             break;
@@ -477,7 +494,7 @@ void serverGears::parseMessage( const Message &m_msg, const QString &c_uuid)
             if (!netDemonReady){
                 str = QObject::trUtf8("Нет ответа от шлюза в СУРД или отсутсвует сетевое соединение");
                 message.setType(VPrn::Ans_SrvStatusNotReady);
-                message.setMessage(  str.toUtf8() );
+                message.setMessageData(  str.toUtf8() );
                 // Запись в локальный слот клиенту
                 sendMessage(message,client);
             }else{
@@ -487,7 +504,7 @@ void serverGears::parseMessage( const Message &m_msg, const QString &c_uuid)
                         /// @todo  Показать Мише как разбирать!!!!!!
                         message.setType(VPrn::Que_MANDAT_LIST);
                         str = QObject::trUtf8("[%1];:;%2").arg( c_uuid,u_login );
-                        message.setMessage( str.toUtf8() );
+                        message.setMessageData( str.toUtf8() );
                         //Запись в сетевой канал
                         if (net_plugin){
                             net_plugin->sendMessage(message);
@@ -496,14 +513,14 @@ void serverGears::parseMessage( const Message &m_msg, const QString &c_uuid)
                     }else{
                         str = QObject::trUtf8("%1;:;%2").arg(u_login,u_mandat);
                         message.setType(VPrn::Ans_SrvStatusFullReady);
-                        message.setMessage(  str.toUtf8() );
+                        message.setMessageData(  str.toUtf8() );
                         // Запись в локальный слот клиенту
                         sendMessage(message,client);
                     }
                 }else{
                     str = QObject::trUtf8("Ошибка аутинтификации пользователя.Логин не определен или пустой!");
                     message.setType(VPrn::Ans_SrvStatusNotReady);
-                    message.setMessage( str.toUtf8() );
+                    message.setMessageData( str.toUtf8() );
                     // Запись в локальный слот клиенту
                     sendMessage(message,client);
                 }
@@ -517,7 +534,7 @@ void serverGears::parseMessage( const Message &m_msg, const QString &c_uuid)
             if (!netDemonReady){
                 str = QObject::trUtf8("Нет ответа от шлюза в СУРД или отсутсвует сетевое соединение");
                 message.setType(VPrn::Ans_SrvStatusNotReady);
-                message.setMessage(  str.toUtf8() );
+                message.setMessageData(  str.toUtf8() );
                 // Запись в локальный слот клиенту
                 sendMessage(message,client);
             }else{
@@ -526,7 +543,7 @@ void serverGears::parseMessage( const Message &m_msg, const QString &c_uuid)
                     u_mandat.append(m_msg.messageData());
                 }
                 str = QObject::trUtf8("[%1];:;%2").arg(c_uuid,u_mandat);
-                message.setMessage( str.toUtf8() );
+                message.setMessageData( str.toUtf8() );
                 //Запись в сетевой канал
                 if (net_plugin){
                     net_plugin->sendMessage(message);
@@ -538,13 +555,13 @@ void serverGears::parseMessage( const Message &m_msg, const QString &c_uuid)
             if (!netDemonReady){
                 str = QObject::trUtf8("Нет ответа от шлюза в СУРД или отсутсвует сетевое соединение");
                 message.setType(VPrn::Ans_SrvStatusNotReady);
-                message.setMessage(  str.toUtf8() );
+                message.setMessageData(  str.toUtf8() );
                 // Запись в локальный слот клиенту
                 sendMessage(message,client);
             }else{
                 message.setType(VPrn::Que_GET_PRINTER_LIST);
                 str = QObject::trUtf8("[%1];:;%2;:;%3").arg(c_uuid,u_login,u_mandat);
-                message.setMessage( str.toUtf8() );
+                message.setMessageData( str.toUtf8() );
                 //Запись в сетевой канал
                 if (net_plugin){
                     net_plugin->sendMessage(message);
@@ -568,8 +585,8 @@ void serverGears::sendMessage( const Message &m_msg, QLocalSocket *client)
 }
 
 void serverGears::createFormatedDoc(const QString &c_uuid,
-                       bool full_doc,bool delAfterCreate,bool gen_preview,
-                       QByteArray data)
+                                    bool full_doc,bool delAfterCreate,bool gen_preview,
+                                    QByteArray data)
 {
     QStringList templ_pages;
     if (tmpl_plugin){
@@ -591,5 +608,6 @@ QLocalSocket *serverGears::findClient(const QString &c_uuid)
     setError(QObject::trUtf8("Ответ клиенту который уже отсоединился!"));
     return client;
 }
+
 
 
