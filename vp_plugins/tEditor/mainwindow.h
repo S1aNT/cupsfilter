@@ -22,8 +22,6 @@ class cmdFrame;
 class UndoFrame;
 class EditPagesModel;
 
-//#include "itmpl_plugin.h"
-#include "loc_client.h"
 #include "itmpl_sql_plugin.h"
 #include "auth_plugin.h"
 #include "addtemplate.h"
@@ -60,12 +58,6 @@ private slots:
     void do_CmdButtonClick(const QString &line);// Нажали командную кнопку
     //void do_angle_direct();
     void do_viewCode();
-    /**
-      * @fn void do_stateChanged(LocalClientState state);
-      * @brief Как только состояние сокета связанного с  ХРАНИТЕЛЕМ_ВРАТ
-      * изменилось надо приять меры
-      */
-      //void do_stateChanged(LocalClientState state);
 signals:
     void addBaseElementToPage(int, const QString &line);
     void addImgElementToPage(int , const QString &templ_fn);
@@ -126,16 +118,10 @@ private:
     UndoFrame * myUndoFrame;
 
     // Переменные из установок
-    QString serverHostName;
-    int serverPort;
     QString spoolDir;
     QString ticket_fname;
     QString local_t_path; // Путь к локальным шаблонам пользователя
     QString global_t_path;
-    // Путь к gatekeeper любое приложение из большой тройки, может его запустить если он еще не запущен
-    QString gatekeeper_bin;
-    QString link_name; // Название локального сервера
-    LocalClient * m_LocalClient; // Локальный клиентик для связи с чисто локальным сервером ака Хранителем Врат
 
     /**
       * @var QSqlQueryModel * pagesModel; Указатель на модель СТРАНИЦЫ_ШАБЛОНА

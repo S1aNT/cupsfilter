@@ -34,7 +34,6 @@ HEADERS += ../global/pre_header.h \
     ../global/myscene.h \
     ../global/mytextitem.h \
     ../global/editpagesmodel.h \
-    ../global/loc_client.h\
     ../global/message.h \
     ../interfaces/itmpl_sql_plugin.h \
     addtemplate.h \
@@ -42,12 +41,10 @@ HEADERS += ../global/pre_header.h \
     mainwindow.h \
     cmdframe.h \
     undoframe.h
-
 SOURCES += main.cpp \
     ../global/myscene.cpp \
     ../global/mytextitem.cpp \
     ../global/editpagesmodel.cpp \
-    ../global/loc_client.cpp \
     ../global/message.cpp \
     addtemplate.cpp \
     view.cpp \

@@ -76,13 +76,6 @@ MainWindow::MainWindow():
     // Создадим модель
     page_size_model = new QStringListModel(this);
 
-    m_LocalClient = new LocalClient(this);
-//    connect (m_LocalClient, SIGNAL(stateChanged(LocalClientState)),
-//             this, SLOT(do_stateChanged(LocalClientState))
-//             );
-    // Устанавливаем соединение с локальным сервером
-    m_LocalClient->setServerName(link_name);
-
     //Все структуры созданы - грузим апельсины бочками
     loadPlugins();
 
@@ -352,7 +345,12 @@ void MainWindow::saveTemplatesAs()
                                                      tr("Шаблоны (*.tmpl *.TMPL)")
                                                      );
     if (!save_file.isEmpty()){
-
+        // Проверка на расширение
+        QString name = save_file.section(".",0,0);
+        QString ext  = save_file.section(".",1,1);
+        if (ext.isEmpty() || ext.compare("tmpl",Qt::CaseInsensitive) != 0 ){
+            save_file = name.append(".tmpl");
+        }
         tmpl_plugin->saveTemplatesAs(save_file);
     }
 }
@@ -391,34 +389,6 @@ void MainWindow::do_viewCode()
     }
 }
 
-//void MainWindow::do_stateChanged(LocalClientState state)
-//{
-//    switch (state){
-//    case VPrn::Connected:
-//        // Меняем иконку приложения на []-[]
-//        break;
-//    case VPrn::HostNotFound:
-//        // Меняем иконку на перечеркнутый комп,делаем попытку запустить еще раз приложение
-//        // Если ранее такой попытки не было
-//        if (!secondChance){
-//            // Запуск GateKeeper
-//            if ( !gatekeeper_bin.isEmpty()){
-///*
-//                if (QProcess::startDetached (gatekeeper_bin)){
-//                    // Попытка номер 2
-//                    m_LocalClient->setServerName(link_name);
-//                    secondChance = true;
-//                }
-//*/
-//            }else{
-//                emit error(tr("Ошибка при запуске GateKeeper"),true);
-//            }
-//
-//
-//        }
-//        break;
-//    }
-//}
 
 void MainWindow::toggleAntialiasing()
 {
@@ -667,19 +637,12 @@ void MainWindow::readGlobal(const QString &app_dir)
     if (QFile::exists(ini_path)){
         QSettings settings (ini_path,QSettings::IniFormat);
         settings.setIniCodec("UTF-8");
-        settings.beginGroup("SERVICE");
-        serverHostName = settings.value("server").toString();
-        serverPort     = settings.value("port").toInt();
-        link_name      = settings.value("link_name").toString();
-        settings.endGroup();
-
         settings.beginGroup("USED_DIR_FILE");
         spoolDir       = settings.value("spool_dir").toString();
 
 #if defined(Q_OS_UNIX)
         ticket_fname   = settings.value("session_ticket").toString();
 #endif
-        gatekeeper_bin = settings.value("gatekeeper_bin").toString();
         settings.endGroup();
 
         settings.beginGroup("TEMPLATES");
