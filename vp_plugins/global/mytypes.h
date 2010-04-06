@@ -35,6 +35,23 @@ typedef QMap <int,QPixmap> PixmapList;
         pSize_height = 4  /// Высота (мм)
                    };
 
+    enum metaInfoOrder{
+        metaInfo_id,      /// id
+        metaInfo_name,    /// имя шаблона
+        metaInfo_fname,   /// file_name шаблона
+        metaInfo_desc,    /// Описание шаблона;
+        metaInfo_orient,  /// Ориентация (Книжная/Альбомная)
+        metaInfo_ctime,   /// Время создания
+        metaInfo_mtime,   /// Время изменения
+        metaInfo_author,  /// Автор
+        metaInfo_mtop,    /// Отступ сверху (мм)
+        metaInfo_mbottom, /// Отступ снизу (мм)
+        metaInfo_mleft,   /// Отступ слева (мм)
+        metaInfo_mright,  /// Отступ справа (мм)
+        metaInfo_p_width, /// Ширина страницы (мм)
+        metaInfo_p_height /// Высота страницы (мм)
+    };
+
     enum tInfoColumnOrder{
         tInfo_id     = 0,  ///ID
         tInfo_name   = 1,  ///Имя шаблона
@@ -50,7 +67,7 @@ typedef QMap <int,QPixmap> PixmapList;
         tInfo_mright  = 11, ///Отступ справа (мм)
         tInfo_p_width = 12,
         tInfo_p_height= 13
-                    };
+    };
 
     enum pageDetailColumnOrder{
         PD_id         = 0,  /// ID
@@ -97,7 +114,7 @@ typedef QMap <int,QPixmap> PixmapList;
         FirstPageN4  = 3,
         FirstPageN5  = 4,
         SecondPage   = 5,
-        ThirdPage    = 5,
+        ThirdPage    = 6,
         FourthPage   = 7,
     };
 
@@ -117,9 +134,6 @@ typedef QMap <int,QPixmap> PixmapList;
         gk_ErrorState
     };
 
-
-
-    ///
     enum MyCheckPoints{
         /// Глобальные "отметки" имеют префикс glob_
         //glob_Init,
@@ -142,14 +156,12 @@ typedef QMap <int,QPixmap> PixmapList;
         net_CommonError           /// Ошибка сети
     };
 
-
     enum Jobs{ /// Задания (работы)
         job_ConvertPs2Pdf,        /// Задача конвертирования ps в pdf
         job_CalcPageCount,        /// Задача подсчета страниц в pdf файле
         job_SplitPageFirst,       /// Разбиение документа на первую стр.
         job_SplitPageOther        /// Разбиение документа на последующие стр.
     };
-
 
     enum MessageType {
         ///Глобальные сообщения (для передачи/приема с мишиным Демоном)
@@ -251,7 +263,7 @@ typedef QMap <int,QPixmap> PixmapList;
           * @li Набор данных из полей ввода,
           */
         Que_CreateFormatedFullDoc  = 5100, /// Полный документ
-        Que_CreateFormatedPartDoc  = 5200, /// Только его часть
+        Que_CreateFormatedPartDoc  = 5110, /// Только его часть
 
         /// @short Ans_TemplateNotFound  - Шаблон не найден или поврежден, в теле сообщения подробности
         Ans_TemplateNotFound   = 5101,
@@ -265,9 +277,18 @@ typedef QMap <int,QPixmap> PixmapList;
         Ans_CreateFormatedDoc  = 5103,
 
         /// @short Полный документ для печати, в теле сообщения принтер, набор данных
-        Que_CreateFormatedFullDocAndPrint = 5300,  /// Сообщение уходит в сеть к демону
-        Ans_PrintFormatedDoc        = 5301,  /// Документ распечатан, ответ от демона
-        Ans_PrintFormatedDoc_Error  = 5302,  /// Документ не распечатан, ответ от демона подробности в теле
+        Que_CreateFormatedFullDocAndPrint = 5200,  /// Сообщение уходит в сеть к демону
+        Ans_PrintFormatedDoc        = 5201,  /// Документ распечатан, ответ от демона
+        Ans_PrintFormatedDoc_Error  = 5202,  /// Документ не распечатан, ответ от демона подробности в теле
+
+        /** @short  Запрос на загрузку шаблонов и получение их метаинформации,
+          * в теле запроса, QStringList содержащий список шаблоно которые надо загрузить
+          */
+        Que_GiveMeTemplatesList     = 5300,
+        /** @short Ответ содержит QStandardItemModel преобразованный в QByteArray
+          * с помощью класса @sa @class TemplatesInfo
+          */
+        Ans_GiveMeTemplatesList     = 5310,
 
         ///Служебные сообщения
         GoodBay          = 7000,        /// GateKeeper завершает работу и Вам пора
