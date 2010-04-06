@@ -56,13 +56,12 @@ void mySocketClient::readyRead()
         in >> m_Type;
 
         //Прочтем само сообщение
-        QByteArray msg;
-        in >> msg;
+        QByteArray data;
+        in >> data;
         Message message( this );
         message.setType((MessageType) m_Type); //Проверить как конвертирует
-        message.setMessage( msg );
+        message.setMessageData( data );
         // Отправка сообщения
-        qDebug() << "Construct message. Type: " << m_Type << " Body " << msg;
         messageReady( message );
     }
 }
