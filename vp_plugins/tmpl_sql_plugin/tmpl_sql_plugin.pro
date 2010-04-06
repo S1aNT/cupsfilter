@@ -1,7 +1,6 @@
 TEMPLATE = lib
 QT += gui \
-    xml \
-    sql
+      sql
 
 CONFIG += plugin \
     precompile_header
@@ -44,9 +43,11 @@ HEADERS += ../global/pre_header.h \
            ../global/mytextitem.h \
            ../global/commands.h \
            ../global/editpagesmodel.h \
+           ../global/templatesinfo.h \
            tmpl_sql_plugin.h
 SOURCES = tmpl_sql_plugin.cpp \
     ../global/tinfoeditmodel.cpp \
     ../global/myscene.cpp \
     ../global/mytextitem.cpp \
-    ../global/editpagesmodel.cpp
+    ../global/editpagesmodel.cpp \
+    ../global/templatesinfo.cpp

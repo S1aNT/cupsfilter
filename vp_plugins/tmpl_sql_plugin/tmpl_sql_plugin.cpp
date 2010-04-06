@@ -11,6 +11,7 @@
 #include <QtCore/QDateTime>
 #include <QtCore/QDataStream>
 
+#include <QtGui/QStandardItemModel>
 #include <QtGui/QPrinter>
 #include <QtGui/QPainter>
 
@@ -20,6 +21,7 @@
 #include <QtSql/QSqlError>
 #include <QtSql/QSqlRecord>
 #include <QtSql/QSqlTableModel>
+
 
 //#include <QtGui/QGraphicsItem>
 //#include <QtSql/QSqlRelation>
@@ -154,7 +156,7 @@ QStringList Tmpl_sql_plugin::loadAndFillTemplateCreatePages(const QString &c_uui
 
     myScene *m_scene(0);
 
-    QPrinter pdfprinter;  
+    QPrinter pdfprinter;
     QStringList pdf_files;
     /// Создаем модели
     QSqlQueryModel *elemInPageModel_client = new QSqlQueryModel(this);
@@ -173,10 +175,10 @@ QStringList Tmpl_sql_plugin::loadAndFillTemplateCreatePages(const QString &c_uui
             // читаем значения
             in >> m_tagValue;
             // Загружаем шаблон
-            Ok = isValidFileName(t_fileName) && openDataBase(t_fileName);
+            Ok = isValidFileName(t_fileName) &&  QFile::exists(t_fileName);
+
             if (Ok){
-                // Запись в БД шаблона данных из введенных пользователем полей
-                Ok &= saveDataToBase(m_tagValue);
+                Ok &= openDataBase(t_fileName) && saveDataToBase(m_tagValue);
                 if (Ok){
                     // Заполнение моделей
                     pagesModel_client->setQuery(
@@ -214,7 +216,7 @@ QStringList Tmpl_sql_plugin::loadAndFillTemplateCreatePages(const QString &c_uui
                             pdfprinter.setOutputFormat(QPrinter::PdfFormat);
                             if (p_angle == 90){
                                 pdfprinter.setOrientation(QPrinter::Landscape);
-                            }else{                                
+                            }else{
                                 pdfprinter.setOrientation(QPrinter::Portrait);
                             }
 
@@ -260,12 +262,74 @@ QStringList Tmpl_sql_plugin::loadAndFillTemplateCreatePages(const QString &c_uui
                         }// end else if (elemInPageModel_client->lastError())
                     }// end else if (pagesModel_client->lastError())
                 }// end saveDataToBase(m_tagValue);.. if (Ok)
+            }else{
+                emit error(FileIOError,
+                           QObject::trUtf8("Файл [%1] шаблона не существует!")
+                           .arg(t_fileName)
+                           );
+                Ok = false;
             }// end isValidFileName(t_fileName)... if (Ok)
         }else{
             emit error(DriverNotLoad,QObject::trUtf8("Не могу загрузить драйвер sqlite!"));
         }// end isDBConnected(); if (Ok)
     }
     return pdf_files;
+}
+
+void Tmpl_sql_plugin::getMetaInfo(const QString &client_id,
+                                  const QStringList &list,
+                                  QStandardItemModel *model )
+{
+
+    if ( model && !list.isEmpty() ){
+        {
+            QSqlDatabase db  = QSqlDatabase::addDatabase(QLatin1String("QSQLITE"),client_id);
+
+            if (db.driver()->lastError().type() != QSqlError::ConnectionError) {
+                model->clear();
+                for (int i = 0; i<list.size(); i++){
+                    bool Ok = true;
+                    {
+                        Ok &= isValidFileName( list.at(i) )&&
+                              QFile::exists( list.at(i) ) ;
+                        if (Ok){
+                            db.setDatabaseName( list.at(i) );
+                            if (db.open()){
+                                // Основная работа с шаблонами
+                                QSqlQuery query(db);
+                                QList<QStandardItem *> itemList;
+
+                                itemList.append(new QStandardItem( list.at(i) ) ); //Имя файла шаблона
+
+                                if (query.exec( "SELECT t_name,t_desc,"
+                                                "angle,c_time,m_time,author,margin_top,margin_bottom,"
+                                                "margin_left,margin_right,page_size.p_witdh,page_size.p_height  "
+                                                "FROM template "
+                                                " INNER JOIN page_size ON template.page_size_id=page_size.id")
+                                    ){
+                                    int field_t_name  = query.record().indexOf("t_name");
+
+                                    while (query.next()) {
+                                        itemList.append(new QStandardItem ( query.value(field_t_name).toString() )
+                                                        ); //Имя шаблона
+
+                                    }
+                                    model->appendRow(itemList);
+                                    itemList.clear(); //?????
+                                }else{
+                                    DumpError(query.lastError());
+                                }
+                                db.close();
+                            }
+                        }
+                    }
+                }
+            }
+
+        }
+        QSqlDatabase::removeDatabase(client_id);
+    }
+
 }
 
 //------------------------------------------------------------------------------
@@ -370,8 +434,9 @@ void Tmpl_sql_plugin::openTemplates(const QString & t_fileName)
     bool Ok = true;
     {
         /// Проверка что соединение с БД установленно (драйвер был загружен)
-        Ok &= isDBConnected()
-              && isValidFileName(t_fileName);
+        Ok &= isDBConnected() &&
+              isValidFileName(t_fileName) &&
+              QFile::exists(t_fileName);
         if (Ok){
             Ok &=openDataBase(t_fileName);
             if (Ok){
@@ -638,12 +703,6 @@ bool Tmpl_sql_plugin::isValidFileName(const QString & fileName)
             emit error(FileIOError,
                        QObject::trUtf8("Файла шаблона должен иметь расширение tmpl!"));
             Ok = false;
-        }else{
-            if (!QFile::exists(fileName)){
-                emit error(FileIOError,
-                           QObject::trUtf8("Файл шаблона не существует!"));
-                Ok = false;
-            }
         }
     }
     return Ok;

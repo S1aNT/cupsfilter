@@ -2,7 +2,7 @@
 #define TMPL_SQL_PLUGIN_H
 
 /**
-  * @mainpage Плагин
+  * @mainpage Плагин TMPL_SQL_PLUGIN
   * предназначен для работы с шаблоном, который представляет БД SQLITE
   * При первоначальной загрузке плагина происходит инициализация рабочих,
   * наборов данных:
@@ -18,6 +18,14 @@
   * модели настраиваютсяя на получение данных из новой БД, если возникает
   * необходимость нового временного шаблона, то данный цикл повторяется
 */
+
+/** @todo Этот код "воняет" и требует рефакторинга. Основные проблемы, обработка
+  * соединение с БД одно на всех. Модели одни на всех. Будут проблемы
+  * когда этот плагин использует  GateKeeper так он преполагает много клиентов, работающих
+  * с ним в режиме clinet_id -> задача. Много кода дублируется, сам плагин
+  * пытается и шнец и жрец и на дуде игрец. Он должен работать с БД шаблона. А все
+  * сторонние операции со сценой должен выполнять другой модуль
+  */
 #include "itmpl_sql_plugin.h"
 #include "tinfoeditmodel.h"
 #include "editpagesmodel.h"
@@ -116,6 +124,16 @@ public:
       */
       QStringList loadAndFillTemplateCreatePages(const QString &c_uuid,
                                         QByteArray client_data);
+
+      /**
+        * @fn void getMetaInfo(const QString &client_id,
+        *                      const QStringList &list,
+        *                      QStandardItemModel *model );
+        * @brief Данная функция  пробегается по всему спику шаблонов и для каждого из них
+        */
+      void getMetaInfo( const QString &client_id,
+                        const QStringList &list,
+                        QStandardItemModel *model );
 
 signals:
     void error(pluginsError errCode,QString error_message);
