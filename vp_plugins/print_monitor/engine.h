@@ -5,6 +5,7 @@
 
 QT_FORWARD_DECLARE_CLASS ( QStringList )
 QT_FORWARD_DECLARE_CLASS ( QLocalSocket )
+QT_FORWARD_DECLARE_CLASS ( QStandardItemModel )
 
 class mySocketClient;
 class Message;
@@ -12,6 +13,7 @@ class Message;
 
 #include "mytypes.h"
 #include "igs_plugin.h"
+
 
 using namespace VPrn;
 
@@ -82,6 +84,7 @@ public:
 
     void doMergeDocWithTemplates (QByteArray field_data,bool preview_mode);
 signals:
+    void reciveTemplatesMetaInfo( QByteArray mInfo);
     // Вернем путь к шаблону
     void setTemplatesFileName( QString t_path);
     // Результат наложения шаблона на документ
@@ -199,6 +202,13 @@ private:
     QList <QFileInfo> templatesFileInfoList;
     QMap <QString,QString> printer_device_list;
 
+    /**
+      *@fn void AfterConnectSteps();
+      *@brief После установления соедиения с сервером, когда он вернул статус
+      *полностью или частично готов к работе, выполняем безусловый набор действий
+      *@li Получение метаинформации о шаблонах из списка
+      */
+    void afterConnectSteps();
     /**
       * @fn void sendMessage2LocalSrv(const Message &s_msg);
       * @brief отправка сообщения локальному серверу

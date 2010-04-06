@@ -49,6 +49,8 @@ Engine::Engine(QObject *parent,const QString &app_path,
     }else{
         emit error(QObject::trUtf8("Ошибка, не задан каталог Общих шаблонов"));
     }
+
+
 }
 
 Engine::~Engine()
@@ -60,6 +62,7 @@ Engine::~Engine()
 
 void Engine::init()
 {
+
     if (!link_name.isEmpty() &&  !gatekeeper_bin.isEmpty()){
         launchAndConnect();
     }else{
@@ -75,7 +78,7 @@ void Engine::prepareFileToPrint(const QString & file_name)
     // Запись в сокет сообщения требую  преобразовать ps -> pdf
     Message msg(this);
     msg.setType(VPrn::Que_Convert2Pdf);
-    msg.setMessage( file_name.toUtf8() ); // Пробразуем в QByteArray
+    msg.setMessageData( file_name.toUtf8() ); // Пробразуем в QByteArray
     sendMessage2LocalSrv(msg);
 }
 
@@ -89,7 +92,7 @@ void Engine::setUserMandat(const QString & u_name,const QString & u_mandat)
     // Запись в сокет сообщения запрос доступных уровней секретности для
     Message msg(this);
     msg.setType(VPrn::Que_SEC_LEVEL);
-    msg.setMessage( currentUserMandat.toUtf8() ); // Пробразуем в QByteArray
+    msg.setMessageData( currentUserMandat.toUtf8() ); // Пробразуем в QByteArray
     sendMessage2LocalSrv(msg);
 }
 
@@ -105,7 +108,7 @@ void Engine::authUserToPrinter(const QString &printer_uri)
     // Запись в сокет сообщения запрос авторизации пользователя на доступ к ресурсу
     Message msg(this);
     msg.setType( VPrn::Que_AUTHOR_USER  );
-    msg.setMessage( findPrinterInDeviceURIList(printer_uri).toUtf8() ); // Пробразуем в QByteArray
+    msg.setMessageData( findPrinterInDeviceURIList(printer_uri).toUtf8() ); // Пробразуем в QByteArray
     sendMessage2LocalSrv(msg);
 }
 
@@ -113,7 +116,7 @@ void Engine::checkMB( const QString &sql_query )
 {
     Message msg(this);
     msg.setType( VPrn::Que_IS_MB_EXIST  );
-    msg.setMessage( sql_query.toUtf8() );
+    msg.setMessageData( sql_query.toUtf8() );
     sendMessage2LocalSrv(msg);
 }
 
@@ -121,7 +124,7 @@ void Engine::registerMB ( const QString &sql_query )
 {
     Message msg(this);
     msg.setType( VPrn::Que_RegisterDocInBase  );
-    msg.setMessage( sql_query.toUtf8() );
+    msg.setMessageData( sql_query.toUtf8() );
     sendMessage2LocalSrv(msg);
 }
 
@@ -134,7 +137,7 @@ void Engine::doMergeDocWithTemplates (QByteArray field_data,bool preview_mode)
        msg.setType( VPrn::Que_CreateFormatedPartDoc );
    }
 
-    msg.setMessage( field_data );
+    msg.setMessageData( field_data );
     sendMessage2LocalSrv(msg);
 }
 //------------------------------- PUBLIC SLOTS ---------------------------------
@@ -229,11 +232,25 @@ void Engine::launchAndConnect()
     m_LocalClient->connectToServer(link_name);
 }
 
+void Engine::afterConnectSteps()
+{
+    if (!templatesFileInfoList.isEmpty()){
+        Message msg(this);
+        msg.setType( VPrn::Que_GiveMeTemplatesList );
+        QStringList list;
+        for (int i=0; i< templatesFileInfoList.size(); i++){
+            list.append(templatesFileInfoList.at(i).absoluteFilePath());
+        }
+        msg.setMessageData ( list );
+        sendMessage2LocalSrv( msg );
+    }
+    emit RemoteDemonRegistr();
+}
+
 //-------------------------------- PRIVATE SLOTS -------------------------------
 void Engine::do_checkPointChanged(MyCheckPoints r_cpoint)
 {
     Message msg(this);
-    msg.clear();
     switch (r_cpoint){
 
     case VPrn::loc_Connected:
@@ -241,7 +258,7 @@ void Engine::do_checkPointChanged(MyCheckPoints r_cpoint)
         emit LocalSrvRegistr();
         //Запрос авторизации
         msg.setType(VPrn::Que_Register);
-        msg.setMessage( clientName.toUtf8() ); // Пробразуем в QByteArray
+        msg.setMessageData( clientName.toUtf8() ); // Пробразуем в QByteArray
         sendMessage2LocalSrv(msg);
         break;
 
@@ -277,6 +294,9 @@ void Engine::parseMessage(const Message &r_msg)
     QString str;
     int pCnt;
     switch (r_msg.type()){
+    case VPrn::Ans_GiveMeTemplatesList:
+        emit reciveTemplatesMetaInfo( r_msg.messageData() );
+        break;
     case VPrn::Ans_TemplateNotFound:
         str.append( r_msg.messageData() );
         emit MergeDocWithTemplates( false, str);
@@ -373,7 +393,7 @@ void Engine::parseMessage(const Message &r_msg)
     case VPrn::Ans_SrvStatusPartReady:
         str.append(r_msg.messageData());
         emit needAuthUser(str);
-        emit RemoteDemonRegistr();
+        afterConnectSteps();
         break;
     case VPrn::Ans_SrvStatusFullReady:
         str.append(r_msg.messageData());
@@ -386,7 +406,7 @@ void Engine::parseMessage(const Message &r_msg)
             //emit gk_fullReady(currentUserName,currentUserMandat);
             //Запрос уровней секретности для мандата
             setUserMandat(currentUserName,currentUserMandat );
-            emit RemoteDemonRegistr();
+            afterConnectSteps();
         }else{
             emit error(QObject::trUtf8("Ошибка при получении имени и мандата текщего пользователя"));
         }
