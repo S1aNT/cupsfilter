@@ -80,6 +80,7 @@ private slots:
       * отправим запрос на оъединение документа и шаблона
       */
     void onSelectPreview(bool mode);
+
 private:
     //    Ui::PrintMonitor *ui;
     /**

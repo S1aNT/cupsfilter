@@ -1,5 +1,7 @@
 #include "printmonitor.h"
 #include "message.h"
+#include "templatesinfo.h"
+
 #include <QtCore/QDebug>
 
 #include <QtNetwork/QLocalSocket>
@@ -65,8 +67,15 @@ PrintMonitor::PrintMonitor(QWidget *parent,const QString &input_file)
     connect(this, SIGNAL(helpRequested()), this, SLOT(showHelp()));
     setWindowTitle(QObject::trUtf8("Защищенный принтер."));
 
+    TemplatesInfo *tInfo = new TemplatesInfo();
+
     core_app = new Engine(0,qApp->applicationDirPath(),
                           QObject::trUtf8("Монитор печати "));
+
+
+    connect (core_app, SIGNAL( reciveTemplatesMetaInfo(QByteArray) ),
+             tInfo,    SLOT  ( fromByteArray(QByteArray) )
+             );
 
     connect (core_app, SIGNAL(reciveGoodBayMsg(QString)),
              this, SLOT(onGoodBayMsg(QString))
@@ -81,18 +90,19 @@ PrintMonitor::PrintMonitor(QWidget *parent,const QString &input_file)
       * @li Загрузка плагинов
       * @li Регистрация на локальном сервере (Значит он существует и доступен)
       * @li Регистрация на удаленном сервере (Значит он существует и доступен)
-      * можем отправить файлик на конвертацию, в данное время есть смысл в этом
+      * можем отправить файлик на конвертацию, в данное время в этом есть смысл
+      * можем запросить метаинформацию о шаблонах
       */
-    connect(core_app,       SIGNAL( RemoteDemonRegistr() ),
+    connect(core_app,       SIGNAL( RemoteDemonRegistr()  ),
             this,           SLOT  ( sendFileToConvertor() )
             );
+
     connect(core_app,       SIGNAL( ReciveUserName() ),
             intro_page,     SLOT  ( setReciveUserName() )
             );
     connect(core_app,       SIGNAL( ReciveUserMandat() ),
             intro_page,     SLOT  ( setReciveUserMandat() )
             );
-
     connect(core_app,       SIGNAL( ReciveSecLevelList() ),
             intro_page,     SLOT  ( setReciveSecLevelList() )
             );
@@ -150,10 +160,9 @@ PrintMonitor::PrintMonitor(QWidget *parent,const QString &input_file)
     connect(core_app,       SIGNAL( MergeDocWithTemplates(bool,QString) ),
             checkData_page, SLOT  ( setCheckMergeDocWithTemplates(bool,QString))
             );
-
     core_app->init();
-    /// Так как конфиг прочитан к данному моменту, то чиатем каталог шаблонов
-    printData_page->setTemplatesList(core_app->getTemplatesList());
+    // свяжем модеь метаинформации о шаблоне и ее основного потребителя
+    printData_page->setModel( tInfo->model() );
 }
 
 void PrintMonitor::appendStartMsg(const QString &start_msg)
@@ -192,7 +201,7 @@ void PrintMonitor::do_needAuthUser(const QString &login_mandat_list)
 
         int ret = UMDlg->exec();
         if (ret == QDialog::Accepted){
-            intro_page->setReciveUserName();
+            //intro_page->setReciveUserName();
             core_app->setUserMandat(m_login,UMDlg->getCurrentMandat());
             //showInfoMessage( QObject::trUtf8("Авторизация с консоли") );
         }
