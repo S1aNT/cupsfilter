@@ -24,7 +24,7 @@ public:
     AddTemplate(QWidget *parent = 0);
     ~AddTemplate();
 
-    void setLocalTemplatesDir(const QString &l_dir){local_dir = l_dir;};
+    void setLocalTemplatesDir(const QString &l_dir){local_dir = l_dir;}
     void setEnableGUI(bool mode);
 
     /**
@@ -38,18 +38,18 @@ public:
       * @fn setPageSizeModel(QSqlQueryModel *model)
       * @brief Установим и настроим модель РАЗМЕРЫ_ЛИСТА
       */
-    void setPageSizeModel(QSqlQueryModel *model){pSizeModel = model;};
+    void setPageSizeModel(QSqlQueryModel *model){pSizeModel = model;}
     /**
       * @fn setInfoModel(TemplateInfoEditModel *model)
       * @brief Установим и настроим модель ИНФО_ШАБЛОНА
       */
-    void setInfoModel(TemplateInfoEditModel *model){tInfoModel = model;};
+    void setInfoModel(TemplateInfoEditModel *model){tInfoModel = model;}
 
     /**
       * @fn setPagesModel(QSqlQueryModel * model)
       * @brief Установим и настроим модель СТРАНИЦЫ_ШАБЛОНА
       */
-    void setPagesModel(EditPagesModel * model){m_pagesModel=model;};
+    void setPagesModel(EditPagesModel * model){m_pagesModel=model;}
 signals:
     void needCreateEmptyTemplates(QString &fileName);
 

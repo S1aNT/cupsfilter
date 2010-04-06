@@ -53,7 +53,7 @@ void AddTemplate::connector()
 
 
 void AddTemplate::default_init()
-{   
+{
     if (tInfoModel && pSizeModel && m_pagesModel){
         //Заполним выпадающий список из модели
         ui->pageSizeCBox->setModel(pSizeModel);
@@ -91,17 +91,22 @@ void AddTemplate::accept()
 {
     QString fileName;
     this->setData4Models();
-
-    QString e_msg = QObject::trUtf8("Поле [ %1 ] не может быть пустым!");
     if (ui->t_name_lineEd->text().isEmpty()){
-        e_msg.arg(QObject::trUtf8("Имя шаблона"));
-        this->showInfo(e_msg);
+
+        this->showInfo(QObject::trUtf8("Имя шаблона не может быть пустым"));
     }else{
         fileName = QFileDialog::getSaveFileName(this, QObject::trUtf8("Сохранить шаблон как"),
                                                 local_dir,
                                                 QObject::trUtf8("Шаблоны (*.tmpl *.TMPL)"));
         if (!fileName.isEmpty()){
             if (work_mode){
+                // Проверка на расширение
+                QString name = fileName.section(".",0,0);
+                QString ext  = fileName.section(".",1,1);
+                if (ext.isEmpty() || ext.compare("tmpl",Qt::CaseInsensitive) != 0 ){
+                    fileName = name.append(".tmpl");
+                }
+
                 emit needCreateEmptyTemplates(fileName);
                 QDialog::accept();
             }else{
@@ -125,7 +130,7 @@ void AddTemplate::showInfo(const QString & info)
 }
 
 void AddTemplate::getData4Models()
-{  
+{
     //Настроим чекбоксы страницы шаблона
     for (int i=0;i<m_pagesModel->rowCount();i++){
         int p_number   = m_pagesModel->data(m_pagesModel->index(i,VPrn::PD_p_number)).toInt();
@@ -323,7 +328,7 @@ void AddTemplate::setData4Models()
                     if (ui->portretBtn->isChecked()){
                         cellData = 0;
                     }else{
-                        cellData =90;
+                        cellData = 90;
                     }
                     break;
                 case tInfo_pageID:
