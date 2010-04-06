@@ -15,7 +15,7 @@ QT_FORWARD_DECLARE_CLASS ( QComboBox )
 QT_FORWARD_DECLARE_CLASS ( QGroupBox )
 QT_FORWARD_DECLARE_CLASS ( QLineEdit )
 QT_FORWARD_DECLARE_CLASS ( QDateEdit )
-
+QT_FORWARD_DECLARE_CLASS ( QStandardItemModel )
 QT_FORWARD_DECLARE_CLASS ( QSpinBox )
 QT_FORWARD_DECLARE_CLASS ( QLabel )
 
@@ -27,7 +27,11 @@ public:
 
     void setLabelText(const QString &l_txt);
     void setMode(int m_mode);
-
+    /**
+      * @fn void setModel ( QStandardItemModel *model);
+      * @brief установим модель и настроим ее связи с полями
+      */
+    void setModel ( QStandardItemModel *model);
     /**
       * @fn QByteArray getAllFieldData();
       * @brief Собирает данные всех полей и формирует из них массив пригодный
@@ -150,6 +154,8 @@ private:
     QString select_stamp;
     QString t_fileName;
     QByteArray fields_data;
+
+     QStandardItemModel *m_model; // указатель на модель метаинформации о шаблоне
     /**
       * @fn void setPageSpit();
       * @brief Взводит флажок подготовка документа к печати в зависимости

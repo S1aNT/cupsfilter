@@ -271,6 +271,12 @@ PrintDataPage::PrintDataPage(QWidget *parent)
     this->setCommitPage(true);
 }
 
+void  PrintDataPage::setModel ( QStandardItemModel *model)
+{
+    templatesCBox->setModel( model );
+    templatesCBox->setModelColumn( VPrn::metaInfo_name );
+}
+
 void PrintDataPage::setPageSpit()
 {
     if ((doc_pages_count == 1 && first_split ) ||
