@@ -136,7 +136,8 @@ void MainWindow::loadPlugins()
                         );
 
 #if defined(Q_OS_UNIX)
-                auth_plugin->init(ticket_fname);
+                //auth_plugin->init(ticket_fname);
+                auth_plugin->init();
 #elif defined(Q_OS_WIN)
                 auth_plugin->init();
 #endif
