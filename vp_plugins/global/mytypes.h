@@ -36,7 +36,6 @@ typedef QMap <int,QPixmap> PixmapList;
                    };
 
     enum metaInfoOrder{
-        metaInfo_id,      /// id
         metaInfo_name,    /// имя шаблона
         metaInfo_fname,   /// file_name шаблона
         metaInfo_desc,    /// Описание шаблона;
