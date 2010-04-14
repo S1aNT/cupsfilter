@@ -26,12 +26,16 @@ Q_OBJECT
 public:
     TemplatesInfo(QObject *parent = 0);
     ~TemplatesInfo();
-    void setStdHeader();
+    QString lastError() const{return last_error;}
+    void setHorizontalHeaderLabels();
 
-    QStandardItemModel *model(){return tInfoModel;}
+    //void setHorizontalHeaderLabels(const QStringList &header);
+
+    QStandardItemModel *model(){return m_model;}
 
     QByteArray toByteArray() const;
 
+    bool getMetaInfo(const QString &client_id,const QStringList &listl );
 
 public slots:
     void fromByteArray( QByteArray m_data );
@@ -41,8 +45,9 @@ private:
       * @var tInfoModel; Модель содержащая в себе сведения о всех шаблонах
       * которые доступны пользователю.Ее заполняет GateKeeper  и передает в сообщении
       */
-    QStandardItemModel * tInfoModel;
+    QStandardItemModel * m_model;
 
+    QString last_error;
    // friend QDebug      operator  << (QDebug &out,      const TemplatesInfo& save);
    // friend QDataStream &operator << (QDataStream &out, const TemplatesInfo& save);
    // friend QDataStream &operator >> (QDataStream &in,  TemplatesInfo& load);

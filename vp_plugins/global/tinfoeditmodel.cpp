@@ -81,7 +81,7 @@ void TemplateInfoEditModel::refresh()
     setQuery("SELECT template.id,t_name,t_desc,"
              "page_size_id,angle,"
              "c_time,m_time,author,margin_top,margin_bottom,"
-             "margin_left,margin_right,page_size.p_witdh,page_size.p_height  "
+             "margin_left,margin_right,page_size.p_width,page_size.p_height  "
              "FROM template INNER JOIN page_size ON template.page_size_id=page_size.id");
           setHeaderData(tInfo_id,     Qt::Horizontal, QObject::trUtf8("ID"));                 // 0
           setHeaderData(tInfo_name,   Qt::Horizontal, QObject::trUtf8("Имя шаблона"));        // 1
