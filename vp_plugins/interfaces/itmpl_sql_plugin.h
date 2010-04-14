@@ -56,10 +56,6 @@ public:
     virtual void setViewMode () =0 ;
     virtual QStringList loadAndFillTemplateCreatePages(const QString &c_uuid,
                                         const QByteArray client_data) = 0;
-    virtual void getMetaInfo( const QString &client_id,
-                              const QStringList &list,
-                              QStandardItemModel *model ) = 0 ;
-
 };
 
 QT_BEGIN_NAMESPACE
