@@ -107,14 +107,14 @@ typedef QMap <int,QPixmap> PixmapList;
     };
 
     enum pageNumbers {
-        FirstPage    = 0,
-        FirstPageN2  = 1,
-        FirstPageN3  = 2,
-        FirstPageN4  = 3,
-        FirstPageN5  = 4,
+        FirstPage        = 0,
+        FirstPageN2    = 1,
+        FirstPageN3    = 2,
+        FirstPageN4    = 3,
+        FirstPageN5    = 4,
         SecondPage   = 5,
-        ThirdPage    = 6,
-        FourthPage   = 7,
+        ThirdPage       = 6,
+        FourthPage     = 7,
     };
 
     enum trayIcons {
@@ -159,7 +159,10 @@ typedef QMap <int,QPixmap> PixmapList;
         job_ConvertPs2Pdf,        /// Задача конвертирования ps в pdf
         job_CalcPageCount,        /// Задача подсчета страниц в pdf файле
         job_SplitPageFirst,       /// Разбиение документа на первую стр.
-        job_SplitPageOther        /// Разбиение документа на последующие стр.
+        job_SplitPageOther,       /// Разбиение документа на последующие стр.
+        job_MergePdf,             /// Объединение двух pdf в один
+        job_PrintFile,            /// Печать документа на принтер
+        job_ConvertToPng          /// Преобразование в png исходного файла
     };
 
     enum MessageType {
@@ -305,6 +308,17 @@ typedef QMap <int,QPixmap> PixmapList;
         Page_Finish
     };
 
+    /**
+     * @brief  Режимы предпросмотра при печати
+     * @li  FullPreviewMode  Просмотр всех страниц всех экз.
+     * @li  PartPreviewMode Просмотр только ключевых страниц (1-х страниц) каждого экз.
+     * @li  PrintWithoutPreviewMode  Печать без просмотра
+     */
+    enum PreviewMode{
+       FullPreviewMode  = 0,
+       PartPreviewMode = 1,
+       PrintWithoutPreviewMode = 2
+    };
 
     enum{
 
