@@ -54,8 +54,8 @@ public:
     virtual void convert2Pdf() = 0;
     virtual void setUserName (const QString &user) = 0;
     virtual void setViewMode () =0 ;
-    virtual QStringList loadAndFillTemplateCreatePages(const QString &c_uuid,
-                                        const QByteArray client_data) = 0;
+    virtual  bool prepare_template(const QString &c_uuid,const QString &t_fileName,
+                                       const QHash<QString, QString> &hash, int copy_number) =0 ;
 };
 
 QT_BEGIN_NAMESPACE
