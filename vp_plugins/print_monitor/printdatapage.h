@@ -68,29 +68,15 @@ signals:
       * проверит можно ли печатать такой документ
       */
     void field_checked();
-    /**
-      * @fn void templatesChanged(QString &t);
-      * @brief Сигнал пользователь выбрал шаблон.Нужно определить его файловый путь
-      */
-    void templatesChanged(QString t);
+
 public slots:
-    /**
-      * @fn void setTemplatesFileName(const QString &fn);
-      * @brief Устанавливает полный путь к файлу, для выбранного шаблона
-      */
-    void setTemplatesFileName(const QString &fn);
 
     /**
       * @fn void setSecList(const QStringList &s_list);
       * @brief Заполним поле список уровней секретности
       */
     void setSecList(const QStringList &s_list);
-    /**
-      * @fn void setTemplatesList(const QStringList &s_list);
-      * @brief Заполним поле список шаблонов
-      */
-    void setTemplatesList(const QStringList &t_list);
-   /**
+       /**
     * @fn void setDocConverted();
     * @brief ставит галочку в обязательном CheckBox документ сконвертирован  в pdf
     */
@@ -105,8 +91,15 @@ public slots:
     void on_firstPageSplitted();
     void on_otherPageSplitted();
 private slots:
-    //void setTemplates (const QString & t){select_templates = t;}
+
     void setStamp     (const QString & s){select_stamp = s;}
+    /**
+      * @fn findTemplatesFilePathInModel(int combo_ind)
+      * @brief Есть id выбранного пользователем шаблона, необходимо найти в
+      * модели и запомнить полный путь к быранному шаблону
+      */
+    void findTemplatesFilePathInModel(int combo_ind);
+
 private:
     QComboBox *secretCBox;
     QComboBox *templatesCBox;
@@ -155,7 +148,7 @@ private:
     QString t_fileName;
     QByteArray fields_data;
 
-     QStandardItemModel *m_model; // указатель на модель метаинформации о шаблоне
+    QStandardItemModel *m_model; // указатель на модель метаинформации о шаблоне
     /**
       * @fn void setPageSpit();
       * @brief Взводит флажок подготовка документа к печати в зависимости

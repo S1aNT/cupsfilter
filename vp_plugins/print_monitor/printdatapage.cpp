@@ -267,14 +267,17 @@ PrintDataPage::PrintDataPage(QWidget *parent)
     registerField("pagesCountLineEd*",  pagesCountLineEd);
     registerField("docConverted_checkBox*",docConverted_checkBox);
     registerField("docSplitted_checkBox*",docSplitted_checkBox);
+
     connector();
     this->setCommitPage(true);
 }
 
 void  PrintDataPage::setModel ( QStandardItemModel *model)
 {
-    templatesCBox->setModel( model );
+    m_model = model;
+    templatesCBox->setModel( m_model );
     templatesCBox->setModelColumn( VPrn::metaInfo_name );
+    //templatesCBox->setCurrentIndex(-1);
 }
 
 void PrintDataPage::setPageSpit()
@@ -282,9 +285,9 @@ void PrintDataPage::setPageSpit()
     if ((doc_pages_count == 1 && first_split ) ||
         (doc_pages_count >  1 && first_split && other_split  )){
         docSplitted_checkBox->setChecked(true);
-        QMessageBox msgbox;
-        msgbox.setText(QObject::trUtf8("Предпечатное разбиение документа на группы стр. завершенно!"));
-        msgbox.exec();
+        //QMessageBox msgbox;
+        //msgbox.setText(QObject::trUtf8("Предпечатное разбиение документа на группы стр. завершенно!"));
+        //msgbox.exec();
     }
 }
 
@@ -305,7 +308,6 @@ bool PrintDataPage::validatePage ()
         if (total_copyes->isChecked()){
             // Проверим что вкл. все поля в списке рассылки и список заполнен!
             for (int i=1;i<6;i++){
-
                 if (!checkReciver(i)){
                     msgbox.setText(
                             QObject::trUtf8("Адресат №%1, при данных условиях не может быть не заполненным!")
@@ -400,10 +402,8 @@ void PrintDataPage::setMode(int m_mode)
     }
 }
 
-void PrintDataPage::setTemplatesFileName(const QString &fn)
-{
-    t_fileName = fn;
-}
+
+
 QString PrintDataPage::getSQL_mb_check() const
 {
     QString query;
@@ -437,12 +437,15 @@ QByteArray PrintDataPage::getAllFieldData()
       * @file tmp_sql_plugin.cpp
       */
     int cur_copyes;
+    int all_copyes;
     if (total_copyes->isChecked()){// стоит отметка все экз. пишем 0!!!
         cur_copyes = 0;
+        all_copyes = 5;
     }else{
         cur_copyes = e_currentSBox->value();
+        all_copyes = e_totalSBox->value();
     }
-    int all_copyes = e_totalSBox->value();
+
 
     QHash <QString, QString> m_tagValue;
     //формируем хеш значений
@@ -482,10 +485,21 @@ QByteArray PrintDataPage::getAllFieldData()
     // Заполним его в формате ключ-значение
     QDataStream out(&fields_data, QIODevice::WriteOnly );
     out.setVersion(QDataStream::Qt_3_0);
+    //Запишем выбранный пользователем экземпляр
+    out << cur_copyes;
+    // Запишем всего экземпляров
+    out << all_copyes;
+
     // Запишем выбранный пользователем шаблон
+    if (t_fileName.isEmpty()){
+        // Грязный хак. Причина: Комбобокс всегда выбирает первый элемент
+        // и не высылает сигнал его снеы, так нечего менять (если шаблон всего один)
+        findTemplatesFilePathInModel ( templatesCBox->currentIndex());
+    }
     out << t_fileName;
     // save hash
     out << m_tagValue;
+
     return fields_data;
 }
 
@@ -495,11 +509,7 @@ void PrintDataPage::setSecList(const QStringList &s_list)
     secretCBox->setCurrentIndex(-1);
 }
 
-void PrintDataPage::setTemplatesList(const QStringList &t_list)
-{
-    templatesCBox->addItems(t_list);
-    templatesCBox->setCurrentIndex(-1);
-}
+
 
 void PrintDataPage::setDocConverted()
 {
@@ -528,16 +538,12 @@ void PrintDataPage::on_otherPageSplitted()
 }
 
 //-------------------------------- PRIVATE FUNCTIONS ---------------------------
-void  PrintDataPage::connector()
+void PrintDataPage::connector()
 {
     // Запомним шаблон
-//    connect (templatesCBox, SIGNAL(currentIndexChanged(QString)),
-//             this, SLOT(setTemplates(QString))
-//             );
-    connect (templatesCBox, SIGNAL(currentIndexChanged(QString)),
-             this, SIGNAL(templatesChanged(QString))
+    connect (templatesCBox, SIGNAL( currentIndexChanged(int) ),
+             this,          SLOT  ( findTemplatesFilePathInModel(int) )
              );
-
     // Запомним выбранный пользователем уровень секретности
     connect (secretCBox, SIGNAL(currentIndexChanged(QString)),
              this, SLOT(setStamp(QString))
@@ -567,5 +573,11 @@ void  PrintDataPage::connector()
     connect(copy_checkBox_5,  SIGNAL(toggled(bool)),
             reciver_lineEd_5, SLOT(setEnabled(bool))
             );
+}
 
+//--------------------------------- PRIVATE SLOTS ------------------------------
+void PrintDataPage::findTemplatesFilePathInModel(int combo_ind)
+{
+    QModelIndex i_fname = m_model->index(combo_ind,VPrn::metaInfo_fname);
+    t_fileName = m_model->data( i_fname, Qt::EditRole).toString() ;
 }
