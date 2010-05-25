@@ -43,10 +43,10 @@ cmdFrame::cmdFrame(QWidget *parent) :
 
 void cmdFrame::test()
 {
-    QMessageBox msgBox;
-     msgBox.setText("The document has been modified.");
-     msgBox.exec();
-     emit test_signal();
+//    QMessageBox msgBox;
+//     msgBox.setText("The document has been modified.");
+//     msgBox.exec();
+//     emit test_signal();
 }
 
 void cmdFrame::setCmdButton(QStringList c_list)
