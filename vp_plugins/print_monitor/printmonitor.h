@@ -81,6 +81,7 @@ private slots:
       */
     void onSelectPreview(bool mode);
 
+
 private:
     //    Ui::PrintMonitor *ui;
     /**

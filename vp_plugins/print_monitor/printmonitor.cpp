@@ -16,12 +16,21 @@
 
 #include <QtCore/QFile>
 
+#include <QtGui/QStandardItemModel>
 #include <QtGui/QDesktopWidget>
 #include <QtGui/QErrorMessage>
 #include <QtGui/QApplication>
 #include <QtGui/QMessageBox>
 #include <QtGui/QPixmap>
 #include <QtGui/QBrush>
+
+#define  BUGSHUNTER_NO
+
+#if defined(BUGSHUNTER)
+
+#include <QTableView>
+
+#endif
 
 PrintMonitor::PrintMonitor(QWidget *parent,const QString &input_file)
     : QWizard(parent)
@@ -67,15 +76,8 @@ PrintMonitor::PrintMonitor(QWidget *parent,const QString &input_file)
     connect(this, SIGNAL(helpRequested()), this, SLOT(showHelp()));
     setWindowTitle(QObject::trUtf8("Защищенный принтер."));
 
-    TemplatesInfo *tInfo = new TemplatesInfo();
-
     core_app = new Engine(0,qApp->applicationDirPath(),
                           QObject::trUtf8("Монитор печати "));
-
-
-    connect (core_app, SIGNAL( reciveTemplatesMetaInfo(QByteArray) ),
-             tInfo,    SLOT  ( fromByteArray(QByteArray) )
-             );
 
     connect (core_app, SIGNAL(reciveGoodBayMsg(QString)),
              this, SLOT(onGoodBayMsg(QString))
@@ -136,12 +138,10 @@ PrintMonitor::PrintMonitor(QWidget *parent,const QString &input_file)
     connect(printData_page, SIGNAL( field_checked()),
             this,           SLOT  ( check_docMB())
             );
-    connect(printData_page, SIGNAL( templatesChanged(QString) ),
-            core_app,       SLOT  ( convertTemplatesNameToFilePath(QString) )
+    connect(printData_page, SIGNAL( templatesChanged(int) ),
+            core_app,       SLOT  ( findTemplatesFilePathInModel(int) )
             );
-    connect(core_app,       SIGNAL( setTemplatesFileName (QString) ),
-            printData_page, SLOT  ( setTemplatesFileName (QString) )
-            );
+
     connect (core_app,      SIGNAL( authToDevice(bool,QString) ),
              checkData_page,SLOT  ( setAuthCheck(bool,QString) )
              );
@@ -161,8 +161,17 @@ PrintMonitor::PrintMonitor(QWidget *parent,const QString &input_file)
             checkData_page, SLOT  ( setCheckMergeDocWithTemplates(bool,QString))
             );
     core_app->init();
-    // свяжем модеь метаинформации о шаблоне и ее основного потребителя
-    printData_page->setModel( tInfo->model() );
+
+    // свяжем модель метаинформации о шаблоне и ее основного потребителя
+    printData_page->setModel( core_app->getInfoModel() );
+
+#if defined(BUGSHUNTER)
+    //!!!!!!!!!!!!!!!!!!!!!!!!!
+     QTableView *tableWidget = new QTableView();
+     tableWidget->setModel(core_app->getInfoModel());
+     tableWidget->show();
+    //!!!!!!!!!!!!!!!!!!!!!!!!!
+#endif
 }
 
 void PrintMonitor::appendStartMsg(const QString &start_msg)
@@ -265,6 +274,8 @@ void PrintMonitor::onSelectPreview(bool mode)
 {
     core_app->doMergeDocWithTemplates(printData_page->getAllFieldData(),mode );
 }
+
+
 
 //------------------------------- PRVATE ---------------------------------------
 QPoint PrintMonitor::getDeskTopCenter(int width,int height)
