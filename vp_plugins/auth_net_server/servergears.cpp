@@ -2,11 +2,16 @@
 #include "templatesinfo.h"
 
 #include <QtCore/QDebug>
+
+#include <QtCore/QFileInfo>
+#include <QtCore/QDir>
+#include <QtCore/QFile>
 #include <QtCore/QByteArray>
 #include <QtCore/QDataStream>
 #include <QtCore/QUuid>
 #include <QtCore/QRegExp>
 #include <QtCore/QMapIterator>
+#include <QtCore/QFileInfoList>
 
 #include <QtGui/QMessageBox>
 
@@ -46,6 +51,7 @@ MyCheckPoints serverGears::checkPoints() const
 
 QString serverGears::getUuid() const
 {
+    /// @todo Должны быть в gs_plugin  и вызваться из него
     return QUuid::createUuid().toString().replace("{","").replace("}","");
 }
 
@@ -93,6 +99,23 @@ void serverGears::sayGoodBayAllClients()
     foreach(QLocalSocket *client, clients){
         // Скажем все пора завершать работу! Большой папа уходит в мир иной
         sendMessage( loc_msg,client);
+    }
+}
+
+void serverGears::findTemplatesInPath(const QString t_path)
+{
+    QStringList filters;
+    QDir dir;
+
+    filters << "*.tmpl" << "*.TMPL";
+    // Читаем шаблоны
+    dir.setPath(t_path);
+    dir.setFilter(QDir::Files | QDir::Hidden | QDir::NoSymLinks);
+    dir.setNameFilters(filters);
+    QFileInfoList list = dir.entryInfoList();
+
+    for (int i = 0; i < list.size(); ++i) {
+        templatesFileInfoList.append( list.at(i).absoluteFilePath() );
     }
 }
 
@@ -320,7 +343,12 @@ void serverGears::client_init()
 {
     QLocalSocket *client = m_server->nextPendingConnection();
     clients.insert(client);
-    clients_uuid.insert(client,this->getUuid());
+    QString c_uuid =  this->getUuid();
+    clients_uuid.insert(client,c_uuid);
+
+    if (gs_plugin){
+        gs_plugin->createClientData(c_uuid);
+    }
 
     connect(client, SIGNAL(readyRead()),
             this,   SLOT(readyRead()));
@@ -338,6 +366,10 @@ void serverGears::disconnected()
     qDebug() << "Client disconnected:" << clientName;
     QString c_uuid =  clients_uuid.value(client);
 
+
+    if (gs_plugin){
+        gs_plugin->deleteClientData(c_uuid);
+    }
     clients.remove(client);
     clients_uuid.remove(client);
     clients_name.remove(client);
@@ -352,7 +384,7 @@ void serverGears::disconnected()
     // Проверка что еще остались бойцы
     if (clients.isEmpty()){
         //Нет ни одного подключенного клиента, заканчиваем работу
-        setCheckPoint(VPrn::loc_NeedShutdown);
+        //setCheckPoint(VPrn::loc_NeedShutdown);
     }
 }
 //-------------------------- PRIVATE -------------------------------------------
@@ -383,12 +415,12 @@ void serverGears::parseMessage( const Message &m_msg, const QString &c_uuid)
         case VPrn::Que_GiveMeTemplatesList:
             {
                 // Вернем модель МЕТАДанные о шаблонах преобразованную для передачи в сокет
-                TemplatesInfo tInfo;
-                QStringList list;
-                if (!list.isEmpty() && tmpl_plugin){
-                    tmpl_plugin->getMetaInfo(c_uuid,list,tInfo.model() );
+                TemplatesInfo *tInfo = new TemplatesInfo(this);
+                tInfo->setHorizontalHeaderLabels();
+
+                if (tInfo->getMetaInfo(c_uuid,templatesFileInfoList)){
                     message.setType ( VPrn::Ans_GiveMeTemplatesList );
-                    message.setMessageData( tInfo.toByteArray() );
+                    message.setMessageData( tInfo->toByteArray() );
                     sendMessage( message,client );
                 }
             }
@@ -463,18 +495,18 @@ void serverGears::parseMessage( const Message &m_msg, const QString &c_uuid)
        case VPrn::Que_CreateFormatedFullDoc:
             // Запрос формирование полного документа, как для печати,
             // нужно вернуть список png страничек сделанного документа
-            createFormatedDoc(c_uuid,true,false,true, m_msg.messageData());
+            createFormatedDoc(c_uuid,true,m_msg.messageData());
             break;
        case VPrn::Que_CreateFormatedFullDocAndPrint:
             // Запрос формирование полного документа, для печати,
             //  и распечатка его
-            createFormatedDoc(c_uuid,true,true,false, m_msg.messageData());
+
             break;
 
        case VPrn::Que_CreateFormatedPartDoc:
             // Запрос формирование частичного документа, как для печати,
             // нужно вернуть список png страничек сделанного документа
-            createFormatedDoc(c_uuid,false,true, true,m_msg.messageData());
+            createFormatedDoc(c_uuid,false,m_msg.messageData());
             break;
         case VPrn::Que_Register:
             /// Клиент только подключился, в теле сообщения его самоназвание запомним его
@@ -585,12 +617,41 @@ void serverGears::sendMessage( const Message &m_msg, QLocalSocket *client)
 }
 
 void serverGears::createFormatedDoc(const QString &c_uuid,
-                                    bool full_doc,bool delAfterCreate,bool gen_preview,
-                                    QByteArray data)
+                                    bool full_doc,QByteArray data)
 {
+    // Генерируем набор pdf фалов для каждой страницы шаблона, так
+    // как если клиент сделал дисконнект, то все файлы отвчающие маске
+    // spoolDir/client_uuid*.* будут удалены, то в gs_plugin можно передать только
+    // client_uuid части документа он найдет сам
+
     QStringList templ_pages;
-    if (tmpl_plugin){
-        templ_pages = tmpl_plugin->loadAndFillTemplateCreatePages(c_uuid,data);
+    int cur_copy = 0;
+    int total_copy = 0;
+    QHash <QString,QString> elements;
+    QString t_fileName;
+    QSize s;
+
+    if (tmpl_plugin && gs_plugin){        
+        tmpl_plugin->parseUserData(c_uuid,data,cur_copy,total_copy,elements,t_fileName);
+        // Получили данные переданные пользователем
+        if (cur_copy == 0  && total_copy == 5){
+            for (int i=1; i<6;i++){
+                elements[QObject::trUtf8("Номер экз.")] = i;
+                // Формируем страницы шаблона в pdf
+                templ_pages = tmpl_plugin->prepare_template(c_uuid,t_fileName,cur_copy,total_copy,elements);
+                // Формируем i экземпляр
+                // Есть что обрабатывать результат вернется в виде сигнала
+                // ready4Print(fpNxx_out,other_out,back_out,fonarik_out);
+                gs_plugin->mergeWithTemplate(c_uuid,templ_pages,i);
+                templ_pages.clear();
+            }
+        }else{
+            elements[QObject::trUtf8("Номер экз.")] = cur_copy;
+            // Формируем страницы шаблона в pdf
+            templ_pages = tmpl_plugin->prepare_template(c_uuid,t_fileName,cur_copy,total_copy,elements);
+            // Есть что обрабатывать результат вернется в виде сигнала
+            gs_plugin->mergeWithTemplate(c_uuid,templ_pages,cur_copy);
+        }
     }
 }
 QLocalSocket *serverGears::findClient(const QString &c_uuid)
@@ -608,6 +669,4 @@ QLocalSocket *serverGears::findClient(const QString &c_uuid)
     setError(QObject::trUtf8("Ответ клиенту который уже отсоединился!"));
     return client;
 }
-
-
 
