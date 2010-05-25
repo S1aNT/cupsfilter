@@ -15,7 +15,20 @@ public:
                       const QString &temp_folder)=0;
     virtual void convertPs2Pdf(const QString &client_uuid,
                                const QString &input_fn) = 0;
+    virtual void convertPdfToPng(const QString &client_uuid,
+                                     const QStringList &files, bool mode) = 0;
     virtual void final_clear() = 0;
+    virtual void mergePdf(const QString &client_uuid,
+                          const QString &in_pdf,
+                          const QString &back_pdf,
+                          const QString &out_pdf) = 0;
+
+    virtual void print2devide (const QString &client_uuid,  const QString &print_file,
+                                            const QString &prn_device,bool usePageCount) = 0;
+    virtual void mergeWithTemplate(const QString &client_uuid, const QStringList &t_files) = 0 ;
+
+    virtual void createClientData(const QString &client_uuid) = 0;
+    virtual void deleteClientData(const QString &client_uuid) = 0;
 //    virtual void createFormatedDoc(const QString &client_uuid,
 //                                   const QByteArray r_data) =0;
 };
