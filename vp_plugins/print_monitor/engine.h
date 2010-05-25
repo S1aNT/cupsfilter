@@ -9,6 +9,7 @@ QT_FORWARD_DECLARE_CLASS ( QStandardItemModel )
 
 class mySocketClient;
 class Message;
+class TemplatesInfo;
 
 
 #include "mytypes.h"
@@ -30,6 +31,11 @@ public:
       */
     ~Engine();
 
+    /**
+      * @fn QStandardItemModel * getInfoModel();
+      * @brief Возвращает указатель на заполненную модель метаинформации о шаблоне
+      */
+    QStandardItemModel * getInfoModel();
     void init();
     /**
       @fn void prepareFileToPrint(const QString & file_name);
@@ -58,11 +64,7 @@ public:
       * @brief Возвращает список уровней секретности
       */
     QStringList getSecLevelList() const {return secLevelList;}
-    /**
-      * @fn QStringList &getTemplatesList() const;
-      * @brief Возвращает список шаблонов
-      */
-    QStringList getTemplatesList() const {return templatesList; }
+
 
     /**
      * @fn void authUserToPrinter(const QString &printer_uri);
@@ -83,10 +85,9 @@ public:
     void registerMB ( const QString &sql_query );
 
     void doMergeDocWithTemplates (QByteArray field_data,bool preview_mode);
-signals:
-    void reciveTemplatesMetaInfo( QByteArray mInfo);
-    // Вернем путь к шаблону
-    void setTemplatesFileName( QString t_path);
+
+signals:    
+
     // Результат наложения шаблона на документ
     void MergeDocWithTemplates( bool flag,const QString &info);
     // список путей к сформированным  страницам предпросмотра
@@ -133,11 +134,6 @@ signals:
       */
     void error(const QString &e_info);
 public slots:
-    /**
-      * @fn void convertTemplatesNameToFilePath(QString t_name);
-      * @brief Преобразование имени шаблона в полный путь к его файлу
-      */
-    void convertTemplatesNameToFilePath(QString t_name);
 
 private slots:
     void do_checkPointChanged(MyCheckPoints r_cpoint);
@@ -155,8 +151,6 @@ private slots:
 
 private:
     /** @brief Список переменных из ini файла
-      * @var serverHostName;   Имя удаленного сервера (Демон для mainfarme)
-      * @var serverPort;       Порт для связи
       * @var link_name;        Имя локального сервера для общения с Локальным миром
       * @var gsBin;            Путь к исполняемому файлу gs
       * @var pdftkBin;         Путь к исполняемому файлу pdfTk
@@ -174,33 +168,32 @@ private:
       * @var m_appPath;        Путь запуска приложения для поиска ini файла
       * @var gs_plugin;        Указатель на плагин gs @todo Нужен ли ?
       * @var client_uuid;      Уникальный номер полученный от GateKeeper
-      * @var secLevelList;     Список уровней секретности для данного мандата
+      *
+      * @var currentUserName;  Имя текущего пользоватеяля
+      * @var currentUserMandat; Мандат  текущего пользоватеяля
+      * @var tInfo;             Хранилище метаинформации о шаблонах
+      * @var printer_device_list; Список принетров полученнный от сервера
       */
-    QString serverHostName;
-    int serverPort;
     QString link_name;
     QString gsBin;
     QString pdftkBin;
     QString spoolDir;
     QString gatekeeper_bin;
-    QString local_t_path;
-    QString global_t_path;
 
-    QString clientName; // Имя клиента
-    QString e_info;
-    bool e_state;
-    mySocketClient *m_LocalClient;
-    bool stopLaunch;
-    QString m_appPath;
-    Igs_plugin *gs_plugin;
-    QString client_uuid; // Уникальный номер полученный от GateKeeper
-    QStringList secLevelList;
-    QStringList templatesList;
-    QString currentUserName;
-    QString currentUserMandat;
-
-    QList <QFileInfo> templatesFileInfoList;
+    QString          clientName;
+    QString          e_info;
+    bool             e_state;
+    mySocketClient   *m_LocalClient;
+    bool             stopLaunch;
+    QString          m_appPath;
+    Igs_plugin       *gs_plugin;
+    QString          client_uuid;
+    QString          currentUserName;
+    QString          currentUserMandat;
+    TemplatesInfo    *tInfo;
+    QStringList            secLevelList;
     QMap <QString,QString> printer_device_list;
+
 
     /**
       *@fn void AfterConnectSteps();
@@ -230,12 +223,6 @@ private:
       * @brief Устанавливает состояние ошибки = НЕТ ошибки
       */
     void setError();
-
-    /**
-      * @fn void setFileList(const QString &t_path,const QString &prefix);
-      * @brief Основная функция которая записывает список шаблонов в templatesList
-      */
-    void setFileList(const QString &t_path,const QString &prefix);
 
     /**
       * @fn QString findPrinterInDeviceURIList(const QString &prn);

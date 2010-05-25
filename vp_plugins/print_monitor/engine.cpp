@@ -1,6 +1,7 @@
 #include "engine.h"
 #include "mysocketclient.h"
 #include "message.h"
+#include "templatesinfo.h"
 
 #include <QtCore/QFile>
 #include <QtCore/QDir>
@@ -15,6 +16,7 @@
 #include <QtCore/QRegExp>
 #include <QtCore/QStringList>
 
+#include <QtGui/QStandardItemModel>
 
 
 Engine::Engine(QObject *parent,const QString &app_path,
@@ -27,6 +29,10 @@ Engine::Engine(QObject *parent,const QString &app_path,
                    , m_appPath(QString())
                    , gs_plugin(0)
                    , client_uuid(QString())
+                   , currentUserName(QString("UNDEF USER"))
+                   , currentUserMandat(QString("UNDEF MANDAT"))
+                   , tInfo(0)
+
 
 {
     qRegisterMetaType<VPrn::MessageType>("MessageType");
@@ -35,34 +41,33 @@ Engine::Engine(QObject *parent,const QString &app_path,
                       .arg(m_appPath);
     this->readConfig(ini_path);
     this->clientName = client_name;
-    //Читаем список шаблонов
-    QString pref;
-    if (!local_t_path.isEmpty()){
-        pref = QObject::trUtf8(".Личный");
-        setFileList(local_t_path,pref);
-    }else{
-        emit error(QObject::trUtf8("Ошибка, не задан каталог Личных шаблонов"));
-    }
-    if (!global_t_path.isEmpty()){
-        pref = QObject::trUtf8(".Общий");
-        setFileList(global_t_path,pref);
-    }else{
-        emit error(QObject::trUtf8("Ошибка, не задан каталог Общих шаблонов"));
-    }
-
-
+    tInfo = new TemplatesInfo(this);
+    tInfo->setHorizontalHeaderLabels();
 }
+
+
 
 Engine::~Engine()
 {
     if (m_LocalClient){
         m_LocalClient->disconnectFromServer();
     }
+    if (tInfo){
+        tInfo->deleteLater();
+    }
+}
+
+QStandardItemModel * Engine::getInfoModel()
+{
+    if (tInfo){
+        return tInfo->model();
+    }else {
+        return 0;
+    }
 }
 
 void Engine::init()
 {
-
     if (!link_name.isEmpty() &&  !gatekeeper_bin.isEmpty()){
         launchAndConnect();
     }else{
@@ -132,37 +137,16 @@ void Engine::doMergeDocWithTemplates (QByteArray field_data,bool preview_mode)
 {
     Message msg(this);
     if (preview_mode){
-       msg.setType( VPrn::Que_CreateFormatedFullDoc  );
-   }else{
-       msg.setType( VPrn::Que_CreateFormatedPartDoc );
-   }
+        msg.setType( VPrn::Que_CreateFormatedFullDoc  );
+    }else{
+        msg.setType( VPrn::Que_CreateFormatedPartDoc );
+    }
 
     msg.setMessageData( field_data );
     sendMessage2LocalSrv(msg);
 }
 //------------------------------- PUBLIC SLOTS ---------------------------------
-void Engine::convertTemplatesNameToFilePath(QString t_name)
-{
-    QString template_path;
-    // Заменим префикс на .tmpl, в зависимости от префикса добавим каталог
 
-    QString name   = t_name.section(".",0,0);
-    QString prefix = t_name.section(".",1,1);
-    if (prefix == QObject::trUtf8("Личный")){
-        template_path = QObject::trUtf8("%1/%2.tmpl")
-                        .arg(local_t_path).arg(name);
-    }else {
-        template_path = QObject::trUtf8("%1/%2.tmpl")
-                        .arg(local_t_path).arg(name);
-    }
-    // Найдем в списке файлов подходящий шаблон
-    for (int i=0; i< templatesFileInfoList.size();i++){
-        QFileInfo fileInfo = templatesFileInfoList.at(i);
-        if (fileInfo.absoluteFilePath().toUpper() == template_path.toUpper()){
-            emit setTemplatesFileName(template_path);
-        }
-    }
-}
 
 //------------------------------- PRIVATE --------------------------------------
 void Engine::readConfig(const QString &ini_file)
@@ -172,8 +156,6 @@ void Engine::readConfig(const QString &ini_file)
         QSettings settings (ini_file,QSettings::IniFormat);
         settings.setIniCodec("UTF-8");
         settings.beginGroup("SERVICE");
-        serverHostName = settings.value("server").toString();
-        serverPort     = settings.value("port").toInt();
         link_name      = settings.value("link_name").toString();
         settings.endGroup();
 
@@ -187,13 +169,6 @@ void Engine::readConfig(const QString &ini_file)
         settings.beginGroup("USED_DIR_FILE");
         spoolDir       = settings.value("spool_dir").toString();
         gatekeeper_bin = settings.value("gatekeeper_bin").toString();
-        //rcp_file = settings.value("rcp_file").toString();
-        settings.endGroup();
-
-
-        settings.beginGroup("TEMPLATES");
-        local_t_path  = settings.value("local_templates").toString();
-        global_t_path = settings.value("global_templates").toString();
         settings.endGroup();
 
     }else{
@@ -233,17 +208,11 @@ void Engine::launchAndConnect()
 }
 
 void Engine::afterConnectSteps()
-{
-    if (!templatesFileInfoList.isEmpty()){
-        Message msg(this);
-        msg.setType( VPrn::Que_GiveMeTemplatesList );
-        QStringList list;
-        for (int i=0; i< templatesFileInfoList.size(); i++){
-            list.append(templatesFileInfoList.at(i).absoluteFilePath());
-        }
-        msg.setMessageData ( list );
-        sendMessage2LocalSrv( msg );
-    }
+{    
+    Message msg(this);
+    msg.setType( VPrn::Que_GiveMeTemplatesList );
+    sendMessage2LocalSrv( msg );
+
     emit RemoteDemonRegistr();
 }
 
@@ -285,9 +254,7 @@ void Engine::do_checkPointChanged(MyCheckPoints r_cpoint)
 
 void Engine::parseMessage(const Message &r_msg)
 {
-    qDebug() << Q_FUNC_INFO << "Recive message."
-            << "\nType: "  << r_msg.type()
-            << "\nBody: "  << r_msg.messageData();
+    //qDebug() << Q_FUNC_INFO << "Recive message." << "\nType: "  << r_msg.type() << "\nBody: "  << r_msg.messageData();
 
     Message msg(this);
     msg.clear();
@@ -295,18 +262,22 @@ void Engine::parseMessage(const Message &r_msg)
     int pCnt;
     switch (r_msg.type()){
     case VPrn::Ans_GiveMeTemplatesList:
-        emit reciveTemplatesMetaInfo( r_msg.messageData() );
+        // Получили данные запишем в модель
+        tInfo->fromByteArray( r_msg.messageData() );
         break;
     case VPrn::Ans_TemplateNotFound:
         str.append( r_msg.messageData() );
         emit MergeDocWithTemplates( false, str);
         break;
-    case Ans_SourceDocNotFound: //Исходный документ не найден или не верного формата, в теле сообщения подробности
+    case Ans_SourceDocNotFound:
+        // Исходный документ не найден или не верного формата,
+        // в теле сообщения подробности
         str.append( r_msg.messageData() );
         emit MergeDocWithTemplates( false, str);
         break;
     case Ans_CreateFormatedDoc:
-        emit MergeDocWithTemplates( true, QObject::trUtf8("Применение шаблона к текущему документу, успешно завершено!"));
+        emit MergeDocWithTemplates( true,
+             QObject::trUtf8("Применение шаблона к текущему документу, успешно завершено!"));
         emit PreviewPages( r_msg.messageData() );
         break;
     case VPrn::GoodBay:
@@ -415,27 +386,6 @@ void Engine::parseMessage(const Message &r_msg)
     }
 }
 
-void Engine::setFileList(const QString &t_path,const QString &prefix)
-{
-    QStringList filters;
-    QDir dir;
-
-    filters << "*.tmpl" << "*.TMPL";
-    // Читаем шаблоны
-    dir.setPath(t_path);
-    dir.setFilter(QDir::Files | QDir::Hidden | QDir::NoSymLinks);
-    dir.setNameFilters(filters);
-    QFileInfoList list = dir.entryInfoList();
-    for (int i = 0; i < list.size(); ++i) {
-        QFileInfo fileInfo = list.at(i);
-        /// @todo В дальнейшем надо получать название шаблона из самого шаблона
-        // через плагин
-        templatesList.append(tr("%1%2").arg(fileInfo.completeBaseName(),prefix)
-                             );
-        templatesFileInfoList.append(fileInfo);
-    }
-
-}
 
 QString Engine::findPrinterInDeviceURIList(const QString &prn)
 {
