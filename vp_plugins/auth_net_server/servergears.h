@@ -12,11 +12,13 @@
 #include <QtCore/QMap>
 #include <QtCore/QSet>
 
+
 #include <QtNetwork/QLocalServer>
 #include <QtNetwork/QLocalSocket>
 
 
 class QByteArray;
+
 
 using namespace VPrn;
 
@@ -62,6 +64,13 @@ public:
       * @brief Отправить всем клиентам сообщение завершить работу
       */
     void sayGoodBayAllClients();
+
+    /**
+      * @fn void findTemplatesInPath(const QString t_path);
+      * @brief Поиск файлов шаблонов отвечающих маске *.tmpl в заданном каталоге
+      */
+    void findTemplatesInPath(const QString t_path);
+
 signals:
     void messageReady( const Message &msg );
     void networkProtocolError();
@@ -120,24 +129,27 @@ private:
       * @var u_login;          Текущий логин пользователя
       * @var u_mandat;         Текущий мандат пользователя
       * @var netDemonReady;    Истина если произошла успешная авторизация GateKeeper на сетевом демоне
+      * @var t_list;           Список путей к файдам шаблона
+
       * @var clients;          Список подключенных клиентов
       * @var clients_uuid;     Список UUID подключенных клиентов
       * @var clients_name;     Список имен подключенных клиентов
       */
 
-    QString m_serverName;
-    QLocalServer *m_server;
-    qint32 packetSize;
+    QString              m_serverName;
+    QLocalServer         *m_server;
+    qint32               packetSize;
 
-    QString e_info;
-    Inet_plugin      *net_plugin;
-    Igs_plugin       *gs_plugin;
-    Itmpl_sql_plugin *tmpl_plugin;
-    QString u_login;
-    QString u_mandat;
-    bool netDemonReady;
-    MyCheckPoints m_checkPoint;
-    QSet<QLocalSocket *> clients;
+    QString              e_info;
+    Inet_plugin          *net_plugin;
+    Igs_plugin           *gs_plugin;
+    Itmpl_sql_plugin     *tmpl_plugin;
+    QString              u_login;
+    QString              u_mandat;
+    bool                 netDemonReady;
+    MyCheckPoints        m_checkPoint;
+    QStringList          templatesFileInfoList;
+    QSet<QLocalSocket *> clients;    
     QMap<QLocalSocket *,QString> clients_uuid;
     QMap<QLocalSocket *,QString> clients_name;
 ;
@@ -145,19 +157,13 @@ private:
     /**
       * @fn void createFormatedDoc(const QString &c_uuid,
       *                            bool full_doc,
-      *                            bool delAfterCreate,
-      *                            bool gen_preview,
       *                            QByteArray data);
       * @brief Данная функция создает документ готовый для печати.
       * @param const QString &c_uuid Клиент для которого создается документ
-      * @param bool full_doc         Весь документ или частично
-      * @param bool delAfterCreate,  Удалять после создания да/нет
-      * @param bool gen_preview,     Генерировать png картинки для предпросмотра
+      * @param bool full_doc         Весь документ или частично      
       * @param QByteArray data       Набор данных переданных приложением
       */
-    void createFormatedDoc(const QString &c_uuid,
-                           bool full_doc,bool delAfterCreate,bool gen_preview,
-                           QByteArray data);
+    void createFormatedDoc(const QString &c_uuid, bool full_doc, QByteArray data);
     /**
       * @fn void parseMessage( const Message &msg, const QString &c_uuid);
       * @brief Обработка сообщения от конкретного клиента
@@ -188,6 +194,7 @@ private:
       * @returns QLocalSocket * or 0
       */
     QLocalSocket *findClient(const QString &c_uuid);
+
 
 
 };

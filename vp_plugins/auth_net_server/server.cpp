@@ -24,6 +24,7 @@
 #include <QtCore/QSettings>
 #include <QtCore/QCoreApplication>
 
+
 Server::Server(QWidget *parent)
     : QDialog(parent)
     , myServerGears(0)
@@ -120,7 +121,20 @@ void Server::init()
         if ( Ok ){
             if (!localSrvName.isEmpty()){
                 // Создаем основной объект
+#if defined(Q_OS_UNIX)
+    //Проверка на наличие файла pipe если есть удалим
+                QString f_pipe = QObject::tr("/tmp/%1").arg(localSrvName);
+                if ( QFile::exists( f_pipe ) ){
+                    QFile::remove( f_pipe );
+                }
+#endif
                 myServerGears = new serverGears(this,localSrvName);
+                if (!local_t_path.isEmpty()){
+                    myServerGears->findTemplatesInPath(local_t_path);
+                }
+                if (!global_t_path.isEmpty()){
+                    myServerGears->findTemplatesInPath(global_t_path);
+                }
                 connect (myServerGears,SIGNAL(checkPointChanged(MyCheckPoints)),
                          this, SLOT(do_ChekPointChanged(MyCheckPoints))
                          );
@@ -142,34 +156,18 @@ void Server::init()
 #elif defined(Q_OS_WIN)
                     myAuth_plugin->init();
 #endif
-                    /// @todo Переделать только spoolDir реально нужен
-                    myTmpl_plugin->init(spoolDir,current_sid);
-
-                    /// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                    QStringList t_pages;
-                    QByteArray data;
-                    QHash <QString, QString> m_tagValue;
-
-                    QDataStream out(&data, QIODevice::WriteOnly );
-                    out.setVersion(QDataStream::Qt_3_0);
-                    // Запишем выбранный пользователем шаблон
-                    out << QString("d:/opt/local_templates/1.tmpl");
-                    // save hash
-                    out << m_tagValue;
-
-                    //t_pages = myTmpl_plugin->loadAndFillTemplateCreatePages(current_sid,data);
-
-                    /// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
                     myNet_plugin->init(serverHostName, serverPort,current_sid);
+
+                    /// @todo Переделать только spoolDir реально нужен
+                    myTmpl_plugin->init(spoolDir,current_sid);
 
                     //qDebug() << "\nmyGs_plugin:" << myGs_plugin << "gsBin:" << gsBin  << "pdftkBin:" << pdftkBin  << "spoolDir:" << spoolDir;
                     myGs_plugin->init(gsBin, pdftkBin,spoolDir);
 
                     myServerGears->setNetPlugin(myNet_plugin);
                     myServerGears->setGsPlugin(myGs_plugin);
-                    myServerGears->setTmplPlugin(myTmpl_plugin);
-
+                    myServerGears->setTmplPlugin(myTmpl_plugin);             
                 }else{
                     setTrayStatus(VPrn::gk_ErrorState,
                                   QObject::trUtf8("Ошибка при загрузке плагинов"));
@@ -213,10 +211,10 @@ void Server::setVisible(bool visible)
 void Server::closeEvent(QCloseEvent *event)
 {
     if (trayIcon->isVisible()) {
-        QMessageBox::information(this, QObject::trUtf8("GateKeeper"),
-                                 QObject::trUtf8("Данная программа будет продолжать работу в системном трее.\n"
-                                                 "Для завершения работы, выберите Выход "
-                                                 "в контекстном меню программы. "));
+//        QMessageBox::information(this, QObject::trUtf8("GateKeeper"),
+//                                 QObject::trUtf8("Данная программа будет продолжать работу в системном трее.\n"
+//                                                 "Для завершения работы, выберите Выход "
+//                                                 "в контекстном меню программы. "));
         if (m_GateKeeperReady){
             hide();
             event->ignore();
@@ -551,7 +549,7 @@ bool Server::loadPlugins()
             }
         }
     }
-    return (myNet_plugin && myAuth_plugin && myGs_plugin);
+    return (myNet_plugin && myAuth_plugin && myGs_plugin && myTmpl_plugin);
 }
 
 bool Server::readConfig()
@@ -589,12 +587,12 @@ bool Server::readConfig()
             local_t_path  = settings.value("local_templates").toString();
             global_t_path = settings.value("global_templates").toString();
             settings.endGroup();
-            qDebug() << "\nserverHostName " << serverHostName
-                    << "\nlocalSrvName "   << localSrvName
-                    << "\nspoolDir"        << spoolDir
-                    << "\ngsBin"           << gsBin
-                    << "\npdftkBin"        << pdftkBin
-                    << "\nserverPort"      << serverPort;
+//            qDebug() << "\nserverHostName " << serverHostName
+//                    << "\nlocalSrvName "   << localSrvName
+//                    << "\nspoolDir"        << spoolDir
+//                    << "\ngsBin"           << gsBin
+//                    << "\npdftkBin"        << pdftkBin
+//                    << "\nserverPort"      << serverPort;
 
             // Тестируем переменные
             if ( serverHostName.isEmpty() ||
@@ -614,7 +612,7 @@ bool Server::readConfig()
             m_lastError = QObject::trUtf8("Файл [%1] с настройками программы не найден!")
                           .arg(ini_path);
         }
-    }        
+    }
 #if defined(Q_OS_UNIX)
     if (Ok){
         //Проверка что файлик трубы не существует, посмотреть где он сохраняется под окошками
