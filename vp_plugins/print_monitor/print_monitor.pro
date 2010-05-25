@@ -38,6 +38,7 @@ include(../qt_single_apps/qtsingleapplication.pri)
 HEADERS += ../global/mytypes.h \
     ../global/message.h \
     ../global/mysocketclient.h \
+    ../global/templatesinfo.h \
      engine.h \
     printmonitor.h \
     getusernamemandatdlg.h \
@@ -45,11 +46,11 @@ HEADERS += ../global/mytypes.h \
     selectpage.h \
     printdatapage.h \
     checkdatapage.h \
-    previewpage.h \
-    templatesinfo.h
+    previewpage.h 
 SOURCES += main.cpp \
     ../global/message.cpp \
     ../global/mysocketclient.cpp \
+    ../global/templatesinfo.cpp \
     engine.cpp \
     printmonitor.cpp \
     getusernamemandatdlg.cpp \
@@ -57,8 +58,7 @@ SOURCES += main.cpp \
     selectpage.cpp \
     printdatapage.cpp \
     checkdatapage.cpp \
-    previewpage.cpp \
-    templatesinfo.cpp
+    previewpage.cpp
 RESOURCES = images.qrc
 FORMS += getusernamemandatdlg.ui
 TRANSLATIONS = print_monitor_ru.ts
