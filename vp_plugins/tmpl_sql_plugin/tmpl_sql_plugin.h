@@ -59,7 +59,7 @@ class Tmpl_sql_plugin : public QObject , Itmpl_sql_plugin
     Q_INTERFACES(Itmpl_sql_plugin)
 public:
 
-    Tmpl_sql_plugin(QObject *parent = 0);
+            Tmpl_sql_plugin(QObject *parent = 0);
     ~Tmpl_sql_plugin();
     /**
       * @fn init(const QString & spool,const QString & sid)
@@ -101,16 +101,24 @@ public:
       * @brief Устанавливает имя пользователя полученное от плагина Auth
       */
     void setUserName (const QString &user){userName = user;}
-    /**
-      * @fn void printAllPage2Pdf();
-      * @brief Если шаблон успешно загружен и вышстоящее приложение потребовало
-      * сформировать страницы в pdf, то в результате функция возвращает
-      * QMap<int,QString> содержащий полные пути к сформированным страницам
-      * и их номера
-      *
-      */
-    //void printAllPage2Pdf();
 
+     /**
+      * @fn  bool prepare_template(const QString &c_uuid,const QString &t_fileName,
+                                                       const QHash<QString, QString> &hash
+      *                                                int copy_number);
+      * @brief Загружает требуемый шаблон, заполняет его требумыми данными и
+      * формирует pdf страницы шаблона,данные из hash, формируем только
+      * требуемый экземпляр шаблона. Особенность, что QGraphicsScene
+      * создается одна и страницы в ней формируются последовательно.
+      * @param const QString &c_uuid        Уникальный номер клиента            
+      * @param const QString &t_fileName Файл шаблона
+      * @param const QHash<QString, QString> &hash Набор данных
+      * @param int copy_number Номер эземпляра
+      * @return bool статус завершения успех/ не удача
+      */    
+
+    bool prepare_template(const QString &c_uuid,const QString &t_fileName,
+                                 const QHash<QString, QString> &hash,  int copy_number );
     /**
       * @fn QStringList fillTemplatesCreatePages(const QString &c_uuid,
       *                                   const QByteArray client_data);
@@ -122,18 +130,27 @@ public:
       * @param const QByteArray client_data Массив данных переданных клиентом
       * @return Возращает true  в случае успешного разбора, иначе false
       */
-      QStringList loadAndFillTemplateCreatePages(const QString &c_uuid,
-                                        QByteArray client_data);
+    //QStringList loadAndFillTemplateCreatePages(const QString &c_uuid,
+    //                                  QByteArray client_data);
 
-      /**
+    /**
         * @fn void getMetaInfo(const QString &client_id,
         *                      const QStringList &list,
         *                      QStandardItemModel *model );
         * @brief Данная функция  пробегается по всему спику шаблонов и для каждого из них
         */
-      void getMetaInfo( const QString &client_id,
-                        const QStringList &list,
-                        QStandardItemModel *model );
+    void getMetaInfo( const QString &client_id,
+                      const QStringList &list,
+                      QStandardItemModel *model );
+
+
+    /**
+      * @fn bool saveDataToBase(const QHash<QString, QString> &hash,QSqlDatabase db);
+      * @brief проходит по всем элементам каждой страницы и проверяет
+      * есть ли там элемент с тегом = tag если есть, то записывает ему новое
+      * значение, координаты элемента не меняются
+      */
+    bool saveDataToBase(const QHash<QString, QString> &hash,QSqlDatabase db);
 
 signals:
     void error(pluginsError errCode,QString error_message);
@@ -186,11 +203,11 @@ public slots:
 private:
     /**
       * @var userName;    имя текущего пользователя полученное от подсистемы авторизации
-      * @var spool_dir    каталог для временных файлов
+      * @var spoolDir    каталог для временных файлов
       * @var current_sid  уникальный сеансовый номер
       */
     QString userName;
-    QString spool_dir;
+    QString spoolDir;
     QString current_sid;
 
     bool view_code_state;
@@ -306,15 +323,11 @@ private:
       */
     int getId4pageSizeTable(QSqlQuery &query,const QString & findSize);
 
-
-
     /**
-      * @fn bool saveDataToBase(const QHash<QString, QString> &hash);
-      * @brief проходит по всем элементам каждой страницы и проверяет
-      * есть ли там элемент с тегом = tag если есть, то записывает ему новое
-      * значение, координаты элемента не меняются
+      * @fn bool selectIntoModel(QSqlDatabase db, QSqlQueryModel *model,const QString &sql);
+      * @brief Заполняет модель результатами запроса и возращает статус успешно/не успешно
       */
-    bool saveDataToBase(const QHash<QString, QString> &hash);
+    bool selectIntoModel(QSqlDatabase db_conn, QSqlQueryModel *model,const QString &sql);
 
 };
 

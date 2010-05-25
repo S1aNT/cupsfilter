@@ -23,11 +23,6 @@
 #include <QtSql/QSqlTableModel>
 
 
-//#include <QtGui/QGraphicsItem>
-//#include <QtSql/QSqlRelation>
-//#include <QtSql/QSqlRelationalTableModel>
-
-//#include <QtCore/QRegExp>
 
 using namespace VPrn;
 
@@ -81,7 +76,7 @@ void Tmpl_sql_plugin::init(const QString & spool,const QString & sid)
         current_sid = sid;// Запомним уникальный номер
         if (dir.cd(spool) && !spool.isEmpty()) {
             // Проверим факт существования временного каталога
-            spool_dir = spool;
+            spoolDir = spool;
             // Формируем пути для файлов
             for (int i=0; i<8;i++){
                 filesGrp.insert(i,QObject::trUtf8("%1/%2_page_%3.pdf")
@@ -110,7 +105,9 @@ void Tmpl_sql_plugin::init(const QString & spool,const QString & sid)
                     << QObject::trUtf8("Получатель N2")
                     << QObject::trUtf8("Получатель N3")
                     << QObject::trUtf8("Получатель N4")
-                    << QObject::trUtf8("Получатель N5");
+                    << QObject::trUtf8("Получатель N5")
+                    << QObject::trUtf8("Произвольный текст")
+                    << QObject::trUtf8("Идентификатор Выч.Системы");
         }else{
             e_msg = QObject::trUtf8("ERROR: каталог %1 не существует\n").arg(spool);
         }
@@ -148,188 +145,165 @@ void Tmpl_sql_plugin::setViewMode()
     }
 }
 
-QStringList Tmpl_sql_plugin::loadAndFillTemplateCreatePages(const QString &c_uuid,
-                                                            QByteArray client_data)
+
+
+
+bool Tmpl_sql_plugin::prepare_template(const QString &c_uuid,
+                                       const QString &t_fileName,
+                                       const QHash<QString, QString> &hash,
+                                       int copy_number)
 {
-    QString t_fileName;
-    QHash <QString, QString> m_tagValue;
 
     myScene *m_scene(0);
-
-    QPrinter pdfprinter;
-    QStringList pdf_files;
-    /// Создаем модели
-    QSqlQueryModel *elemInPageModel_client = new QSqlQueryModel(this);
-    QSqlQueryModel *pagesModel_client      = new QSqlQueryModel(this);
-
-    m_scene = new myScene();
+    QPrinter pdfprinter;    
+    QString path = QString("%1/%2/%3-copy/").arg(spoolDir,c_uuid).arg(copy_number,0,10);
+    m_scene = new myScene();    
 
     bool Ok =true;
     {
-        // Проверка что соединение с БД установленно (драйвер был загружен)
-        Ok &= isDBConnected();
-        if (Ok){
-            QDataStream in(&client_data, QIODevice::ReadOnly );
-            in.setVersion(QDataStream::Qt_3_0);
-            in >> t_fileName;
-            // читаем значения
-            in >> m_tagValue;
-            // Загружаем шаблон
-            Ok = isValidFileName(t_fileName) &&  QFile::exists(t_fileName);
-
-            if (Ok){
-                Ok &= openDataBase(t_fileName) && saveDataToBase(m_tagValue);
+        {
+            QSqlDatabase db  = QSqlDatabase::addDatabase(QLatin1String("QSQLITE"),c_uuid);            
+            if (db.driver()->lastError().type() != QSqlError::ConnectionError) {                
+                // Загружаем шаблон
+                Ok = isValidFileName(t_fileName) &&  QFile::exists(t_fileName);
                 if (Ok){
-                    // Заполнение моделей
-                    pagesModel_client->setQuery(
-                            "SELECT angle, page_size.p_witdh,page_size.p_height"
-                            " FROM template "
-                            " INNER JOIN page_size ON template.page_size_id=page_size.id"
-                            );
-                    if (pagesModel_client->lastError().isValid()){
-                        emit error(SQLQueryError,QObject::trUtf8("Ошибка получения свойств шаблона. %1")
-                                   .arg(pagesModel->lastError().text()));
-                        Ok &= false;
-                    }else{
-                        // Получим размер страницы и ее ориентацию
-                        qreal p_width;
-                        qreal p_height;
-                        int   p_angle;
-                        for (int i=0;i<pagesModel_client->rowCount();i++){
-                            p_angle  = pagesModel_client->data(pagesModel_client->index(i,0)).toInt();
-                            p_width  = MM_TO_POINT(pagesModel_client->data(pagesModel_client->index(i,1)).toDouble());
-                            p_height = MM_TO_POINT(pagesModel_client->data(pagesModel_client->index(i,2)).toDouble());
-                        }
+                    db.setDatabaseName( t_fileName );                    
+                    if (db.open() ){
+                        // Создаем модели
+                        QSqlQueryModel *elemInPageModel_client  = new QSqlQueryModel(this);
+                        QSqlQueryModel *pagesModel_client           = new QSqlQueryModel(this);
+                        QSqlQueryModel *pagesDetail                      = new QSqlQueryModel(this);
+                        Ok &= saveDataToBase(hash,db);// Обновим данные элементов
+                        if (Ok){
+                            // Заполнение моделей
+                            Ok &= selectIntoModel(db,pagesModel_client,
+                                                  QString ("SELECT angle, page_size.p_width,page_size.p_height"
+                                                           " FROM template "
+                                                           " INNER JOIN page_size ON template.page_size_id=page_size.id")
+                                                  );
+                            Ok &=  selectIntoModel(db,elemInPageModel_client,
+                                                   QString ("SELECT elem.id,e_text,e_tag,pos_x,pos_y,color,font,"
+                                                            "angle,border,img_data, always_view,page_detail.p_number,img"
+                                                            " FROM elem "
+                                                            " INNER JOIN page_detail ON page_detail_id = page_detail.id "
+                                                            " WHERE page_detail.p_visible = 1 "
+                                                            " ORDER BY page_detail.p_number ")
+                                                   );
+                            Ok &=  selectIntoModel(db,pagesDetail,
+                                                   QString ("SELECT p_number FROM page_detail WHERE p_visible =1")
+                                                   );
+                            if (Ok){
+                                // Получим размер страницы и ее ориентацию
+                                qreal p_width;
+                                qreal p_height;
+                                int   p_angle;
+                                for (int i=0;i<pagesModel_client->rowCount();i++){
+                                    p_angle  = pagesModel_client->data(pagesModel_client->index(i,0)).toInt();
+                                    p_width  = MM_TO_POINT(pagesModel_client->data(pagesModel_client->index(i,1)).toDouble());
+                                    p_height = MM_TO_POINT(pagesModel_client->data(pagesModel_client->index(i,2)).toDouble());
+                                }
+                                // Формирование ориентации страниц шаблона
+                                pdfprinter.setOutputFormat(QPrinter::PdfFormat);
+                                if (p_angle == 90){
+                                    pdfprinter.setOrientation(QPrinter::Landscape);
+                                }else{
+                                    pdfprinter.setOrientation(QPrinter::Portrait);
+                                }
 
-                        elemInPageModel_client->setQuery("SELECT elem.id,e_text,e_tag,pos_x,pos_y,color,font,"
-                                                         "angle,border,img_data, always_view,page_detail.p_number,img"
-                                                         " FROM elem "
-                                                         " INNER JOIN page_detail ON page_detail_id = page_detail.id "
-                                                         " WHERE page_detail.p_visible = 1 "
-                                                         " ORDER BY page_detail.p_number ");
-                        if (elemInPageModel_client->lastError().isValid()){
-                            emit error(SQLQueryError,QObject::trUtf8("Ошибка получения свойств шаблона. %1")
-                                       .arg(pagesModel->lastError().text()));
-                            Ok &= false;
-                        }else{
-                            // Формирование pdf страничек для каждой стр шаблона
-                            pdfprinter.setOutputFormat(QPrinter::PdfFormat);
-                            if (p_angle == 90){
-                                pdfprinter.setOrientation(QPrinter::Landscape);
-                            }else{
-                                pdfprinter.setOrientation(QPrinter::Portrait);
-                            }
+                                // Цикл по всем страницам шаблона
+                                int p_number;
+                                QString  page_fn;
+                                int current_page;
+                                int i=0;
+                                while ( i<pagesDetail->rowCount() ){
+                                    p_number  = pagesDetail->data(pagesDetail->index(i,0)).toInt();
+                                    page_fn.clear();
+                                    switch (p_number){
+                                    case VPrn::FirstPage:
+                                    case VPrn::FirstPageN2:
+                                    case VPrn::FirstPageN3:
+                                    case VPrn::FirstPageN4:
+                                    case VPrn::FirstPageN5:
+                                        // Формируем лицевую сторону
+                                        if (p_number == copy_number){
+                                            page_fn = path;
+                                            page_fn.append("t_firstpage.pdf");
+                                        }
+                                        break;
+                                     case VPrn::SecondPage:
+                                        page_fn = path;
+                                        page_fn.append("t_otherpage.pdf");
+                                        break;
+                                     case VPrn::ThirdPage:
+                                        page_fn = path;
+                                        page_fn.append("t_oversidepage.pdf");
+                                        break;
+                                     case VPrn::FourthPage:
+                                        page_fn = path;
+                                        page_fn.append("t_lastpage.pdf");
+                                        break;
+                                    }
+                                    if (!page_fn.isEmpty())    {
+                                        // Начнем формировать новую страницу
+                                        pdfprinter.setOutputFileName(page_fn);
 
+                                        // Создаем сцену
+                                        m_scene->createPageForPrint(p_width,p_height);
 
-                            int page = -1;
-                            int current_page = -1;
-                            QString page_fn;
-                            for (int i=0;i<elemInPageModel_client->rowCount();i++){
-                                current_page = elemInPageModel_client->data(elemInPageModel_client->index(i,VPrn::elem_p_number)).toInt();
-                                if (page != current_page){
-                                    if ((page != -1) && !page_fn.isEmpty() ){
-                                        //Была уже страница ее надо сохранить
+                                        // Цикл по всем элементам шаблона
+                                        for (int i=0;i<elemInPageModel_client->rowCount();i++){
+                                            current_page = elemInPageModel_client->data(elemInPageModel_client->index(i,VPrn::elem_p_number)).toInt();
+
+                                            if (p_number == current_page){
+                                                // Элемент принадлежит текущей странице, добавим его
+                                                // Получим все данные элемента и сформируем его
+                                                int e_type  = elemInPageModel_client->data(elemInPageModel_client->index(i,VPrn::elem_text_img)).toInt();
+                                                qreal pos_x = elemInPageModel_client->data(elemInPageModel_client->index(i,VPrn::elem_pos_x)).toDouble();
+                                                qreal pos_y = elemInPageModel_client->data(elemInPageModel_client->index(i,VPrn::elem_pos_y)).toDouble();
+                                                QPointF ps(pos_x,pos_y);
+                                                if (e_type == 0){
+                                                    QString text     = elemInPageModel_client->data(elemInPageModel_client->index(i,VPrn::elem_text)).toString();
+                                                    QString tag      = elemInPageModel_client->data(elemInPageModel_client->index(i,VPrn::elem_tag)).toString();
+                                                    QVariant variant = elemInPageModel_client->data(elemInPageModel_client->index(i,VPrn::elem_color));
+                                                    QColor color     = variant.value<QColor>();
+                                                    variant          = elemInPageModel_client->data(elemInPageModel_client->index(i,VPrn::elem_font));
+                                                    QFont font       = variant.value<QFont>();
+                                                    qreal angle      = elemInPageModel_client->data(elemInPageModel_client->index(i,VPrn::elem_angle)).toDouble();
+                                                    m_scene->addBaseElem(tag,text,ps,font,color,angle);
+                                                }
+                                            }
+                                        }
                                         //Печать в pdf, обнуление всего
                                         QPainter painter(&pdfprinter);
+                                        /// Если последний режим был показа тегов, то переключим на показ значений
+                                        if (m_scene->getViewMode()){
+                                            m_scene->setViewMode();
+                                        }
                                         m_scene->render(&painter);
+                                        m_scene->clear();
                                     }
-                                    // Начнем формировать новую страницу
-                                    page = current_page;
-                                    // Формируем имя файла
-                                    page_fn = tr("%1/%2_page_%3.pdf")
-                                              .arg(spool_dir,c_uuid).arg(current_page,0,10);
-                                    pdfprinter.setOutputFileName(page_fn);
-                                    pdf_files.append(page_fn);
-                                    // Создаем сцену
-                                    m_scene->createPageForPrint(p_width,p_height);
+                                    i++;
                                 }
-                                // Получим все данные элемента и сформируем его
-                                int e_type  = elemInPageModel_client->data(elemInPageModel_client->index(i,VPrn::elem_text_img)).toInt();
-                                qreal pos_x = elemInPageModel_client->data(elemInPageModel_client->index(i,VPrn::elem_pos_x)).toDouble();
-                                qreal pos_y = elemInPageModel_client->data(elemInPageModel_client->index(i,VPrn::elem_pos_y)).toDouble();
-                                QPointF ps(pos_x,pos_y);
-                                if (e_type == 0){
-                                    QString text     = elemInPageModel_client->data(elemInPageModel_client->index(i,VPrn::elem_text)).toString();
-                                    QString tag      = elemInPageModel_client->data(elemInPageModel_client->index(i,VPrn::elem_tag)).toString();
-                                    QVariant variant = elemInPageModel_client->data(elemInPageModel_client->index(i,VPrn::elem_color));
-                                    QColor color     = variant.value<QColor>();
-                                    variant          = elemInPageModel_client->data(elemInPageModel_client->index(i,VPrn::elem_font));
-                                    QFont font       = variant.value<QFont>();
-                                    qreal angle      = elemInPageModel_client->data(elemInPageModel_client->index(i,VPrn::elem_angle)).toDouble();
-                                    m_scene->addBaseElem(tag,text,ps,font,color,angle);
-                                }
-                            }//end for
-                        }// end else if (elemInPageModel_client->lastError())
-                    }// end else if (pagesModel_client->lastError())
-                }// end saveDataToBase(m_tagValue);.. if (Ok)
-            }else{
-                emit error(FileIOError,
-                           QObject::trUtf8("Файл [%1] шаблона не существует!")
-                           .arg(t_fileName)
-                           );
-                Ok = false;
-            }// end isValidFileName(t_fileName)... if (Ok)
-        }else{
-            emit error(DriverNotLoad,QObject::trUtf8("Не могу загрузить драйвер sqlite!"));
-        }// end isDBConnected(); if (Ok)
-    }
-    return pdf_files;
-}
-
-void Tmpl_sql_plugin::getMetaInfo(const QString &client_id,
-                                  const QStringList &list,
-                                  QStandardItemModel *model )
-{
-
-    if ( model && !list.isEmpty() ){
-        {
-            QSqlDatabase db  = QSqlDatabase::addDatabase(QLatin1String("QSQLITE"),client_id);
-
-            if (db.driver()->lastError().type() != QSqlError::ConnectionError) {
-                model->clear();
-                for (int i = 0; i<list.size(); i++){
-                    bool Ok = true;
-                    {
-                        Ok &= isValidFileName( list.at(i) )&&
-                              QFile::exists( list.at(i) ) ;
-                        if (Ok){
-                            db.setDatabaseName( list.at(i) );
-                            if (db.open()){
-                                // Основная работа с шаблонами
-                                QSqlQuery query(db);
-                                QList<QStandardItem *> itemList;
-
-                                itemList.append(new QStandardItem( list.at(i) ) ); //Имя файла шаблона
-
-                                if (query.exec( "SELECT t_name,t_desc,"
-                                                "angle,c_time,m_time,author,margin_top,margin_bottom,"
-                                                "margin_left,margin_right,page_size.p_witdh,page_size.p_height  "
-                                                "FROM template "
-                                                " INNER JOIN page_size ON template.page_size_id=page_size.id")
-                                    ){
-                                    int field_t_name  = query.record().indexOf("t_name");
-
-                                    while (query.next()) {
-                                        itemList.append(new QStandardItem ( query.value(field_t_name).toString() )
-                                                        ); //Имя шаблона
-
-                                    }
-                                    model->appendRow(itemList);
-                                    itemList.clear(); //?????
-                                }else{
-                                    DumpError(query.lastError());
-                                }
-                                db.close();
                             }
                         }
+                        db.close();
+                    }else{
+                        emit error(FileIOError,
+                                   QObject::trUtf8("Файл [%1] шаблона не существует!")
+                                   .arg(t_fileName)
+                                   );
+                        Ok &= false;
                     }
+                }else{
+                    emit error(DriverNotLoad,QObject::trUtf8("Не могу загрузить драйвер sqlite!"));
+                    Ok &=false;
                 }
             }
-
         }
-        QSqlDatabase::removeDatabase(client_id);
-    }
+        QSqlDatabase::removeDatabase(c_uuid);
 
+        return Ok;
+    }
 }
 
 //------------------------------------------------------------------------------
@@ -750,7 +724,7 @@ bool Tmpl_sql_plugin::create_tables(QSqlQuery &query)
         }
         //Таблица размеров страниц
         Ok &= query.exec("create table page_size (id INTEGER primary key autoincrement, "
-                         "page_human TEXT,print_paper_size INTEGER,p_witdh INTEGER,"
+                         "page_human TEXT,print_paper_size INTEGER,p_width INTEGER,"
                          "p_height INTEGER);"
                          );
         if (!Ok){
@@ -927,7 +901,7 @@ bool Tmpl_sql_plugin::fillPagesSizeTable(QSqlQuery &query)
     {
         /// Создаем базовый набор размеров страниц
         Ok &= query.prepare("insert into page_size (page_human,print_paper_size,"
-                            "p_witdh,p_height) VALUES(?,?,?,?);");
+                            "p_width,p_height) VALUES(?,?,?,?);");
         if (Ok){
             query.addBindValue("A4 (210 x 297 мм)");
             query.addBindValue(QPrinter::A4);
@@ -1147,7 +1121,7 @@ bool Tmpl_sql_plugin::fillModels()
 
         /// Заполним модель (только для чтения) список размеров страниц
         pSizeModel->setQuery("select id, page_human,print_paper_size, "
-                             "p_witdh,p_height  from page_size",DB_);
+                             "p_width,p_height  from page_size",DB_);
         pSizeModel->setHeaderData(pSize_id, Qt::Horizontal, QObject::trUtf8("Id"));
         pSizeModel->setHeaderData(pSize_page, Qt::Horizontal, QObject::trUtf8("Размер листа"));
         pSizeModel->setHeaderData(pSize_code, Qt::Horizontal, QObject::trUtf8("Код"));
@@ -1218,34 +1192,55 @@ bool Tmpl_sql_plugin::fillModels()
     return Ok;
 }
 
-bool Tmpl_sql_plugin::saveDataToBase(const QHash<QString, QString> &hash)
+bool Tmpl_sql_plugin::saveDataToBase(const QHash<QString, QString> &hash,QSqlDatabase db)
 {
-    QSqlQuery query (DB_);
+    QSqlQuery query (db);
     bool Ok = true;
     {
         //UPDATE elem SET e_text='МБ-1' WHERE img =0 AND e_tag = 'МБ'
-        Ok &= query.prepare("UPDATE elem SET e_text='?' "
-                            "WHERE img = 0 AND e_tag = '?'");
-        if (Ok){
-            QHashIterator<QString, QString> i(hash);
-            while (i.hasNext()) {
-                i.next();
+        //        Ok &= query.prepare("UPDATE elem SET e_text='?' "
+        //                            "WHERE img = 0 AND e_tag ='?' ");
+        //        if (Ok){
+        QHashIterator<QString, QString> i(hash);
+        while (i.hasNext()) {
+            i.next();
 
-                query.addBindValue( i.value() );
-                query.addBindValue( i.key() );
-            }
-            Ok &= query.exec();
-        }else{
-            emit error(SQLQueryError,QObject::trUtf8("Ошибка обновления элементов шаблона. %1")
-                       .arg(query.lastError().text()));
+            //query.addBindValue( i.value() );
+            //query.addBindValue(  i.key() );
+            Ok &= query.exec(
+                    QString("UPDATE elem SET e_text='%1' "
+                            "WHERE img = 0 AND e_tag ='%2' ").arg( i.value(),i.key() )
+                    );
         }
+
+        //}
+    }
+    if (!Ok){
+        qDebug() << query.lastError().text();
+        emit error(SQLQueryError,QObject::trUtf8("Ошибка обновления элементов шаблона. %1")
+                   .arg( query.lastError().text() )
+                   );
     }
     return Ok;
 }
 
 //****************************************************************************
 
+bool Tmpl_sql_plugin::selectIntoModel(QSqlDatabase db, QSqlQueryModel *model,const QString &sql)
+{
+    bool Ok =true;
+    {
+        model->setQuery(sql,db);
 
+        if (model->lastError().isValid()){
+            Ok &=false;
+            emit error(SQLQueryError,QObject::trUtf8("Ошибка получения элементов шаблона. %1")
+                       .arg( model->lastError().text() )
+                       );
+        }
+    }
+    return Ok;
+}
 Q_EXPORT_PLUGIN2(Itmpl_sql_plugin, Tmpl_sql_plugin)
 ;
 
