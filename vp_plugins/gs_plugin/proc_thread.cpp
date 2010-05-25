@@ -1,8 +1,10 @@
 #include "proc_thread.h"
-#include <QtDebug>
-#include <QString>
-#include <QStringList>
-#include <QProcess>
+
+#include <QtCore/QtDebug>
+#include <QtCore/QString>
+#include <QtCore/QStringList>
+#include <QtCore/QProcess>
+#include <QtCore/QRegExp>
 
 
 
@@ -43,13 +45,12 @@ void ProcessT::run()
     }else{
         proc.waitForFinished(-1);
         proc.closeWriteChannel();
-        m_Output = proc.readAll().trimmed();
-        qDebug() << QString("Exit code %1").arg(proc.exitCode());
+        m_Output = proc.readAll();//.trimmed();
 
-        //emit commandOutput(proc.exitCode(), m_Output );
+        qDebug() << Q_FUNC_INFO     << "Command execution finished,"<< m_Output
+                 << " for job_key " << job_key
+                 << QString("\nExit code %1").arg(proc.exitCode());        
         emit jobFinish(job_key,proc.exitCode(), m_Output );
-        qDebug() << Q_FUNC_INFO << "Command execution finished,"<<m_Output
-                << " for job_key " << job_key;
     }
 }
 
