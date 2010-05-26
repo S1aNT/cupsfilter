@@ -343,8 +343,14 @@ void serverGears::client_init()
 {
     QLocalSocket *client = m_server->nextPendingConnection();
     clients.insert(client);
+    ///@todo  uuid  брать централизованно с одно места!
     QString c_uuid =  this->getUuid();
     clients_uuid.insert(client,c_uuid);
+
+    if (gs_plugin){
+        gs_plugin->createClientData(c_uuid);
+    }
+
 
     if (gs_plugin){
         gs_plugin->createClientData(c_uuid);
@@ -358,6 +364,7 @@ void serverGears::client_init()
             this,   SLOT(prepareError(QLocalSocket::LocalSocketError)));
     setCheckPoint(VPrn::loc_NewClientStarted);
 }
+
 
 void serverGears::disconnected()
 {
@@ -497,16 +504,14 @@ void serverGears::parseMessage( const Message &m_msg, const QString &c_uuid)
             // нужно вернуть список png страничек сделанного документа
             createFormatedDoc(c_uuid,true,m_msg.messageData());
             break;
-       case VPrn::Que_CreateFormatedFullDocAndPrint:
-            // Запрос формирование полного документа, для печати,
-            //  и распечатка его
-
-            break;
-
        case VPrn::Que_CreateFormatedPartDoc:
             // Запрос формирование частичного документа, как для печати,
             // нужно вернуть список png страничек сделанного документа
             createFormatedDoc(c_uuid,false,m_msg.messageData());
+            break;
+       case VPrn::Que_CreateFormatedFullDocAndPrint:
+            // Запрос формирование полного документа, для печати,
+            //  и распечатка его
             break;
         case VPrn::Que_Register:
             /// Клиент только подключился, в теле сообщения его самоназвание запомним его
@@ -616,44 +621,7 @@ void serverGears::sendMessage( const Message &m_msg, QLocalSocket *client)
     client->flush();
 }
 
-void serverGears::createFormatedDoc(const QString &c_uuid,
-                                    bool full_doc,QByteArray data)
-{
-    // Генерируем набор pdf фалов для каждой страницы шаблона, так
-    // как если клиент сделал дисконнект, то все файлы отвчающие маске
-    // spoolDir/client_uuid*.* будут удалены, то в gs_plugin можно передать только
-    // client_uuid части документа он найдет сам
 
-    QStringList templ_pages;
-    int cur_copy = 0;
-    int total_copy = 0;
-    QHash <QString,QString> elements;
-    QString t_fileName;
-    QSize s;
-
-    if (tmpl_plugin && gs_plugin){        
-        tmpl_plugin->parseUserData(c_uuid,data,cur_copy,total_copy,elements,t_fileName);
-        // Получили данные переданные пользователем
-        if (cur_copy == 0  && total_copy == 5){
-            for (int i=1; i<6;i++){
-                elements[QObject::trUtf8("Номер экз.")] = i;
-                // Формируем страницы шаблона в pdf
-                templ_pages = tmpl_plugin->prepare_template(c_uuid,t_fileName,cur_copy,total_copy,elements);
-                // Формируем i экземпляр
-                // Есть что обрабатывать результат вернется в виде сигнала
-                // ready4Print(fpNxx_out,other_out,back_out,fonarik_out);
-                gs_plugin->mergeWithTemplate(c_uuid,templ_pages,i);
-                templ_pages.clear();
-            }
-        }else{
-            elements[QObject::trUtf8("Номер экз.")] = cur_copy;
-            // Формируем страницы шаблона в pdf
-            templ_pages = tmpl_plugin->prepare_template(c_uuid,t_fileName,cur_copy,total_copy,elements);
-            // Есть что обрабатывать результат вернется в виде сигнала
-            gs_plugin->mergeWithTemplate(c_uuid,templ_pages,cur_copy);
-        }
-    }
-}
 QLocalSocket *serverGears::findClient(const QString &c_uuid)
 {
     QLocalSocket *client(0);
@@ -669,4 +637,72 @@ QLocalSocket *serverGears::findClient(const QString &c_uuid)
     setError(QObject::trUtf8("Ответ клиенту который уже отсоединился!"));
     return client;
 }
+
+
+void serverGears::do_docReady4work (const QString &client_uuid,int pCount)
+{
+    QLocalSocket *client(0);
+    Message msg( this );
+    QString str;
+    // По UUID определим какому клиенту надо было это сообщение
+    client = findClient(client_uuid);
+    if (client){
+        str = QString("%1").arg(pCount,0,10);
+        msg.setType(VPrn::Ans_PageCounting);
+        msg.setMessageData( str.toUtf8() );  // число страниц в документе
+        // Запись в локальный слот клиенту
+        sendMessage(msg,client);
+    }
+}
+
+ void serverGears::do_docReady4print (const QString &client_uuid)
+ {
+
+ }
+ void serverGears::do_docReady4preview (const QString &client_uuid)
+ {
+
+ }
+
+void serverGears::createFormatedDoc(const QString &client_uuid,bool full_doc,QByteArray data)
+{
+    QString t_fileName;
+    QPair <int,int> copy_count;
+    QHash <QString, QString> m_tagValue;
+    // Получили данные переданные пользователем, разбор данных
+    QDataStream in(&data, QIODevice::ReadOnly );
+    in.setVersion(QDataStream::Qt_3_0);
+    in >> copy_count;
+    in >> t_fileName;
+    // читаем значения
+    in >> m_tagValue;
+
+    bool Ok = true;
+    {
+        if (copy_count.first == 0  && copy_count.second == 5){
+            for (int i=1; i<5;i++){
+                m_tagValue[QObject::trUtf8("Номер экз.")] = QString("%1").arg(i,0,10);
+                // Формируем страницы шаблона в pdf
+                Ok &= tmpl_plugin->prepare_template(client_uuid,t_fileName, m_tagValue,i);
+            }
+        }else{
+            m_tagValue[QObject::trUtf8("Номер экз.")] ==QString("%1").arg(copy_count.first,0,10);
+            // Формируем страницы шаблона в pdf
+            Ok &=  tmpl_plugin->prepare_template(client_uuid,t_fileName, m_tagValue,copy_count.first) ;
+        }
+    }
+    if (Ok &&  gs_plugin ){
+        QStringList files = gs_plugin->findFiles(client_uuid,QStringList()
+                                       << "t_firstpage.pdf"        << "T_FIRSTPAGE.PDF"
+                                       << "t_otherpage.pdf"      << "T_OTHERPAGE.PDF"
+                                       << "t_oversidepage.pdf" << "T_OVERSIDEPAGE.PDF"
+                                       << "t_lastpage.pdf"         << "T_LASTPAGE.PDF"   );
+        // Поставим клиенту признак весь документ или нет конвертировать в png после объединения
+        gs_plugin->setConvertToPngMode(client_uuid, full_doc );
+
+        // Сформируем документ подготовленный к печати  документ + шаблон
+        gs_plugin->mergeWithTemplate(client_uuid, files ) ;
+    }
+}
+
 
