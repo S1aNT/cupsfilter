@@ -15,7 +15,7 @@ public:
     void clear();
 
     void setConvertMode(bool b);
-    bool isFullDocConvert();
+    bool getConvertMode();
 
     void setMainFile (const QString &m);
     QString getMainFile() const;
