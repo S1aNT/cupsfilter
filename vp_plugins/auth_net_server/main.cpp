@@ -43,13 +43,11 @@ int main(int argc, char *argv[])
     QApplication::setQuitOnLastWindowClosed(false);
 
     Server server;
-    server.show();
+    server.hide();
     app.setActivationWindow(&server);
 
     QObject::connect(&app, SIGNAL(messageReceived(const QString&)),
                      &server, SLOT(appendStartMsg(const QString&)));
-
-
 
     return app.exec();
 }
