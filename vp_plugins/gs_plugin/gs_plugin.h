@@ -52,11 +52,11 @@ public:
     void mergeWithTemplate(const QString &client_uuid, const QStringList &t_files );
     /**
       * @fn void convertPdfToPng(const QString &client_uuid,
-      *                          const QString &filename, bool fullFile);
+      *                          const QString &filename);
       * @brief Преобразует исходный файл в набор картинок
       */
     void convertPdfToPng(const QString &client_uuid,
-                         const QStringList &files, bool mode);
+                         const QStringList &files);
     /**
       * @fn void createClientData(const QString &client_uuid);
       * @brief Создает новый экз. хранилища данных для клиента
@@ -68,6 +68,12 @@ public:
     void createClientData(const QString &client_uuid);
     void deleteClientData(const QString &client_uuid);
 
+    void setConvertToPngMode(const QString &client_uuid, bool full_doc );
+    /**
+      * @fn QStringList findFiles(const QString &client_uuid,const QStringList &filters);
+      * @brief  Формируем списк файлов для клиента отвечающих заданному фильтру
+      */
+    QStringList findFiles(const QString &client_uuid,const QStringList &filters);
 signals:
     /**
       * @fn void docReady4work(const QString &client_uuid,int pagecount);
