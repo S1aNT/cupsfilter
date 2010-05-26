@@ -29,8 +29,9 @@ int main(int argc, char *argv[])
     QtSingleApplication app(argc, argv, true);
 
 
+
     if (!QSystemTrayIcon::isSystemTrayAvailable()) {
-        QMessageBox::critical(0, QObject::trUtf8("Auth_net_Server"),
+        QMessageBox::critical(0, QObject::trUtf8("GateKeeper"),
                               QObject::trUtf8("Не могу определить тип system tray "
                                           " для вашей системы."));
         return 1;
