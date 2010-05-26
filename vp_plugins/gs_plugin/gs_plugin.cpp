@@ -213,7 +213,7 @@ void GS_plugin::mergeWithTemplate(const QString &client_uuid, const QStringList 
 }
 
 void GS_plugin::convertPdfToPng(const QString &client_uuid,
-                                const QStringList &files, bool mode)
+                                const QStringList &files)
 {
     // Поиск данных для клиента
     ClientData *c_data = findClientData(client_uuid);
@@ -246,7 +246,7 @@ void GS_plugin::convertPdfToPng(const QString &client_uuid,
                 args.append("-sDEVICE=png16m");
                 args.append("-dFirstPage=1");
                 //Формируем имя файлов для предпросмотра
-                if (!mode){
+                if (!c_data->getConvertMode()){
                     args.append("-dLastPage=1");
                     args.append(QString("-sOutputFile=%1/%2/%3/%4_0.png")
                                 .arg(spoolDir,client_uuid,copy_num,page_type));
@@ -264,6 +264,14 @@ void GS_plugin::convertPdfToPng(const QString &client_uuid,
     }
 }
 
+void GS_plugin::setConvertToPngMode(const QString &client_uuid, bool full_doc )
+{
+    ClientData *c_d(0);
+    c_d = findClientData (client_uuid);
+    if (c_d){
+        c_d->setConvertMode(full_doc);
+    }
+}
 
 QString GS_plugin::getUuid() const
 {
@@ -502,6 +510,26 @@ ClientData * GS_plugin::findClientData(const QString &client_uuid)
     return c_d;
 }
 
+QStringList GS_plugin::findFiles(const QString &client_uuid,const QStringList &filters)
+{
+    QStringList files;
+    QDir dir = QDir::current();
+
+    // Формируем списк файлов которые надо подвергнуть преобразованию в png
+    for (int i=1;i<5;i++){
+
+        dir = QDir(QString ("%1/%2/%3-copy").arg(spoolDir,client_uuid).arg(i,0,10) );
+        dir.setFilter(QDir::Files | QDir::Hidden | QDir::NoSymLinks);
+        dir.setNameFilters(filters);
+        QFileInfoList list = dir.entryInfoList();
+        for (int i = 0; i < list.size(); ++i)
+        {
+            QFileInfo fileInfo = list.at(i);
+            files.append(dir.absoluteFilePath(fileInfo.fileName()));
+        }
+    }
+    return files;
+}
 
 Q_EXPORT_PLUGIN2(Igs_plugin, GS_plugin)
 ;
