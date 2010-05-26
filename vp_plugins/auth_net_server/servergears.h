@@ -115,7 +115,23 @@ private slots:
       * @brief Обработчик ошибок возникших в сокете
       */
     void prepareError(QLocalSocket::LocalSocketError socketError);
-
+    /**
+      * @fn void do_docReady4work (const QString &client_uuid,int pCount);
+      * @brief Плагин gs_plugin преобразовал документ  ps->pdf,
+      * и подсчитал число страниц в документе для клиента =  client_uuid
+      */
+    void do_docReady4work (const QString &client_uuid,int pCount);
+    /**
+      * @fn void do_docReady4print (const QString &client_uuid);
+      * @brief  Плагин gs_plugin преобразовал выбранный пользователем шаблон в pdf
+      * объединил исходный документ с шаблоном и расположол их в каталога по номерам копий
+      */
+    void do_docReady4print (const QString &client_uuid);
+    /**
+      * @fn   Плагин gs_plugin преобразовал подготовленные к печати экз документа в png картинки с
+      * выбранной пользователем глубиной детализации, только первые листы или весь документ
+      */
+    void do_docReady4preview (const QString &client_uuid);
 private:
     /**
       * @var m_serverName;     Имя локального сервера для общения с Локальным миром
@@ -155,15 +171,12 @@ private:
 ;
 //-----------------------------------------------------------------------------
     /**
-      * @fn void createFormatedDoc(const QString &c_uuid,
-      *                            bool full_doc,
-      *                            QByteArray data);
-      * @brief Данная функция создает документ готовый для печати.
-      * @param const QString &c_uuid Клиент для которого создается документ
-      * @param bool full_doc         Весь документ или частично      
-      * @param QByteArray data       Набор данных переданных приложением
+      * @fn void createFormatedDoc(const QString &client_uuid,bool full_doc,QByteArray data);
+      * @brief Формирует документ, готовит pdf из шаблона, объединяет их с документом
+      * ставит признак весь документ конвертировать в png или только первые страницы
       */
-    void createFormatedDoc(const QString &c_uuid, bool full_doc, QByteArray data);
+    void createFormatedDoc(const QString &client_uuid,bool full_doc,QByteArray data);
+
     /**
       * @fn void parseMessage( const Message &msg, const QString &c_uuid);
       * @brief Обработка сообщения от конкретного клиента
