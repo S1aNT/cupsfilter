@@ -156,7 +156,6 @@ void Server::init()
 #elif defined(Q_OS_WIN)
                     myAuth_plugin->init();
 #endif
-
                     myNet_plugin->init(serverHostName, serverPort,current_sid);
 
                     /// @todo Переделать только spoolDir реально нужен
@@ -503,10 +502,25 @@ bool Server::loadPlugins()
                         connect(plugin, SIGNAL (error(pluginsError,QString )),
                                 this,   SLOT   (errorInfo(pluginsError,QString ))
                                 );
+//                        connect (plugin,
+//                                 SIGNAL( jobFinish(const QString &,VPrn::Jobs,int,const QString &)),
+//                                 myServerGears,
+//                                 SLOT  ( doJobFinish(const QString &,VPrn::Jobs,int,const QString &))
+//                                 );
                         connect (plugin,
-                                 SIGNAL( jobFinish(const QString &,VPrn::Jobs,int,const QString &)),
+                                 SIGNAL( docReady4work(const QString &,int) ),
                                  myServerGears,
-                                 SLOT  ( doJobFinish(const QString &,VPrn::Jobs,int,const QString &))
+                                 SLOT ( do_docReady4work (const QString &,int) )
+                                 );
+                        connect (plugin,
+                                 SIGNAL( docReady4print(const QString &) ),
+                                 myServerGears,
+                                 SLOT ( do_docReady4print (const QString &) )
+                                 );
+                        connect (plugin,
+                                 SIGNAL( docReady4preview(const QString &) ),
+                                 myServerGears,
+                                 SLOT ( do_docReady4preview (const QString &) )
                                  );
                     }
                 }
