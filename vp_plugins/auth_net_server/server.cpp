@@ -43,8 +43,8 @@ Server::Server(QWidget *parent)
     myEMsgBox = new QErrorMessage(this);
 
     resize(300, 240);
-    setMinimumSize(QSize(280, 240));
-    setMaximumSize(QSize(300, 240));
+    setMinimumSize(QSize(320 , 260));
+    setMaximumSize(QSize(320, 280));
     QFont font;
     font.setFamily(QString::fromUtf8("Times New Roman"));
     font.setPointSize(12);
@@ -78,28 +78,40 @@ Server::Server(QWidget *parent)
     gridLayout->addWidget(mandat_LE, 1, 1, 1, 1);
 
     groupBox_2 = new QGroupBox(this);
-    groupBox_2->setGeometry(QRect(10, 90, 270, 101));
-    groupBox_2->setTitle(QObject::trUtf8("Состояние сервера"));
+    groupBox_2->setGeometry(QRect(10, 90, 310, 140));
+    groupBox_2->setTitle(QObject::trUtf8("Состояние сервера, загрузки плагинов."));
     groupBox_2->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Fixed);
     demonState_LE = new QLineEdit(groupBox_2);
-    demonState_LE->setGeometry(QRect(10, 20, 260, 20));
+    demonState_LE->setGeometry(QRect(10, 20, 280, 20));
     demonState_LE->setReadOnly(true);
     demonState_LE->setEnabled(false);
 
     authCheckBox = new QCheckBox(groupBox_2);
     authCheckBox->setEnabled(false);
     authCheckBox->setChecked(false);
-    authCheckBox->setText(QObject::trUtf8("Плагин авторизации загружен"));
-    authCheckBox->setGeometry(QRect(10, 50, 260, 17));
+    authCheckBox->setText(QObject::trUtf8("плагин авторизации."));
+    authCheckBox->setGeometry(QRect(10, 50, 280, 17));
 
     netCheckBox = new QCheckBox(groupBox_2);
     netCheckBox->setEnabled(false);
     netCheckBox->setChecked(false);
-    netCheckBox->setText(QObject::trUtf8("Сетевой плагин загружен."));
-    netCheckBox->setGeometry(QRect(10, 70, 260, 17));
+    netCheckBox->setText(QObject::trUtf8("плагин работы с сетью."));
+    netCheckBox->setGeometry(QRect(10, 70, 280, 17));
+
+    gsCheckBox = new QCheckBox(groupBox_2);
+    gsCheckBox->setEnabled(false);
+    gsCheckBox->setChecked(false);
+    gsCheckBox->setText(QObject::trUtf8("плагин работы с GhostScript."));
+    gsCheckBox->setGeometry(QRect(10, 90, 280, 17));
+
+    tmplCheckBox = new QCheckBox(groupBox_2);
+    tmplCheckBox->setEnabled(false);
+    tmplCheckBox->setChecked(false);
+    tmplCheckBox->setText(QObject::trUtf8("плагин работы с шаблонами."));
+    tmplCheckBox->setGeometry(QRect(10, 110, 280, 17));
 
     quitButton = new QPushButton(this);
-    quitButton->setGeometry(QRect(100, 200, 75, 23));
+    quitButton->setGeometry(QRect(100, 225, 130, 23));
     quitButton->setText(QObject::trUtf8("Свернуть"));
 
     QObject::connect (quitButton,SIGNAL(clicked()),
@@ -122,7 +134,7 @@ void Server::init()
             if (!localSrvName.isEmpty()){
                 // Создаем основной объект
 #if defined(Q_OS_UNIX)
-    //Проверка на наличие файла pipe если есть удалим
+                //Проверка на наличие файла pipe если есть удалим
                 QString f_pipe = QObject::tr("/tmp/%1").arg(localSrvName);
                 if ( QFile::exists( f_pipe ) ){
                     QFile::remove( f_pipe );
@@ -160,13 +172,19 @@ void Server::init()
 
                     /// @todo Переделать только spoolDir реально нужен
                     myTmpl_plugin->init(spoolDir,current_sid);
+                    if ( myTmpl_plugin ){
+                        tmplCheckBox->setChecked(true);
+                    }
 
                     //qDebug() << "\nmyGs_plugin:" << myGs_plugin << "gsBin:" << gsBin  << "pdftkBin:" << pdftkBin  << "spoolDir:" << spoolDir;
                     myGs_plugin->init(gsBin, pdftkBin,spoolDir);
-
+                    if (myGs_plugin){
+                        gsCheckBox->setChecked(true);
+                    }
                     myServerGears->setNetPlugin(myNet_plugin);
                     myServerGears->setGsPlugin(myGs_plugin);
                     myServerGears->setTmplPlugin(myTmpl_plugin);             
+
                 }else{
                     setTrayStatus(VPrn::gk_ErrorState,
                                   QObject::trUtf8("Ошибка при загрузке плагинов"));
@@ -210,10 +228,10 @@ void Server::setVisible(bool visible)
 void Server::closeEvent(QCloseEvent *event)
 {
     if (trayIcon->isVisible()) {
-//        QMessageBox::information(this, QObject::trUtf8("GateKeeper"),
-//                                 QObject::trUtf8("Данная программа будет продолжать работу в системном трее.\n"
-//                                                 "Для завершения работы, выберите Выход "
-//                                                 "в контекстном меню программы. "));
+        //        QMessageBox::information(this, QObject::trUtf8("GateKeeper"),
+        //                                 QObject::trUtf8("Данная программа будет продолжать работу в системном трее.\n"
+        //                                                 "Для завершения работы, выберите Выход "
+        //                                                 "в контекстном меню программы. "));
         if (m_GateKeeperReady){
             hide();
             event->ignore();
@@ -235,8 +253,8 @@ void Server::createActions()
     quitAction = new QAction(QObject::trUtf8("Выход"), this);
     connect(quitAction, SIGNAL(triggered()),this, SLOT(dead_hands()));
 
-    runEditorAction  = new QAction(QObject::trUtf8("Запуск редактора"), this);
-    connect(runEditorAction, SIGNAL(triggered()), this, SLOT(runTEditor()));
+    // runEditorAction  = new QAction(QObject::trUtf8("Запуск редактора"), this);
+    // connect(runEditorAction, SIGNAL(triggered()), this, SLOT(runTEditor()));
 }
 
 void Server::createTrayIcon()
@@ -245,7 +263,7 @@ void Server::createTrayIcon()
     trayIconMenu->addAction(minimizeAction);
     trayIconMenu->addAction(restoreAction);
     trayIconMenu->addSeparator();
-    trayIconMenu->addAction(runEditorAction);
+    //trayIconMenu->addAction(runEditorAction);
     trayIconMenu->addSeparator();
     trayIconMenu->addAction(quitAction);
 
@@ -502,11 +520,11 @@ bool Server::loadPlugins()
                         connect(plugin, SIGNAL (error(pluginsError,QString )),
                                 this,   SLOT   (errorInfo(pluginsError,QString ))
                                 );
-//                        connect (plugin,
-//                                 SIGNAL( jobFinish(const QString &,VPrn::Jobs,int,const QString &)),
-//                                 myServerGears,
-//                                 SLOT  ( doJobFinish(const QString &,VPrn::Jobs,int,const QString &))
-//                                 );
+                        //                        connect (plugin,
+                        //                                 SIGNAL( jobFinish(const QString &,VPrn::Jobs,int,const QString &)),
+                        //                                 myServerGears,
+                        //                                 SLOT  ( doJobFinish(const QString &,VPrn::Jobs,int,const QString &))
+                        //                                 );
                         connect (plugin,
                                  SIGNAL( docReady4work(const QString &,int) ),
                                  myServerGears,
@@ -563,6 +581,7 @@ bool Server::loadPlugins()
             }
         }
     }
+
     return (myNet_plugin && myAuth_plugin && myGs_plugin && myTmpl_plugin);
 }
 
@@ -601,12 +620,12 @@ bool Server::readConfig()
             local_t_path  = settings.value("local_templates").toString();
             global_t_path = settings.value("global_templates").toString();
             settings.endGroup();
-//            qDebug() << "\nserverHostName " << serverHostName
-//                    << "\nlocalSrvName "   << localSrvName
-//                    << "\nspoolDir"        << spoolDir
-//                    << "\ngsBin"           << gsBin
-//                    << "\npdftkBin"        << pdftkBin
-//                    << "\nserverPort"      << serverPort;
+            //            qDebug() << "\nserverHostName " << serverHostName
+            //                    << "\nlocalSrvName "   << localSrvName
+            //                    << "\nspoolDir"        << spoolDir
+            //                    << "\ngsBin"           << gsBin
+            //                    << "\npdftkBin"        << pdftkBin
+            //                    << "\nserverPort"      << serverPort;
 
             // Тестируем переменные
             if ( serverHostName.isEmpty() ||
