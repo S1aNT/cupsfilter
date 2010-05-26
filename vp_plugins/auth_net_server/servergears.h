@@ -207,9 +207,6 @@ private:
       * @returns QLocalSocket * or 0
       */
     QLocalSocket *findClient(const QString &c_uuid);
-
-
-
 };
 
 #endif // SERVERGEARS_H
