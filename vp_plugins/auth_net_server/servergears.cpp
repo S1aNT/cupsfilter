@@ -365,7 +365,6 @@ void serverGears::client_init()
     setCheckPoint(VPrn::loc_NewClientStarted);
 }
 
-
 void serverGears::disconnected()
 {
     QLocalSocket *client = (QLocalSocket*)sender();
@@ -655,14 +654,33 @@ void serverGears::do_docReady4work (const QString &client_uuid,int pCount)
     }
 }
 
- void serverGears::do_docReady4print (const QString &client_uuid)
- {
+void serverGears::do_docReady4print (const QString &client_uuid)
+{
+    QLocalSocket *client(0);
+    Message msg( this );
+    QStringList files;
 
- }
- void serverGears::do_docReady4preview (const QString &client_uuid)
- {
+    // По UUID определим какому клиенту надо было это сообщение
+    client = findClient(client_uuid);
+    if (client){
+        msg.setType(VPrn::Ans_CreateFormatedDoc); // На документ успешно наложен шаблон
+        sendMessage(msg,client); // Запись в локальный слот клиенту
 
- }
+        if (gs_plugin){
+            // Обработали все файлы надо пройти по всем каталогам и собрать *_out.pdf
+            files =  gs_plugin->findFiles(client_uuid,QStringList() << "*out.pdf" << "*OUT.PDF");
+            // Документ объединен с шаблоном, теперь требуется запустить конвертациию pdf->png
+            // Завершение данной мета задачи сигнал  docReady4preview
+            gs_plugin->convertPdfToPng(client_uuid,files );
+        }
+
+    }
+}
+
+void serverGears::do_docReady4preview (const QString &client_uuid)
+{
+
+}
 
 void serverGears::createFormatedDoc(const QString &client_uuid,bool full_doc,QByteArray data)
 {
@@ -693,10 +711,10 @@ void serverGears::createFormatedDoc(const QString &client_uuid,bool full_doc,QBy
     }
     if (Ok &&  gs_plugin ){
         QStringList files = gs_plugin->findFiles(client_uuid,QStringList()
-                                       << "t_firstpage.pdf"        << "T_FIRSTPAGE.PDF"
-                                       << "t_otherpage.pdf"      << "T_OTHERPAGE.PDF"
-                                       << "t_oversidepage.pdf" << "T_OVERSIDEPAGE.PDF"
-                                       << "t_lastpage.pdf"         << "T_LASTPAGE.PDF"   );
+                                                 << "t_firstpage.pdf"        << "T_FIRSTPAGE.PDF"
+                                                 << "t_otherpage.pdf"      << "T_OTHERPAGE.PDF"
+                                                 << "t_oversidepage.pdf" << "T_OVERSIDEPAGE.PDF"
+                                                 << "t_lastpage.pdf"         << "T_LASTPAGE.PDF"   );
         // Поставим клиенту признак весь документ или нет конвертировать в png после объединения
         gs_plugin->setConvertToPngMode(client_uuid, full_doc );
 
