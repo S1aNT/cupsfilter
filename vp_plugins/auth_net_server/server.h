@@ -148,6 +148,7 @@ private:
       * @var m_lastError;   последнее сообщение об ошибке
       */
     serverGears *myServerGears;
+
     Inet_plugin *myNet_plugin;
     Auth_plugin *myAuth_plugin;
     Igs_plugin  *myGs_plugin;
@@ -198,6 +199,8 @@ private:
     QGridLayout *gridLayout;
     QCheckBox   *authCheckBox;
     QCheckBox   *netCheckBox;
+    QCheckBox   *tmplCheckBox;
+    QCheckBox   *gsCheckBox;
 
     // Действия
     QAction *minimizeAction;
