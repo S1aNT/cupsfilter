@@ -25,7 +25,7 @@ void ClientData::setConvertMode(bool b)
     fullDocConvert = b;
 }
 
-bool ClientData::isFullDocConvert()
+bool ClientData::getConvertMode()
 {
     return fullDocConvert;
 }

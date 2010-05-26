@@ -46,10 +46,6 @@ void ProcessT::run()
         proc.waitForFinished(-1);
         proc.closeWriteChannel();
         m_Output = proc.readAll();//.trimmed();
-
-        qDebug() << Q_FUNC_INFO     << "Command execution finished,"<< m_Output
-                 << " for job_key " << job_key
-                 << QString("\nExit code %1").arg(proc.exitCode());        
         emit jobFinish(job_key,proc.exitCode(), m_Output );
     }
 }

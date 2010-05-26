@@ -16,7 +16,7 @@ public:
     virtual void convertPs2Pdf(const QString &client_uuid,
                                const QString &input_fn) = 0;
     virtual void convertPdfToPng(const QString &client_uuid,
-                                     const QStringList &files, bool mode) = 0;
+                                     const QStringList &files) = 0;
     virtual void final_clear() = 0;
     virtual void mergePdf(const QString &client_uuid,
                           const QString &in_pdf,
@@ -29,6 +29,8 @@ public:
 
     virtual void createClientData(const QString &client_uuid) = 0;
     virtual void deleteClientData(const QString &client_uuid) = 0;
+    virtual void setConvertToPngMode(const QString &client_uuid, bool full_doc ) = 0;
+    virtual QStringList findFiles(const QString &client_uuid,const QStringList &filters) = 0;
 //    virtual void createFormatedDoc(const QString &client_uuid,
 //                                   const QByteArray r_data) =0;
 };
