@@ -1,7 +1,3 @@
-
-#include "mytypes.h"
-#include "printmonitor.h"
-
 #include <QtSingleApplication>
 
 #include <QtCore/QTextCodec>
@@ -14,6 +10,8 @@
 
 #include <QtGui/QMessageBox>
 
+#include "mytypes.h"
+#include "printmonitor.h"
 
 using namespace VPrn;
 
