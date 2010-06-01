@@ -14,7 +14,37 @@
 
 
 #include "server.h"
-#include "config.h"
+
+void myMessageOutput(QtMsgType type, const char *msg)
+{
+    QString log = QString ("%1/auth_net_server.log").arg( qApp->applicationDirPath() );
+    QFile logFile(log);
+
+    if (!logFile.open(QFile::Append| QFile::Text)){
+        logFile.open(stderr, QIODevice::WriteOnly);
+    }
+
+     QTextStream out;
+     out.setDevice(&logFile);
+     out.setCodec("UTF-8");
+
+     out << "\nDateTime: " << QDateTime::currentDateTime ().toString("dd.MM.yyyy hh:mm:ss");
+     switch (type) {
+     case QtDebugMsg:
+        out << QObject::trUtf8("Debug: %1\n").arg(QString(msg)) <<"\n";
+         break;
+     case QtWarningMsg:
+         out << QObject::trUtf8("Warning: %1\n").arg(QString(msg))<<"\n";
+         break;
+     case QtCriticalMsg:
+         out << QObject::trUtf8("Critical: %1\n").arg(QString(msg))<<"\n";
+         break;
+     case QtFatalMsg:
+         out << QObject::trUtf8("Fatal: %1\n").arg(QString(msg))<<"\n";
+         abort();
+     }
+     logFile.close();
+}
 
 int main(int argc, char *argv[])
 {
