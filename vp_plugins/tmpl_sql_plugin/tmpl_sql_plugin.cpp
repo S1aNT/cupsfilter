@@ -1,5 +1,6 @@
 #include "tmpl_sql_plugin.h"
 #include "mytextitem.h"
+#include "picitem.h"
 
 #include <QtCore/QDebug>
 #include <QtCore/QHashIterator>
@@ -477,6 +478,8 @@ void Tmpl_sql_plugin::saveTemplates()
                 int p_id;
                 myScene *scene(0);
                 myTextItem *tElem(0);
+		PicItem *tImg(0);
+
                 QGraphicsItem *item;
 
                 QString elem_type;
@@ -519,6 +522,33 @@ void Tmpl_sql_plugin::saveTemplates()
                                         query.addBindValue( 0 );
                                         query.addBindValue( 1 );
                                         query.exec();
+                                    }
+                                    if (elem_type =="tImg"){
+                                        tImg =(PicItem* )scene->items().at(j);
+
+                                        query.addBindValue( p_id );
+                                        query.addBindValue( "" );
+                                        query.addBindValue( "" );
+                                        query.addBindValue( tImg->pos().x()  );
+                                        query.addBindValue( tImg->pos().y()  );
+                                        query.addBindValue( ""  );
+                                        query.addBindValue( ""  );
+                                        query.addBindValue( tImg->getAngle() );
+                                        query.addBindValue( 0 );
+
+                                        QPixmap pix = tImg->pixmap();
+                                        QByteArray pixBuf;                                      
+                                        QDataStream out(&pixBuf, QIODevice::WriteOnly );
+                                        out.setVersion(QDataStream::Qt_3_0);
+                                        out << pix;
+
+                                        bool ok;
+                                        query.addBindValue( pixBuf.toInt(&ok,10) );
+
+                                        query.addBindValue( 1 );
+                                        query.addBindValue( 1 );
+                                        query.exec();
+
                                     }
                                 }
                             }else{
@@ -648,9 +678,16 @@ void Tmpl_sql_plugin::fillScenes4Data()
                 QFont font       = variant.value<QFont>();
                 qreal angle      = elemInPageModel->data(elemInPageModel->index(i,VPrn::elem_angle)).toDouble();
                 scene->addBaseElem(tag,text,ps,font,color,angle);
-
             }else{
                 //Читаем картинку из базы
+                qreal angle      = elemInPageModel->data(elemInPageModel->index(i,VPrn::elem_angle)).toDouble();
+/*
+                QPixmap pix = tImg->pixmap();
+                QByteArray pixBuf;
+                QDataStream out(&pixBuf, QIODevice::WriteOnly );
+                out.setVersion(QDataStream::Qt_3_0);
+                out << pix;
+  */
             }
             scene->update();
         }
