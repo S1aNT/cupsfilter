@@ -15,11 +15,9 @@
 
 using namespace VPrn;
 
-
-
 void myMessageOutput(QtMsgType type, const char *msg)
 {
-    QString log = QString ("%1/%2_print_monitor.log").arg(qApp->applicationDirPath(),QDateTime::currentDateTime ().toString("dd.MM.yyyy hh:mm:ss"));
+    QString log = QString ("%1/print_monitor.log").arg( qApp->applicationDirPath() );
     QFile logFile(log);
 
     if (!logFile.open(QFile::Append| QFile::Text)){
