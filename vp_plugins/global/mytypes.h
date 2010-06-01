@@ -271,15 +271,23 @@ typedef QMap <int,QPixmap> PixmapList;
         Ans_TemplateNotFound   = 5101,
         /// @short Ans_SourceDocNotFound - Исходный документ не найден или не верного формата, в теле сообщения подробности
         Ans_SourceDocNotFound  = 5102,
-        /** @short Ans_CreateFormatedDoc - Документ успешно конвертирован,
+
+        /// @short Ans_CreateFormatedDoc - На документ успешно наложен шаблон
+        Ans_CreateFormatedDoc  = 5103,
+
+        /** @short Ans_ConvertFormatedDocToPng - Документ успешно конвертирован в png,
           * в теле сообщения:
             * @li Кол-во файлов
             * @li список путей к файлам изображений стр.
           */
-        Ans_CreateFormatedDoc  = 5103,
+        Ans_ConvertFormatedDocToPng  = 5104,
 
         /// @short Полный документ для печати, в теле сообщения принтер, набор данных
         Que_CreateFormatedFullDocAndPrint = 5200,  /// Сообщение уходит в сеть к демону
+        /**
+          * @short Печать текущего документа,юзер посмотрел его превюшку и нажал на кнопку печать
+          */
+        Que_PrintCurrentFormatedDoc = 5210,
         Ans_PrintFormatedDoc        = 5201,  /// Документ распечатан, ответ от демона
         Ans_PrintFormatedDoc_Error  = 5202,  /// Документ не распечатан, ответ от демона подробности в теле
 
