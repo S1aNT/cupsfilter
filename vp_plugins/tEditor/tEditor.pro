@@ -35,6 +35,7 @@ HEADERS += ../global/pre_header.h \
     ../global/mytextitem.h \
     ../global/editpagesmodel.h \
     ../global/message.h \
+     ../global/picitem.h \
     ../interfaces/itmpl_sql_plugin.h \
     addtemplate.h \
     view.h \
@@ -46,6 +47,7 @@ SOURCES += main.cpp \
     ../global/mytextitem.cpp \
     ../global/editpagesmodel.cpp \
     ../global/message.cpp \
+    ../global/picitem.cpp \
     addtemplate.cpp \
     view.cpp \
     mainwindow.cpp \
