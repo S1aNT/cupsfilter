@@ -35,14 +35,15 @@ PrintMonitor::PrintMonitor(QWidget *parent,const QString &input_file)
     checkData_page = new CheckDataPage(this);
     preview_page   = new PreViewPage(this);
 
+    finish_page    = new FinishPage(this);
+
     setPage ( VPrn::Page_Intro,     intro_page  );
     setPage ( VPrn::Page_Select,    select_page );
 //    setPage(VPrn::Page_SetBrak, setBrak_page);
     setPage ( VPrn::Page_PrintData, printData_page );
     setPage ( VPrn::Page_CheckData, checkData_page );
     setPage ( VPrn::Page_Preview,   preview_page);
-
-    //    setPage(VPrn::Page_Finish,  finish_page);
+    setPage ( VPrn::Page_Finish,  finish_page);
 
     eMsgBox = new QErrorMessage(this);
     setStartId(VPrn::Page_Intro);

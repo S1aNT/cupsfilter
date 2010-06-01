@@ -10,6 +10,7 @@
 #include "printdatapage.h"
 #include "checkdatapage.h"
 #include "previewpage.h"
+#include "finishpage.h"
 
 #include <QtGui/QWizard>
 #include <QtCore/QMap>
@@ -97,6 +98,8 @@ private:
     PrintDataPage        * printData_page;
     CheckDataPage        * checkData_page;
     PreViewPage          * preview_page;
+    FinishPage           * finish_page;
+
     QErrorMessage        * eMsgBox;
     QQueue <QString>       job_list;
 
