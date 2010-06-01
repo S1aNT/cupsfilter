@@ -86,12 +86,12 @@ public:
 
     void doMergeDocWithTemplates (QByteArray field_data,bool preview_mode);
 
-signals:    
-
+    void do_printCurrentDoc();
+signals:
     // Результат наложения шаблона на документ
     void MergeDocWithTemplates( bool flag,const QString &info);
     // список путей к сформированным  страницам предпросмотра
-    void PreviewPages (QByteArray page_list);
+    void PicturesList (QStringList page_list);
     // Список путей уже сформированным документам готовым для печати
     void ReadyForPrintPages(QByteArray page_list);
     // Получено требование завершить работу
@@ -124,16 +124,13 @@ signals:
     void doc_converted();
     // Подсчитали количество страниц
     void getPagesCount (int p_count);
-    // Когда завершенно разбиение страниц испускается соответсвующий сигнал
-    void firstPageSplitted();
-    void otherPageSplitted();
     /**
       * @fn void error(const QString &e_info);
       * @brief При возникновении ошибки, сигнал передает описание ошибки
       * @todo Убрать функции @sa @fn QString lastError() @sa @fn bool isError()
       */
     void error(const QString &e_info);
-public slots:
+
 
 private slots:
     void do_checkPointChanged(MyCheckPoints r_cpoint);

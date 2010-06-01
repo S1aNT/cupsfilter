@@ -137,7 +137,7 @@ void Engine::doMergeDocWithTemplates (QByteArray field_data,bool preview_mode)
 {
     Message msg(this);
     if (preview_mode){
-        msg.setType( VPrn::Que_CreateFormatedFullDoc  );
+        msg.setType( VPrn::Que_CreateFormatedFullDoc );
     }else{
         msg.setType( VPrn::Que_CreateFormatedPartDoc );
     }
@@ -216,6 +216,13 @@ void Engine::afterConnectSteps()
     emit RemoteDemonRegistr();
 }
 
+void Engine::do_printCurrentDoc()
+{
+    Message msg(this);
+    msg.setType( VPrn::Que_PrintCurrentFormatedDoc );
+    sendMessage2LocalSrv( msg );
+}
+
 //-------------------------------- PRIVATE SLOTS -------------------------------
 void Engine::do_checkPointChanged(MyCheckPoints r_cpoint)
 {
@@ -254,7 +261,7 @@ void Engine::do_checkPointChanged(MyCheckPoints r_cpoint)
 
 void Engine::parseMessage(const Message &r_msg)
 {
-    //qDebug() << Q_FUNC_INFO << "Recive message." << "\nType: "  << r_msg.type() << "\nBody: "  << r_msg.messageData();
+    qDebug() << Q_FUNC_INFO << "Recive message." << "\nType: "  << r_msg.type() << "\nBody: "  << r_msg.messageData();
 
     Message msg(this);
     msg.clear();
@@ -275,10 +282,14 @@ void Engine::parseMessage(const Message &r_msg)
         str.append( r_msg.messageData() );
         emit MergeDocWithTemplates( false, str);
         break;
-    case Ans_CreateFormatedDoc:
+    case VPrn::Ans_CreateFormatedDoc:
         emit MergeDocWithTemplates( true,
-             QObject::trUtf8("Применение шаблона к текущему документу, успешно завершено!"));
-        emit PreviewPages( r_msg.messageData() );
+             QObject::trUtf8("Применение шаблона к текущему документу, успешно завершено!"));        
+        break;
+    case VPrn::Ans_ConvertFormatedDocToPng:
+        qDebug() << Q_FUNC_INFO << r_msg.messageDataList() ;
+
+        emit PicturesList( r_msg.messageDataList() );
         break;
     case VPrn::GoodBay:
         str.append(r_msg.messageData());
@@ -319,12 +330,6 @@ void Engine::parseMessage(const Message &r_msg)
         str.append(r_msg.messageData()); // Число страниц в str
         pCnt = str.toInt();
         emit getPagesCount(pCnt);
-        break;
-    case VPrn::Ans_PageSplittedFirst:
-        emit firstPageSplitted();
-        break;
-    case VPrn::Ans_PageSplittedOther:
-        emit otherPageSplitted();
         break;
     case VPrn::Ans_PRINTER_LIST:
         str.append(r_msg.messageData());
