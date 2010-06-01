@@ -83,6 +83,7 @@ CheckDataPage::CheckDataPage(QWidget *parent)
     registerField("checkCorrectMB*",checkCorrectMB);
     registerField("checkMergeDocWithTemplates*",checkMergeDocWithTemplates);
     registerField("authUserToPrinter*",authUserToPrinter);
+
     connect (printWithoutPreview,SIGNAL(toggled(bool)),
              this, SLOT ( startMergedDoc4Print(bool) )
              );
@@ -147,5 +148,3 @@ void CheckDataPage::startMergedDoc4Print(bool status)
         enablePreviewButton(false);
     }
 }
-
-
