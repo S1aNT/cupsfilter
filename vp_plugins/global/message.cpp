@@ -36,9 +36,9 @@ void Message::setMessageData( const QByteArray &m_data )
 
 void Message::setMessageData( QStringList &m_list )
 {
-    if (!m_list.isEmpty()) {
-        msgData.clear();
+    if (!m_list.isEmpty()) {        
         QDataStream out(&msgData, QIODevice::WriteOnly );
+        out.setVersion(QDataStream::Qt_3_0);
         out << m_list;
     }
 }
@@ -46,6 +46,16 @@ void Message::setMessageData( QStringList &m_list )
 QByteArray Message::messageData() const
 {
     return msgData;
+}
+
+
+QStringList Message::messageDataList() const
+{
+    QStringList list;
+    QDataStream in( msgData );
+    in.setVersion(QDataStream::Qt_3_0);
+    in >> list;
+    return list;
 }
 
 void Message::clear()
