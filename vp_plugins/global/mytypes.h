@@ -286,6 +286,7 @@ typedef QMap <int,QPixmap> PixmapList;
         Que_CreateFormatedFullDocAndPrint = 5200,  /// Сообщение уходит в сеть к демону
         /**
           * @short Печать текущего документа,юзер посмотрел его превюшку и нажал на кнопку печать
+          * В теле сообщения указан выбранный пользователем принтер
           */
         Que_PrintCurrentFormatedDoc = 5210,
         Ans_PrintFormatedDoc        = 5201,  /// Документ распечатан, ответ от демона
