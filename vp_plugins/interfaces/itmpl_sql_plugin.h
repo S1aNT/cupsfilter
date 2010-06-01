@@ -51,6 +51,7 @@ public:
     virtual bool isDBConnected () =0 ;
 
     virtual void doAddBaseElementToPage(int page,const QString &text) = 0;
+    virtual void doAddImgElementToPage(int page,const QString &file_name) =0;
     virtual void convert2Pdf() = 0;
     virtual void setUserName (const QString &user) = 0;
     virtual void setViewMode () =0 ;
