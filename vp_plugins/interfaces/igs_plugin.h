@@ -31,6 +31,7 @@ public:
     virtual void deleteClientData(const QString &client_uuid) = 0;
     virtual void setConvertToPngMode(const QString &client_uuid, bool full_doc ) = 0;
     virtual QStringList findFiles(const QString &client_uuid,const QStringList &filters) = 0;
+    virtual QString getUuid() const = 0;
 //    virtual void createFormatedDoc(const QString &client_uuid,
 //                                   const QByteArray r_data) =0;
 };
