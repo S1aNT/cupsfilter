@@ -7,5 +7,9 @@
         <file alias="set_date.png">../images/label_64.png</file>
         <file alias="gears.png">../images/gear_64.png</file>
         <file alias="set_brak.png">../images/pencil_64.png</file>
+        <file alias="zoomin.xpm">../images/zoomminus.xpm</file>
+        <file alias="zoomout.xpm">../images/zoomplus.xpm</file>
+        <file alias="zoomtofit.xpm">../images/zoomtofit.xpm</file>
+        <file alias="zoomtofull.xpm">../images/original.xpm</file>
     </qresource>
 </RCC>
