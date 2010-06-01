@@ -46,7 +46,8 @@ HEADERS += ../global/mytypes.h \
     selectpage.h \
     printdatapage.h \
     checkdatapage.h \
-    previewpage.h 
+    previewpage.h  \
+    viewport.h
 SOURCES += main.cpp \
     ../global/message.cpp \
     ../global/mysocketclient.cpp \
@@ -58,7 +59,8 @@ SOURCES += main.cpp \
     selectpage.cpp \
     printdatapage.cpp \
     checkdatapage.cpp \
-    previewpage.cpp
+    previewpage.cpp \
+    viewport.cpp    
 RESOURCES = images.qrc
 FORMS += getusernamemandatdlg.ui
 TRANSLATIONS = print_monitor_ru.ts
