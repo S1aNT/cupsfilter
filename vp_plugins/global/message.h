@@ -7,6 +7,8 @@
 #include "mytypes.h"
 
 #include <QObject>
+#include <QStringList>
+
 #include <QtCore/QByteArray>
 
 using namespace VPrn;
@@ -16,11 +18,7 @@ using namespace VPrn;
 class Message : public QObject
 {
     Q_OBJECT
-    Q_ENUMS   ( MessageType )
-    Q_PROPERTY( MessageType type READ type WRITE setType SCRIPTABLE true USER true )
-    //Q_PROPERTY( int parts READ parts WRITE setNumberOfParts SCRIPTABLE false USER true )
-    Q_PROPERTY( QByteArray messageData READ messageData SCRIPTABLE true USER true )
-
+    Q_ENUMS   ( VPrn::MessageType )
 public:
     explicit Message(QObject *parent = 0);
     /**
@@ -57,12 +55,14 @@ public:
     void setMessageData( const QByteArray &m_data );
 
     void setMessageData( QStringList &m_list );
+
     /**
-     * @brief messageData свойство: Возвращает данные подготовленные для пересылки
+     * @brief Возвращает данные подготовленные для пересылки
      * @return QByteArray
      */
     QByteArray messageData() const;
 
+    QStringList messageDataList() const;
     /**
      * @brief type property: Getter
      * @return MessageType
