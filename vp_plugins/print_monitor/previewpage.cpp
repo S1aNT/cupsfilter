@@ -15,8 +15,9 @@ PreViewPage::PreViewPage(QWidget *parent)
     ,thumbSize(100,100)
 {
     checkPicturesList    = new QCheckBox( this );
+    checkPicturesList->setText(QObject::trUtf8("pic list "));
     checkPicturesList->setEnabled( false );
-    checkPicturesList->hide();
+    //checkPicturesList->hide();
 
     setTitle(QObject::trUtf8("Предварительный просмотр сформированного документа."));
 
@@ -96,7 +97,7 @@ PreViewPage::PreViewPage(QWidget *parent)
 
 
     QVBoxLayout *layout = new QVBoxLayout;
-
+    layout->addWidget ( checkPicturesList);
     layout->addWidget ( mainSplitter);
 
     setLayout(layout);
@@ -125,7 +126,7 @@ PreViewPage::PreViewPage(QWidget *parent)
 void PreViewPage::showPicturesList(QStringList png_list)
 {
     if (png_list.size() >0 ){
-       checkPicturesList->setEnabled(true);
+       checkPicturesList->setChecked(true);
        // сформируем изображения
        QPixmap img_item;
        for (int i = 0; i < png_list.size(); ++i){
