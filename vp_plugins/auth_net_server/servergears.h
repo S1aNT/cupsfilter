@@ -31,11 +31,7 @@ public:
 
     QString lastError() const {return e_info;}
     MyCheckPoints checkPoints() const;
-    /**
-      * @fn QString getUuid() const;
-      * @brief Генерирует иникальный номер, преобразет его в строку и возвращает
-      */
-    QString getUuid() const;
+
     /**
       * @fn void setAuthData(const QString &userName = QString(),const QString &userMandat = QString());
       * @brief Сохранение данных пользователея Имя и Мандат
@@ -128,10 +124,16 @@ private slots:
       */
     void do_docReady4print (const QString &client_uuid);
     /**
-      * @fn   Плагин gs_plugin преобразовал подготовленные к печати экз документа в png картинки с
+      * @fn void do_docReady4preview (const QString &client_uuid);
+      * @brief Плагин gs_plugin преобразовал подготовленные к печати экз документа в png картинки с
       * выбранной пользователем глубиной детализации, только первые листы или весь документ
       */
     void do_docReady4preview (const QString &client_uuid);
+    /**
+      * @fn void do_docConvertedToPdf(const QString &client_uuid);
+      * @brief Плагин gs_plugin преобразовал документ из ps в pdf
+      */
+    void do_docConvertedToPdf(const QString &client_uuid);
 private:
     /**
       * @var m_serverName;     Имя локального сервера для общения с Локальным миром
@@ -170,6 +172,12 @@ private:
     QMap<QLocalSocket *,QString> clients_name;
 ;
 //-----------------------------------------------------------------------------
+    /**
+      * @fn void printCurrentDoc(const QString &client_uuid);
+      * @brief Печать текущего сформированнного документа
+      */
+    void printCurrentFormatedDoc(const QString &client_uuid);
+
     /**
       * @fn void createFormatedDoc(const QString &client_uuid,bool full_doc,QByteArray data);
       * @brief Формирует документ, готовит pdf из шаблона, объединяет их с документом
