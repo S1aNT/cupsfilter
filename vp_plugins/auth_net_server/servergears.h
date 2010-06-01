@@ -86,15 +86,7 @@ private slots:
       * @brief Обработка сообщения полученного из сети
       */
     void reciveNetworkMessage(const Message &r_msg);
-    /**
-      * @fn void doJobFinish(const QString &m_uuid,VPrn::Jobs job_id,int code ,const QString &outpu);
-      * @brief Обработчик сообщений от потока внешних приложений
-      * Плагин @sa gs_plugin Запускает на каждое ресурсоемкое и
-      * продолжительное действие отдельный поток обработки, который сигнализирует
-      * о завершении своей работы, возвращая job_id завершенного задания
-      */
-    void doJobFinish(const QString &m_uuid,VPrn::Jobs job_id,int code ,const QString &output);
-    /**
+     /**
       * @fn void client_init();
       * @brief При подключении нового клиента заполняеет список клиентов,
       * присвает этому клиенту уникалный индетификатор, настраивает сигналы и слоты
@@ -173,10 +165,10 @@ private:
 ;
 //-----------------------------------------------------------------------------
     /**
-      * @fn void printCurrentDoc(const QString &client_uuid);
+      * @fn void printCurrentDoc(const QString &client_uuid,const QString &printer);
       * @brief Печать текущего сформированнного документа
       */
-    void printCurrentFormatedDoc(const QString &client_uuid);
+    void printCurrentFormatedDoc(const QString &client_uuid,const QString &printer);
 
     /**
       * @fn void createFormatedDoc(const QString &client_uuid,bool full_doc,QByteArray data);

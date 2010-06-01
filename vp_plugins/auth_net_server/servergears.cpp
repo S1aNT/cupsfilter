@@ -300,43 +300,6 @@ void serverGears::reciveNetworkMessage(const Message &r_msg)
     }
 }
 
-void serverGears::doJobFinish(const QString &m_uuid, VPrn::Jobs job_id,int code
-                              ,const QString &output)
-{
-
-    Message loc_msg(this);
-    QLocalSocket *client(0);
-    // По UUID определим какому клиенту надо было это сообщение
-    client = findClient(m_uuid);
-    /*
-    if (client){
-        // Жив еще голубчик так уж и быть вернем ему результаты,рабского труда
-        if (code !=0){
-            // Рабский поток, умер от непосильного труда, посмертное сообщение в output
-            loc_msg.setType(VPrn:: Err_Message);
-            loc_msg.setMessageData( output.toUtf8() );
-        }else{
-            switch(job_id){
-            case VPrn::job_ConvertPs2Pdf:
-                loc_msg.setType(VPrn::Ans_Convert2PdfFinish);
-                break;
-            case VPrn::job_CalcPageCount:
-                loc_msg.setType(VPrn::Ans_PageCounting);
-                loc_msg.setMessageData( output.toUtf8() );  // число страниц в документе
-                break;
-            case VPrn::job_SplitPageFirst:
-                loc_msg.setType(VPrn::Ans_PageSplittedFirst);
-                break;
-            case VPrn::job_SplitPageOther:
-                loc_msg.setType(VPrn::Ans_PageSplittedOther);
-                break;
-            }
-        }
-        // Запись в локальный слот клиенту
-        sendMessage(loc_msg,client);
-    }
-    */
-}
 
 void serverGears::client_init()
 {
@@ -373,19 +336,16 @@ void serverGears::disconnected()
     clients.remove(client);
     clients_uuid.remove(client);
     clients_name.remove(client);
-    //foreach(QLocalSocket *client, clients){
-    // Оповестим тех кто заинтересован в том что клиент отвалился
-    //client->write(QString("Server:" + user + " has left.\n").toUtf8());
-    //}
+
     setCheckPoint(VPrn::loc_Disconnected);
     //Потребуем  от сервера удалить все файлы, которые создавали в интересах клиента
-
     emit clearClientSpool( c_uuid );
+
     // Проверка что еще остались бойцы
-    if (clients.isEmpty()){
-        //Нет ни одного подключенного клиента, заканчиваем работу
-        //setCheckPoint(VPrn::loc_NeedShutdown);
-    }
+    //if (clients.isEmpty()){
+    //Нет ни одного подключенного клиента, заканчиваем работу
+    //setCheckPoint(VPrn::loc_NeedShutdown);
+    //}
 }
 //-------------------------- PRIVATE -------------------------------------------
 void serverGears::setError(const QString &info)
@@ -507,7 +467,9 @@ void serverGears::parseMessage( const Message &m_msg, const QString &c_uuid)
             //  и распечатка его
             break;
        case VPrn::Que_PrintCurrentFormatedDoc:
-            printCurrentFormatedDoc(c_uuid);
+            str.append(m_msg.messageData());
+
+            printCurrentFormatedDoc(c_uuid,str);
             break;
        case VPrn::Que_Register:
             /// Клиент только подключился, в теле сообщения его самоназвание запомним его
@@ -633,7 +595,6 @@ QLocalSocket *serverGears::findClient(const QString &c_uuid)
     return client;
 }
 
-
 void serverGears::do_docConvertedToPdf(const QString &client_uuid)
 {
     QLocalSocket *client(0);
@@ -750,7 +711,8 @@ void serverGears::createFormatedDoc(const QString &client_uuid,bool full_doc,QBy
     }
 }
 
-void serverGears::printCurrentFormatedDoc(const QString &client_uuid)
+void serverGears::printCurrentFormatedDoc(const QString &client_uuid,
+                                          const QString &printer)
 {
     // Документ готов к  печати
     // Обработали все файлы надо пройти по всем каталогам и собрать *_out.pdf
@@ -758,7 +720,6 @@ void serverGears::printCurrentFormatedDoc(const QString &client_uuid)
     if (gs_plugin ){
         QStringList files = gs_plugin->findFiles(client_uuid,QStringList()
                                                  << "*out.pdf" << "*OUT.PDF");
-
         for (int i=1;i<6;i++){
             QString firstpage;
             QString otherpage;
@@ -793,21 +754,25 @@ void serverGears::printCurrentFormatedDoc(const QString &client_uuid)
                 }
             }
             // Получили группу файлов теперь отправляем на печать
-            if (! firstpage.isEmpty() && !overside.isEmpty() && !lastpage.isEmpty()){
-                gs_plugin->print2devide(client_uuid,firstpage,QString("PDF"),false);
+            if (!firstpage.isEmpty() ){
+                //Первая страница всегда есть
+                gs_plugin->print2devide(client_uuid,firstpage,printer,false);
 
                 if (!otherpage.isEmpty()){
-                    gs_plugin->print2devide(client_uuid,otherpage,QString("PDF"),false);
+                    gs_plugin->print2devide(client_uuid,otherpage,printer,false);
                 }
-
                 QMessageBox msgBox;
                 QPushButton *nextButton = msgBox.addButton(QObject::trUtf8("Дальше"), QMessageBox::ActionRole);
                 msgBox.setText(QString("После окончания печати лицевой стороны %1 экземпляра документа,\nПереверните листы и нажмите кнопку Дальше.")
                                .arg(i,0,10 ));
                 msgBox.exec();
                 if (msgBox.clickedButton() == nextButton) {
-                    gs_plugin->print2devide(client_uuid,overside,QString("PDF"),true);
-                    gs_plugin->print2devide(client_uuid,lastpage,QString("PDF"),false);
+                    if (!overside.isEmpty()){
+                        gs_plugin->print2devide(client_uuid,overside,printer,true);
+                    }
+                    if (!lastpage.isEmpty()){
+                        gs_plugin->print2devide(client_uuid,lastpage,printer,false);
+                    }
                 }
             }
         }
