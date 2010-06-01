@@ -86,10 +86,6 @@ public slots:
      * @brief Заполняет поле число страниц
     */
     void setPageCounted(int pages);
-
-
-    void on_firstPageSplitted();
-    void on_otherPageSplitted();
 private slots:
 
     void setStamp     (const QString & s){select_stamp = s;}

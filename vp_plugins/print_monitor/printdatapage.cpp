@@ -14,9 +14,11 @@
 #include <QtGui/QSpinBox>
 #include <QtGui/QDateEdit>
 #include <QtGui/QMessageBox>
+
 #include <QtCore/QByteArray>
 #include <QtCore/QDataStream>
 #include <QtCore/QHash>
+#include <QtCore/QPair>
 
 PrintDataPage::PrintDataPage(QWidget *parent)
     : QWizardPage(parent)
@@ -26,10 +28,8 @@ PrintDataPage::PrintDataPage(QWidget *parent)
 {
     // Скрытые чекбоксы
     docConverted_checkBox = new QCheckBox(this);
-    docSplitted_checkBox = new QCheckBox(this);
-
     docConverted_checkBox->hide();
-    docSplitted_checkBox->hide();
+
 
     //this->resize(800,600);
     setTitle(QObject::trUtf8("Режим работы:"));
@@ -266,7 +266,6 @@ PrintDataPage::PrintDataPage(QWidget *parent)
     //Автоматически заполянямые поля
     registerField("pagesCountLineEd*",  pagesCountLineEd);
     registerField("docConverted_checkBox*",docConverted_checkBox);
-    registerField("docSplitted_checkBox*",docSplitted_checkBox);
 
     connector();
     this->setCommitPage(true);
@@ -280,16 +279,7 @@ void  PrintDataPage::setModel ( QStandardItemModel *model)
     //templatesCBox->setCurrentIndex(-1);
 }
 
-void PrintDataPage::setPageSpit()
-{
-    if ((doc_pages_count == 1 && first_split ) ||
-        (doc_pages_count >  1 && first_split && other_split  )){
-        docSplitted_checkBox->setChecked(true);
-        //QMessageBox msgbox;
-        //msgbox.setText(QObject::trUtf8("Предпечатное разбиение документа на группы стр. завершенно!"));
-        //msgbox.exec();
-    }
-}
+
 
 void PrintDataPage::setLabelText(const QString &l_txt)
 {
@@ -402,8 +392,6 @@ void PrintDataPage::setMode(int m_mode)
     }
 }
 
-
-
 QString PrintDataPage::getSQL_mb_check() const
 {
     QString query;
@@ -485,10 +473,8 @@ QByteArray PrintDataPage::getAllFieldData()
     // Заполним его в формате ключ-значение
     QDataStream out(&fields_data, QIODevice::WriteOnly );
     out.setVersion(QDataStream::Qt_3_0);
-    //Запишем выбранный пользователем экземпляр
-    out << cur_copyes;
-    // Запишем всего экземпляров
-    out << all_copyes;
+    //Запишем пару выбранный пользователем экземпляр,всего экземпляров
+    out << qMakePair(cur_copyes,all_copyes);
 
     // Запишем выбранный пользователем шаблон
     if (t_fileName.isEmpty()){
@@ -510,31 +496,15 @@ void PrintDataPage::setSecList(const QStringList &s_list)
 }
 
 
-
 void PrintDataPage::setDocConverted()
 {
-    docConverted_checkBox->setChecked(true);
-    QMessageBox msgbox;
-    msgbox.setText(QObject::trUtf8("Предпечатное преобразование документа завершенно!"));
-    msgbox.exec();
+    docConverted_checkBox->setChecked(true);  
 }
 
 void PrintDataPage::setPageCounted(int pages)
 {
     doc_pages_count = pages;
-    pagesCountLineEd->setText(QObject::trUtf8("%1 листов.").arg(pages,0,10));
-}
-
-void PrintDataPage::on_firstPageSplitted()
-{
-    first_split = true;
-    setPageSpit();
-}
-
-void PrintDataPage::on_otherPageSplitted()
-{
-    other_split = true;
-    setPageSpit();
+    pagesCountLineEd->setText(QObject::trUtf8("%1 стр.").arg(pages,0,10));
 }
 
 //-------------------------------- PRIVATE FUNCTIONS ---------------------------
