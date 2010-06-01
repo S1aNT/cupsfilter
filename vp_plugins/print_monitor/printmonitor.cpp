@@ -24,13 +24,6 @@
 #include <QtGui/QPixmap>
 #include <QtGui/QBrush>
 
-#define  BUGSHUNTER_NO
-
-#if defined(BUGSHUNTER)
-
-#include <QTableView>
-
-#endif
 
 PrintMonitor::PrintMonitor(QWidget *parent,const QString &input_file)
     : QWizard(parent)
@@ -53,6 +46,7 @@ PrintMonitor::PrintMonitor(QWidget *parent,const QString &input_file)
 
     eMsgBox = new QErrorMessage(this);
     setStartId(VPrn::Page_Intro);
+    //setStartId(VPrn::Page_Preview);
 #ifndef Q_WS_MAC
     setWizardStyle(ModernStyle);
 #endif
@@ -126,23 +120,14 @@ PrintMonitor::PrintMonitor(QWidget *parent,const QString &input_file)
     connect(core_app,       SIGNAL( doc_converted ()),
             printData_page, SLOT  ( setDocConverted())
             );
+    // Подсчет числа страниц автоматически означает что документ разбит на частиы
     connect(core_app,       SIGNAL( getPagesCount  (int)),
             printData_page, SLOT  ( setPageCounted (int))
-            );
-    connect(core_app,       SIGNAL( firstPageSplitted()),
-            printData_page, SLOT  ( on_firstPageSplitted())
-            );
-    connect(core_app,       SIGNAL( otherPageSplitted()),
-            printData_page, SLOT  ( on_otherPageSplitted())
             );
     connect(printData_page, SIGNAL( field_checked()),
             this,           SLOT  ( check_docMB())
             );
-    connect(printData_page, SIGNAL( templatesChanged(int) ),
-            core_app,       SLOT  ( findTemplatesFilePathInModel(int) )
-            );
-
-    connect (core_app,      SIGNAL( authToDevice(bool,QString) ),
+   connect (core_app,      SIGNAL( authToDevice(bool,QString) ),
              checkData_page,SLOT  ( setAuthCheck(bool,QString) )
              );
     connect (core_app,      SIGNAL( needRegisterDocInBase() ),
@@ -160,18 +145,19 @@ PrintMonitor::PrintMonitor(QWidget *parent,const QString &input_file)
     connect(core_app,       SIGNAL( MergeDocWithTemplates(bool,QString) ),
             checkData_page, SLOT  ( setCheckMergeDocWithTemplates(bool,QString))
             );
+    connect (core_app,      SIGNAL( PicturesList(QStringList ) ),
+             preview_page,  SLOT  ( showPicturesList(QStringList ))
+             );
+
+    connect (preview_page,  SIGNAL( printCurrentDoc() ),
+             core_app,      SLOT  ( do_printcurrentDoc() )
+             );
+
     core_app->init();
 
     // свяжем модель метаинформации о шаблоне и ее основного потребителя
     printData_page->setModel( core_app->getInfoModel() );
 
-#if defined(BUGSHUNTER)
-    //!!!!!!!!!!!!!!!!!!!!!!!!!
-     QTableView *tableWidget = new QTableView();
-     tableWidget->setModel(core_app->getInfoModel());
-     tableWidget->show();
-    //!!!!!!!!!!!!!!!!!!!!!!!!!
-#endif
 }
 
 void PrintMonitor::appendStartMsg(const QString &start_msg)
@@ -194,6 +180,7 @@ void PrintMonitor::onGoodBayMsg(const QString &shutdown_info)
         QTimer::singleShot(500,qApp,SLOT(quit()));
     }
 }
+
 void PrintMonitor::do_needAuthUser(const QString &login_mandat_list)
 {
     QRegExp rx("\\[(.+)\\];:;(.+)");
@@ -245,9 +232,6 @@ void PrintMonitor::showHelp()
 
 void PrintMonitor::sendFileToConvertor()
 {
-#if defined (MY_DEBUG)
-    QString  test = job_list.head();
-#endif
     if (field("inputFile").toBool() &&
         job_list.head() != "nothing"){
         core_app->prepareFileToPrint(job_list.dequeue());
@@ -275,8 +259,6 @@ void PrintMonitor::onSelectPreview(bool mode)
     core_app->doMergeDocWithTemplates(printData_page->getAllFieldData(),mode );
 }
 
-
-
 //------------------------------- PRVATE ---------------------------------------
 QPoint PrintMonitor::getDeskTopCenter(int width,int height)
 {
@@ -290,69 +272,3 @@ QPoint PrintMonitor::getDeskTopCenter(int width,int height)
     centerWindow.setY(centerWindow.y() - (height/2));
     return centerWindow;
 }
-
-/*
-int PrintMonitor::nextId() const
-{
-
-    int rez = VPrn::Page_Intro;
-
-    switch (currentId()) {
-    case VPrn::Page_Intro:
-        if (field("connect2LocalServer").toBool() &&
-            field("connect2RemoteDemon").toBool() &&
-            field("reciveUserName").toBool() &&
-            field("reciveUserMandat").toBool() &&
-            field("reciveSecLabel").toBool() &&
-            field("recivePrintersList").toBool()){
-            rez =  VPrn::Page_Select;
-        } else {
-            rez = VPrn::Page_Intro;
-        }
-        break;
-
-    case VPrn::Page_Select:
-        if (field("markBrakDoc").toBool()){
-            rez =  VPrn::Page_SetBrak;
-        }else{
-            if (field("accountingDoc").toBool()){
-                printData_page->setLabelText(QObject::trUtf8("Учет документа в БД"));
-                rez = VPrn::Page_PrintData;
-                printData_page->setMode(0);
-            }else {
-                if (field("printDoc").toBool() ){
-                    printData_page->setLabelText(QObject::trUtf8("Печать документа на учтенных листах"));
-                    printData_page->setMode(1);
-                    rez = VPrn::Page_PrintData;
-                }else{
-                    if (field("both_step").toBool()){
-                        printData_page->setLabelText(QObject::trUtf8("Печать документа на учтенных листах, с автоматическим учетом в БД"));
-                        printData_page->setMode(2);
-                        rez = VPrn::Page_PrintData;
-                    }else{
-                        rez = VPrn::Page_Select;
-                    }
-                }
-            }
-
-        }
-        break;
-    case VPrn::Page_PrintData:
-        if (printData_page->validator()){
-            rez = VPrn::Page_CheckData;
-        }else{
-            rez = VPrn::Page_PrintData;
-        }
-
-
-        break;
-    case VPrn::Page_CheckData:
-        //checkData_page->initializePage();
-
-        break;
-    }
-
-    return rez;
-
-}
-*/

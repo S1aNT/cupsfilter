@@ -17,11 +17,6 @@
 
 using namespace VPrn;
 
-//namespace Ui {
-//    class PrintMonitor;
-//
-//}
-
 class QPoint;
 class QErrorMessage;
 
@@ -83,7 +78,7 @@ private slots:
 
 
 private:
-    //    Ui::PrintMonitor *ui;
+
     /**
       * @var core_app;       Основной объект программы
       * @var UMDlg;          Диалоговое окно выбора мандата
@@ -104,7 +99,6 @@ private:
     PreViewPage          * preview_page;
     QErrorMessage        * eMsgBox;
     QQueue <QString>       job_list;
-
 
     //-------------------------------------------------------------------------
     QPoint getDeskTopCenter(int width,int height);
