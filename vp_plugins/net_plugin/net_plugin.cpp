@@ -162,7 +162,7 @@ void net_plugin::sendMessage(const Message &s_msg)
             str.clear();
             if (r == 0){
                 loc_msg.setType(VPrn::Ans_PRINTER_LIST);
-                str = QObject::trUtf8("[%1];:;SL9PRT.DDDD;:;socket://200.0.0.100:9100/?waitof=false###;:;SL9PRT.NEW;:;socket://200.0.0.100:9100/###")
+                str = QObject::trUtf8("[%1];:;SL9PRT.DDDD;:;socket://200.0.0.100:9100/?waitof=false###;:;SL9PRT.PDF;:;socket://200.0.0.100:9100/###")
                       .arg(m_uuid);
 
             }else{
