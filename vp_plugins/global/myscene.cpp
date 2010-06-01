@@ -103,10 +103,12 @@ QGraphicsItem * myScene::getPaperItem()
  {
 
      QPixmap pixmap(file_name);
+     pixmap.fill(Qt::transparent);
 
      PicItem *Item;
 
      Item = new PicItem(pixmap);
+     Item->setData(ObjectName, "tImg");
 
      Item->setZValue(100);
      Item->setFlags(QGraphicsItem::ItemIsMovable |
@@ -114,7 +116,7 @@ QGraphicsItem * myScene::getPaperItem()
                     QGraphicsItem::ItemIsFocusable);
      Item->setOffset(-0.5*QPointF(pixmap.width(), pixmap.height()));
      Item->setTransformationMode(Qt::SmoothTransformation);
-Item->setParentItem(this->getPaperItem());
+     Item->setParentItem(this->getPaperItem());
 
  }
 
