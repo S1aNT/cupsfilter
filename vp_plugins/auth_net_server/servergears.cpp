@@ -725,7 +725,7 @@ void serverGears::createFormatedDoc(const QString &client_uuid,bool full_doc,QBy
     bool Ok = true;
     {
         if (copy_count.first == 0  && copy_count.second == 5){
-            for (int i=1; i<5;i++){
+            for (int i=1; i<6;i++){
                 m_tagValue[QObject::trUtf8("Номер экз.")] = QString("%1").arg(i,0,10);
                 // Формируем страницы шаблона в pdf
                 Ok &= tmpl_plugin->prepare_template(client_uuid,t_fileName, m_tagValue,i);
@@ -759,7 +759,7 @@ void serverGears::printCurrentFormatedDoc(const QString &client_uuid)
         QStringList files = gs_plugin->findFiles(client_uuid,QStringList()
                                                  << "*out.pdf" << "*OUT.PDF");
 
-        for (int i=1;i<5;i++){
+        for (int i=1;i<6;i++){
             QString firstpage;
             QString otherpage;
             QString overside;
