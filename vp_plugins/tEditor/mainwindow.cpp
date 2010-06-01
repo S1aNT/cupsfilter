@@ -163,6 +163,11 @@ void MainWindow::loadPlugins()
                         plugin,
                         SLOT(doAddBaseElementToPage(int,const QString &))
                         );
+                connect(this,
+                        SIGNAL(addImgElementToPage(int,const QString &)),
+                        plugin,
+                        SLOT(doAddImgElementToPage(int,const QString &))
+                        );
                 connect (plugin,
                          SIGNAL(allTemplatesPagesParsed()),
                          this,
