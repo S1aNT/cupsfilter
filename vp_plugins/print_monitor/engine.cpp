@@ -113,7 +113,8 @@ void Engine::authUserToPrinter(const QString &printer_uri)
     // Запись в сокет сообщения запрос авторизации пользователя на доступ к ресурсу
     Message msg(this);
     msg.setType( VPrn::Que_AUTHOR_USER  );
-    msg.setMessageData( findPrinterInDeviceURIList(printer_uri).toUtf8() ); // Пробразуем в QByteArray
+    currentSelectPrinter = findPrinterInDeviceURIList(printer_uri);
+    msg.setMessageData( currentSelectPrinter.toUtf8() ); // Пробразуем в QByteArray
     sendMessage2LocalSrv(msg);
 }
 
@@ -218,10 +219,14 @@ void Engine::afterConnectSteps()
 
 void Engine::do_printCurrentDoc()
 {
+    qDebug() << "Send message VPrn::Que_PrintCurrentFormatedDoc, printer " 
+             << currentSelectPrinter;
     Message msg(this);
     msg.setType( VPrn::Que_PrintCurrentFormatedDoc );
+    msg.setMessageData ( currentSelectPrinter.toUtf8() );
     sendMessage2LocalSrv( msg );
 }
+
 
 //-------------------------------- PRIVATE SLOTS -------------------------------
 void Engine::do_checkPointChanged(MyCheckPoints r_cpoint)

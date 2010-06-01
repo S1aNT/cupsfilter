@@ -87,6 +87,7 @@ public:
     void doMergeDocWithTemplates (QByteArray field_data,bool preview_mode);
 
     void do_printCurrentDoc();
+
 signals:
     // Результат наложения шаблона на документ
     void MergeDocWithTemplates( bool flag,const QString &info);
@@ -130,8 +131,7 @@ signals:
       * @todo Убрать функции @sa @fn QString lastError() @sa @fn bool isError()
       */
     void error(const QString &e_info);
-
-
+	
 private slots:
     void do_checkPointChanged(MyCheckPoints r_cpoint);
     /**
@@ -187,6 +187,7 @@ private:
     QString          client_uuid;
     QString          currentUserName;
     QString          currentUserMandat;
+    QString          currentSelectPrinter; // Текущий выбранный пользователем принтер
     TemplatesInfo    *tInfo;
     QStringList            secLevelList;
     QMap <QString,QString> printer_device_list;
