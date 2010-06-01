@@ -1,9 +1,10 @@
 #include "selectpage.h"
 
 #include <QtGui/QLabel>
-#include <QtGui/QCheckBox>
 #include <QtGui/QVBoxLayout>
 #include <QtGui/QComboBox>
+#include <QtGui/QRadioButton>
+
 
 SelectPage::SelectPage(QWidget *parent)
     : QWizardPage(parent)
@@ -61,3 +62,19 @@ void SelectPage::setPrinterList(QStringList &pList)
     printersCBox->setCurrentIndex(-1);
 }
 
+int SelectPage::nextId() const
+ {
+     if (markBrakDoc->isChecked()) {
+         //return VPrn::Page_PrintData;
+     }
+     if (accountingDoc->isChecked() ){
+         return VPrn::Page_PrintData;
+     }
+     if (printDoc->isChecked() ){
+         return VPrn::Page_PrintData;
+     }
+     if (both_step->isChecked() ){
+         return VPrn::Page_PrintData;
+     }
+
+ }

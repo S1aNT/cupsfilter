@@ -22,6 +22,8 @@ public:
     SelectPage(QWidget *parent = 0);
 
     QString getSeclectPrinter(){return sel_printer;}
+    int nextId() const;
+
 public slots:
     void setPrinterList(QStringList &pList);
 private slots:
