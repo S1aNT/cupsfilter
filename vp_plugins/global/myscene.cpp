@@ -1,5 +1,7 @@
 #include "myscene.h"
 #include "mytextitem.h"
+#include "picitem.h"
+
 #include "commands.h"
 #include "mytypes.h"
 
@@ -97,11 +99,28 @@ QGraphicsItem * myScene::getPaperItem()
 }
 
 
+ void myScene::AddImgElement(const QString & file_name)
+ {
+
+     QPixmap pixmap(file_name);
+
+     PicItem *Item;
+
+     Item = new PicItem(pixmap);
+
+     Item->setZValue(100);
+     Item->setFlags(QGraphicsItem::ItemIsMovable |
+                    QGraphicsItem::ItemIsSelectable |
+                    QGraphicsItem::ItemIsFocusable);
+     Item->setOffset(-0.5*QPointF(pixmap.width(), pixmap.height()));
+     Item->setTransformationMode(Qt::SmoothTransformation);
+Item->setParentItem(this->getPaperItem());
+
+ }
+
 void myScene::addBaseElem(const QString &tag,const QString &text,const QPointF &ps,
                           const QFont &fnt,const QColor &col,const qreal m_angle)
 {
-
-
     myTextItem * pItem = new myTextItem(this->getPaperItem());
 
     pItem->setPos(ps);

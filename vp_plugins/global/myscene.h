@@ -67,6 +67,7 @@ public slots:
                      const QFont   &fnt = QFont("Times", 14, QFont::Bold),
                      const QColor  &col = Qt::black,
                      const qreal   m_angle = 0);
+    void AddImgElement(const QString & file_name);
 
 private:
     /**
