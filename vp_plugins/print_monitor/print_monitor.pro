@@ -47,6 +47,7 @@ HEADERS += ../global/mytypes.h \
     printdatapage.h \
     checkdatapage.h \
     previewpage.h  \
+    finishpage.h \
     viewport.h
 SOURCES += main.cpp \
     ../global/message.cpp \
@@ -60,6 +61,7 @@ SOURCES += main.cpp \
     printdatapage.cpp \
     checkdatapage.cpp \
     previewpage.cpp \
+    finishpage.cpp \
     viewport.cpp    
 RESOURCES = images.qrc
 FORMS += getusernamemandatdlg.ui
