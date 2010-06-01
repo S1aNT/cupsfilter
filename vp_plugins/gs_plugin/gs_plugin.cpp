@@ -220,7 +220,7 @@ void GS_plugin::convertPdfToPng(const QString &client_uuid,
 
     if (files.size() == 0){
         emit error (VPrn::InternalPluginError,
-                    QObject::trUtf8("Ошибка при подготовке шаблона!")     );
+                    QObject::trUtf8("Ошибка при поиске файлов для преобразования, ничего не найденно !")     );
         return;
     }
     if (c_data){
@@ -242,7 +242,9 @@ void GS_plugin::convertPdfToPng(const QString &client_uuid,
                 args.append("-dNOPAUSE");
                 args.append("-dBATCH");
                 args.append("-dPARANOIDSAFER");
-                args.append("-r600");
+                ///@todo Добавить вычисление разрешения max (106*72/max_x,106*72/max_y)
+
+                args.append("-r150");
                 args.append("-sDEVICE=png16m");
                 args.append("-dFirstPage=1");
                 //Формируем имя файлов для предпросмотра
@@ -294,24 +296,31 @@ void GS_plugin::createClientData(const QString &client_uuid)
     bool Ok = true;
     {
         if (c_d){
-            if (w_dir.exists(wrk_dir)){
-                Ok &=w_dir.rmdir(wrk_dir);
+            w_dir = QDir(wrk_dir);
+            if ( w_dir.exists() ){
+                recursiveDeletion( wrk_dir );
             }
             // Формируем требуемые каталоги
             Ok &= w_dir.mkpath(wrk_dir);
             for (int i=1; i<5;i++){
-                Ok &= w_dir.mkpath(QString("%1/%2/%3-copy")
-                                   .arg(this->spoolDir,client_uuid)
-                                   .arg(i,0,10));
+                wrk_dir = QString("%1/%2/%3-copy")
+                          .arg(this->spoolDir,client_uuid)
+                          .arg(i,0,10);
+                Ok &= w_dir.mkpath(wrk_dir);
+                if (!Ok){
+                    emit error(VPrn::InternalPluginError,
+                               QObject::trUtf8("Ошибка создания рабочего каталога для клиента!\n%1").arg(wrk_dir)
+                               );
+                    return;
+                }
             }
         }else{
             Ok &=false;
+            emit error(VPrn::InternalPluginError,
+                       QObject::trUtf8("Ошибка создания внутренней учетной записи для клиента!")
+                       );
+
         }
-    }
-    if (!Ok){
-        emit error(VPrn::InternalPluginError,
-                   QObject::trUtf8("Внутрення ошибка плагина!")
-                   );
     }
 }
 
@@ -332,13 +341,13 @@ void GS_plugin::threadFinish(const QString &jobKey,int code,
 
     if (code != 0 ){
         //Задача завершена с ошибкой, доложим наверх
+        ///@todo переделать на сообщение об ошибке
         emit jobFinish(m_client_uuid, m_job,code,output_message);
         return;
     }
 
     // Формируем пути для файлов
     QString mainPDF       = c_data->getMainFile();
-
 
     // Посмотрим чем же таким важным был занят клиент
     QRegExp rx;
@@ -357,6 +366,7 @@ void GS_plugin::threadFinish(const QString &jobKey,int code,
     case VPrn::job_PrintFile:
         break;
     case VPrn::job_ConvertPs2Pdf: // Завершилась задача конвертирования ps в
+        emit docConvertedToPdf(m_client_uuid);
         getPageCount(m_client_uuid,mainPDF);
         break;
     case VPrn::job_SplitPageFirst:
@@ -531,5 +541,36 @@ QStringList GS_plugin::findFiles(const QString &client_uuid,const QStringList &f
     return files;
 }
 
+void GS_plugin::recursiveDeletion(QString path)
+{
+    QDir dir(path);
+    QStringList files = dir.entryList(QDir::Files);
+
+    QStringList::Iterator itFile = files.begin();
+    while (itFile != files.end())
+    {
+        QFile file(path + "/" + *itFile);
+        if ( !file.remove()){
+            emit error(VPrn::FileIOError,
+                       QObject::trUtf8("Ошибка удаления файла %1!").arg(*itFile));
+        }
+        ++itFile;
+    }
+
+    QStringList dirs = dir.entryList(QDir::Dirs|QDir::NoDotAndDotDot);
+    QStringList::Iterator itDir = dirs.begin();
+    while (itDir != dirs.end())
+    {
+        recursiveDeletion(path + "/" + *itDir);
+        ++itDir;
+    }
+
+    if ( !dir.rmdir(path)){
+
+        emit error(VPrn::FileIOError,
+                   QObject::trUtf8("Ошибка удаления каталога %1!").arg(path));
+
+    }
+}
 Q_EXPORT_PLUGIN2(Igs_plugin, GS_plugin)
 ;

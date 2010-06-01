@@ -22,7 +22,7 @@ class GS_plugin :public QObject, Igs_plugin
     Q_OBJECT
     Q_INTERFACES(Igs_plugin)
 public:
-    GS_plugin(QObject *parent=0);
+            GS_plugin(QObject *parent=0);
 
     void init(const QString &gs_bin,const QString &pdftk_bin,
               const QString &temp_folder);
@@ -35,7 +35,7 @@ public:
       * @brief Печать  документа сформированного клиентом на устройство
       */
     void print2devide (const QString &client_uuid,  const QString &print_file,
-                                  const QString &prn_device,bool usePageCount);
+                       const QString &prn_device,bool usePageCount);
 
     /**
       * @fn  QString getUuid() const
@@ -75,6 +75,11 @@ public:
       */
     QStringList findFiles(const QString &client_uuid,const QStringList &filters);
 signals:
+    /**
+      * @fn void docConvertedToPdf(const QString &client_uuid)
+      * @brief Испукается при завершении процесса конвертации ps -> pdf
+      */
+    void docConvertedToPdf(const QString &client_uuid);
     /**
       * @fn void docReady4work(const QString &client_uuid,int pagecount);
       * @brief Сигнал испускается после завершения конвертации ps->pdf,
@@ -164,7 +169,11 @@ private:
       *                            const QString &ext);
       * @brief Формирует имя выходного файла по заданным критериям
       */
-
+    /**
+      * @fn void recursiveDeletion(QString path);
+      * @brief Рекурсивное удалаление каталога со всем его содержимым
+      */
+    void recursiveDeletion(QString path);
     //-----------------------------------------------------------------------------------------------------
     /**
       * @var clients_list; Список uuid,client_id
