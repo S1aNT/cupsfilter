@@ -302,7 +302,7 @@ void GS_plugin::createClientData(const QString &client_uuid)
             }
             // Формируем требуемые каталоги
             Ok &= w_dir.mkpath(wrk_dir);
-            for (int i=1; i<5;i++){
+            for (int i=1; i<6;i++){
                 wrk_dir = QString("%1/%2/%3-copy")
                           .arg(this->spoolDir,client_uuid)
                           .arg(i,0,10);
@@ -526,7 +526,7 @@ QStringList GS_plugin::findFiles(const QString &client_uuid,const QStringList &f
     QDir dir = QDir::current();
 
     // Формируем списк файлов которые надо подвергнуть преобразованию в png
-    for (int i=1;i<5;i++){
+    for (int i=1;i<6;i++){
 
         dir = QDir(QString ("%1/%2/%3-copy").arg(spoolDir,client_uuid).arg(i,0,10) );
         dir.setFilter(QDir::Files | QDir::Hidden | QDir::NoSymLinks);
