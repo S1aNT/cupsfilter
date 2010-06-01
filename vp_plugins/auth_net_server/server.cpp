@@ -159,7 +159,6 @@ void Server::init()
 
                 if (Ok){
 
-                    current_sid = myServerGears->getUuid();
                     // Инициализация плагинов
 
 #if defined(Q_OS_UNIX)
@@ -167,24 +166,26 @@ void Server::init()
                     myAuth_plugin->init();
 #elif defined(Q_OS_WIN)
                     myAuth_plugin->init();
-#endif
-                    myNet_plugin->init(serverHostName, serverPort,current_sid);
-
-                    /// @todo Переделать только spoolDir реально нужен
-                    myTmpl_plugin->init(spoolDir,current_sid);
-                    if ( myTmpl_plugin ){
-                        tmplCheckBox->setChecked(true);
-                    }
-
-                    //qDebug() << "\nmyGs_plugin:" << myGs_plugin << "gsBin:" << gsBin  << "pdftkBin:" << pdftkBin  << "spoolDir:" << spoolDir;
-                    myGs_plugin->init(gsBin, pdftkBin,spoolDir);
-                    if (myGs_plugin){
+#endif                    
+                    if (myGs_plugin){                        
+                        myGs_plugin->init(gsBin, pdftkBin,spoolDir);
                         gsCheckBox->setChecked(true);
-                    }
-                    myServerGears->setNetPlugin(myNet_plugin);
-                    myServerGears->setGsPlugin(myGs_plugin);
-                    myServerGears->setTmplPlugin(myTmpl_plugin);             
+                        myServerGears->setGsPlugin(myGs_plugin);
+                        current_sid =  myGs_plugin->getUuid();
 
+                        if (myNet_plugin){
+                            /// @todo current_sid не нужен переделать
+                            myNet_plugin->init(serverHostName, serverPort,current_sid);
+
+                            myServerGears->setNetPlugin(myNet_plugin);
+                        }
+                        if ( myTmpl_plugin ){
+                            /// @todo Переделать только spoolDir реально нужен
+                            myTmpl_plugin->init(spoolDir,current_sid);
+                            myServerGears->setTmplPlugin(myTmpl_plugin);
+                            tmplCheckBox->setChecked(true);
+                        }                                                
+                    }                    
                 }else{
                     setTrayStatus(VPrn::gk_ErrorState,
                                   QObject::trUtf8("Ошибка при загрузке плагинов"));
@@ -529,6 +530,11 @@ bool Server::loadPlugins()
                                  SIGNAL( docReady4work(const QString &,int) ),
                                  myServerGears,
                                  SLOT ( do_docReady4work (const QString &,int) )
+                                 );
+                        connect (plugin,
+                                 SIGNAL( docConvertedToPdf(const QString &) ),
+                                 myServerGears,
+                                 SLOT ( do_docConvertedToPdf(const QString &)  )
                                  );
                         connect (plugin,
                                  SIGNAL( docReady4print(const QString &) ),

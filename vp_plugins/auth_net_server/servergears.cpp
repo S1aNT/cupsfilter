@@ -49,11 +49,7 @@ MyCheckPoints serverGears::checkPoints() const
     return m_checkPoint;
 }
 
-QString serverGears::getUuid() const
-{
-    /// @todo Должны быть в gs_plugin  и вызваться из него
-    return QUuid::createUuid().toString().replace("{","").replace("}","");
-}
+
 
 void serverGears::setAuthData(const QString &userName,const QString &userMandat)
 {
@@ -307,10 +303,12 @@ void serverGears::reciveNetworkMessage(const Message &r_msg)
 void serverGears::doJobFinish(const QString &m_uuid, VPrn::Jobs job_id,int code
                               ,const QString &output)
 {
+
     Message loc_msg(this);
     QLocalSocket *client(0);
     // По UUID определим какому клиенту надо было это сообщение
     client = findClient(m_uuid);
+    /*
     if (client){
         // Жив еще голубчик так уж и быть вернем ему результаты,рабского труда
         if (code !=0){
@@ -337,32 +335,28 @@ void serverGears::doJobFinish(const QString &m_uuid, VPrn::Jobs job_id,int code
         // Запись в локальный слот клиенту
         sendMessage(loc_msg,client);
     }
+    */
 }
 
 void serverGears::client_init()
 {
     QLocalSocket *client = m_server->nextPendingConnection();
-    clients.insert(client);
-    ///@todo  uuid  брать централизованно с одно места!
-    QString c_uuid =  this->getUuid();
-    clients_uuid.insert(client,c_uuid);
 
     if (gs_plugin){
+        clients.insert(client);
+
+        QString c_uuid =  gs_plugin->getUuid();
+        clients_uuid.insert(client,c_uuid);
+
         gs_plugin->createClientData(c_uuid);
+        connect(client, SIGNAL(readyRead()),
+                this,   SLOT(readyRead()));
+        connect(client, SIGNAL(disconnected()),
+                this,   SLOT(disconnected()));
+        connect(client, SIGNAL(error(QLocalSocket::LocalSocketError)),
+                this,   SLOT(prepareError(QLocalSocket::LocalSocketError)));
+        setCheckPoint(VPrn::loc_NewClientStarted);
     }
-
-
-    if (gs_plugin){
-        gs_plugin->createClientData(c_uuid);
-    }
-
-    connect(client, SIGNAL(readyRead()),
-            this,   SLOT(readyRead()));
-    connect(client, SIGNAL(disconnected()),
-            this,   SLOT(disconnected()));
-    connect(client, SIGNAL(error(QLocalSocket::LocalSocketError)),
-            this,   SLOT(prepareError(QLocalSocket::LocalSocketError)));
-    setCheckPoint(VPrn::loc_NewClientStarted);
 }
 
 void serverGears::disconnected()
@@ -512,11 +506,14 @@ void serverGears::parseMessage( const Message &m_msg, const QString &c_uuid)
             // Запрос формирование полного документа, для печати,
             //  и распечатка его
             break;
-        case VPrn::Que_Register:
+       case VPrn::Que_PrintCurrentFormatedDoc:
+            printCurrentFormatedDoc(c_uuid);
+            break;
+       case VPrn::Que_Register:
             /// Клиент только подключился, в теле сообщения его самоназвание запомним его
             /// сообщим ему что он авторизирован и вернем присвоенный uuid в теле сообщения uuid
             str.append(m_msg.messageData());
-            //clients_name.insert( lient, str);
+            //clients_name.insert( client, str);
 
             message.setType(VPrn::Ans_Register);
             message.setMessageData(  c_uuid.toUtf8() ); // Пробразуем в QByteArray
@@ -620,7 +617,6 @@ void serverGears::sendMessage( const Message &m_msg, QLocalSocket *client)
     client->flush();
 }
 
-
 QLocalSocket *serverGears::findClient(const QString &c_uuid)
 {
     QLocalSocket *client(0);
@@ -637,6 +633,22 @@ QLocalSocket *serverGears::findClient(const QString &c_uuid)
     return client;
 }
 
+
+void serverGears::do_docConvertedToPdf(const QString &client_uuid)
+{
+    QLocalSocket *client(0);
+    Message msg( this );
+
+    // По UUID определим какому клиенту надо было это сообщение
+    client = findClient(client_uuid);
+    if (client){
+        msg.setType(VPrn::Ans_Convert2PdfFinish );
+
+        // Запись в локальный слот клиенту
+        sendMessage(msg,client);
+    }
+
+}
 
 void serverGears::do_docReady4work (const QString &client_uuid,int pCount)
 {
@@ -679,7 +691,22 @@ void serverGears::do_docReady4print (const QString &client_uuid)
 
 void serverGears::do_docReady4preview (const QString &client_uuid)
 {
+    QLocalSocket *client(0);
+    Message msg( this );
+    QStringList files;
+    // По UUID определим какому клиенту надо было это сообщение
+    client = findClient(client_uuid);
+    if (client){
 
+        if (gs_plugin){
+            // Обработали все файлы надо пройти по всем каталогам и собрать *.png
+            files =  gs_plugin->findFiles(client_uuid,QStringList() << "*.png" << "*.PNG" );
+            msg.setType(VPrn::Ans_ConvertFormatedDocToPng); // Документ конвертирован в png
+            msg.setMessageData(files);
+
+            sendMessage(msg,client); // Запись в локальный слот клиенту
+        }
+    }
 }
 
 void serverGears::createFormatedDoc(const QString &client_uuid,bool full_doc,QByteArray data)
@@ -723,4 +750,67 @@ void serverGears::createFormatedDoc(const QString &client_uuid,bool full_doc,QBy
     }
 }
 
+void serverGears::printCurrentFormatedDoc(const QString &client_uuid)
+{
+    // Документ готов к  печати
+    // Обработали все файлы надо пройти по всем каталогам и собрать *_out.pdf
+
+    if (gs_plugin ){
+        QStringList files = gs_plugin->findFiles(client_uuid,QStringList()
+                                                 << "*out.pdf" << "*OUT.PDF");
+
+        for (int i=1;i<5;i++){
+            QString firstpage;
+            QString otherpage;
+            QString overside;
+            QString lastpage;
+            QString filename;
+            int copy_num(0);
+
+            //Формируем группу файлов относящуюся к одному эземпляру
+            for (int j=0;j<files.size();j++ ){
+                filename = files.at( j );
+                QRegExp rx("/(.+)/(.+)/(.)-copy/(.+_out).pdf");
+                if(rx.indexIn( filename ) != -1){
+                    // Наш файлик можно обрабатывать
+                    copy_num = rx.cap(3).toInt();
+                    QString page_type  = rx.cap(4);
+                    if (copy_num == i){
+                        if ( page_type.compare("firstpage_out",Qt::CaseInsensitive) == 0){
+                            firstpage = filename;
+                        }
+                        if ( page_type.compare("otherpage_out",Qt::CaseInsensitive) == 0) {
+                            // Лицевая сторона второго и последующих листов
+                            otherpage = filename;
+                        }
+                        if ( page_type.compare("oversidepage_out",Qt::CaseInsensitive) == 0){
+                            overside = filename;
+                        }
+                        if ( page_type.compare("lastpage_out",Qt::CaseInsensitive) == 0){
+                            lastpage = filename;
+                        }
+                    }
+                }
+            }
+            // Получили группу файлов теперь отправляем на печать
+            if (! firstpage.isEmpty() && !overside.isEmpty() && !lastpage.isEmpty()){
+                gs_plugin->print2devide(client_uuid,firstpage,QString("PDF"),false);
+
+                if (!otherpage.isEmpty()){
+                    gs_plugin->print2devide(client_uuid,otherpage,QString("PDF"),false);
+                }
+
+                QMessageBox msgBox;
+                QPushButton *nextButton = msgBox.addButton(QObject::trUtf8("Дальше"), QMessageBox::ActionRole);
+                msgBox.setText(QString("После окончания печати лицевой стороны %1 экземпляра документа,\nПереверните листы и нажмите кнопку Дальше.")
+                               .arg(i,0,10 ));
+                msgBox.exec();
+                if (msgBox.clickedButton() == nextButton) {
+                    gs_plugin->print2devide(client_uuid,overside,QString("PDF"),true);
+                    gs_plugin->print2devide(client_uuid,lastpage,QString("PDF"),false);
+                }
+            }
+        }
+    }
+}
 
