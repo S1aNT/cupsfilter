@@ -44,10 +44,14 @@ HEADERS += ../global/pre_header.h \
            ../global/commands.h \
            ../global/editpagesmodel.h \
            ../global/templatesinfo.h \
+           ../global/picitem.h \
            tmpl_sql_plugin.h
+
 SOURCES = tmpl_sql_plugin.cpp \
     ../global/tinfoeditmodel.cpp \
     ../global/myscene.cpp \
     ../global/mytextitem.cpp \
     ../global/editpagesmodel.cpp \
-    ../global/templatesinfo.cpp
+    ../global/templatesinfo.cpp \
+    ../global/picitem.cpp 
+   
