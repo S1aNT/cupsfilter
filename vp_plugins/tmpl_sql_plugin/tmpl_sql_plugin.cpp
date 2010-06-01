@@ -576,6 +576,23 @@ void Tmpl_sql_plugin::doAddBaseElementToPage(int page,const QString &tag)
     }
 }
 
+void Tmpl_sql_plugin::doAddImgElementToPage(int page,const QString &file_name)
+ {
+    myScene *scene = scenesGrp.value(page);
+    if (scene){
+        if (QFile::exists(file_name)){
+            scene->AddImgElement(file_name);
+        }else{
+            emit error(VPrn::InternalPluginError,
+                       QObject::trUtf8("Графический элемент %1 не найден!").arg(file_name));
+
+        }
+    }else{
+        emit error(VPrn::InternalPluginError,
+                   QObject::trUtf8("Ошибка добавления графического элемента в шаблон из файла %1").arg(file_name));
+    }
+ }
+
 //***************** private functions **************************************
 
 /// @short При вызове функций соединение с БД должно быть установленно

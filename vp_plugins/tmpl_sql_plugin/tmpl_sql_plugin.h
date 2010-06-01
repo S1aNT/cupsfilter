@@ -195,6 +195,12 @@ public slots:
       * добавляет базовый элемент на страницу с номером page
       */
     void doAddBaseElementToPage(int page,const QString &tag);
+
+    /** @fn doAddImgElementToPage(int page,const QString &file_name)
+      * добавляет базовый элемент на страницу с номером page
+      */
+    void doAddImgElementToPage(int page,const QString &file_name);
+
     /**
       * @fn void convert2Pdf();
       * @brief Преобразует текущий загруженный шаблон в набор pdf страниц
