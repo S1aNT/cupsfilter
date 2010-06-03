@@ -126,14 +126,26 @@ void GS_plugin::print2devide (const QString &client_uuid,  const QString &print_
 {
     //-q -dQUIET -dNOPAUSE -dPARANOIDSAFER -dBATCH -r300 -sDEVICE=pdfwrite -sOutputFile="%printer%pdfcreator" -c .setpdfwrite -f %1
     // Поиск данных для клиента
+    QStringList args;
+
     ClientData *c_data = findClientData(client_uuid);
     int print_copy;
     if (usePageCount){
-        print_copy = c_data->getPageCount() -1;
+        print_copy = c_data->getPageCount();
+        print_copy -=1;
     }else{
         print_copy = 1;
     }
-    QStringList args;
+#if defined(Q_OS_UNIX)
+    args.clear();
+    args.append("-P");
+
+    args.append(prn_device.section(".",1,1));
+    args.append(tr("-#%1").arg(print_copy));
+    args.append(print_file);
+    start_proc(client_uuid,"lpr",args,VPrn::job_PrintFile);
+#elif defined(Q_OS_WIN)
+
     for (int i=0;i<print_copy;i++){
         args.clear();
         args.append("-q");
@@ -148,9 +160,9 @@ void GS_plugin::print2devide (const QString &client_uuid,  const QString &print_
         args.append(".setpdfwrite");
         args.append("-f");
         args.append(print_file);
-
         start_proc(client_uuid,gsBin,args,VPrn::job_PrintFile);
     }
+#endif
 }
 
 void GS_plugin::mergeWithTemplate(const QString &client_uuid, const QStringList &t_files)
