@@ -19,6 +19,7 @@ namespace VPrn{
 #define INCH_TO_POINT(inch) ((inch)*72.0)
 
 typedef QMap <int,QPixmap> PixmapList;
+typedef QMap <int,QString> PixmapDescList;
 
     static const int ObjectName = 0;
     static const int ObjectData = 1;
@@ -107,14 +108,14 @@ typedef QMap <int,QPixmap> PixmapList;
     };
 
     enum pageNumbers {
-        FirstPage        = 0,
-        FirstPageN2    = 1,
-        FirstPageN3    = 2,
-        FirstPageN4    = 3,
-        FirstPageN5    = 4,
-        SecondPage   = 5,
-        ThirdPage       = 6,
-        FourthPage     = 7,
+        FirstPage        = 1,
+        FirstPageN2      = 2,
+        FirstPageN3      = 3,
+        FirstPageN4      = 4,
+        FirstPageN5      = 5,
+        SecondPage       = 6,
+        ThirdPage        = 7,
+        FourthPage       = 8,
     };
 
     enum trayIcons {
