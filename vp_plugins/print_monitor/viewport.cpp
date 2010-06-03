@@ -50,6 +50,11 @@ void ViewPort::setPixMapList(PixmapList pList)
     showPage(0); // Рисуем первую страницу
 }
 
+void ViewPort::setDescList(PixmapDescList descImagesList)
+{
+    m_desc_list = descImagesList;
+}
+
 //------------------------------ PUBLIC SLOTS ----------------------------------
 void ViewPort::showPage(int p_number)
 {
@@ -124,6 +129,8 @@ void ViewPort::onSceneSecletionChnaged()
 //----------------------------- PRIVATE FUNCTION -------------------------------
 qreal ViewPort::addPairItem (qreal xPos,qreal yPos,int p_number,bool selected)
 {
+    QFont serifFont("Times", 8, QFont::Bold);
+
     QGraphicsTextItem *text_item;
     QGraphicsPixmapItem *pix_item;
     qreal m_xPos = xPos;
@@ -136,8 +143,10 @@ qreal ViewPort::addPairItem (qreal xPos,qreal yPos,int p_number,bool selected)
     m_yPos +=pix_item->boundingRect().height()+5;
 
     if (m_thumb){
+
         text_item  = new QGraphicsTextItem();
-        text_item->setHtml(QObject::trUtf8("<b>  Стр. № %1 </b>").arg(p_number,0,10));
+        text_item->setHtml( m_desc_list.value(p_number) );
+        text_item->setFont(serifFont);
         text_item->setPos(xPos,m_yPos);
         m_yPos +=text_item->boundingRect().height()+5;
         scene->addItem(text_item);

@@ -34,6 +34,7 @@ public:
       */
     void setPixMapList(PixmapList pList);
 
+    void setDescList(PixmapDescList descImagesList);
 signals:
     /**
       * @fn void selectPixmap(int p_number);
@@ -68,6 +69,8 @@ private:
     QGraphicsScene *scene;
     QSize thumb_size;
     PixmapList m_pixmap_list;
+    PixmapDescList m_desc_list;
+
     //-------------------------------------------------------------------------
     /**
       * @fn qreal addPairItem (qreal xPos,qreal yPos,int p_number,bool selected);
