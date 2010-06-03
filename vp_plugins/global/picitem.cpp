@@ -4,7 +4,7 @@
 #include <QGraphicsSceneMouseEvent>
 #include <QGraphicsSceneContextMenuEvent>
 
-#include "PicItem.h"
+#include "picitem.h"
 #include <math.h>
 
 PicItem::PicItem(QGraphicsItem * parent)
