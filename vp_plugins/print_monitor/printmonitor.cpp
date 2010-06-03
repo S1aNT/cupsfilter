@@ -151,7 +151,7 @@ PrintMonitor::PrintMonitor(QWidget *parent,const QString &input_file)
              );
 
     connect (preview_page,  SIGNAL( printCurrentDoc() ),
-             core_app,      SLOT  ( do_printcurrentDoc() )
+             core_app,      SLOT  ( do_printCurrentDoc() )
              );
 
     core_app->init();
