@@ -215,9 +215,10 @@ bool Tmpl_sql_plugin::prepare_template(const QString &c_uuid,
                                 int p_number;
                                 QString  page_fn;
                                 int current_page;
-                                int i=0;
-                                while ( i<pagesDetail->rowCount() ){
-                                    p_number  = pagesDetail->data(pagesDetail->index(i,0)).toInt();
+                                int t_page=0;
+                                while ( t_page<pagesDetail->rowCount() ){
+                                    p_number  = pagesDetail->data(
+                                                 pagesDetail->index(t_page,0)).toInt();
                                     page_fn.clear();
                                     switch (p_number){
                                     case VPrn::FirstPage:
@@ -283,7 +284,7 @@ bool Tmpl_sql_plugin::prepare_template(const QString &c_uuid,
                                         m_scene->render(&painter);
                                         m_scene->clear();
                                     }
-                                    i++;
+                                    t_page++;
                                 }
                             }
                         }
