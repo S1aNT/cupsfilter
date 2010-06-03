@@ -689,12 +689,17 @@ void serverGears::createFormatedDoc(const QString &client_uuid,bool full_doc,QBy
             for (int i=1; i<6;i++){
                 m_tagValue[QObject::trUtf8("Номер экз.")] = QString("%1").arg(i,0,10);
                 // Формируем страницы шаблона в pdf
-                Ok &= tmpl_plugin->prepare_template(client_uuid,t_fileName, m_tagValue,i);
+                Ok &= tmpl_plugin->prepare_template(client_uuid,
+                                                    t_fileName,
+                                                    m_tagValue,i);
             }
         }else{
-            m_tagValue[QObject::trUtf8("Номер экз.")] ==QString("%1").arg(copy_count.first,0,10);
+            m_tagValue[QObject::trUtf8("Номер экз.")] = QString("%1").arg(copy_count.first,0,10);
             // Формируем страницы шаблона в pdf
-            Ok &=  tmpl_plugin->prepare_template(client_uuid,t_fileName, m_tagValue,copy_count.first) ;
+            int copy = copy_count.first ;
+            Ok &=  tmpl_plugin->prepare_template(client_uuid,
+                                                 t_fileName,
+                                                 m_tagValue, copy );
         }
     }
     if (Ok &&  gs_plugin ){
