@@ -7,6 +7,7 @@
 #include <QtGui/QMessageBox>
 #include <QtGui/QSplitter>
 #include <QtCore/QStringList>
+#include <QRegExp>
 
 PreViewPage::PreViewPage(QWidget *parent)
     : QWizardPage(parent)
@@ -17,6 +18,7 @@ PreViewPage::PreViewPage(QWidget *parent)
     checkPicturesList    = new QCheckBox( this );
     checkPicturesList->setText(QObject::trUtf8("pic list "));
     checkPicturesList->setEnabled( false );
+    checkPicturesList->setChecked( false );
     //checkPicturesList->hide();
 
     setTitle(QObject::trUtf8("Предварительный просмотр сформированного документа."));
@@ -126,23 +128,68 @@ PreViewPage::PreViewPage(QWidget *parent)
 void PreViewPage::showPicturesList(QStringList png_list)
 {
     if (png_list.size() >0 ){
-       checkPicturesList->setChecked(true);
-       // сформируем изображения
-       QPixmap img_item;
-       for (int i = 0; i < png_list.size(); ++i){
-           if (img_item.load(png_list.at(i))){
-               imageFullItems.insert(i,img_item);
-               imageThumbItems.insert(i,img_item.scaled(thumbSize,
-                                                        Qt::KeepAspectRatio,
-                                                        Qt::SmoothTransformation));
-           }
-       }
-       if (leftFrame){
-           leftFrame->setPixMapList(imageThumbItems);
-       }
-       if (rightFrame){
-           rightFrame->setPixMapList(imageFullItems);
-       }
+        checkPicturesList->setChecked(true);
+
+        // сформируем изображения
+        QPixmap img_item;
+        for (int i = 0; i < png_list.size(); ++i){
+            if (img_item.load(png_list.at(i))){
+                // Из пути имени файла вызерезаем номер экз. и тип страницы
+                // spoolDir/client_uuid/t_firstpage.pdf
+
+                QRegExp rx("/.+/.+/.+/.+/(.+)-copy/(.+)_(\\d{1,}).png");
+                qDebug() << png_list.at( i );
+
+                if(rx.indexIn( png_list.at( i ) ) != -1){
+                    // Наш файлик можно обрабатывать
+                    QString copy_num = rx.cap(1);
+                    QString page_type  = rx.cap(2);
+                    QString page_number  = rx.cap(3);
+
+                    QString str_type;
+
+                    if (page_type.compare("firstpage") == 0){
+                        str_type = QString("<center>Экз.№%1<br/>%2[%3]</center>")
+                                  .arg(copy_num,
+                                       QObject::trUtf8("Лицевая сторона 1-й лист."),
+                                       page_number );
+                    }
+                    if (page_type.compare("lastpage") == 0){
+                        str_type = QString("Экз.№%1.%2[%3]")
+                                   .arg(copy_num,
+                                        QObject::trUtf8("Фонарик"),
+                                        page_number );
+                    }
+                    if (page_type.compare("otherpage") == 0){
+                        str_type = QString("Экз.№%1.%2[%3]")
+                                   .arg(copy_num,
+                                        QObject::trUtf8("Лицевая сторона 2-й и далее листы.")
+                                        ,page_number  );
+                    }
+
+                    if (page_type.compare("oversidepage") == 0){
+                        str_type = QString("Экз.№%1.%2[%3]")
+                                   .arg(copy_num,
+                                        QObject::trUtf8("Обратная сторона."),
+                                        page_number  );
+                    }
+                    descImagesList.insert(i, str_type );
+                }
+
+                imageFullItems.insert(i,img_item);
+                imageThumbItems.insert(i,img_item.scaled(thumbSize,
+                                                         Qt::KeepAspectRatio,
+                                                         Qt::SmoothTransformation));
+            }
+        }
+        if (leftFrame){
+            leftFrame->setDescList(descImagesList);
+            leftFrame->setPixMapList(imageThumbItems);
+
+        }
+        if (rightFrame){
+            rightFrame->setPixMapList(imageFullItems);
+        }
     }
 }
 

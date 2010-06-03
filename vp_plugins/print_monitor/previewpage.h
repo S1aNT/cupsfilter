@@ -52,6 +52,7 @@ private:
     QLabel *topLabel;
     PixmapList imageFullItems;
     PixmapList imageThumbItems;
+    PixmapDescList descImagesList;
     QStringList imageFilesList;
 
     QSlider *zoomSlider;
