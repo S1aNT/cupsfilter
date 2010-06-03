@@ -86,7 +86,7 @@ public:
 
     void doMergeDocWithTemplates (QByteArray field_data,bool preview_mode);
 
-    void do_printCurrentDoc();
+
 
 signals:
     // Результат наложения шаблона на документ
@@ -146,6 +146,7 @@ private slots:
       */
     void launchAndConnect();
 
+    void do_printCurrentDoc();
 private:
     /** @brief Список переменных из ini файла
       * @var link_name;        Имя локального сервера для общения с Локальным миром
