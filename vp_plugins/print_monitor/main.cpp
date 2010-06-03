@@ -59,11 +59,12 @@ int main(int argc, char *argv[])
     QtSingleApplication app(argc, argv, true);
 
     QStringList aList=app.arguments();
-    if (aList.size()< 1){
+    if (aList.size()< 2){
         QMessageBox::critical(0,QObject::trUtf8("Обратитесь к системному администратору"),
                               QObject::trUtf8("Ошибка запуска приложения, не достаточно параметров запуска"));
         return 1;
     }
+
     QString in_file=aList.at(1);
 
     if (app.sendMessage(QObject::trUtf8("Попытка запуска второй копии приложения!"))
