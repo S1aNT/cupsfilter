@@ -417,14 +417,19 @@ void Engine::convertDeviceURIListToPrinterList(const QString & device_uri_list)
     QStringList devices_info;
     QString pline;
     QStringList printersList;
+    qDebug() << "device_uri_list: " << device_uri_list << "\n";
+
     remote_printer = device_uri_list.split("###;:;");
     for (int i = 0; i < remote_printer.size(); i++) {
         pline = remote_printer.at(i);
         pline.replace("###","");
+        qDebug() << "printer full name: " << pline << "\n";
         devices_info = pline.split(";:;");
         printer_device_list.insert(devices_info.at(0),devices_info.at(1));
         pline = devices_info.at(0);
+        qDebug() << "devices_info: " << devices_info.at(0) << "\n";
         printersList.append(pline.section(".",1,1));// Имя принтера после точки
+        devices_info.clear();
     }
     emit getPrinterList(printersList);
 }
