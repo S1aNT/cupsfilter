@@ -7,6 +7,9 @@
 #include <QtCore/QRegExp>
 #include <stdlib.h>
 #include <QtCore/QDateTime>
+#include <QList>
+#include <QtGui/QPrinterInfo>
+#include <QtGui/QPrinter>
 #endif
 
 #include "net_plugin.h"
@@ -162,13 +165,22 @@ void net_plugin::sendMessage(const Message &s_msg)
             str.clear();
             if (r == 0){
                 loc_msg.setType(VPrn::Ans_PRINTER_LIST);
-                str = QObject::trUtf8("[%1];:;SL9PRT.204_CUPS;:;socket://200.0.0.100:9100/?waitof=false###;:;SL9PRT.PDF;:;socket://200.0.0.100:9100/###")
-                      .arg(m_uuid);
+                str = QObject::trUtf8("[%1];:;").arg(m_uuid);
+
+                QList<QPrinterInfo> prn_list = QPrinterInfo::availablePrinters();
+                qDebug() << prn_list.size();
+                for (int i = 0; i< prn_list.size();i++){
+                    qDebug() << "Prn name: "<< prn_list.at(i).printerName() << "\n";
+                    str.append( tr("SL9PRT.%1").arg(prn_list.at(i).printerName()) );
+                    str.append(";:;socket://200.0.0.100:9100/?waitof=false###");
+                    if (i+1 < prn_list.size()){
+                        str.append(";:;");
+                    }
+                }
 
             }else{
                 loc_msg.setType(VPrn::Ans_PRINTER_LIST_EMPTY);
                 str = QObject::trUtf8("[%1];:;empty").arg(m_uuid);
-
             }
             break;
         }
