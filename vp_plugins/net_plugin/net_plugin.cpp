@@ -171,8 +171,10 @@ void net_plugin::sendMessage(const Message &s_msg)
                 qDebug() << prn_list.size();
                 for (int i = 0; i< prn_list.size();i++){
                     qDebug() << "Prn name: "<< prn_list.at(i).printerName() << "\n";
-                    str.append( tr("SL9PRT.%1").arg(prn_list.at(i).printerName()) );
-                    str.append(";:;socket://200.0.0.100:9100/?waitof=false###");
+                    QString tmp =  prn_list.at(i).printerName();
+                    tmp.replace("\\\\","");
+                    str.append( tr("SL9PRT.%1").arg( tmp ) );
+                    str.append(tr(";:;%1###").arg(prn_list.at(i).printerName()));
                     if (i+1 < prn_list.size()){
                         str.append(";:;");
                     }
