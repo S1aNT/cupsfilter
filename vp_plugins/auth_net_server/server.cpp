@@ -215,6 +215,9 @@ void Server::showTrayMessage(trayIcons msg_type,
     case CritType:
         icon = QSystemTrayIcon::Critical;
         break;
+    default:
+        icon = QSystemTrayIcon::Information;
+        break;
     }
     trayIcon->showMessage(msg_title, msg_body, icon, 7 * 1000);
 }
