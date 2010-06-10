@@ -1,0 +1,107 @@
+#!/usr/bin/perl -w
+use strict;
+use locale;
+use utf8;
+use File::Copy;
+use File::Temp;
+use Time::localtime;
+
+
+#----------------------- CONFIG ------------------------------------
+# For debuging and troubleshooting. Nice hunt !
+my $DEBUG=1;                                                    
+# enable log
+my $LOG=1;                                                              
+
+my @argv = @ARGV;                       #keep hands off the argument array
+my $SPOOL = "/var/tmp";                 #where are my speedy memory drive?
+my $LOG_FILE = "/opt/vprn/backend.log";
+my $VPRINTER = "/opt/vprn/debug/p_monitor";
+my $DATE_BIN = "/bin/date";             #path to date
+my $ENABLE ="/usr/sbin/cupsenable";     #path to enable binary
+my $FH_TEMP;                            #File handle to temp file
+my $DEVICE_URI =$ENV{DEVICE_URI};
+#--------------------------------------------------------------------------------------------------
+
+#print "Work it \n";
+my ($jobID,$userName,$jobTitle,$copies,$printOptions,$printFile) = @argv;
+
+#--------------------------------------------------------------------------------------------------
+# Check arguments and environment
+# Usage: $0 job-id user title copies options [file]
+#
+## CUPS API says there must be an exact number of args 
+# If no arguments, device discovery mode
+if (!$argv[0]){
+        print STDERR ("direct vprn backend \"Unknown\" \"TechnoServ Filter \"\n");
+        exit 0;
+}
+
+# If too many arguments, send error
+if (scalar(@argv) < 5 || scalar(@argv) > 6){
+        print STDERR ("Usage: vprn job-id user title copies options [file]\n");
+        exit 1;
+}
+
+save2log(join('_',@argv)) if  ($LOG);
+
+## get the uri CUPS has
+#exit 1 if (!defined $DEVICE_URI);
+
+#--------------------------------------------------------------------------------------------------
+#The hard, but fine work :)
+# Safe create temp file
+$FH_TEMP = File::Temp->new( TEMPLATE => 'cups_jobXXXXX',
+                                DIR => $SPOOL,
+                                SUFFIX => '.~tmp');
+
+# If we were called with 6 arguments, read from STDIN to a tempfile:
+if (!defined $printFile){
+    $FH_TEMP = File::Temp->new( TEMPLATE => 'cups_jobXXXXX',
+                                DIR => $SPOOL,
+                                SUFFIX => '.~tmp');
+    copy(\*STDIN,$FH_TEMP) or die "Copy failed: $!"; 
+}else{
+    $FH_TEMP = $printFile;
+}
+
+#Отправим дальше на печать
+save2log ("$VPRINTER $FH_TEMP \n") if  ($LOG);
+#my $result =
+`$VPRINTER $FH_TEMP`;
+exit 0;
+#exit $result;
+
+#-----------------------------------------------------------------------------------
+sub datetime2string{
+        #Arg:nothing
+        #Returns: date time string
+        my @months_names=("JANUARY","FEBRUARY","MARCH","APRIL","MAY","JUNE","JULY","AUGUST","SEPTEMBER","OCTOBER","NOVEMBER","DECEMBER");
+        
+    my $tm = localtime();
+    my ($day,$month,$year,$hh,$mm) = ($tm->mday,$tm->mon,$tm->year,$tm->hour,$tm->min);
+    $year+=1900;
+    if (length($day) == 1){
+        $day='0'.$day;
+    }
+    if (length($hh) == 1){
+        $hh='0'.$hh;
+    }
+    if (length($mm) == 1){
+        $mm='0'.$mm;
+    }
+    my $date =join('/',$year,$months_names[$month],$day);
+    my $time =join(':',$hh,$mm);
+    return join ('_',$date,$time); 
+}
+
+sub save2log{
+        #Arg: info_str
+        #Returns: nothing
+        my($info_str)= @_;
+        open (LOG,">> $LOG_FILE") or die "can't open file $LOG_FILE: $!";
+        print LOG "--------------------------Date ", datetime2string()," ---------------------\n";
+        print LOG $info_str,"\n";
+        print LOG "---------------------------------------------------------------------------\n";
+        close (LOG);
+}
