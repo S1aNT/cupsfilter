@@ -195,10 +195,29 @@ void PreViewPage::showPicturesList(QStringList png_list)
 
 bool PreViewPage::validatePage()
 {
+
     emit printCurrentDoc();
     return true;
 }
 
+void PreViewPage::setVisible(bool visible)
+{
+
+    QWizardPage::setVisible(visible);
+
+        if (visible) {
+            this->setButtonText(QWizard::NextButton,QObject::trUtf8("Печать документа"));
+            wizard()->setButtonText(QWizard::CustomButton1, QObject::trUtf8("Рестарт"));
+            wizard()->setOption(QWizard::HaveCustomButton1, true);
+            connect(wizard(), SIGNAL(customButtonClicked(int)),
+                    this, SLOT(restartButtonClicked()));
+        } else {
+            wizard()->setOption(QWizard::HaveCustomButton1, false);
+            disconnect(wizard(), SIGNAL(customButtonClicked(int)),
+                       this, SLOT(restartButtonClicked()));
+        }
+
+}
 //------------------------------ PRIVATE SLOTS ---------------------------------
 void PreViewPage::zoomIn()
 {
@@ -208,4 +227,23 @@ void PreViewPage::zoomIn()
 void PreViewPage::zoomOut()
 {
     zoomSlider->setValue(zoomSlider->value() + 1);
+}
+
+void PreViewPage::restartButtonClicked()
+{
+    QString mb     = wizard()->field("mbNumberLineEd").toString();
+    int cur_copy   = wizard()->field("e_currentSBox").toInt();
+    int total_copy = wizard()->field("e_totalSBox").toInt();
+    bool all_copy  = wizard()->field("total_copyes").toBool();
+
+    imageFullItems.clear();
+    imageThumbItems.clear();
+    descImagesList.clear();
+    imageFilesList.clear();
+
+    checkPicturesList->setChecked(false);
+    emit UserDemands2Restart(mb,cur_copy,total_copy,all_copy);
+
+    wizard()->setStartId(VPrn::Page_Select);
+    wizard()->restart();
 }
