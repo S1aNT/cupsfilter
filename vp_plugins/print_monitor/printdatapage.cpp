@@ -266,12 +266,14 @@ PrintDataPage::PrintDataPage(QWidget *parent)
     //Автоматически заполянямые поля
     registerField("pagesCountLineEd*",  pagesCountLineEd);
     registerField("docConverted_checkBox*",docConverted_checkBox);
+    this->setButtonText(QWizard::NextButton,QObject::trUtf8("Вперед"));
+    this->setButtonText(QWizard::BackButton,QObject::trUtf8("Назад"));
 
     connector();
-    this->setCommitPage(true);
+    //this->setCommitPage(true);
 }
 
-void  PrintDataPage::setModel ( QStandardItemModel *model)
+void PrintDataPage::setModel ( QStandardItemModel *model)
 {
     m_model = model;
     templatesCBox->setModel( m_model );
@@ -285,6 +287,8 @@ void PrintDataPage::setLabelText(const QString &l_txt)
 {
     setSubTitle (l_txt);
 }
+
+
 
 bool PrintDataPage::validatePage ()
 {

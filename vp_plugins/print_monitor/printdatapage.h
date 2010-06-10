@@ -86,6 +86,7 @@ public slots:
      * @brief Заполняет поле число страниц
     */
     void setPageCounted(int pages);
+
 private slots:
 
     void setStamp     (const QString & s){select_stamp = s;}
