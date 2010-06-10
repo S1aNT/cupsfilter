@@ -49,8 +49,6 @@ MyCheckPoints serverGears::checkPoints() const
     return m_checkPoint;
 }
 
-
-
 void serverGears::setAuthData(const QString &userName,const QString &userMandat)
 {
     u_login = userName;
@@ -173,7 +171,7 @@ void serverGears::readyRead()
         QByteArray msg;
         in >> msg;
         Message message( this );
-        message.setType((MessageType) m_Type); //Проверить как конвертирует
+        message.setType((MessageType) m_Type);
         message.setMessageData( msg );
         //message.prepareMessage();
 
@@ -222,7 +220,6 @@ void serverGears::reciveNetworkMessage(const Message &r_msg)
                     loc_msg.setType(  VPrn::Ans_MB_NOT_EXIST );
                     loc_msg.setMessageData(  str.toUtf8() );
                     break;
-
                 case VPrn::Ans_MB_EXIST_AND_BRAK:
                     // Для этих случаев требуется дополнительная проверка,
                     // т.е основное приложение должно передать список всех
@@ -300,7 +297,6 @@ void serverGears::reciveNetworkMessage(const Message &r_msg)
     }
 }
 
-
 void serverGears::client_init()
 {
     QLocalSocket *client = m_server->nextPendingConnection();
@@ -372,6 +368,18 @@ void serverGears::parseMessage( const Message &m_msg, const QString &c_uuid)
     client = findClient(c_uuid);
     if (client){
         switch (m_msg.type()){
+        case VPrn::Que_UserDemands2Restart:
+            str.append(m_msg.messageData()); /// В теле сообщения параметры
+            markDocInBaseAsFault(c_uuid,str);// Пометка документа в базе как бракованный
+
+            //Сформируем набор сообщений и отправим клиенту
+            if (gs_plugin ){
+                message.setType ( VPrn::Ans_Convert2PdfFinish);
+                sendMessage( message,client );
+                gs_plugin->createClientData(c_uuid);
+                gs_plugin->getPageCount(c_uuid);
+            }
+            break;
         case VPrn::Que_GiveMeTemplatesList:
             {
                 // Вернем модель МЕТАДанные о шаблонах преобразованную для передачи в сокет
@@ -445,7 +453,7 @@ void serverGears::parseMessage( const Message &m_msg, const QString &c_uuid)
                 net_plugin->sendMessage(message);
             }
             break;
-        case VPrn:: Que_Convert2Pdf:
+        case VPrn::Que_Convert2Pdf:
             /// Клиент потребовал преобразовать ps файл в pdf
             str.append(m_msg.messageData()); /// В теле сообщения полный путь к файлу
             if (gs_plugin){
@@ -714,6 +722,12 @@ void serverGears::createFormatedDoc(const QString &client_uuid,bool full_doc,QBy
         // Сформируем документ подготовленный к печати  документ + шаблон
         gs_plugin->mergeWithTemplate(client_uuid, files ) ;
     }
+}
+
+void serverGears::markDocInBaseAsFault(const QString &client_uuid,
+                          const QString &data_str)
+{
+
 }
 
 void serverGears::printCurrentFormatedDoc(const QString &client_uuid,

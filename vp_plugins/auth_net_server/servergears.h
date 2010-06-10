@@ -165,6 +165,13 @@ private:
 ;
 //-----------------------------------------------------------------------------
     /**
+      * @fn void markDocInBaseAsFault(const QString &client_uuid,
+                                      const QString &data_str);
+      * Пометка документа с данными МБ,номером экз. и тд. как брак
+      */
+    void markDocInBaseAsFault(const QString &client_uuid,
+                              const QString &data_str);
+    /**
       * @fn void printCurrentDoc(const QString &client_uuid,const QString &printer);
       * @brief Печать текущего сформированнного документа
       */
