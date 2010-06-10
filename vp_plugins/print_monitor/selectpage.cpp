@@ -53,7 +53,12 @@ SelectPage::SelectPage(QWidget *parent)
 
     connect (printersCBox,SIGNAL(currentIndexChanged(QString)),
              this, SLOT(setCurrentPrinter(QString)));
+
+    this->setButtonText(QWizard::NextButton,QObject::trUtf8("Вперед"));
+    this->setButtonText(QWizard::BackButton,QObject::trUtf8("Назад"));
 }
+
+
 
 
 void SelectPage::setPrinterList(QStringList &pList)
@@ -63,18 +68,17 @@ void SelectPage::setPrinterList(QStringList &pList)
 }
 
 int SelectPage::nextId() const
- {
-     if (markBrakDoc->isChecked()) {
-         //return VPrn::Page_PrintData;
-     }
-     if (accountingDoc->isChecked() ){
-         return VPrn::Page_PrintData;
-     }
-     if (printDoc->isChecked() ){
-         return VPrn::Page_PrintData;
-     }
-     if (both_step->isChecked() ){
-         return VPrn::Page_PrintData;
-     }
+{
+    if (markBrakDoc->isChecked()) {
+        //return VPrn::Page_PrintData;
+    }
+    return VPrn::Page_PrintData;
+}
 
- }
+void SelectPage::setCurrentPrinter(const QString &p)
+{
+    if (!p.isEmpty()){
+        sel_printer = p;
+    }
+
+}

@@ -27,7 +27,7 @@ public:
 public slots:
     void setPrinterList(QStringList &pList);
 private slots:
-    void setCurrentPrinter(const QString &p){sel_printer = p;}
+    void setCurrentPrinter(const QString &p);
 
 private:
     QString sel_printer;
