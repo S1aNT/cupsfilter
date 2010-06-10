@@ -1,7 +1,6 @@
 #!/usr/bin/perl -w
 use strict;
 use locale;
-use utf8;
 use File::Copy;
 use File::Temp;
 use Time::localtime;
@@ -15,7 +14,7 @@ my $LOG=1;
 
 my @argv = @ARGV;                       #keep hands off the argument array
 my $SPOOL = "/var/tmp";                 #where are my speedy memory drive?
-my $LOG_FILE = "/opt/vprn/backend.log";
+my $LOG_FILE = "/var/tmp/backend.log";
 my $VPRINTER = "/opt/vprn/debug/p_monitor";
 my $DATE_BIN = "/bin/date";             #path to date
 my $ENABLE ="/usr/sbin/cupsenable";     #path to enable binary
