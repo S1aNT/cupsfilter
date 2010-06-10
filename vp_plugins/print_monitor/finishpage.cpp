@@ -7,7 +7,7 @@
 FinishPage::FinishPage(QWidget *parent)
     : QWizardPage(parent)
 {
-    setTitle(QObject::trUtf8("Подтверждение распечаттного документа."));
+    setTitle(QObject::trUtf8("Подтверждение распечатного документа."));
     setPixmap(QWizard::WatermarkPixmap, QPixmap(":/select_mode.png"));
 
 }
