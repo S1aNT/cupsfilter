@@ -26,20 +26,21 @@ using namespace VPrn;
   *     и показывает окно предпросмотра.
   */
 QT_FORWARD_DECLARE_CLASS ( QRadioButton )
-
 QT_FORWARD_DECLARE_CLASS ( QCheckBox )
-
 QT_FORWARD_DECLARE_CLASS ( QLabel )
+QT_FORWARD_DECLARE_CLASS ( QButtonGroup )
 
 class CheckDataPage : public QWizardPage
 {
-Q_OBJECT
+    Q_OBJECT
 public:
     explicit CheckDataPage(QWidget *parent = 0);
 
+    void setVisible(bool visible);
+
 signals:
-   void select_preview(bool full);
-   void select_print  ();
+    void select_preview(bool full);
+    void select_print  ();
 
 public slots:
     void setAuthCheck( bool flag, const QString & info );
@@ -72,6 +73,7 @@ private:
     QCheckBox    * checkMergeDocWithTemplates;
     QString authInfo;
     QString mb_checkInfo;
+    QButtonGroup *rb_group;
 
     void enablePreviewButton(bool mode);
 };

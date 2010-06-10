@@ -25,22 +25,34 @@ CheckDataPage::CheckDataPage(QWidget *parent)
                             "<li>       фонарик</li></ul>"));
     topLabel->setWordWrap(true);
 
-    QButtonGroup *rb_group = new QButtonGroup (this);
-    rb_group->setExclusive(true);
     printWithoutPreview= new QRadioButton(this);
+
     printWithoutPreview->setText(
             QObject::trUtf8("Печать документа без предварительного просмотра."));
-    printWithoutPreview->setEnabled(false);
 
-    previewAllPages = new QRadioButton(this);
+    previewAllPages = new QRadioButton( this );
+
     previewAllPages->setText(
             QObject::trUtf8("Просмотр перед печатью всех страниц документа."));
-    previewAllPages->setEnabled(false);
 
     previewPartPages = new QRadioButton(this);
+
     previewPartPages->setText(
             QObject::trUtf8("Просмотр перед печатью только основных страниц документа."));
-    previewPartPages->setEnabled(false);
+
+
+    printWithoutPreview->setEnabled( false );
+    printWithoutPreview->setChecked( false );
+
+    previewPartPages->setEnabled( false );
+    previewPartPages->setChecked( false );
+
+    previewAllPages->setEnabled( false );
+    previewAllPages->setChecked( false );
+
+
+    rb_group = new QButtonGroup (this);
+    rb_group->setExclusive(true);
 
     rb_group->addButton( previewAllPages );
     rb_group->addButton( previewPartPages );
@@ -53,20 +65,21 @@ CheckDataPage::CheckDataPage(QWidget *parent)
             );
 
     authUserToPrinter->setChecked( false);
-
     checkCorrectMB    = new QCheckBox( this );
+    checkMergeDocWithTemplates    = new QCheckBox( this );
     checkCorrectMB->setEnabled( false );
-    checkCorrectMB->setChecked( false);
+    checkCorrectMB->setChecked( false );
+
     checkCorrectMB->setText(
             QObject::trUtf8("Проверка документа на существование в БД учета.")
             );
 
-    checkMergeDocWithTemplates    = new QCheckBox( this );
     checkMergeDocWithTemplates->setEnabled( false );
     checkMergeDocWithTemplates->setChecked( false);
     checkMergeDocWithTemplates->setText(
             QObject::trUtf8("Идет процесс формирования наложения шаблона на документ и формирования стр. предпросмотра")
             );
+
 
     QVBoxLayout *layout = new QVBoxLayout;
     layout->addWidget ( topLabel );
@@ -93,9 +106,40 @@ CheckDataPage::CheckDataPage(QWidget *parent)
     connect (previewPartPages,SIGNAL(toggled(bool)),
              this, SLOT ( startMergedDoc4PreviewPart(bool) )
              );
+
 }
 
 
+
+void CheckDataPage::setVisible(bool visible)
+{
+    QWizardPage::setVisible(visible);
+    if (visible){
+        rb_group->setExclusive(false);
+        checkCorrectMB->setEnabled( false );
+        checkCorrectMB->setChecked( false );
+
+        printWithoutPreview->setEnabled( false );
+        printWithoutPreview->setChecked( false );
+
+        previewPartPages->setEnabled( false );
+        previewPartPages->setChecked( false );
+
+        previewAllPages->setEnabled( false );
+        previewAllPages->setChecked( false );
+
+        checkCorrectMB->setText(
+                QObject::trUtf8("Visible Проверка документа на существование в БД учета.")
+                );
+
+        checkMergeDocWithTemplates->setEnabled( false );
+        checkMergeDocWithTemplates->setChecked( false);
+        checkMergeDocWithTemplates->setText(
+                QObject::trUtf8("Идет процесс формирования наложения шаблона на документ и формирования стр. предпросмотра")
+                );
+        rb_group->setExclusive(true);
+    }
+}
 
 void CheckDataPage::setCheckMergeDocWithTemplates( bool flag, const QString & info )
 {
