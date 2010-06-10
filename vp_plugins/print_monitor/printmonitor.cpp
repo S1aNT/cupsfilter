@@ -34,7 +34,6 @@ PrintMonitor::PrintMonitor(QWidget *parent,const QString &input_file)
     printData_page = new PrintDataPage(this);
     checkData_page = new CheckDataPage(this);
     preview_page   = new PreViewPage(this);
-
     finish_page    = new FinishPage(this);
 
     setPage ( VPrn::Page_Intro,     intro_page  );
@@ -67,6 +66,7 @@ PrintMonitor::PrintMonitor(QWidget *parent,const QString &input_file)
     }
 
     setOption(HaveHelpButton, true);
+
     setPixmap(QWizard::LogoPixmap, QPixmap(":/logo.png"));
     connect(this, SIGNAL(helpRequested()), this, SLOT(showHelp()));
     setWindowTitle(QObject::trUtf8("Защищенный принтер."));
@@ -153,12 +153,15 @@ PrintMonitor::PrintMonitor(QWidget *parent,const QString &input_file)
     connect (preview_page,  SIGNAL( printCurrentDoc() ),
              core_app,      SLOT  ( do_printCurrentDoc() )
              );
+    connect (preview_page,  SIGNAL( UserDemands2Restart(const QString &,int,int,bool) ),
+             core_app,      SLOT  ( do_UserDemands2Restart(const QString &,int,int,bool) )
+             );
 
     core_app->init();
 
     // свяжем модель метаинформации о шаблоне и ее основного потребителя
     printData_page->setModel( core_app->getInfoModel() );
-
+    //this->setOption(QWizard::IndependentPages,true);
 }
 
 void PrintMonitor::appendStartMsg(const QString &start_msg)
