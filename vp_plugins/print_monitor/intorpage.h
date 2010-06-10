@@ -14,6 +14,7 @@ class IntroPage : public QWizardPage
     Q_OBJECT
 public:
     IntroPage(QWidget *parent = 0);
+    void setVisible(bool visible);
 public slots:
     /**
       * @brief  Эти слоты взводят галочки в Checkbox,когда приложение

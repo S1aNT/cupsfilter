@@ -63,6 +63,9 @@ IntroPage::IntroPage(QWidget *parent)
     registerField("reciveUserMandat*",    reciveUserMandat_step);
     registerField("reciveSecLabel*",      reciveSecLabel_step);
     registerField("recivePrintersList*",  recivePrintersList_step);
+
+    this->setButtonText(QWizard::NextButton,QObject::trUtf8("Вперед"));
+    this->setButtonText(QWizard::BackButton,QObject::trUtf8("Назад"));
 }
 
 
@@ -101,3 +104,21 @@ void  IntroPage::setReciveSecLevelList()
     reciveSecLabel_step->setChecked(true);
 }
 
+void IntroPage::setVisible(bool visible)
+{
+
+    QWizardPage::setVisible(visible);
+/*
+        if (visible) {
+            wizard()->setButtonText(QWizard::NextButton,QObject::trUtf8("Пример"));
+            wizard()->setButtonText(QWizard::CustomButton1, tr("&Print"));
+            wizard()->setOption(QWizard::HaveCustomButton1, true);
+            connect(wizard(), SIGNAL(customButtonClicked(int)),
+                    this, SLOT(printButtonClicked()));
+        } else {
+            wizard()->setOption(QWizard::HaveCustomButton1, false);
+            disconnect(wizard(), SIGNAL(customButtonClicked(int)),
+                       this, SLOT(printButtonClicked()));
+        }
+        */
+}
