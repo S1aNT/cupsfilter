@@ -271,7 +271,7 @@ void Engine::parseMessage(const Message &r_msg)
     Message msg(this);
     msg.clear();
     QString str;
-    int pCnt;
+
     switch (r_msg.type()){
     case VPrn::Ans_GiveMeTemplatesList:
         // Получили данные запишем в модель
@@ -396,14 +396,13 @@ void Engine::parseMessage(const Message &r_msg)
     }
 }
 
-
 QString Engine::findPrinterInDeviceURIList(const QString &prn)
 {
     QString t_line;
     QMapIterator<QString, QString> i (printer_device_list);
     while (i.hasNext()) {
         i.next();
-        t_line = i.key().section(".",1,1);
+        t_line = i.key().section(".",1);
         if (t_line == prn){
             return i.key();
         }
@@ -428,8 +427,25 @@ void Engine::convertDeviceURIListToPrinterList(const QString & device_uri_list)
         printer_device_list.insert(devices_info.at(0),devices_info.at(1));
         pline = devices_info.at(0);
         qDebug() << "devices_info: " << devices_info.at(0) << "\n";
-        printersList.append(pline.section(".",1,1));// Имя принтера после точки
+        printersList.append(pline.section(".",1));// Имя принтера после точки
         devices_info.clear();
     }
     emit getPrinterList(printersList);
+}
+
+void Engine::do_UserDemands2Restart(const QString &mb,int cur_copy,int total_copy,
+                                    bool all_copy)
+{
+    QString str = tr("%1;:;%2;:;%3;:;")
+                  .arg(mb).arg(cur_copy,0,10).arg(total_copy,0,10);
+    if (all_copy){
+        str.append("true");
+    }else{
+        str.append("false");
+    }
+    //Отправим киперу запрос на перезапуск процесса
+    Message msg(this);
+    msg.setType( VPrn::Que_UserDemands2Restart );
+    msg.setMessageData( str.toUtf8() );
+    sendMessage2LocalSrv( msg );
 }

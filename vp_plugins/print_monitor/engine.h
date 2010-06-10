@@ -147,6 +147,16 @@ private slots:
     void launchAndConnect();
 
     void do_printCurrentDoc();
+    /**
+      * @fn void do_UserDemands2Restart(const QString &mb,int cur_copy,int total_copy,
+                                bool all_copy);
+      * @brief Пользователь потребовал  запуск мастера с нуля,
+      * логин мандат уже есть, документ конвертирован в pdf, число страниц
+      * подсчитанно, необходимо только удалить каталоги 1-copy - 5-copy
+      * и запустить весь цикл заново.
+      */
+    void do_UserDemands2Restart(const QString &mb,int cur_copy,int total_copy,
+                                bool all_copy);
 private:
     /** @brief Список переменных из ini файла
       * @var link_name;        Имя локального сервера для общения с Локальным миром
@@ -189,6 +199,7 @@ private:
     QString          currentUserName;
     QString          currentUserMandat;
     QString          currentSelectPrinter; // Текущий выбранный пользователем принтер
+    int              pCnt;                 // Число страниц в текущем документе
     TemplatesInfo    *tInfo;
     QStringList            secLevelList;
     QMap <QString,QString> printer_device_list;
