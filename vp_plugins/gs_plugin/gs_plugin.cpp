@@ -308,16 +308,23 @@ void GS_plugin::createClientData(const QString &client_uuid)
     bool Ok = true;
     {
         if (c_d){
-            w_dir = QDir(wrk_dir);
-            if ( w_dir.exists() ){
-                recursiveDeletion( wrk_dir );
-            }
+            //w_dir = QDir(wrk_dir);
+
+            //if ( w_dir.exists() ){
+              //  recursiveDeletion( wrk_dir );
+            //}
+
             // Формируем требуемые каталоги
             Ok &= w_dir.mkpath(wrk_dir);
             for (int i=1; i<6;i++){
                 wrk_dir = QString("%1/%2/%3-copy")
                           .arg(this->spoolDir,client_uuid)
                           .arg(i,0,10);
+
+                if ( QDir(wrk_dir).exists() ){
+                    recursiveDeletion( wrk_dir );
+                }
+
                 Ok &= w_dir.mkpath(wrk_dir);
                 if (!Ok){
                     emit error(VPrn::InternalPluginError,
@@ -340,6 +347,7 @@ void GS_plugin::deleteClientData(const QString &client_uuid)
 {
     clients_data.remove(client_uuid);
 }
+
 
 //---------------------------- PRIVATE SLOTS --------------------------------------------------
 void GS_plugin::threadFinish(const QString &jobKey,int code,
@@ -458,11 +466,17 @@ void GS_plugin::start_proc(const QString &client_uuid,const QString &bin,
 
 void GS_plugin::getPageCount(const QString &client_uuid,const QString &input_fn)
 {
-    //pdfTk input_file dump_data
-    QStringList args;
-    args.append(input_fn);
-    args.append("dump_data");
-    start_proc(client_uuid,pdftkBin,args,VPrn::job_CalcPageCount);
+    ClientData *c_d(0);
+    if (input_fn.isEmpty()){
+         c_d = findClientData (client_uuid);
+         emit docReady4work(client_uuid,c_d->getPageCount());
+    }else{
+        //pdfTk input_file dump_data
+        QStringList args;
+        args.append(input_fn);
+        args.append("dump_data");
+        start_proc(client_uuid,pdftkBin,args,VPrn::job_CalcPageCount);
+    }
 }
 
 

@@ -74,6 +74,12 @@ public:
       * @brief  Формируем списк файлов для клиента отвечающих заданному фильтру
       */
     QStringList findFiles(const QString &client_uuid,const QStringList &filters);
+    /**
+      * @fn  void getPageCount(const QString &client_uuid,const QString &input_fn);
+      * @brief Используя pdfTk получим число страниц в pdf документе
+      */
+    void getPageCount(const QString &client_uuid,const QString &input_fn = QString());
+
 signals:
     /**
       * @fn void docConvertedToPdf(const QString &client_uuid)
@@ -124,11 +130,6 @@ private:
 
     QStringList myEnv; // Мои переменные среды для gs
 
-    /**
-      * @fn  void getPageCount(const QString &client_uuid,const QString &input_fn);
-      * @brief Используя pdfTk получим число страниц в pdf документе
-      */
-    void getPageCount(const QString &client_uuid,const QString &input_fn);
     /**
       * @fn void splitPdf(const QString &client_uuid,const QString &main_pdf,
       *                     const QString &first_page, const QString &other_pages);
