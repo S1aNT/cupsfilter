@@ -144,23 +144,18 @@ void GS_plugin::print2devide (const QString &client_uuid,  const QString &print_
     args.append(tr("-#%1").arg(print_copy));
     args.append(print_file);
     start_proc(client_uuid,"lpr",args,VPrn::job_PrintFile);
+
 #elif defined(Q_OS_WIN)
 
     for (int i=0;i<print_copy;i++){
         args.clear();
-        args.append("-q");
-        args.append("-dQUIET");
-        args.append("-dNOPAUSE");
-        args.append("-dBATCH");
-        args.append("-dPARANOIDSAFER");
-        args.append("-r600");
-        args.append("-sDEVICE=pdfwrite");
-        args.append(QString("-sOutputFile=\%printer\%%1").arg(prn_device));
-        args.append("-c");
-        args.append(".setpdfwrite");
-        args.append("-f");
+        args.append("-S");
+        args.append("192.168.112.2");
+        args.append("-P QQQQ");
+        args.append("-o l");
+        args.append("-d");
         args.append(print_file);
-        start_proc(client_uuid,gsBin,args,VPrn::job_PrintFile);
+        start_proc(client_uuid,"lpr",args,VPrn::job_PrintFile);
     }
 #endif
 }
