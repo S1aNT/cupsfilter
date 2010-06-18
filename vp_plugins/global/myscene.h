@@ -69,6 +69,10 @@ public slots:
                      const qreal   m_angle = 0);
     void AddImgElement(const QString & file_name);
 
+    void addImgElem(const QPointF &ps     = QPointF(100.0,100.0),
+                    const qreal   m_angle = 0.0,
+                    const qreal   m_scaled  = 0.0,
+                    const QPixmap &img = QPixmap() );
 private:
     /**
       * @var bool m_mode Режим показа элементов Тэг/Значение

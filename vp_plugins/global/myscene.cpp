@@ -99,26 +99,46 @@ QGraphicsItem * myScene::getPaperItem()
 }
 
 
- void myScene::AddImgElement(const QString & file_name)
- {
+void myScene::AddImgElement(const QString & file_name)
+{
+    QPixmap pixmap(file_name);
 
-     QPixmap pixmap(file_name);
-     pixmap.fill(Qt::transparent);
+    PicItem *Item = new PicItem(pixmap,this->getPaperItem());
+    Item->setData(ObjectName, "tImg");
+    Item->setZValue(100);
+    Item->setFlags(QGraphicsItem::ItemIsMovable |
+                   QGraphicsItem::ItemIsSelectable |
+                   QGraphicsItem::ItemIsFocusable);
+    Item->setOffset(-0.5*QPointF(pixmap.width(), pixmap.height()));
+    Item->setTransformationMode(Qt::SmoothTransformation);
 
-     PicItem *Item;
+}
 
-     Item = new PicItem(pixmap);
-     Item->setData(ObjectName, "tImg");
 
-     Item->setZValue(100);
-     Item->setFlags(QGraphicsItem::ItemIsMovable |
-                    QGraphicsItem::ItemIsSelectable |
-                    QGraphicsItem::ItemIsFocusable);
-     Item->setOffset(-0.5*QPointF(pixmap.width(), pixmap.height()));
-     Item->setTransformationMode(Qt::SmoothTransformation);
-     Item->setParentItem(this->getPaperItem());
+void myScene::addImgElem(const QPointF &ps,const qreal m_angle,const qreal m_scaled,const QPixmap &img )
+{
+    PicItem *Item;
 
- }
+    Item = new PicItem(img);
+    Item->setData(ObjectName, "tImg");
+
+    Item->setZValue(100);
+    Item->setPos(ps);
+
+    Item->setFlags(QGraphicsItem::ItemIsMovable |
+                   QGraphicsItem::ItemIsSelectable |
+                   QGraphicsItem::ItemIsFocusable);
+
+    Item->setOffset(-0.5*QPointF(img.width(), img.height()));
+    Item->setTransformationMode(Qt::SmoothTransformation);
+
+    Item->setMyTransform(m_angle,m_scaled);
+    //Item->setScaledSize(m_scaled);
+    //Item->setAngle(m_angle);
+
+    Item->setParentItem(this->getPaperItem());
+}
+
 
 void myScene::addBaseElem(const QString &tag,const QString &text,const QPointF &ps,
                           const QFont &fnt,const QColor &col,const qreal m_angle)
