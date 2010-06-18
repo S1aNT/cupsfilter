@@ -44,5 +44,6 @@
         <file alias="rotateRight.png">../images/rotateright.png</file>
         <file alias="rotateLeft.png">../images/rotateleft.png</file>
         <file alias="edit.png">../images/edit.png</file>
+	<file alias="view_code.png">../images/blocklist.png</file>
     </qresource>
 </RCC>
