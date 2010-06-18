@@ -73,6 +73,8 @@ private:
     void printTempl();
     void readGlobal(const QString &app_dir);
 
+    QPoint getDeskTopCenter(int width,int height);
+
     Auth_plugin *auth_plugin;
     Itmpl_sql_plugin *tmpl_plugin;
 

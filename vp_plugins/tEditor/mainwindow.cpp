@@ -40,13 +40,20 @@ MainWindow::MainWindow():
                                Qt::WindowCloseButtonHint |
                                Qt::WindowSystemMenuHint);
 
-    /// @todo увеличение на максимум экрана!!!
 
-    this->resize(800,600);
+    QDesktopWidget desktop;
+    QRect avail_size  = desktop.screenGeometry();
+
+
+    this->setMinimumSize(640, 480 );
+    this->setMaximumSize(avail_size.right(),avail_size.bottom() );
+    this->move( getDeskTopCenter(this->width(),this->height() ));
+
+    //this->resize(800,600);
     tabWidget = new QTabWidget;
 
     // Создаем 8 View они существуют все время
-    for (int i=0;i<8;i++){
+    for (int i=1;i<9;i++){
         View * view = new View(this);
         view->setTabNumber(i);
         view->setMinimumSize(tabWidget->sizeHint());
@@ -168,18 +175,22 @@ void MainWindow::loadPlugins()
                         plugin,
                         SLOT(doAddImgElementToPage(int,const QString &))
                         );
+                /*
                 connect (plugin,
                          SIGNAL(allTemplatesPagesParsed()),
                          this,
                          SLOT(PagesUpdate())
                          );
+                         */
 
                 connect(saveAct, SIGNAL(triggered()),
                         plugin,  SLOT(saveTemplates())
                         );
+                /*
                 connect(printAct, SIGNAL(triggered()),
                         plugin, SLOT(convert2Pdf())
                         );
+                        */
                 tmpl_plugin->init(spoolDir,sid);
                 // Получим названия стандартных кнопок для шаблона
                 elemList = tmpl_plugin->getBaseElemNameList();
@@ -210,7 +221,7 @@ void MainWindow::loadPlugins()
                 while (i.hasNext()) {
                     i.next();
                     page  = i.key();
-                    if (page >= 0 && page < 8 ){
+                    if (page >= 1 && page < 9 ){
                         scene = i.value();
                         vPage = m_View.value(page);
                         vPage->gr_view()->setScene(scene);
@@ -439,8 +450,9 @@ void MainWindow::loadFromFile(const QString &file_name)
                         /// Поиск View соответсвующего странице с номером
                         vPage = m_View.value( p_number );
 
-                        vPage->setAngle(m_Scenes.value(p_number)->getAngle());
+
                         if (vPage){
+                            vPage->setAngle(m_Scenes.value(p_number)->getAngle());
                             tabWidget->addTab( vPage, p_name );
                         }else{
                             Ok &= false;
@@ -504,10 +516,10 @@ void MainWindow::createActions()
     showInfoAct->setEnabled(templ_load);
     connect(showInfoAct, SIGNAL(triggered()),
             this,        SLOT(showTemplatesInfo())  );
-
+/*
     printAct = new QAction(QIcon(":/t_print.png"),
                            tr("Пробная печать шаблона"),this);
-
+*/
     newAct = new QAction(QIcon(":/t_new.png"),
                          tr("Создание шаблона ..."),this);
     newAct->setShortcut(QKeySequence::New);
@@ -563,7 +575,7 @@ void MainWindow::createMenus()
     templatesMenu->addAction(saveAct);
     templatesMenu->addAction(saveAsAct);
     templatesMenu->addAction(showInfoAct);
-    templatesMenu->addAction(printAct);
+    //templatesMenu->addAction(printAct);
     templatesMenu->addSeparator();
     templatesMenu->addAction(quitAct);
 
@@ -617,6 +629,8 @@ void MainWindow::createDockWindows()
     addDockWidget(Qt::RightDockWidgetArea,myUndoFrame);
 
     viewMenu->addAction(myUndoFrame->toggleViewAction());
+    myUndoFrame->close();
+
     connect(myUndoFrame, SIGNAL(undoLimitChange(int)),
             this,        SLOT  (updateUndoLimit(int)));
 }
@@ -630,6 +644,19 @@ void MainWindow::printTempl()
         */
     }
 
+}
+
+QPoint MainWindow::getDeskTopCenter(int width,int height)
+{
+    QDesktopWidget desktop;
+    QPoint centerWindow;
+
+    QRect rect = desktop.availableGeometry(desktop.primaryScreen());
+    //получаем прямоугольник с размерами как у экрана
+    centerWindow = rect.center(); //получаем координаты центра экрана
+    centerWindow.setX(centerWindow.x() - (width/2));
+    centerWindow.setY(centerWindow.y() - (height/2));
+    return centerWindow;
 }
 
 void MainWindow::readGlobal(const QString &app_dir)
