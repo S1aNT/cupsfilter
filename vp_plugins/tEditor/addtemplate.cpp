@@ -143,28 +143,28 @@ void AddTemplate::getData4Models()
             state = false;
         }
         switch (p_number){
-        case 0:
+        case VPrn::FirstPage:
             ui->FPnumberChBox_1->setChecked(state);
             break;
-        case 1:
+        case VPrn::FirstPageN2:
             ui->FPnumberChBox_2->setChecked(state);
             break;
-        case 2:
+        case VPrn::FirstPageN3:
             ui->FPnumberChBox_3->setChecked(state);
             break;
-        case 3:
+        case VPrn::FirstPageN4:
             ui->FPnumberChBox_4->setChecked(state);
             break;
-        case 4:
+        case VPrn::FirstPageN5:
             ui->FPnumberChBox_5->setChecked(state);
             break;
-        case 5:
+        case VPrn::SecondPage:
             ui->SPnumberChBox->setChecked(state);
             break;
-        case 6:
+        case VPrn::ThirdPage:
             ui->ThnumberChBox->setChecked(state);
             break;
-        case 7:
+        case VPrn::FourthPage:
             ui->FvnumberChBox->setChecked(state);
             break;
         }
