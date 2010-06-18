@@ -36,16 +36,16 @@ LANGUAGE = C++
 # Use Precompiled headers (PCH)
 PRECOMPILED_HEADER = ../global/pre_header.h
 HEADERS += ../global/pre_header.h \
-           ../interfaces/itmpl_sql_plugin.h  \
+           ../interfaces/itmpl_sql_plugin.h \
+           tmpl_sql_plugin.h \
            ../global/mytypes.h \
+           ../global/commands.h \
            ../global/tinfoeditmodel.h \
            ../global/myscene.h \
-           ../global/mytextitem.h \
-           ../global/commands.h \
+           ../global/mytextitem.h \           
            ../global/editpagesmodel.h \
            ../global/templatesinfo.h \
-           ../global/picitem.h \
-           tmpl_sql_plugin.h
+           ../global/picitem.h
 
 SOURCES = tmpl_sql_plugin.cpp \
     ../global/tinfoeditmodel.cpp \
