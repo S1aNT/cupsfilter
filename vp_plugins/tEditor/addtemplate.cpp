@@ -199,10 +199,15 @@ void AddTemplate::getData4Models()
                 ui->descTextEdit->setPlainText(cellData.toString());
                 break;
             case tInfo_angle:
-                if (cellData.toInt() == 0){
-                    this->setPortret();
+                qDebug() << "\nField N "  << i
+                        << "\nInt "      << cellData.toInt();
+
+                if (cellData.toInt() == 90){
+                    ui->landscapeBtn->click();
+                    //this->setLandscape();
                 }else{
-                    this->setLandscape();
+                    ui->portretBtn->click();
+                    //this->setPortret();
                 }
                 break;
                 case tInfo_ctime:
