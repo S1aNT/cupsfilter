@@ -525,6 +525,7 @@ void Tmpl_sql_plugin::saveTemplates()
                                         query.addBindValue( 0 );
                                         query.addBindValue( 0 );
                                         query.addBindValue( 0 );
+                                        query.addBindValue( 0 );
                                         query.addBindValue( 1 );
                                         query.exec();
                                     }
