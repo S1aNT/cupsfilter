@@ -252,56 +252,56 @@ void AddTemplate::setData4Models()
             int p_number   = m_pagesModel->data(m_pagesModel->index(i,VPrn::PD_p_number)).toInt();
             int p_visible;//  = m_pagesModel->data(m_pagesModel->index(i,VPrn::PD_p_visible)).toInt();
             switch (p_number){
-            case 0:
+            case VPrn::FirstPage:
                 if (ui->FPnumberChBox_1->isChecked()){
                     p_visible =1;
                 }else{
                     p_visible =0;
                 }
                 break;
-            case 1:
+            case VPrn::FirstPageN2:
                 if (ui->FPnumberChBox_2->isChecked()){
                     p_visible =1;
                 }else{
                     p_visible =0;
                 }
                 break;
-            case 2:
+            case VPrn::FirstPageN3:
                 if (ui->FPnumberChBox_3->isChecked()){
                     p_visible =1;
                 }else{
                     p_visible =0;
                 }
                 break;
-            case 3:
+            case VPrn::FirstPageN4:
                 if (ui->FPnumberChBox_4->isChecked()){
                     p_visible =1;
                 }else{
                     p_visible =0;
                 }
                 break;
-            case 4:
+            case VPrn::FirstPageN5:
                 if (ui->FPnumberChBox_5->isChecked()){
                     p_visible =1;
                 }else{
                     p_visible =0;
                 }
                 break;
-            case 5:
+           case VPrn::SecondPage:
                 if (ui->SPnumberChBox->isChecked()){
                     p_visible =1;
                 }else{
                     p_visible =0;
                 }
                 break;
-            case 6:
+          case VPrn::ThirdPage:
                 if (ui->ThnumberChBox->isChecked()){
                     p_visible =1;
                 }else{
                     p_visible =0;
                 }
                 break;
-            case 7:
+            case  VPrn::FourthPage:
                 if (ui->FvnumberChBox->isChecked()){
                     p_visible =1;
                 }else{
