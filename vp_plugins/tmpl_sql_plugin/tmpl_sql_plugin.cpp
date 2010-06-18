@@ -11,10 +11,12 @@
 #include <QtCore/QModelIndex>
 #include <QtCore/QDateTime>
 #include <QtCore/QDataStream>
+#include <QtCore/QBuffer>
 
 #include <QtGui/QStandardItemModel>
 #include <QtGui/QPrinter>
 #include <QtGui/QPainter>
+#include <QtGui/QPixmap>
 
 #include <QtSql/QSqlError>
 #include <QtSql/QSqlDriver>
@@ -41,7 +43,7 @@ Tmpl_sql_plugin::Tmpl_sql_plugin(QObject *parent)
     //Создаем группу стеков Undo
     undoGrp = new QUndoGroup (this);
     //Создаем сцены, связываем их со стеком Undo
-    for (int i=0; i<8;i++){
+    for (int i=1; i<9;i++){
         QUndoStack * stack = new QUndoStack(this);
         undoGrp->addStack(stack);
         scenesGrp.insert(i,new myScene(i,stack,this));
@@ -79,10 +81,12 @@ void Tmpl_sql_plugin::init(const QString & spool,const QString & sid)
             // Проверим факт существования временного каталога
             spoolDir = spool;
             // Формируем пути для файлов
+            /*
             for (int i=0; i<8;i++){
                 filesGrp.insert(i,QObject::trUtf8("%1/%2_page_%3.pdf")
                                 .arg(spool, sid).arg(i,0,10));
             }
+            */
             // Заполним список базовых элементов шаблона
             /**
               * @warning Если меняешь названия тут, не забудь поменять их
@@ -184,7 +188,7 @@ bool Tmpl_sql_plugin::prepare_template(const QString &c_uuid,
                                                   );
                             Ok &=  selectIntoModel(db,elemInPageModel_client,
                                                    QString ("SELECT elem.id,e_text,e_tag,pos_x,pos_y,color,font,"
-                                                            "angle,border,img_data, always_view,page_detail.p_number,img"
+                                                            "angle,border,img_data,img_scaled, always_view,page_detail.p_number,img"
                                                             " FROM elem "
                                                             " INNER JOIN page_detail ON page_detail_id = page_detail.id "
                                                             " WHERE page_detail.p_visible = 1 "
@@ -496,8 +500,8 @@ void Tmpl_sql_plugin::saveTemplates()
                             /// Формируем SQL запрос на INSERT таблицы elem
                             Ok &= query.prepare("INSERT INTO elem (page_detail_id,e_text,e_tag,"
                                                 "pos_x,pos_y,color,font,angle,border,"
-                                                "img_data,img,always_view ) "
-                                                "VALUES (?,?,?,?,?,?,?,?,?,?,?,?)"
+                                                "img_data,img_scaled,img,always_view ) "
+                                                "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)"
                                                 );
                             if (Ok){
                                 ///Цикл по все элементам сцены
@@ -537,15 +541,14 @@ void Tmpl_sql_plugin::saveTemplates()
                                         query.addBindValue( tImg->getAngle() );
                                         query.addBindValue( 0 );
 
-                                        QPixmap pix = tImg->pixmap();
-                                        QByteArray pixBuf;                                      
-                                        QDataStream out(&pixBuf, QIODevice::WriteOnly );
-                                        out.setVersion(QDataStream::Qt_3_0);
-                                        out << pix;
+                                        // Преобразует картинку в QByteArray для записи в базу
+                                        QByteArray img_bytes;
+                                        QBuffer buffer(&img_bytes);
+                                        buffer.open(QIODevice::WriteOnly);
+                                        tImg->pixmap().save(&buffer, "PNG");
+                                        query.addBindValue( img_bytes );
 
-                                        bool ok;
-                                        query.addBindValue( pixBuf.toInt(&ok,10) );
-
+                                        query.addBindValue( tImg->getScaledSize() );
                                         query.addBindValue( 1 );
                                         query.addBindValue( 1 );
                                         query.exec();
@@ -681,14 +684,14 @@ void Tmpl_sql_plugin::fillScenes4Data()
                 scene->addBaseElem(tag,text,ps,font,color,angle);
             }else{
                 //Читаем картинку из базы
+                QPixmap img;
+                img.fill(Qt::transparent);
+
                 qreal angle      = elemInPageModel->data(elemInPageModel->index(i,VPrn::elem_angle)).toDouble();
-/*
-                QPixmap pix = tImg->pixmap();
-                QByteArray pixBuf;
-                QDataStream out(&pixBuf, QIODevice::WriteOnly );
-                out.setVersion(QDataStream::Qt_3_0);
-                out << pix;
-  */
+                qreal scale_xy   = elemInPageModel->data(elemInPageModel->index(i,VPrn::elem_img_scaled)).toDouble();
+                QByteArray pixBuf = elemInPageModel->data(elemInPageModel->index(i,VPrn::elem_img_data)).toByteArray();
+                img.loadFromData(pixBuf);
+                scene->addImgElem(ps,angle,scale_xy,img);
             }
             scene->update();
         }
@@ -772,7 +775,7 @@ bool Tmpl_sql_plugin::create_tables(QSqlQuery &query)
         Ok &= query.exec("CREATE TABLE elem (id INTEGER primary key autoincrement,"
                          "page_detail_id INTEGER,e_text TEXT,e_tag TEXT,"
                          "pos_x REAL,pos_y REAL,color TEXT,font TEXT,angle REAL,"
-                         "border boolean,img_data blob, always_view boolean,img INTEGER); "
+                         "border boolean,img_data blob,img_scaled REAL, always_view boolean,img INTEGER); "
                          ); //"FOREIGN KEY (page_detail_id) REFERENCES page_detail (id) );"
         if (!Ok){
             DumpError(query.lastError());
@@ -873,7 +876,7 @@ bool Tmpl_sql_plugin::create_emptyDB(QString const&)
                 query.addBindValue(QDateTime::currentDateTime().toTime_t());
                 query.addBindValue(QDateTime::currentDateTime().toTime_t());
                 query.addBindValue(userName);
-                query.addBindValue(90);
+                query.addBindValue(0);
                 query.addBindValue(10);
                 query.addBindValue(15);
                 query.addBindValue(30);
@@ -1199,7 +1202,7 @@ bool Tmpl_sql_plugin::fillModels()
         /// @todo МОДЕЛЬ переделать на чтение запись
         /// Заполним модель (только для чтения) ЭЛЕМЕНТЫ_СТРАНИЦЫ
         elemInPageModel->setQuery("SELECT elem.id,e_text,e_tag,pos_x,pos_y,color,font,"
-                                  "angle,border,img_data, always_view,page_detail.p_number,img"
+                                  "angle,border,img_data,img_scaled, always_view,page_detail.p_number,img"
                                   " FROM elem "
                                   " INNER JOIN page_detail ON page_detail_id = page_detail.id "
                                   " WHERE page_detail.p_visible = 1 "
@@ -1224,6 +1227,8 @@ bool Tmpl_sql_plugin::fillModels()
                                        Qt::Horizontal, QObject::trUtf8("Граница элемента (1/0)"));
         elemInPageModel->setHeaderData(VPrn::elem_img_data,
                                        Qt::Horizontal, QObject::trUtf8("Изображение"));
+        elemInPageModel->setHeaderData(VPrn::elem_img_scaled,
+                                       Qt::Horizontal, QObject::trUtf8("Масштаб"));
         elemInPageModel->setHeaderData(VPrn::elem_always_view,
                                        Qt::Horizontal, QObject::trUtf8("Всегда видим (1/0)"));
         elemInPageModel->setHeaderData(VPrn::elem_p_number,
@@ -1279,9 +1284,11 @@ bool Tmpl_sql_plugin::saveDataToBase(const QHash<QString, QString> &hash,QSqlDat
     return Ok;
 }
 
+
 //****************************************************************************
 
-bool Tmpl_sql_plugin::selectIntoModel(QSqlDatabase db, QSqlQueryModel *model,const QString &sql)
+bool Tmpl_sql_plugin::selectIntoModel(QSqlDatabase db, QSqlQueryModel *model,
+                                      const QString &sql)
 {
     bool Ok =true;
     {
@@ -1289,7 +1296,8 @@ bool Tmpl_sql_plugin::selectIntoModel(QSqlDatabase db, QSqlQueryModel *model,con
 
         if (model->lastError().isValid()){
             Ok &=false;
-            emit error(SQLQueryError,QObject::trUtf8("Ошибка получения элементов шаблона. %1")
+            emit error(SQLQueryError,
+                       QObject::trUtf8("Ошибка получения элементов шаблона. %1")
                        .arg( model->lastError().text() )
                        );
         }
