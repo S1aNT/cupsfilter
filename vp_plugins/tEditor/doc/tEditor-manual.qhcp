@@ -1,0 +1,33 @@
+ <?xml version="1.0" encoding="utf-8" ?>
+ <QHelpCollectionProject version="1.0">
+     <assistant>
+         <title>Редактор шаблонов. Справочное руководство</title>
+         <startPage>qthelp://technoserv.ru.teditor.1_0_0/doc/index.html</startPage>
+         <currentFilter>myfilter</currentFilter>
+         <applicationIcon>application.png</applicationIcon>
+         <enableFilterFunctionality>false</enableFilterFunctionality>
+         <enableDocumentationManager>false</enableDocumentationManager>
+         <enableAddressBar visible="true">true</enableAddressBar>
+         <cacheDirectory>Techoserv/tEditor</cacheDirectory>
+         <aboutMenuText>
+             <text>About tEditor</text>
+             <text language="ru">О Редакторе шаблонов...</text>
+         </aboutMenuText>
+         <aboutDialog>
+             <file>about.txt</file>
+             <file language="ru">about_ru.txt</file>
+             <icon>about.png</icon>
+         </aboutDialog>
+     </assistant>
+     <docFiles>
+         <generate>
+             <file>
+                 <input>tEditor-manual.qhp</input>
+                 <output>tEditor-manual.qch</output>
+             </file>
+         </generate>
+         <register>
+             <file>tEditor-manual.qch</file>
+         </register>
+     </docFiles>
+ </QHelpCollectionProject>
