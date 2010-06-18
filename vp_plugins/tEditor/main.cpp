@@ -58,6 +58,7 @@ int main(int argc, char *argv[])
     QString file_name;
 
     MainWindow window;
+
     window.show();
 
     switch (aList.size()){
