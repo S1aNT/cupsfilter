@@ -33,26 +33,23 @@ void myGraphicsView::drawForeground  ( QPainter * painter, const QRectF & rect )
     painter->setWorldMatrixEnabled(true);
 
     if ( gridShow ){
-        //interval to draw grid lines at
-        QPen pen(Qt::green, 1, Qt::SolidLine);
-
-        painter->setPen(pen);
-        qreal left = int(rect.left()) - (int(rect.left()) % gridInterval );
-        qreal top = int(rect.top()) - (int(rect.top()) % gridInterval );
-
-        QVarLengthArray<QLineF> linesX;
-        for (qreal x = left; x < rect.right(); x += gridInterval )
-            linesX.append(QLineF(x, rect.top(), x, rect.bottom()));
-
-        QVarLengthArray<QLineF> linesY;
-        for (qreal y = top; y < rect.bottom(); y += gridInterval )
-            linesY.append(QLineF(rect.left(), y, rect.right(), y));
-
-        painter->drawLines(linesX.data(), linesX.size());
-        painter->drawLines(linesY.data(), linesY.size());
+        //interval to draw grid lines at        
+         painter->setPen(QPen(Qt::green, 1, Qt::SolidLine));
     }else{
-        painter->setBrush(Qt::transparent);
-        painter->drawRect(rect);
-
+         painter->setPen(QPen(Qt::white, 1, Qt::SolidLine));
     }
+
+    qreal left = int(rect.left()) - (int(rect.left()) % gridInterval );
+    qreal top = int(rect.top()) - (int(rect.top()) % gridInterval );
+
+    QVarLengthArray<QLineF> linesX;
+    for (qreal x = left; x < rect.right(); x += gridInterval )
+        linesX.append(QLineF(x, rect.top(), x, rect.bottom()));
+
+    QVarLengthArray<QLineF> linesY;
+    for (qreal y = top; y < rect.bottom(); y += gridInterval )
+        linesY.append(QLineF(rect.left(), y, rect.right(), y));
+
+    painter->drawLines(linesX.data(), linesX.size());
+    painter->drawLines(linesY.data(), linesY.size());
 }
