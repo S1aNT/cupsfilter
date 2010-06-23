@@ -45,21 +45,19 @@ void  myScene::createPageForPrint(qreal width,qreal height)
 {
     this->clear();
     this->setSceneRect(0, 0, width,height);
-    this->setBackgroundBrush(Qt::transparent);
+    this->setBackgroundBrush(Qt::white);
 
     QPixmap pixmap = QPixmap(width,height);
+    pixmap.fill(Qt::white);
 
-    pixmap.fill(Qt::transparent);
-    QGraphicsPixmapItem *paper_rect =
-            new QGraphicsPixmapItem();
+    QGraphicsPixmapItem *paper_rect =  new QGraphicsPixmapItem();
     paper_rect->setPixmap(pixmap);
     paper_rect->setData(ObjectName, "Paper");
     paper_rect->setZValue(-1000.0);
     paper_rect->setShapeMode(QGraphicsPixmapItem::HeuristicMaskShape);
-    //paper_rect->setPen(QPen(Qt::black));
-    //paper_rect->setBrush(QBrush(Qt::white));
     this->addItem(paper_rect);
 }
+
 /*
 void myScene::drawForeground  ( QPainter * painter, const QRectF & rect )
 {
@@ -85,6 +83,7 @@ void myScene::drawForeground  ( QPainter * painter, const QRectF & rect )
     painter->drawLines(linesY.data(), linesY.size());
 }
 */
+
 void  myScene::createPage(qreal width,qreal height,qreal m_top,qreal m_bottom,
                           qreal m_right,qreal m_left)
 {
