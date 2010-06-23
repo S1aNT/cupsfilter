@@ -207,8 +207,10 @@ bool Tmpl_sql_plugin::prepare_template(const QString &c_uuid,
                                     p_width  = MM_TO_POINT(pagesModel_client->data(pagesModel_client->index(i,1)).toDouble());
                                     p_height = MM_TO_POINT(pagesModel_client->data(pagesModel_client->index(i,2)).toDouble());
                                 }
-                                // Формирование ориентации страниц шаблона
+
                                 pdfprinter.setOutputFormat(QPrinter::PdfFormat);
+                                pdfprinter.setResolution( QPrinter::HighResolution );
+                                // Формирование ориентации страниц шаблона
                                 if (p_angle == 90){
                                     pdfprinter.setOrientation(QPrinter::Landscape);
                                 }else{
@@ -281,12 +283,14 @@ bool Tmpl_sql_plugin::prepare_template(const QString &c_uuid,
                                         }
                                         //Печать в pdf, обнуление всего
                                         QPainter painter(&pdfprinter);
+                                        painter.setOpacity(0.0);
+
                                         /// Если последний режим был показа тегов, то переключим на показ значений
                                         if (m_scene->getViewMode()){
                                             m_scene->setViewMode();
                                         }
                                         m_scene->render(&painter);
-                                        m_scene->clear();
+                                        //m_scene->clear();
                                     }
                                     t_page++;
                                 }
@@ -353,6 +357,7 @@ bool Tmpl_sql_plugin::openDataBase(const QString & t_fileName)
 
 void Tmpl_sql_plugin::convert2Pdf()
 {
+    /*
     myScene * scene(0);
     int p_visible;
     int p_number;
@@ -407,6 +412,7 @@ void Tmpl_sql_plugin::convert2Pdf()
     if (Ok){
         emit allPagesConverted();
     }
+    */
 }
 
 void Tmpl_sql_plugin::openTemplates(const QString & t_fileName)
