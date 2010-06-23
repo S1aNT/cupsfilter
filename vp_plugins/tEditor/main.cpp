@@ -16,26 +16,26 @@ void myMessageOutput(QtMsgType type, const char *msg)
         logFile.open(stderr, QIODevice::WriteOnly);
     }
 
-     QTextStream out;
-     out.setDevice(&logFile);
-     out.setCodec("UTF-8");
+    QTextStream out;
+    out.setDevice(&logFile);
+    out.setCodec("UTF-8");
 
-     out << "\nDateTime: " << QDateTime::currentDateTime ().toString("dd.MM.yyyy hh:mm:ss");
-     switch (type) {
-     case QtDebugMsg:
+    out << "\nDateTime: " << QDateTime::currentDateTime ().toString("dd.MM.yyyy hh:mm:ss");
+    switch (type) {
+    case QtDebugMsg:
         out << QObject::trUtf8("Debug: %1\n").arg(QString(msg)) <<"\n";
-         break;
-     case QtWarningMsg:
-         out << QObject::trUtf8("Warning: %1\n").arg(QString(msg))<<"\n";
-         break;
-     case QtCriticalMsg:
-         out << QObject::trUtf8("Critical: %1\n").arg(QString(msg))<<"\n";
-         break;
-     case QtFatalMsg:
-         out << QObject::trUtf8("Fatal: %1\n").arg(QString(msg))<<"\n";
-         abort();
-     }
-     logFile.close();
+        break;
+    case QtWarningMsg:
+        out << QObject::trUtf8("Warning: %1\n").arg(QString(msg))<<"\n";
+        break;
+    case QtCriticalMsg:
+        out << QObject::trUtf8("Critical: %1\n").arg(QString(msg))<<"\n";
+        break;
+    case QtFatalMsg:
+        out << QObject::trUtf8("Fatal: %1\n").arg(QString(msg))<<"\n";
+        abort();
+    }
+    logFile.close();
 }
 
 int main(int argc, char *argv[])
@@ -59,16 +59,21 @@ int main(int argc, char *argv[])
 
     MainWindow window;
 
+
+#if defined(Q_OS_UNIX)
     window.show();
+#elif defined(Q_OS_WIN)
+    window.showMinimized();
+#endif
 
     switch (aList.size()){
-     case 1:
-       window.createNewTemplate();
-       break;
-     case 2:
-       file_name = aList.at(1);
-       window.loadFromFile(file_name);
-       break;
+    case 1:
+        //window.createNewTemplate();
+        break;
+    case 2:
+        file_name = aList.at(1);
+        window.loadFromFile(file_name);
+        break;
     }
     return app.exec();
 }
