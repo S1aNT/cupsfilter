@@ -4,13 +4,14 @@
 #include <qmath.h>
 #include <QUndoStack>
 
+
 View::View( QWidget *parent)
     : QFrame(parent)
     , tabNumber(-1)
 {
 
     setFrameStyle(Sunken | StyledPanel);
-    graphicsView = new QGraphicsView;
+    graphicsView = new myGraphicsView;
     graphicsView->setRenderHint(QPainter::Antialiasing, false);
     graphicsView->setDragMode(QGraphicsView::RubberBandDrag);
     graphicsView->setOptimizationFlags(QGraphicsView::DontSavePainterState);
@@ -104,6 +105,15 @@ void View::setupMatrix()
 }
 
 
+void View::setGridSize(int g_size)
+{
+    graphicsView->setInterval(g_size);
+}
+
+void View::setShowGrid(bool grid_show)
+{
+    graphicsView->setShowGrid(grid_show);
+}
 
 void View::toggleAntialiasing()
 {

@@ -1,7 +1,7 @@
 
 #ifndef VIEW_H
 #define VIEW_H
-
+#include "mygraphicsview.h"
 #include <QFrame>
 
 QT_FORWARD_DECLARE_CLASS(QGraphicsView)
@@ -22,8 +22,8 @@ public:
     QUndoStack *undoStack() const{return m_UndoStack;}
 
 public slots:
-    //void flipPage(int Btn);
-
+    void setGridSize(int g_size);
+    void setShowGrid(bool grid_show);
 private slots:
     void resetView();
     void setResetButtonEnabled();
@@ -32,7 +32,7 @@ private slots:
     void zoomIn();
     void zoomOut();
 private:
-    QGraphicsView *graphicsView;
+    myGraphicsView *graphicsView;
     QLabel *label;
     QSlider *zoomSlider;
     QUndoStack * m_UndoStack;
