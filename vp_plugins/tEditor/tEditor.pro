@@ -41,7 +41,8 @@ HEADERS += ../global/pre_header.h \
     view.h \
     mainwindow.h \
     cmdframe.h \
-    undoframe.h
+    undoframe.h \
+    ../global/mygraphicsview.h
 SOURCES += main.cpp \
     ../global/myscene.cpp \
     ../global/mytextitem.cpp \
@@ -53,6 +54,7 @@ SOURCES += main.cpp \
     mainwindow.cpp \
     cmdframe.cpp \
     undoframe.cpp \
+    ../global/mygraphicsview.cpp
 
 FORMS += addtemplate.ui
 RESOURCES += images.qrc
