@@ -521,7 +521,7 @@ void GS_plugin::mergePdf(const QString &client_uuid,const QString &in_pdf,
 
     QStringList args;
     args.append(in_pdf);
-    args.append("stamp");
+    args.append("background");
     args.append(back_pdf);
     args.append("output");
     args.append(out_pdf);
