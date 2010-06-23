@@ -21,6 +21,8 @@
 
 #include <QtSql/QSqlQueryModel>
 
+#include <QInputDialog>
+
 MainWindow::MainWindow():
         auth_plugin(0)
         , tmpl_plugin(0)
@@ -44,12 +46,11 @@ MainWindow::MainWindow():
     QDesktopWidget desktop;
     QRect avail_size  = desktop.screenGeometry();
 
-
+#if defined(Q_OS_UNIX)
     this->setMinimumSize(640, 480 );
     this->setMaximumSize(avail_size.right(),avail_size.bottom() );
+#endif
     this->move( getDeskTopCenter(this->width(),this->height() ));
-
-    //this->resize(800,600);
     tabWidget = new QTabWidget;
 
     // Создаем 8 View они существуют все время
@@ -406,6 +407,32 @@ void MainWindow::do_viewCode()
     }
 }
 
+void MainWindow::doSetGridAction()
+{
+    bool ok;
+    int gSize = QInputDialog::getInt(this, tr("Введите размер сетки (Ширина x Высота) в мм"),
+                                 tr("Размер:"), 25, 0, 100, 1, &ok);
+    if (ok){
+        // Данные режим работает на всех страницах шаблона
+        for (int i = 0; i < tabWidget->count();i++){
+            View * vPage  = (View *)tabWidget->widget(i);
+            if (vPage){
+                vPage->setGridSize(gSize);
+            }
+        }
+    }
+}
+
+void MainWindow::doShowGridAction()
+{
+    // Данные режим работает на всех страницах шаблона
+    for (int i = 0; i < tabWidget->count();i++){
+        View * vPage  = (View *)tabWidget->widget(i);
+        if (vPage){
+            vPage->setShowGrid( showGridAction->isChecked() );
+        }
+    }
+}
 
 void MainWindow::toggleAntialiasing()
 {
@@ -516,7 +543,7 @@ void MainWindow::createActions()
     showInfoAct->setEnabled(templ_load);
     connect(showInfoAct, SIGNAL(triggered()),
             this,        SLOT(showTemplatesInfo())  );
-/*
+    /*
     printAct = new QAction(QIcon(":/t_print.png"),
                            tr("Пробная печать шаблона"),this);
 */
@@ -565,6 +592,14 @@ void MainWindow::createActions()
     aboutQtAct->setStatusTip(tr("Краткие сведения об используемой библиотеке Qt"));
     connect(aboutQtAct, SIGNAL(triggered()), qApp, SLOT(aboutQt()));
 
+    setGridAction = new QAction(tr("Выбор размера сетки"), this);
+    setGridAction->setStatusTip(tr("Установка размера сетки в мм"));
+    connect(setGridAction, SIGNAL(triggered()), this, SLOT(doSetGridAction()));
+
+    showGridAction = new QAction(tr("Показать/скрыть сетку"), this);
+    showGridAction->setStatusTip(tr("Текущий режим:Показать сетку."));
+    showGridAction->setCheckable(true);
+    connect(setGridAction, SIGNAL(triggered()), this, SLOT(doShowGridAction()));
 }
 
 void MainWindow::createMenus()
@@ -584,6 +619,8 @@ void MainWindow::createMenus()
     toolsMenu = menuBar()->addMenu(tr("Утилиты"));
     toolsMenu->addAction(antialiasAct);
     toolsMenu->addAction(viewCodeAct);
+    toolsMenu->addAction(setGridAction);
+    toolsMenu->addAction(showGridAction);
 
     editMenu = menuBar()->addMenu(tr("Правка"));
 
@@ -604,6 +641,8 @@ void MainWindow::createToolBars()
     toolsToolBar->addAction(antialiasAct);
     toolsToolBar->addAction(showInfoAct);
     toolsToolBar->addAction(viewCodeAct);
+    toolsToolBar->addAction(setGridAction);
+    toolsToolBar->addAction(showGridAction);
 }
 
 void MainWindow::createStatusBar()

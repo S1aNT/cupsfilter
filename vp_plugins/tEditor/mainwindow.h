@@ -58,6 +58,10 @@ private slots:
     void do_CmdButtonClick(const QString &line);// Нажали командную кнопку
     //void do_angle_direct();
     void do_viewCode();
+
+    void doSetGridAction();
+    void doShowGridAction();
+
 signals:
     void addBaseElementToPage(int, const QString &line);
     void addImgElementToPage(int , const QString &templ_fn);
@@ -106,6 +110,8 @@ private:
     QAction *addBaseElem;
     QAction *viewCodeAct;
     QAction *showUndoStackAct;
+    QAction *setGridAction;
+    QAction *showGridAction;
 
     // Приватные данные
     QString userName;
