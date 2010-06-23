@@ -19,7 +19,7 @@ PreViewPage::PreViewPage(QWidget *parent)
     checkPicturesList->setText(QObject::trUtf8("pic list "));
     checkPicturesList->setEnabled( false );
     checkPicturesList->setChecked( false );
-    //checkPicturesList->hide();
+    checkPicturesList->hide();
 
     setTitle(QObject::trUtf8("Предварительный просмотр сформированного документа."));
 
