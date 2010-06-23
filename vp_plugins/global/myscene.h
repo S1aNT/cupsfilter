@@ -46,6 +46,7 @@ protected:
 
     void  mouseReleaseEvent( QGraphicsSceneMouseEvent* );      // receive mouse release events
     void  contextMenuEvent( QGraphicsSceneContextMenuEvent* ); // receive context menu events
+//    void  drawForeground  ( QPainter * painter, const QRectF & rect );
 
 signals:
     void  message( QString );                   // info text message signal

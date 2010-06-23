@@ -5,17 +5,20 @@
 #include "commands.h"
 #include "mytypes.h"
 
-#include <QGraphicsSceneMouseEvent>
-#include <QGraphicsSceneContextMenuEvent>
-#include <QMenu>
-#include <QAction>
-#include <QUndoStack>
+#include <QtGui/QGraphicsSceneMouseEvent>
+#include <QtGui/QGraphicsSceneContextMenuEvent>
+#include <QtGui/QMenu>
+#include <QtGui/QAction>
+#include <QtGui/QUndoStack>
 #include <QtGui/QFontDialog>
 #include <QtGui/QFont>
 #include <QtGui/QColorDialog>
 #include <QtGui/QInputDialog>
+#include <QtGui/QGraphicsPixmapItem>
 
-
+#include <QtCore/QLineF>
+#include <QtCore/QVarLengthArray>
+#include <QPainter>
 using namespace VPrn;
 
 myScene::myScene(int Number, QUndoStack* undoStack, QObject *parent )
@@ -42,26 +45,102 @@ void  myScene::createPageForPrint(qreal width,qreal height)
 {
     this->clear();
     this->setSceneRect(0, 0, width,height);
-    this->setBackgroundBrush(Qt::white);
-    /// рисуем границы (@todo при печати надо их убирать)
+    this->setBackgroundBrush(Qt::transparent);
 
-    QGraphicsRectItem *paper_rect =
-            new QGraphicsRectItem (QRectF(0,0, width,height));
-    paper_rect->setPen(QPen(Qt::black));
-    paper_rect->setBrush(QBrush(Qt::white));
-    paper_rect->setZValue(-1000.0);
+    QPixmap pixmap = QPixmap(width,height);
+
+    pixmap.fill(Qt::transparent);
+    QGraphicsPixmapItem *paper_rect =
+            new QGraphicsPixmapItem();
+    paper_rect->setPixmap(pixmap);
     paper_rect->setData(ObjectName, "Paper");
+    paper_rect->setZValue(-1000.0);
+    paper_rect->setShapeMode(QGraphicsPixmapItem::HeuristicMaskShape);
+    //paper_rect->setPen(QPen(Qt::black));
+    //paper_rect->setBrush(QBrush(Qt::white));
     this->addItem(paper_rect);
 }
+/*
+void myScene::drawForeground  ( QPainter * painter, const QRectF & rect )
+{
+    int gridInterval = 50;
+    //interval to draw grid lines at
+    painter->setWorldMatrixEnabled(true);
 
+    QPen pen(Qt::green, 1, Qt::SolidLine);
+
+    painter->setPen(pen);
+    qreal left = int(rect.left()) - (int(rect.left()) % gridInterval );
+    qreal top = int(rect.top()) - (int(rect.top()) % gridInterval );
+
+    QVarLengthArray<QLineF> linesX;
+    for (qreal x = left; x < rect.right(); x += gridInterval )
+        linesX.append(QLineF(x, rect.top(), x, rect.bottom()));
+
+    QVarLengthArray<QLineF> linesY;
+    for (qreal y = top; y < rect.bottom(); y += gridInterval )
+        linesY.append(QLineF(rect.left(), y, rect.right(), y));
+
+    painter->drawLines(linesX.data(), linesX.size());
+    painter->drawLines(linesY.data(), linesY.size());
+}
+*/
 void  myScene::createPage(qreal width,qreal height,qreal m_top,qreal m_bottom,
                           qreal m_right,qreal m_left)
 {
+    QPixmap pixmap;
+    QPixmap pixmap2;
+
     this->clear();
     this->setSceneRect(0, 0, width,height);
-    this->setBackgroundBrush(Qt::white);
-    /// рисуем границы (@todo при печати надо их убирать)
+    //this->setBackgroundBrush(Qt::white);
+    this->setBackgroundBrush(Qt::transparent);
+/*
+    this->setBackgroundBrush(Qt::transparent);
+    pixmap = QPixmap(width,height);
+    pixmap.fill(Qt::transparent);
 
+    QGraphicsPixmapItem *paper_rect =
+            new QGraphicsPixmapItem();
+    paper_rect->setPixmap(pixmap);
+    paper_rect->setData(ObjectName, "Paper");
+    paper_rect->setZValue(-1000.0);
+    paper_rect->setShapeMode(QGraphicsPixmapItem::HeuristicMaskShape);
+    this->addItem(paper_rect);
+
+    pixmap2 = QPixmap(width,height);
+    pixmap2.fill(Qt::white);
+    QPainter painter(&pixmap2);
+    //painter.setBrush(Qt::black);
+    //Рисуем сетку
+    int gridInterval = 100; //interval to draw grid lines at
+    painter.setWorldMatrixEnabled(true);
+    QRectF  rect = this->sceneRect();
+
+    qreal left = int(rect.left()) - (int(rect.left()) % gridInterval );
+    qreal top = int(rect.top()) - (int(rect.top()) % gridInterval );
+
+    QVarLengthArray <QLineF, 100 > linesX;
+    for (qreal x = left; x < rect.right(); x += gridInterval )
+        linesX.append(QLineF(x, rect.top(), x, rect.bottom()));
+
+    QVarLengthArray <QLineF, 100 > linesY;
+    for (qreal y = top; y < rect.bottom(); y += gridInterval )
+        linesY.append(QLineF(rect.left(), y, rect.right(), y));
+
+    //painter.drawRect(m_left, m_top,width-m_left-m_right,height-m_top-m_bottom);
+    painter.drawLines(linesX.data(), linesX.size());
+    painter.drawLines(linesY.data(), linesY.size());
+
+    QGraphicsPixmapItem *border_rect = new QGraphicsPixmapItem();
+
+    border_rect->setPixmap(pixmap2);
+    border_rect->setData(ObjectName, "Border");
+    border_rect->setZValue(-900.0);
+    border_rect->setShapeMode(QGraphicsPixmapItem::HeuristicMaskShape);
+    this->addItem(border_rect);
+
+    */
     QGraphicsRectItem *paper_rect =
             new QGraphicsRectItem (QRectF(0,0, width,height));
     paper_rect->setPen(QPen(Qt::black));
@@ -81,6 +160,7 @@ void  myScene::createPage(qreal width,qreal height,qreal m_top,qreal m_bottom,
     border_rect->setZValue(-900);
     border_rect->setData(ObjectName, "Border");
     border_rect->setParentItem(paper_rect);
+
 }
 
 QGraphicsItem * myScene::getPaperItem()
