@@ -309,6 +309,19 @@ typedef QMap <int,QString> PixmapDescList;
           */
         Que_UserDemands2Restart      = 5500,
 
+        /*
+         * @short Que_PrintThisFile
+         * @param (QString) файл для печати в формате QByteArray (сжатый)
+         * @param (QString) Имя принтера (очереди печати на CUPS)
+         * @param (quint32) copy_number  число копий
+         * @param (QString) user_name    имя пользователя
+         * @param (QString) job_title    имя задания
+         * @param (quint32) array_size   размер не сжатого буфера
+         * @brief (QByteArray) Печать файла на выбранный пользователем принтер
+        */
+        Que_PrintThisFile            = 6000,
+        Ans_PrintThisFileSuccess     = 6010,
+        Ans_PrintThisFileFailure     = 6050,
 
         ///Служебные сообщения
         GoodBay          = 7000,        /// GateKeeper завершает работу и Вам пора
