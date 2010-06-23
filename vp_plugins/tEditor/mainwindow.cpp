@@ -187,11 +187,11 @@ void MainWindow::loadPlugins()
                 connect(saveAct, SIGNAL(triggered()),
                         plugin,  SLOT(saveTemplates())
                         );
-                /*
+
                 connect(printAct, SIGNAL(triggered()),
-                        plugin, SLOT(convert2Pdf())
+                        this, SLOT(convert2Pdf())
                         );
-                        */
+
                 tmpl_plugin->init(spoolDir,sid);
                 // Получим названия стандартных кнопок для шаблона
                 elemList = tmpl_plugin->getBaseElemNameList();
@@ -240,6 +240,37 @@ void MainWindow::loadPlugins()
 // ----------------------------- Public slots
 
 // ----------------------------- Private slots
+void MainWindow::convert2Pdf()
+{
+    QPrinter pdfprinter;
+    pdfprinter.setOutputFormat(QPrinter::PdfFormat);
+    //    if (p_angle == 90){
+    //        pdfprinter.setOrientation(QPrinter::Landscape);
+    //    }else{
+    //        pdfprinter.setOrientation(QPrinter::Portrait);
+    //    }
+    pdfprinter.setOrientation(QPrinter::Portrait);
+    // Данные режим работает на всех страницах шаблона
+    for (int i = 0; i < tabWidget->count();i++){
+        View * vPage  = (View *)tabWidget->widget(i);
+        if (vPage){
+            // Получим номер страницы отображаемой на i вкладке
+            int page = vPage->getTabNumber();
+            QString page_fn = tr("%1-page.pdf").arg(page,0,10);
+
+            // Начнем формировать новую страницу
+            pdfprinter.setOutputFileName(page_fn);
+            //Печать в pdf, обнуление всего
+            QPainter painter(&pdfprinter);
+            /// Если последний режим был показа тегов, то переключим на показ значений
+            if ( this->m_Scenes.value(page)->getViewMode()){
+                this->m_Scenes.value(page)->setViewMode();
+            }
+            this->m_Scenes.value(page)->render(&painter);
+        }
+    }
+}
+
 void MainWindow::updateUndoLimit(int limit)
 {
     View *vPage  = (View *)tabWidget->currentWidget();
@@ -411,7 +442,7 @@ void MainWindow::doSetGridAction()
 {
     bool ok;
     int gSize = QInputDialog::getInt(this, tr("Введите размер сетки (Ширина x Высота) в мм"),
-                                 tr("Размер:"), 25, 0, 100, 1, &ok);
+                                     tr("Размер:"), 25, 0, 100, 1, &ok);
     if (ok){
         // Данные режим работает на всех страницах шаблона
         for (int i = 0; i < tabWidget->count();i++){
@@ -543,10 +574,10 @@ void MainWindow::createActions()
     showInfoAct->setEnabled(templ_load);
     connect(showInfoAct, SIGNAL(triggered()),
             this,        SLOT(showTemplatesInfo())  );
-    /*
+
     printAct = new QAction(QIcon(":/t_print.png"),
                            tr("Пробная печать шаблона"),this);
-*/
+
     newAct = new QAction(QIcon(":/t_new.png"),
                          tr("Создание шаблона ..."),this);
     newAct->setShortcut(QKeySequence::New);
@@ -610,7 +641,7 @@ void MainWindow::createMenus()
     templatesMenu->addAction(saveAct);
     templatesMenu->addAction(saveAsAct);
     templatesMenu->addAction(showInfoAct);
-    //templatesMenu->addAction(printAct);
+    templatesMenu->addAction(printAct);
     templatesMenu->addSeparator();
     templatesMenu->addAction(quitAct);
 

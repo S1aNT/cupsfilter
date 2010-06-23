@@ -61,7 +61,7 @@ private slots:
 
     void doSetGridAction();
     void doShowGridAction();
-
+    void convert2Pdf();
 signals:
     void addBaseElementToPage(int, const QString &line);
     void addImgElementToPage(int , const QString &templ_fn);
