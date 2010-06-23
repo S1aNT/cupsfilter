@@ -269,6 +269,8 @@ bool Tmpl_sql_plugin::prepare_template(const QString &c_uuid,
                                                 qreal pos_x = elemInPageModel_client->data(elemInPageModel_client->index(i,VPrn::elem_pos_x)).toDouble();
                                                 qreal pos_y = elemInPageModel_client->data(elemInPageModel_client->index(i,VPrn::elem_pos_y)).toDouble();
                                                 QPointF ps(pos_x,pos_y);
+                                                qreal angle      = elemInPageModel_client->data(elemInPageModel_client->index(i,VPrn::elem_angle)).toDouble();
+
                                                 if (e_type == 0){
                                                     QString text     = elemInPageModel_client->data(elemInPageModel_client->index(i,VPrn::elem_text)).toString();
                                                     QString tag      = elemInPageModel_client->data(elemInPageModel_client->index(i,VPrn::elem_tag)).toString();
@@ -276,8 +278,16 @@ bool Tmpl_sql_plugin::prepare_template(const QString &c_uuid,
                                                     QColor color     = variant.value<QColor>();
                                                     variant          = elemInPageModel_client->data(elemInPageModel_client->index(i,VPrn::elem_font));
                                                     QFont font       = variant.value<QFont>();
-                                                    qreal angle      = elemInPageModel_client->data(elemInPageModel_client->index(i,VPrn::elem_angle)).toDouble();
+
                                                     m_scene->addBaseElem(tag,text,ps,font,color,angle);
+                                                }else{
+                                                    //Читаем картинку из базы
+                                                    QPixmap img;
+                                                    img.fill(Qt::transparent);
+                                                    qreal scale_xy   = elemInPageModel_client->data(elemInPageModel_client->index(i,VPrn::elem_img_scaled)).toDouble();
+                                                    QByteArray pixBuf = elemInPageModel_client->data(elemInPageModel_client->index(i,VPrn::elem_img_data)).toByteArray();
+                                                    img.loadFromData(pixBuf);
+                                                    m_scene->addImgElem(ps,angle,scale_xy,img);
                                                 }
                                             }
                                         }
