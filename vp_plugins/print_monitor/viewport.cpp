@@ -129,7 +129,10 @@ void ViewPort::onSceneSecletionChnaged()
 //----------------------------- PRIVATE FUNCTION -------------------------------
 qreal ViewPort::addPairItem (qreal xPos,qreal yPos,int p_number,bool selected)
 {
-    QFont serifFont("Times", 8, QFont::Bold);
+    QFont font;
+    font.setFamily(QString::fromUtf8("Times New Roman"));
+    font.setPointSize(10);
+    font.setBold(true);
 
     QGraphicsTextItem *text_item;
     QGraphicsPixmapItem *pix_item;
@@ -144,9 +147,9 @@ qreal ViewPort::addPairItem (qreal xPos,qreal yPos,int p_number,bool selected)
 
     if (m_thumb){
 
-        text_item  = new QGraphicsTextItem();
+        text_item  = new QGraphicsTextItem();        
         text_item->setHtml( m_desc_list.value(p_number) );
-        text_item->setFont(serifFont);
+        text_item->setFont(font);
         text_item->setPos(xPos,m_yPos);
         m_yPos +=text_item->boundingRect().height()+5;
         scene->addItem(text_item);
