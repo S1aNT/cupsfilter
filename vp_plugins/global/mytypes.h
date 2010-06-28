@@ -28,6 +28,15 @@ typedef QMap <int,QString> PixmapDescList;
     static const char PARTSEPARATOR = ':';
     static const char MESSAGESEPARATOR = '|';
 
+    struct Printers {
+        QString name;       //Имя принтера (для пользователя)
+        QString ip;         //IP адрес сервера где размещен принтер
+        QString p_qqueue;   //Имя очереди печати (имя принтера в CUPS)
+    };
+
+    typedef QList<Printers> PrinterList;
+
+
     enum pSizeColumnOrder{
         pSize_id     = 0, /// ID
         pSize_page   = 1, /// размер листа
