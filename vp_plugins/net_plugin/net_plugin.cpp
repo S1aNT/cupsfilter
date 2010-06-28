@@ -8,8 +8,8 @@
 #include <stdlib.h>
 #include <QtCore/QDateTime>
 #include <QList>
-#include <QtGui/QPrinterInfo>
-#include <QtGui/QPrinter>
+//#include <QtGui/QPrinterInfo>
+//#include <QtGui/QPrinter>
 #endif
 
 #include "net_plugin.h"
@@ -165,8 +165,8 @@ void net_plugin::sendMessage(const Message &s_msg)
             str.clear();
             if (r == 0){
                 loc_msg.setType(VPrn::Ans_PRINTER_LIST);
-                str = QObject::trUtf8("[%1];:;").arg(m_uuid);
-
+                str = QObject::trUtf8("[%1];:;Тестовый;:;192.168.112.2;:;test_prn###").arg(m_uuid);
+/*
                 QList<QPrinterInfo> prn_list = QPrinterInfo::availablePrinters();
                 qDebug() << prn_list.size();
                 for (int i = 0; i< prn_list.size();i++){
@@ -179,7 +179,7 @@ void net_plugin::sendMessage(const Message &s_msg)
                         str.append(";:;");
                     }
                 }
-
+*/
             }else{
                 loc_msg.setType(VPrn::Ans_PRINTER_LIST_EMPTY);
                 str = QObject::trUtf8("[%1];:;empty").arg(m_uuid);
