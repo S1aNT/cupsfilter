@@ -35,7 +35,8 @@ public:
       * @brief Печать  документа сформированного клиентом на устройство
       */
     void print2devide (const QString &client_uuid,  const QString &print_file,
-                       const QString &prn_device,bool usePageCount);
+                       const QString &prn_ip,const QString &prn_qqueue,
+                       bool usePageCount);
 
     /**
       * @fn  QString getUuid() const

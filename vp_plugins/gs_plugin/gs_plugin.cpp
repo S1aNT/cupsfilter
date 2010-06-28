@@ -122,9 +122,12 @@ void GS_plugin::convertPs2Pdf(const QString &client_uuid,const QString &input_fn
 }
 
 void GS_plugin::print2devide (const QString &client_uuid,  const QString &print_file,
-                              const QString &prn_device,bool usePageCount)
+                              const QString &prn_ip,   const QString &prn_qqueue,
+                              bool usePageCount)
 {
     //-q -dQUIET -dNOPAUSE -dPARANOIDSAFER -dBATCH -r300 -sDEVICE=pdfwrite -sOutputFile="%printer%pdfcreator" -c .setpdfwrite -f %1
+    //gs -q -dQUIET -dNOPAUSE -dPARANOIDSAFER -dBATCH -r300 -sDEVICE -dLanguageLevel=1 -sOutputFile=- /opt/vprn/print.ps | lpr -H 127.0.0.1 -P Print2Pdf
+
     // Поиск данных для клиента
     QStringList args;
 
@@ -136,15 +139,27 @@ void GS_plugin::print2devide (const QString &client_uuid,  const QString &print_
     }else{
         print_copy = 1;
     }
-#if defined(Q_OS_UNIX)
+    // Вначале преобразуем исходный документ pdf->ps затем отправим в lpr
     args.clear();
-    args.append("-P");
+    args.append("-q");
+    args.append("-dQUIET");
+    args.append("-dNOPAUSE");
+    args.append("-dBATCH");
+    args.append("-dPARANOIDSAFER");
+    args.append("-r600");
+    args.append("-sDEVICE=pswrite");
+    args.append("-dLanguageLevel=1 ");
 
-    args.append(prn_device.section(".",1,1));
-    args.append(tr("-#%1").arg(print_copy));
-    args.append(print_file);
-    start_proc(client_uuid,"lpr",args,VPrn::job_PrintFile);
 
+#if defined(Q_OS_UNIX)
+    args.append("-sOutputFile=-");
+    args.append(QString("%1").arg(print_file));
+
+    args.append("| lpr ");
+    args.append(QString("-H %1").arg(prn_ip));
+    args.append(QString("-P %1").arg(prn_qqueue));
+    args.append(tr("-#%1").arg(print_copy));    
+    start_proc(client_uuid,gsBin,args,VPrn::job_PrintFile);
 #elif defined(Q_OS_WIN)
 
     for (int i=0;i<print_copy;i++){
