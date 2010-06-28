@@ -262,7 +262,23 @@ void serverGears::reciveNetworkMessage(const Message &r_msg)
                     break;
                 case VPrn::Ans_PRINTER_LIST:
                     loc_msg.setType(VPrn::Ans_PRINTER_LIST);
-                    loc_msg.setMessageData( m_body.toUtf8() );
+                    str.append( m_body );
+#ifdef DEBUG_MODE
+                    /**
+                      * @todo Сделал только для показ работы на локальном компе
+                      * Список принтеров взят из ini файла и записан в виде
+                      * Выводимое имя;:;ip сервера;:;имя очереди печати(принтера)###
+                    */
+                    str.clear();
+                    for (int i=0; i< prn_list.size();i++){
+                        str.append(prn_list.at(i).name).append(";:;")
+                                .append(prn_list.at(i).ip).append(";:;")
+                                .append(prn_list.at(i).p_qqueue).append("###");
+                    }
+
+                    qDebug() << Q_FUNC_INFO << str << "\n";
+#endif
+                    loc_msg.setMessageData( str.toUtf8() );
                     break;
                 case VPrn::Ans_PRINTER_LIST_EMPTY:
                     loc_msg.setType(VPrn::Ans_SrvStatusNotReady);
@@ -475,7 +491,7 @@ void serverGears::parseMessage( const Message &m_msg, const QString &c_uuid)
             //  и распечатка его
             break;
        case VPrn::Que_PrintCurrentFormatedDoc:
-            str.append(m_msg.messageData());
+            str.append( m_msg.messageData() );
 
             printCurrentFormatedDoc(c_uuid,str);
             break;
@@ -725,7 +741,7 @@ void serverGears::createFormatedDoc(const QString &client_uuid,bool full_doc,QBy
 }
 
 void serverGears::markDocInBaseAsFault(const QString &client_uuid,
-                          const QString &data_str)
+                                       const QString &data_str)
 {
 
 }
@@ -734,66 +750,84 @@ void serverGears::printCurrentFormatedDoc(const QString &client_uuid,
                                           const QString &printer)
 {
     // Документ готов к  печати
-    // Обработали все файлы надо пройти по всем каталогам и собрать *_out.pdf
+
+    QString p_ip;
+    QString p_qqueue;
+    QString firstpage;
+    QString otherpage;
+    QString overside;
+    QString lastpage;
+    QString filename;
+    int copy_num(0);
 
     if (gs_plugin ){
+        // Обработали все файлы надо пройти по всем каталогам и собрать *_out.pdf
         QStringList files = gs_plugin->findFiles(client_uuid,QStringList()
                                                  << "*out.pdf" << "*OUT.PDF");
-        for (int i=1;i<6;i++){
-            QString firstpage;
-            QString otherpage;
-            QString overside;
-            QString lastpage;
-            QString filename;
-            int copy_num(0);
+        //Преобразуем printer в набор IP + Очередь печати
+        QRegExp rx_device("(\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3})\\.(.+)");
+        if(rx_device.indexIn( printer ) != -1){
+            p_ip     = rx_device.cap(1);
+            p_qqueue = rx_device.cap(2);
+        }else{
+            rx_device.setPattern("(.+)\\.(.+)");
+            if(rx_device.indexIn( printer ) != -1){
+                p_ip     = rx_device.cap(1);
+                p_qqueue = rx_device.cap(2);
+            }
+        }
+        if( !p_ip.isEmpty()  && !p_qqueue.isEmpty() && !files.isEmpty() ){
+            for (int i=1;i<6;i++){
+                //Формируем группу файлов относящуюся к одному эземпляру
+                for (int j=0;j<files.size();j++ ){
+                    filename = files.at( j );
+                    QRegExp rx("/(.+)/(.+)/(.)-copy/(.+_out).pdf");
+                    if(rx.indexIn( filename ) != -1){
+                        // Наш файлик можно обрабатывать
+                        copy_num = rx.cap(3).toInt();
+                        QString page_type  = rx.cap(4);
+                        if (copy_num == i){
+                            if ( page_type.compare("firstpage_out",Qt::CaseInsensitive) == 0){
+                                firstpage = filename;
+                            }
+                            if ( page_type.compare("otherpage_out",Qt::CaseInsensitive) == 0) {
+                                // Лицевая сторона второго и последующих листов
+                                otherpage = filename;
+                            }
+                            if ( page_type.compare("oversidepage_out",Qt::CaseInsensitive) == 0){
+                                overside = filename;
+                            }
+                            if ( page_type.compare("lastpage_out",Qt::CaseInsensitive) == 0){
+                                lastpage = filename;
+                            }
+                        }
+                    }
+                }
 
-            //Формируем группу файлов относящуюся к одному эземпляру
-            for (int j=0;j<files.size();j++ ){
-                filename = files.at( j );
-                QRegExp rx("/(.+)/(.+)/(.)-copy/(.+_out).pdf");
-                if(rx.indexIn( filename ) != -1){
-                    // Наш файлик можно обрабатывать
-                    copy_num = rx.cap(3).toInt();
-                    QString page_type  = rx.cap(4);
-                    if (copy_num == i){
-                        if ( page_type.compare("firstpage_out",Qt::CaseInsensitive) == 0){
-                            firstpage = filename;
+                // Получили группу файлов теперь отправляем на печать
+                if (!firstpage.isEmpty() ){
+                    //Первая страница всегда есть
+                    gs_plugin->print2devide(client_uuid,firstpage,p_ip,p_qqueue,false);
+
+                    if (!otherpage.isEmpty()){
+                        gs_plugin->print2devide(client_uuid,otherpage,p_ip,p_qqueue,false);
+                    }
+                    QMessageBox msgBox;
+                    QPushButton *nextButton = msgBox.addButton(QObject::trUtf8("Дальше"), QMessageBox::ActionRole);
+                    msgBox.setText(QString("После окончания печати лицевой стороны %1 экземпляра документа,\nПереверните листы и нажмите кнопку Дальше.")
+                                   .arg(i,0,10 ));
+                    msgBox.exec();
+                    if (msgBox.clickedButton() == nextButton) {
+                        if (!overside.isEmpty()){
+                            gs_plugin->print2devide(client_uuid,overside,p_ip,p_qqueue,true);
                         }
-                        if ( page_type.compare("otherpage_out",Qt::CaseInsensitive) == 0) {
-                            // Лицевая сторона второго и последующих листов
-                            otherpage = filename;
-                        }
-                        if ( page_type.compare("oversidepage_out",Qt::CaseInsensitive) == 0){
-                            overside = filename;
-                        }
-                        if ( page_type.compare("lastpage_out",Qt::CaseInsensitive) == 0){
-                            lastpage = filename;
+                        if (!lastpage.isEmpty()){
+                            gs_plugin->print2devide(client_uuid,lastpage,p_ip,p_qqueue,false);
                         }
                     }
                 }
             }
-            // Получили группу файлов теперь отправляем на печать
-            if (!firstpage.isEmpty() ){
-                //Первая страница всегда есть
-                gs_plugin->print2devide(client_uuid,firstpage,printer,false);
 
-                if (!otherpage.isEmpty()){
-                    gs_plugin->print2devide(client_uuid,otherpage,printer,false);
-                }
-                QMessageBox msgBox;
-                QPushButton *nextButton = msgBox.addButton(QObject::trUtf8("Дальше"), QMessageBox::ActionRole);
-                msgBox.setText(QString("После окончания печати лицевой стороны %1 экземпляра документа,\nПереверните листы и нажмите кнопку Дальше.")
-                               .arg(i,0,10 ));
-                msgBox.exec();
-                if (msgBox.clickedButton() == nextButton) {
-                    if (!overside.isEmpty()){
-                        gs_plugin->print2devide(client_uuid,overside,printer,true);
-                    }
-                    if (!lastpage.isEmpty()){
-                        gs_plugin->print2devide(client_uuid,lastpage,printer,false);
-                    }
-                }
-            }
         }
     }
 }

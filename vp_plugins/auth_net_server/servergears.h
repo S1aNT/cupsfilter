@@ -1,6 +1,10 @@
 #ifndef SERVERGEARS_H
 #define SERVERGEARS_H
 
+#define DEBUG_MODE
+
+#include <QtCore/QDebug>
+
 #include "message.h"
 #include "mytypes.h"
 #include "inet_plugin.h"
@@ -12,13 +16,11 @@
 #include <QtCore/QMap>
 #include <QtCore/QSet>
 
-
 #include <QtNetwork/QLocalServer>
 #include <QtNetwork/QLocalSocket>
 
 
 class QByteArray;
-
 
 using namespace VPrn;
 
@@ -67,6 +69,15 @@ public:
       */
     void findTemplatesInPath(const QString t_path);
 
+#ifdef DEBUG_MODE
+    /**
+      * @fn void setPrinterList( PrinterList &p_list);
+      * @brief Только для отладки передаю список принтеров прочитанный из ini файла
+      */
+    void setPrinterList( PrinterList &p_list){ prn_list = p_list;}
+
+#endif
+
 signals:
     void messageReady( const Message &msg );
     void networkProtocolError();
@@ -74,7 +85,7 @@ signals:
     void error(const QString &e_info);
     void clearClientSpool(const QString c_uuid);
 
-//public slots:
+    //public slots:
 private slots:
     /**
       * @fn void readyRead()
@@ -86,7 +97,7 @@ private slots:
       * @brief Обработка сообщения полученного из сети
       */
     void reciveNetworkMessage(const Message &r_msg);
-     /**
+    /**
       * @fn void client_init();
       * @brief При подключении нового клиента заполняеет список клиентов,
       * присвает этому клиенту уникалный индетификатор, настраивает сигналы и слоты
@@ -162,8 +173,10 @@ private:
     QSet<QLocalSocket *> clients;    
     QMap<QLocalSocket *,QString> clients_uuid;
     QMap<QLocalSocket *,QString> clients_name;
-;
-//-----------------------------------------------------------------------------
+
+    PrinterList prn_list;
+
+    //-----------------------------------------------------------------------------
     /**
       * @fn void markDocInBaseAsFault(const QString &client_uuid,
                                       const QString &data_str);
