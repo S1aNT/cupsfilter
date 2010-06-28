@@ -24,7 +24,8 @@ public:
                           const QString &out_pdf) = 0;
 
     virtual void print2devide (const QString &client_uuid,  const QString &print_file,
-                                            const QString &prn_device,bool usePageCount) = 0;
+                               const QString &prn_ip,const QString &prn_qqueue,
+                               bool usePageCount) = 0;
     virtual void mergeWithTemplate(const QString &client_uuid, const QStringList &t_files) = 0 ;
 
     virtual void createClientData(const QString &client_uuid) = 0;
