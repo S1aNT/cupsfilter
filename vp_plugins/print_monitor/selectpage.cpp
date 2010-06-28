@@ -8,7 +8,7 @@
 
 SelectPage::SelectPage(QWidget *parent)
     : QWizardPage(parent)
-    , sel_printer (QString())
+    , printer_id (0)
 {
     setTitle(QObject::trUtf8("Выбор режима работы ..."));
     setPixmap(QWizard::WatermarkPixmap, QPixmap(":/select_mode.png"));
@@ -51,21 +51,14 @@ SelectPage::SelectPage(QWidget *parent)
     registerField("printDoc",printDoc);
     registerField("both_step",both_step);
 
-    connect (printersCBox,SIGNAL(currentIndexChanged(QString)),
-             this, SLOT(setCurrentPrinter(QString)));
+    connect (printersCBox,SIGNAL(currentIndexChanged(int)),
+             this, SLOT(setCurrentPrinter(int)));
 
     this->setButtonText(QWizard::NextButton,QObject::trUtf8("Вперед"));
     this->setButtonText(QWizard::BackButton,QObject::trUtf8("Назад"));
 }
 
 
-
-
-void SelectPage::setPrinterList(QStringList &pList)
-{
-    printersCBox->addItems(pList);
-    printersCBox->setCurrentIndex(-1);
-}
 
 int SelectPage::nextId() const
 {
@@ -75,10 +68,8 @@ int SelectPage::nextId() const
     return VPrn::Page_PrintData;
 }
 
-void SelectPage::setCurrentPrinter(const QString &p)
-{
-    if (!p.isEmpty()){
-        sel_printer = p;
-    }
-
-}
+ void SelectPage::setPrintersModel(QStandardItemModel *p_model )
+ {
+     printersCBox->setModel( p_model );
+     printersCBox->setModelColumn( 0 );
+ }

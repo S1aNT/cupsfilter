@@ -115,9 +115,7 @@ PrintMonitor::PrintMonitor(QWidget *parent,const QString &input_file)
     connect(core_app,       SIGNAL( gk_notReady(QString ) ),
             eMsgBox,        SLOT  ( showMessage (QString ) )
             );
-    connect(core_app,       SIGNAL( getPrinterList (QStringList& ) ),
-            select_page,    SLOT  ( setPrinterList (QStringList& ) )
-            );
+
     connect(core_app,       SIGNAL( doc_converted ()),
             printData_page, SLOT  ( setDocConverted())
             );
@@ -161,6 +159,9 @@ PrintMonitor::PrintMonitor(QWidget *parent,const QString &input_file)
 
     // свяжем модель метаинформации о шаблоне и ее основного потребителя
     printData_page->setModel( core_app->getInfoModel() );
+    // Свяжем модель список принтеров и страницу отображения принтера
+    select_page->setPrintersModel(core_app->getPrintersModel() );
+
     //this->setOption(QWizard::IndependentPages,true);
 }
 
@@ -249,7 +250,7 @@ void PrintMonitor::onReciveSecLevelList()
 
 void PrintMonitor::check_docMB()
 {
-    core_app->authUserToPrinter( select_page->getSeclectPrinter() );
+    core_app->authUserToPrinter( select_page->selectPrinterId() );
     core_app->checkMB( printData_page->getSQL_mb_check() );
 }
 

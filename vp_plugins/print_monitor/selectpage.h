@@ -9,35 +9,31 @@ using namespace VPrn;
 #include <QtCore/QMap>
 
 QT_FORWARD_DECLARE_CLASS ( QRadioButton )
-
 QT_FORWARD_DECLARE_CLASS ( QCheckBox )
 QT_FORWARD_DECLARE_CLASS ( QComboBox )
-
 QT_FORWARD_DECLARE_CLASS ( QLabel )
+QT_FORWARD_DECLARE_CLASS ( QStandardItemModel )
 
 class SelectPage : public QWizardPage
 {
     Q_OBJECT
 public:
     SelectPage(QWidget *parent = 0);
-
-    QString getSeclectPrinter(){return sel_printer;}
+    void setPrintersModel(QStandardItemModel *p_model );
     int nextId() const;
+    int selectPrinterId(){return printer_id;}
 
-public slots:
-    void setPrinterList(QStringList &pList);
 private slots:
-    void setCurrentPrinter(const QString &p);
-
+    void setCurrentPrinter(int p_id){printer_id = p_id;}
 private:
-    QString sel_printer;
+    int printer_id;
+
     QLabel *topLabel;
     QRadioButton * markBrakDoc;
     QRadioButton * accountingDoc;
     QRadioButton * printDoc;
     QRadioButton * both_step;
     QComboBox    * printersCBox;
-
 };
 
 

@@ -36,6 +36,13 @@ public:
       * @brief Возвращает указатель на заполненную модель метаинформации о шаблоне
       */
     QStandardItemModel * getInfoModel();
+
+    /**
+      * @fn QStandardItemModel * getPrintersModel();
+      * @brief Возвращает указатель на модель содержащую информацию о принтерах
+      */
+    QStandardItemModel * getPrintersModel();
+
     void init();
     /**
       @fn void prepareFileToPrint(const QString & file_name);
@@ -65,12 +72,12 @@ public:
       */
     QStringList getSecLevelList() const {return secLevelList;}
 
-
     /**
-     * @fn void authUserToPrinter(const QString &printer_uri);
+     * @fn void authUserToPrinter(int printer_id);
      * @brief Авторизация текщего пользователя на доступ к выбранному принтеру
+     * Пиоск принтера производится в модели
      */
-    void authUserToPrinter(const QString &printer_uri);
+    void authUserToPrinter(int printer_id);
     /**
       * @fn void checkMB( const QString &sql_query);
       * @brief Отправляет локальному серверу запрос на проверку существования
@@ -85,8 +92,6 @@ public:
     void registerMB ( const QString &sql_query );
 
     void doMergeDocWithTemplates (QByteArray field_data,bool preview_mode);
-
-
 
 signals:
     // Результат наложения шаблона на документ
@@ -110,8 +115,8 @@ signals:
     // Требуется авторизовать пользователя есть имя, и связь с демоном
     void needAuthUser(const QString &login_mandat_list);
     void gk_fullReady(const QString &login,const QString &mandat);
-    //Локальный сервер вернул список принтеров доступных данному пользователю
-    void getPrinterList(QStringList &prn_list);
+
+
     // Успешная загрузка плагинов
     void pluginsLoad();
     // Регистрация на локальном сервере
@@ -119,6 +124,7 @@ signals:
     void RemoteDemonRegistr();
     void ReciveUserName();
     void ReciveUserMandat();
+    //Локальный сервер вернул список принтеров доступных данному пользователю
     void RecivePrintersList();
     void ReciveSecLevelList();
     // Документ успешно конвертирован в pdf
@@ -175,12 +181,13 @@ private:
       * @var stopLaunch;       Триггер повторного запуска GateKeeper
       * @var m_appPath;        Путь запуска приложения для поиска ini файла
       * @var gs_plugin;        Указатель на плагин gs @todo Нужен ли ?
-      * @var client_uuid;      Уникальный номер полученный от GateKeeper
+      * @var client_uuid;       Уникальный номер полученный от GateKeeper
       *
-      * @var currentUserName;  Имя текущего пользоватеяля
+      * @var currentUserName;   Имя текущего пользоватеяля
       * @var currentUserMandat; Мандат  текущего пользоватеяля
       * @var tInfo;             Хранилище метаинформации о шаблонах
-      * @var printer_device_list; Список принетров полученнный от сервера
+      * @var prn_list;          Список принтеров полученый от сервера
+      * @var printersModel      Модель в которой храниться список принтеров
       */
     QString link_name;
     QString gsBin;
@@ -198,12 +205,13 @@ private:
     QString          client_uuid;
     QString          currentUserName;
     QString          currentUserMandat;
-    QString          currentSelectPrinter; // Текущий выбранный пользователем принтер
+    int              currentSelectPrinterId; // Текущий выбранный пользователем принтер
     int              pCnt;                 // Число страниц в текущем документе
     TemplatesInfo    *tInfo;
-    QStringList            secLevelList;
-    QMap <QString,QString> printer_device_list;
+    QStandardItemModel *printersModel;
 
+    QStringList      secLevelList;
+    //QMap <QString,QString> printer_device_list;
 
     /**
       *@fn void AfterConnectSteps();
@@ -235,17 +243,17 @@ private:
     void setError();
 
     /**
-      * @fn QString findPrinterInDeviceURIList(const QString &prn);
-      * @brief Поиск в списке device_uri выбранного пользователем принтера
-      * и возврат его  device_uri для авторизации
+      * @fn void savePrintersListToModel(const QString &prn_list);
+      * @brief Заполняет модель данными из списка prn_list по канонам дзенбуддизма
       */
-    QString findPrinterInDeviceURIList(const QString &prn);
+    void savePrintersListToModel(const QString &prn_list);
     /**
-      * @fn void convertDeviceURIListToPrinterList(const QString & device_uri_list);
-      * @brief Сформирует из списка device_uri список принтеров, согласно
-      * канонам дзенбуддизма и отправит сигнал с этим списком
+      * @fn findPrinterInModel(int printer_id);
+      * @brief Поиск в модели выбранного пользователем принтера
+      * и возврат его в виде IP.NAME для авторизации
       */
-    void convertDeviceURIListToPrinterList(const QString & device_uri_list);
+
+    QString findPrinterInModel(int printer_id);
 };
 
 

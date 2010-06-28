@@ -32,6 +32,7 @@ Engine::Engine(QObject *parent,const QString &app_path,
                    , currentUserName(QString("UNDEF USER"))
                    , currentUserMandat(QString("UNDEF MANDAT"))
                    , tInfo(0)
+                   , printersModel(0)
 
 
 {
@@ -43,6 +44,8 @@ Engine::Engine(QObject *parent,const QString &app_path,
     this->clientName = client_name;
     tInfo = new TemplatesInfo(this);
     tInfo->setHorizontalHeaderLabels();
+    printersModel = new QStandardItemModel(this);
+    printersModel->setColumnCount(3);
 }
 
 
@@ -61,9 +64,14 @@ QStandardItemModel * Engine::getInfoModel()
 {
     if (tInfo){
         return tInfo->model();
-    }else {
-        return 0;
     }
+    return 0;
+
+}
+
+QStandardItemModel * Engine::getPrintersModel()
+{
+    return printersModel;
 }
 
 void Engine::init()
@@ -108,13 +116,13 @@ void Engine::sendMessage2LocalSrv(const Message &s_msg)
     }
 }
 
-void Engine::authUserToPrinter(const QString &printer_uri)
+void Engine::authUserToPrinter(int printer_id)
 {
     // Запись в сокет сообщения запрос авторизации пользователя на доступ к ресурсу
     Message msg(this);
     msg.setType( VPrn::Que_AUTHOR_USER  );
-    currentSelectPrinter = findPrinterInDeviceURIList(printer_uri);
-    msg.setMessageData( currentSelectPrinter.toUtf8() ); // Пробразуем в QByteArray
+    currentSelectPrinterId = printer_id;
+    msg.setMessageData( findPrinterInModel(printer_id).toUtf8() ); // Пробразуем в QByteArray
     sendMessage2LocalSrv(msg);
 }
 
@@ -160,12 +168,12 @@ void Engine::readConfig(const QString &ini_file)
         link_name      = settings.value("link_name").toString();
         settings.endGroup();
 
-        settings.beginGroup("POSTSCRIPT");
-        gsBin = settings.value("gs_bin").toString();
-        settings.endGroup();
-        settings.beginGroup("PDF");
-        pdftkBin = settings.value("pdfTK").toString();
-        settings.endGroup();
+//        settings.beginGroup("POSTSCRIPT");
+//        gsBin = settings.value("gs_bin").toString();
+//        settings.endGroup();
+//        settings.beginGroup("PDF");
+//        pdftkBin = settings.value("pdfTK").toString();
+//        settings.endGroup();
 
         settings.beginGroup("USED_DIR_FILE");
         spoolDir       = settings.value("spool_dir").toString();
@@ -218,12 +226,10 @@ void Engine::afterConnectSteps()
 }
 
 void Engine::do_printCurrentDoc()
-{
-    qDebug() << "Send message VPrn::Que_PrintCurrentFormatedDoc, printer " 
-             << currentSelectPrinter;
+{    
     Message msg(this);
     msg.setType( VPrn::Que_PrintCurrentFormatedDoc );
-    msg.setMessageData ( currentSelectPrinter.toUtf8() );
+    msg.setMessageData ( findPrinterInModel(currentSelectPrinterId).toUtf8() );
     sendMessage2LocalSrv( msg );
 }
 
@@ -289,7 +295,7 @@ void Engine::parseMessage(const Message &r_msg)
         break;
     case VPrn::Ans_CreateFormatedDoc:
         emit MergeDocWithTemplates( true,
-             QObject::trUtf8("Применение шаблона к текущему документу, успешно завершено!"));        
+                                    QObject::trUtf8("Применение шаблона к текущему документу, успешно завершено!"));
         break;
     case VPrn::Ans_ConvertFormatedDocToPng:
         qDebug() << Q_FUNC_INFO << r_msg.messageDataList() ;
@@ -338,14 +344,13 @@ void Engine::parseMessage(const Message &r_msg)
         break;
     case VPrn::Ans_PRINTER_LIST:
         str.append(r_msg.messageData());
-        convertDeviceURIListToPrinterList(str);
+        savePrintersListToModel( str );
         emit RecivePrintersList();
         break;
     case VPrn::Ans_STAMP_LIST: // Получили названия уровней секретности, сохраним
         str.append(r_msg.messageData());
         secLevelList << str.split(";:;");
         emit ReciveSecLevelList();
-
         //Запрос списка принтеров доступных пользоваетелю
         msg.setType(VPrn::Que_GET_PRINTER_LIST);
         sendMessage2LocalSrv(msg);
@@ -396,6 +401,7 @@ void Engine::parseMessage(const Message &r_msg)
     }
 }
 
+/*
 QString Engine::findPrinterInDeviceURIList(const QString &prn)
 {
     QString t_line;
@@ -431,6 +437,42 @@ void Engine::convertDeviceURIListToPrinterList(const QString & device_uri_list)
         devices_info.clear();
     }
     emit getPrinterList(printersList);
+}
+*/
+
+QString Engine::findPrinterInModel(int printer_id)
+{
+    QModelIndex index_ip = printersModel->index(printer_id, 1);
+    QModelIndex index_qqueue = printersModel->index(printer_id, 2);
+
+    QString device_profile = QString("%1.%2")
+            .arg(printersModel->data(index_ip, Qt::DisplayRole).toString())
+            .arg(printersModel->data(index_qqueue, Qt::DisplayRole).toString());
+    return device_profile;
+
+}
+
+void Engine::savePrintersListToModel(const QString &prn_list)
+{
+    // Разберем ответ сервера, в формате: Название принтера;:;ip;;:имя очереди###
+    QRegExp rx("(.+);:;(.+);:;(.+)");
+    //rx.setMinimal(true);
+    QString p_name;
+    QString p_ip;
+    QString p_qqueue;
+
+    QStringList printers_item;
+    printers_item = prn_list.split("###");
+    for (int i = 0; i < printers_item.size(); i++) {
+        if(rx.indexIn( printers_item.at(i) ) != -1){
+            p_name   = rx.cap(1);
+            p_ip     = rx.cap(2);
+            p_qqueue = rx.cap(3);
+            printersModel->setItem(i, 0, new QStandardItem(p_name));
+            printersModel->setItem(i, 1, new QStandardItem(p_ip));
+            printersModel->setItem(i, 2, new QStandardItem(p_qqueue));
+        }
+    }
 }
 
 void Engine::do_UserDemands2Restart(const QString &mb,int cur_copy,int total_copy,
