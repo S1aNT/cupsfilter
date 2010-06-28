@@ -1,6 +1,8 @@
 #ifndef SERVER_H
 #define SERVER_H
 
+#define DEBUG_MODE
+
 #include "servergears.h"
 #include "auth_plugin.h"
 #include "inet_plugin.h"
@@ -213,7 +215,12 @@ private:
     // Основное окошко ошибок
     QErrorMessage * myEMsgBox;
 
-    QObjectList pluginList ;
+    QObjectList pluginList;
+
+#ifdef DEBUG_MODE
+    PrinterList printer_list; //Список принтеров в формате (name,ip,p_qqueue)
+#endif
+
 };
 
 #endif

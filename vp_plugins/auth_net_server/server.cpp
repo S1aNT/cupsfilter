@@ -1,3 +1,4 @@
+#include <QtCore/QDebug>
 #include "server.h"
 
 #include <QtNetwork/QLocalServer>
@@ -158,7 +159,9 @@ void Server::init()
                 Ok &= loadPlugins();
 
                 if (Ok){
-
+#ifdef DEBUG_MODE
+                   myServerGears->setPrinterList( printer_list );
+#endif
                     // Инициализация плагинов
 
 #if defined(Q_OS_UNIX)
@@ -629,13 +632,19 @@ bool Server::readConfig()
             local_t_path  = settings.value("local_templates").toString();
             global_t_path = settings.value("global_templates").toString();
             settings.endGroup();
-            //            qDebug() << "\nserverHostName " << serverHostName
-            //                    << "\nlocalSrvName "   << localSrvName
-            //                    << "\nspoolDir"        << spoolDir
-            //                    << "\ngsBin"           << gsBin
-            //                    << "\npdftkBin"        << pdftkBin
-            //                    << "\nserverPort"      << serverPort;
 
+#ifdef DEBUG_MODE
+            int size = settings.beginReadArray("PrinterList");
+             for (int i = 0; i < size; i++) {
+                 settings.setArrayIndex(i);
+                 Printers printer;
+                 printer.name     = settings.value("name").toString();
+                 printer.ip       = settings.value("ip").toString();
+                 printer.p_qqueue = settings.value("p_qqueue").toString();
+                 printer_list.append(printer);
+             }
+             settings.endArray();
+#endif
             // Тестируем переменные
             if ( serverHostName.isEmpty() ||
                  localSrvName.isEmpty()   ||
