@@ -19,20 +19,26 @@
 #include <QtCore/QDataStream>
 #include <QtCore/QHash>
 #include <QtCore/QPair>
+#include <QSizePolicy>
 
+#include "mytypes.h"
+using namespace VPrn;
 PrintDataPage::PrintDataPage(QWidget *parent)
-    : QWizardPage(parent)
+    : QWidget(parent)
     , doc_pages_count(0)
     , first_split(false)
     , other_split(false)
 {
+
+    this->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::MinimumExpanding);
+    this->setMinimumSize(320,240);
+    //this->setMaximumSize(800,600);
+
     // Скрытые чекбоксы
     docConverted_checkBox = new QCheckBox(this);
     docConverted_checkBox->hide();
+    this->setWindowTitle(QObject::trUtf8("Заполнение карточки документа"));
 
-
-    //this->resize(800,600);
-    setTitle(QObject::trUtf8("Режим работы:"));
     QGridLayout *centralgridLayout = new QGridLayout(this);
 
     QFont font;
@@ -74,7 +80,7 @@ PrintDataPage::PrintDataPage(QWidget *parent)
 
     QLabel *label_4 = new QLabel(commonGroupBox);
     label_4->setFont(font);
-    label_4->setText(QObject::trUtf8("Номер МБ"));
+    label_4->setText(QObject:: trUtf8("Номер МБ"));
 
     mbNumberLineEd = new QLineEdit(commonGroupBox);
 
@@ -242,50 +248,22 @@ PrintDataPage::PrintDataPage(QWidget *parent)
     centralgridLayout->addWidget( reciversListGroupBoxChecked ,2,0,1,3 );
 
     setLayout(centralgridLayout);
-    // Поля выбираемые пользователем
-    registerField("docName_lineEd*",docName_lineEd);
-    registerField("secretCBox*", secretCBox);
-    registerField("mbNumberLineEd*", mbNumberLineEd);
-    registerField("punktLineEd*", punktLineEd);
-    registerField("e_currentSBox",e_currentSBox);
-    registerField("e_totalSBox",e_totalSBox);
-    registerField("total_copyes",total_copyes);
-    registerField("templatesCBox*",  templatesCBox);
-
-    registerField("executor_lineEd*",executor_lineEd);
-    //registerField("pressman_lineEd",pressman_lineEd);
-    registerField("invNumber_lineEd*",invNumber_lineEd);
-    registerField("telephone_lineEd*",telephone_lineEd);
-    registerField("dateField_dateEd",dateField_dateEd);
-
-    registerField("reciver_lineEd_1", reciver_lineEd_1);
-    registerField("reciver_lineEd_2", reciver_lineEd_2);
-    registerField("reciver_lineEd_3", reciver_lineEd_3);
-    registerField("reciver_lineEd_4", reciver_lineEd_4);
-    registerField("reciver_lineEd_5", reciver_lineEd_5);
-    //Автоматически заполянямые поля
-    registerField("pagesCountLineEd*",  pagesCountLineEd);
-    registerField("docConverted_checkBox*",docConverted_checkBox);
-    this->setButtonText(QWizard::NextButton,QObject::trUtf8("Вперед"));
-    this->setButtonText(QWizard::BackButton,QObject::trUtf8("Назад"));
-
     connector();
-    //this->setCommitPage(true);
+
 }
 
 void PrintDataPage::setModel ( QStandardItemModel *model)
 {
     m_model = model;
     templatesCBox->setModel( m_model );
-    templatesCBox->setModelColumn( VPrn::metaInfo_name );
-    //templatesCBox->setCurrentIndex(-1);
+    templatesCBox->setModelColumn( VPrn::metaInfo_name );    
 }
 
 
 
 void PrintDataPage::setLabelText(const QString &l_txt)
 {
-    setSubTitle (l_txt);
+    //setSubTitle (l_txt);
 }
 
 

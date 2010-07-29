@@ -1,30 +1,23 @@
 #ifndef PRINTDATAPAGE_H
 #define PRINTDATAPAGE_H
 
-#include "mytypes.h"
-using namespace VPrn;
-
-
-#include <QtGui/QWizardPage>
+#include <QtGui/QWidget>
+QT_FORWARD_DECLARE_CLASS ( QStandardItemModel )
 QT_FORWARD_DECLARE_CLASS ( QRadioButton )
-
 QT_FORWARD_DECLARE_CLASS ( QByteArray )
-
 QT_FORWARD_DECLARE_CLASS ( QCheckBox )
 QT_FORWARD_DECLARE_CLASS ( QComboBox )
 QT_FORWARD_DECLARE_CLASS ( QGroupBox )
 QT_FORWARD_DECLARE_CLASS ( QLineEdit )
 QT_FORWARD_DECLARE_CLASS ( QDateEdit )
-QT_FORWARD_DECLARE_CLASS ( QStandardItemModel )
 QT_FORWARD_DECLARE_CLASS ( QSpinBox )
 QT_FORWARD_DECLARE_CLASS ( QLabel )
 
-class PrintDataPage : public QWizardPage
+class PrintDataPage : public QWidget
 {
     Q_OBJECT
 public:
     PrintDataPage(QWidget *parent = 0);
-
     void setLabelText(const QString &l_txt);
     void setMode(int m_mode);
     /**
