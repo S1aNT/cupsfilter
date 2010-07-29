@@ -287,7 +287,12 @@ void MainWindow::createConnection()
     connect(engine,    SIGNAL( needAuthUser(const QString&) ),
             this,      SLOT  ( do_needAuthUser(const QString&) )
             );
-
+    connect(engine,       SIGNAL( ReciveSecLevelList() ),
+            introPage,    SLOT  ( setReciveSecLevelList() )
+            );
+    connect(engine,       SIGNAL( RecivePrintersList() ),
+            introPage,    SLOT  ( setRecivePrintersList() )
+            );
 }
 
 QPoint MainWindow::calcDeskTopCenter(int width,int height)
