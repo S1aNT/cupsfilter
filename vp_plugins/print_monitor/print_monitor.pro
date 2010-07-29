@@ -1,17 +1,12 @@
 QT += sql \
-    network
+      network
 TEMPLATE += app
-TARGET = p_monitor
+TARGET =print_monitor
 CONFIG += warn_on \
-    qt \
-    console \
-    precompile_header
-win32{
-   DESTDIR = d:/opt/vprn
-}else{
-   DESTDIR = /opt/vprn
-}
-
+          qt \        
+          precompile_header
+win32:DESTDIR = c:/opt/vprn
+else:DESTDIR = /opt/vprn
 CONFIG(debug, debug|release) {
     message(Build Debug!)
     RCC_DIR = ../build/$${TARGET}/debug/rcc
@@ -34,35 +29,36 @@ DEPENDPATH += .
 INCLUDEPATH += ../interfaces \
     ../global \
     ../qt_single_apps
+
 include(../qt_single_apps/qtsingleapplication.pri)
-HEADERS += ../global/mytypes.h \
+
+HEADERS += mainwindow.h \
+    ../global/mytypes.h \
     ../global/message.h \
     ../global/mysocketclient.h \
-    ../global/templatesinfo.h \
-     engine.h \
-    printmonitor.h \
-    getusernamemandatdlg.h \
-    intorpage.h \
+    intropage.h \
+    checkdatapage.h \
     selectpage.h \
     printdatapage.h \
-    checkdatapage.h \
-    previewpage.h  \
+    previewpage.h \
+    viewport.h \
     finishpage.h \
-    viewport.h
-SOURCES += main.cpp \
+    datamodule.h \
+    engine.h \
+    getusernamemandatdlg.h
+SOURCES += main.cpp \           
+    mainwindow.cpp \
     ../global/message.cpp \
     ../global/mysocketclient.cpp \
-    ../global/templatesinfo.cpp \
-    engine.cpp \
-    printmonitor.cpp \
-    getusernamemandatdlg.cpp \
-    intorpage.cpp \
+    checkdatapage.cpp \
+    intropage.cpp \
     selectpage.cpp \
     printdatapage.cpp \
-    checkdatapage.cpp \
     previewpage.cpp \
+    viewport.cpp \
     finishpage.cpp \
-    viewport.cpp    
+    datamodule.cpp \ 
+    engine.cpp \
+    getusernamemandatdlg.cpp
 RESOURCES = images.qrc
-FORMS += getusernamemandatdlg.ui
-TRANSLATIONS = print_monitor_ru.ts
+TRANSLATIONS = prn_monitor_ru.ts
