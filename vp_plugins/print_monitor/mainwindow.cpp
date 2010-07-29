@@ -122,6 +122,11 @@ void MainWindow::init(const QString &app_dir,const QString &input_file)
     engine->setTemplatesModel  ( data_module->getTemplatesModel()   );
     engine->setMandatsModel    ( data_module->getMandatsModel() );
     engine->launchAndConnect();
+
+    selectPage->setPrintersModel(data_module->getPrintersModel()    );
+
+    //printData_page->setSecList(core_app->getSecLevelList());
+
 }
 
 void MainWindow::appendStartMsg(const QString &txt_msg)
