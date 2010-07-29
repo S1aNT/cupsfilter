@@ -1,28 +1,23 @@
 #ifndef PREVIEWPAGE_H
 #define PREVIEWPAGE_H
 
-#include "mytypes.h"
 #include "viewport.h"
 
-#include <QtGui/QWizardPage>
+#include <QtGui/QWidget>
 #include <QtGui/QPixmap>
 #include <QtGui/QSlider>
 
 #include <QtCore/QMap>
 
-using namespace VPrn;
-
-
-
 QT_FORWARD_DECLARE_CLASS ( QLabel )
 QT_FORWARD_DECLARE_CLASS ( QCheckBox )
 
-class PreViewPage : public QWizardPage
+class PreViewPage : public QWidget
 {
     Q_OBJECT
 public:
     explicit PreViewPage(QWidget *parent = 0);
-    void setVisible(bool visible);
+    //void setVisible(bool visible);
     /**
      * @fn bool validatePage();
      * @brief Данная функция проверяет корректность заполнения полей
@@ -46,7 +41,6 @@ private slots:
     void zoomOut();
     void restartButtonClicked();
 private:
-
     QCheckBox *checkPicturesList;
     ViewPort *leftFrame;
     ViewPort *rightFrame;

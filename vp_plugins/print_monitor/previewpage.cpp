@@ -1,5 +1,7 @@
 #include "previewpage.h"
 
+#include "mytypes.h"
+using namespace VPrn;
 
 #include <QtGui/QVBoxLayout>
 #include <QtGui/QRadioButton>
@@ -10,18 +12,22 @@
 #include <QRegExp>
 
 PreViewPage::PreViewPage(QWidget *parent)
-    : QWizardPage(parent)
+    : QWidget(parent)
     ,leftFrame(0)
     ,rightFrame(0)
     ,thumbSize(100,100)
 {
+    this->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::MinimumExpanding);
+    this->setMinimumSize(320,240);
+    this->setMaximumSize(800,600);
+
     checkPicturesList    = new QCheckBox( this );
-    checkPicturesList->setText(QObject::trUtf8("pic list "));
+    //checkPicturesList->setText(QObject::trUtf8("pic list "));
     checkPicturesList->setEnabled( false );
     checkPicturesList->setChecked( false );
     checkPicturesList->hide();
 
-    setTitle(QObject::trUtf8("Предварительный просмотр сформированного документа."));
+    this->setWindowTitle(QObject::trUtf8("Предварительный просмотр сформированного документа."));
 
     int size = style()->pixelMetric(QStyle::PM_ToolBarIconSize);
     QSize iconSize(size, size);
@@ -43,8 +49,7 @@ PreViewPage::PreViewPage(QWidget *parent)
     zoomToFitIcon->setAutoRepeatDelay(0);
     zoomToFitIcon->setIcon(QPixmap(":/zoomtofit.xpm"));
     zoomToFitIcon->setIconSize(iconSize);
-    zoomToFitIcon->setToolTip(
-            QObject::trUtf8("Увеличить изображение до размеров экрана."));
+    zoomToFitIcon->setToolTip(QObject::trUtf8("Увеличить изображение до размеров экрана."));
 
     QToolButton *zoomToFullSizeIcon = new QToolButton;
     zoomToFullSizeIcon->setAutoRepeat(true);
@@ -84,7 +89,6 @@ PreViewPage::PreViewPage(QWidget *parent)
     zoomSliderFrame_layout->addWidget(zoomSlider);
     zoomSliderFrame_layout->addWidget(zoomOutIcon);
 
-
     QSplitter    *toolSplitter = new QSplitter();
     toolSplitter->setOrientation(Qt::Vertical);
     toolSplitter->addWidget(zoomSliderFrame);
@@ -104,7 +108,6 @@ PreViewPage::PreViewPage(QWidget *parent)
 
     setLayout(layout);
 
-    registerField("checkPicturesList*",checkPicturesList);
 
     connect(leftFrame,SIGNAL(selectPixmap(int)),
             rightFrame,SLOT(showPage(int)));
@@ -200,12 +203,12 @@ bool PreViewPage::validatePage()
     return true;
 }
 
+/*
 void PreViewPage::setVisible(bool visible)
 {
 
-    QWizardPage::setVisible(visible);
 
-        if (visible) {
+    if (visible) {
             this->setButtonText(QWizard::NextButton,QObject::trUtf8("Печать документа"));
             wizard()->setButtonText(QWizard::CustomButton1, QObject::trUtf8("Рестарт"));
             wizard()->setOption(QWizard::HaveCustomButton1, true);
@@ -218,6 +221,7 @@ void PreViewPage::setVisible(bool visible)
         }
 
 }
+*/
 //------------------------------ PRIVATE SLOTS ---------------------------------
 void PreViewPage::zoomIn()
 {
@@ -231,10 +235,10 @@ void PreViewPage::zoomOut()
 
 void PreViewPage::restartButtonClicked()
 {
-    QString mb     = wizard()->field("mbNumberLineEd").toString();
-    int cur_copy   = wizard()->field("e_currentSBox").toInt();
-    int total_copy = wizard()->field("e_totalSBox").toInt();
-    bool all_copy  = wizard()->field("total_copyes").toBool();
+//    QString mb     = wizard()->field("mbNumberLineEd").toString();
+//    int cur_copy   = wizard()->field("e_currentSBox").toInt();
+//    int total_copy = wizard()->field("e_totalSBox").toInt();
+//    bool all_copy  = wizard()->field("total_copyes").toBool();
 
     imageFullItems.clear();
     imageThumbItems.clear();
@@ -242,8 +246,8 @@ void PreViewPage::restartButtonClicked()
     imageFilesList.clear();
 
     checkPicturesList->setChecked(false);
-    emit UserDemands2Restart(mb,cur_copy,total_copy,all_copy);
+    //emit UserDemands2Restart(mb,cur_copy,total_copy,all_copy);
 
-    wizard()->setStartId(VPrn::Page_Select);
-    wizard()->restart();
+//    wizard()->setStartId(VPrn::Page_Select);
+//    wizard()->restart();
 }
