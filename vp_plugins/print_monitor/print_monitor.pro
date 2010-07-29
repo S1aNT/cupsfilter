@@ -1,7 +1,7 @@
 QT += sql \
       network
 TEMPLATE += app
-TARGET =print_monitor
+TARGET =p_monitor
 CONFIG += warn_on \
           qt \        
           precompile_header
