@@ -1,3 +1,4 @@
+#include "mytypes.h"
 #include "checkdatapage.h"
 
 #include <QtGui/QVBoxLayout>
@@ -5,41 +6,46 @@
 #include <QtGui/QCheckBox>
 #include <QtGui/QButtonGroup>
 
+using namespace VPrn;
+
 CheckDataPage::CheckDataPage(QWidget *parent)
-    :QWizardPage(parent)
+    : QWidget(parent)
 {
-    setTitle(QObject::trUtf8("Проверка корректности введеных пользователем данных"));
-    setPixmap(QWizard::WatermarkPixmap, QPixmap(":/select_mode.png"));
+    this->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::MinimumExpanding);
+    this->setWindowTitle(QObject::trUtf8("Проверка корректности введеных пользователем данных"));
 
-
-    topLabel = new QLabel(
-            QObject::trUtf8("На этом шаге, после прохождения автоматизированных проверок, "
-                            "необходимо выбрать печать документа или один из режимов предпросмотра:"
-                            "<ul><li>1.Печать документа без предварительного просмотра.</li>"
-                            "<li>2.Просмотр перед печатью всех страниц документа. "
-                            "Внимание данный режим может занять продолжительное время на обработку документа!</li>"
-                            "<li>3.Просмотр перед печатью только основных страниц документа:</li></ul>"
-                            "<ul><li>     лицевые стороны 1-х страниц выбранных экземпляров;</li>"
-                            "<li>       лицевая сторона последующих страниц</li>"
-                            "<li>       обратная сторона всех страниц кроме последней</li>"
-                            "<li>       фонарик</li></ul>"));
+    QLabel *topLabel = new QLabel(
+            QObject::trUtf8("На этом шаге необходимо выбрать <b>Печать документа</b> или один из 3-х режимов предпросмотра:")
+            );
     topLabel->setWordWrap(true);
 
-    printWithoutPreview= new QRadioButton(this);
+    QLabel *label_1 = new QLabel(
+            QObject::trUtf8("1.Печать документа без предварительного просмотра."));
+    label_1->setWordWrap(true);
+    QLabel *label_2 = new QLabel(
+            QObject::trUtf8("2.Просмотр перед печатью всех страниц документа."
+                            " <br><small><b>Внимание</b> данный режим может занять продолжительное время на обработку документа!</small>"
+                            ));
+    label_2->setWordWrap(true);
+    QLabel *label_3 = new QLabel(
+            QObject::trUtf8("3.Просмотр перед печатью только основных страниц документа:<ul>"
+                            "<li>  лицевые стороны 1-х страниц выбранных экземпляров;</li>"
+                            "<li>  лицевая сторона последующих страниц;</li>"
+                            "<li>  обратная сторона всех страниц кроме последней;</li>"
+                            "<li>  фонарик.</li></ul>"));
+    label_3->setWordWrap(true);
 
+    printWithoutPreview= new QRadioButton(this);
     printWithoutPreview->setText(
             QObject::trUtf8("Печать документа без предварительного просмотра."));
 
     previewAllPages = new QRadioButton( this );
-
     previewAllPages->setText(
             QObject::trUtf8("Просмотр перед печатью всех страниц документа."));
 
     previewPartPages = new QRadioButton(this);
-
     previewPartPages->setText(
             QObject::trUtf8("Просмотр перед печатью только основных страниц документа."));
-
 
     printWithoutPreview->setEnabled( false );
     printWithoutPreview->setChecked( false );
@@ -63,39 +69,44 @@ CheckDataPage::CheckDataPage(QWidget *parent)
     authUserToPrinter->setText(
             QObject::trUtf8("Авторизация пользователя на доступ к принтеру")
             );
-
     authUserToPrinter->setChecked( false);
+    authUserToPrinter->setVisible(false);
+
     checkCorrectMB    = new QCheckBox( this );
-    checkMergeDocWithTemplates    = new QCheckBox( this );
     checkCorrectMB->setEnabled( false );
     checkCorrectMB->setChecked( false );
-
     checkCorrectMB->setText(
             QObject::trUtf8("Проверка документа на существование в БД учета.")
             );
+    checkCorrectMB->setVisible(false);
 
+    checkMergeDocWithTemplates    = new QCheckBox( this );
     checkMergeDocWithTemplates->setEnabled( false );
     checkMergeDocWithTemplates->setChecked( false);
     checkMergeDocWithTemplates->setText(
             QObject::trUtf8("Идет процесс формирования наложения шаблона на документ и формирования стр. предпросмотра")
             );
+    checkMergeDocWithTemplates->setVisible(false);
 
+    QVBoxLayout *verticalLayout = new QVBoxLayout();
+    verticalLayout->addWidget(topLabel);
+    verticalLayout->addStretch(0);
+    verticalLayout->addWidget(label_1);
+    verticalLayout->addStretch(0);
+    verticalLayout->addWidget(label_2);
+    verticalLayout->addStretch(0);
+    verticalLayout->addWidget(label_3);
+    verticalLayout->addStretch(0);
 
-    QVBoxLayout *layout = new QVBoxLayout;
-    layout->addWidget ( topLabel );
-    layout->addSpacing( 3 );
-    layout->addWidget ( printWithoutPreview);
-    layout->addWidget ( previewAllPages );
-    layout->addWidget ( previewPartPages );
-    layout->addWidget ( authUserToPrinter );
-    layout->addWidget ( checkCorrectMB    );
-    layout->addWidget ( checkMergeDocWithTemplates );
+    verticalLayout->addWidget(printWithoutPreview);
+    verticalLayout->addWidget(previewAllPages );
+    verticalLayout->addWidget(previewPartPages);
+    verticalLayout->addWidget(authUserToPrinter);
+    verticalLayout->addWidget(checkCorrectMB);
+    verticalLayout->addWidget(checkMergeDocWithTemplates);
+    verticalLayout->addStretch(0);
+    setLayout(verticalLayout);
 
-    setLayout(layout);
-
-    registerField("checkCorrectMB*",checkCorrectMB);
-    registerField("checkMergeDocWithTemplates*",checkMergeDocWithTemplates);
-    registerField("authUserToPrinter*",authUserToPrinter);
 
     connect (printWithoutPreview,SIGNAL(toggled(bool)),
              this, SLOT ( startMergedDoc4Print(bool) )
@@ -110,10 +121,10 @@ CheckDataPage::CheckDataPage(QWidget *parent)
 }
 
 
-
+/*
 void CheckDataPage::setVisible(bool visible)
 {
-    QWizardPage::setVisible(visible);
+
     if (visible){
         rb_group->setExclusive(false);
         checkCorrectMB->setEnabled( false );
@@ -139,7 +150,9 @@ void CheckDataPage::setVisible(bool visible)
                 );
         rb_group->setExclusive(true);
     }
+
 }
+*/
 
 void CheckDataPage::setCheckMergeDocWithTemplates( bool flag, const QString & info )
 {

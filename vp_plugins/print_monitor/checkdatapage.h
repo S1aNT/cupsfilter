@@ -1,12 +1,8 @@
 #ifndef CHECKDATAPAGE_H
 #define CHECKDATAPAGE_H
 
-#include "mytypes.h"
+#include <QtGui/QWidget>
 
-
-using namespace VPrn;
-
-#include <QtGui/QWizardPage>
 /**
   * @class Данный клас реализует страницу проверки введенных пользователем данных
   * Cписок проверок:
@@ -30,14 +26,12 @@ QT_FORWARD_DECLARE_CLASS ( QCheckBox )
 QT_FORWARD_DECLARE_CLASS ( QLabel )
 QT_FORWARD_DECLARE_CLASS ( QButtonGroup )
 
-class CheckDataPage : public QWizardPage
+
+class CheckDataPage : public QWidget
 {
     Q_OBJECT
 public:
     explicit CheckDataPage(QWidget *parent = 0);
-
-    void setVisible(bool visible);
-
 signals:
     void select_preview(bool full);
     void select_print  ();
