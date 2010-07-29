@@ -4,15 +4,15 @@
   * @class Messeage Данный класс инкапсулирует в себе сообщение передаваемое от
   * клиента к серверу и обратно
   */
-#include "mytypes.h"
 
 #include <QObject>
 #include <QStringList>
 
 #include <QtCore/QByteArray>
 
-using namespace VPrn;
+#include "mytypes.h"
 
+using namespace VPrn;
 
 
 class Message : public QObject
@@ -74,10 +74,6 @@ public:
      * @param tp MessageType
      */
     void setType( MessageType tp );
-
-signals:
-
-public slots:
 
 private:
     MessageType messageType;

@@ -3,7 +3,6 @@
 #include <QtCore/QMetaType>
 #include <QtCore/QDataStream>
 
-
 Message::Message(QObject *parent)
     : QObject(parent)
     , messageType( VPrn::NoMsgType )
