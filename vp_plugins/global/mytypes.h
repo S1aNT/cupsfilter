@@ -339,13 +339,13 @@ typedef QMap <int,QString> PixmapDescList;
        };
 
     enum {
-        Page_Intro,
-        Page_Select,
-        Page_SetBrak,
-        Page_PrintData,
-        Page_CheckData,
-        Page_Preview,
-        Page_Finish
+        Page_Intro     = 0,
+        Page_Select    = 1,          
+        Page_PrintData = 2,
+        Page_CheckData = 3,
+        Page_Preview   = 4,
+        Page_Finish    = 5,
+        Page_SetBrak   = 6
     };
 
     /**
