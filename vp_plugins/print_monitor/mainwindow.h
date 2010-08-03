@@ -46,7 +46,7 @@ private slots:
     void do_prev();
     void do_restart();
     void do_needAuthUser(const QString &login_mandat_list);
-    void sendFileToConvertor();
+    void sendFileToConvertor();        
 
 private:        
     QDesktopWidget desktop;

@@ -2,8 +2,11 @@
 #define PRINTDATAPAGE_H
 
 #include <QtGui/QWidget>
+QT_FORWARD_DECLARE_CLASS ( QDataWidgetMapper);
 QT_FORWARD_DECLARE_CLASS ( QStandardItemModel )
+QT_FORWARD_DECLARE_CLASS ( QStringListModel )
 QT_FORWARD_DECLARE_CLASS ( QRadioButton )
+
 QT_FORWARD_DECLARE_CLASS ( QByteArray )
 QT_FORWARD_DECLARE_CLASS ( QCheckBox )
 QT_FORWARD_DECLARE_CLASS ( QComboBox )
@@ -18,13 +21,17 @@ class PrintDataPage : public QWidget
     Q_OBJECT
 public:
     PrintDataPage(QWidget *parent = 0);
-    void setLabelText(const QString &l_txt);
-    void setMode(int m_mode);
+
     /**
-      * @fn void setModel ( QStandardItemModel *model);
-      * @brief установим модель и настроим ее связи с полями
+      * @fn void setTemplatesModel ( QStandardItemModel *model);
+      * @brief установим шаблонов
       */
-    void setModel ( QStandardItemModel *model);
+    void setTemplatesModel ( QStandardItemModel *model);
+    /**
+      * @fn void setCardDocModel( QStandardItemModel *model);
+      * @brief Устанавливает указатель на модель КАРТОЧКИ_ДОКУМЕНТА
+      */
+    void setCardDocModel( QStandardItemModel *model);
     /**
       * @fn QByteArray getAllFieldData();
       * @brief Собирает данные всех полей и формирует из них массив пригодный
@@ -48,12 +55,18 @@ public:
       */
     QString getSQL_mb_register() const;
 
-     /**
-      * @fn bool validatePage();
-      * @brief Данная функция проверяет корректность заполнения полей
-      * проверка последней минутки
+    /**
+      * @fn bool enableNext();
+      * @brief Разрешает преход на следующую страницу
+      * если все шаги выполнены
       */
-    bool validatePage ();
+    bool enableNext();
+    /**
+      * @fn void setSecList(const QStringList &s_list);
+      * @brief Заполним поле список уровней секретности
+      */
+    void setSecListModel(QStringListModel *m_list_model);
+
 signals:
     /**
       * @fn void field_checked();
@@ -64,21 +77,11 @@ signals:
 
 public slots:
 
-    /**
-      * @fn void setSecList(const QStringList &s_list);
-      * @brief Заполним поле список уровней секретности
-      */
-    void setSecList(const QStringList &s_list);
-       /**
+      /**
     * @fn void setDocConverted();
     * @brief ставит галочку в обязательном CheckBox документ сконвертирован  в pdf
     */
     void setDocConverted();
-   /**
-     * @fn void setPageCounted(int pages);
-     * @brief Заполняет поле число страниц
-    */
-    void setPageCounted(int pages);
 
 private slots:
 
@@ -90,7 +93,10 @@ private slots:
       */
     void findTemplatesFilePathInModel(int combo_ind);
 
+    void showIndex(int ind);
 private:
+    QDataWidgetMapper *mapper;
+
     QComboBox *secretCBox;
     QComboBox *templatesCBox;
 
@@ -123,9 +129,10 @@ private:
     QCheckBox *docConverted_checkBox;
     QCheckBox *docSplitted_checkBox;
 
-    int doc_pages_count;
     bool first_split;
     bool other_split;
+    QStandardItemModel *m_model; // указатель на модель метаинформации о шаблоне
+    QStandardItemModel *m_cards_model; // указатель на модель КАРТОЧКИ_ДОКУМЕНТА
 
 
     /**
@@ -138,7 +145,6 @@ private:
     QString t_fileName;
     QByteArray fields_data;
 
-    QStandardItemModel *m_model; // указатель на модель метаинформации о шаблоне
     /**
       * @fn void setPageSpit();
       * @brief Взводит флажок подготовка документа к печати в зависимости

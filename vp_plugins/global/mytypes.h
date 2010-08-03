@@ -18,8 +18,8 @@ namespace VPrn{
 #define DM_TO_POINT(dm) ((dm)*283.465058)
 #define INCH_TO_POINT(inch) ((inch)*72.0)
 
-typedef QMap <int,QPixmap> PixmapList;
-typedef QMap <int,QString> PixmapDescList;
+    typedef QMap <int,QPixmap> PixmapList;
+    typedef QMap <int,QString> PixmapDescList;
 
     static const int ObjectName = 0;
     static const int ObjectData = 1;
@@ -60,6 +60,29 @@ typedef QMap <int,QString> PixmapDescList;
         metaInfo_p_width, /// Ширина страницы (мм)
         metaInfo_p_height /// Высота страницы (мм)
     };
+    enum DocCardModelHeader{
+        cards_ID              = 0,  /// ID
+        cards_DOC_NAME        = 1,  /// Имя документа
+        cards_STAMP           = 2,  /// Выбранный гриф секретности
+        cards_MB_NUMBER       = 3,  /// Номер МБ
+        cards_PUNKT           = 4,  /// Пункт
+        cards_PAGE_COUNT      = 5,  /// Число страниц
+        cards_COPY_COUNT      = 6,  /// Всего экз
+        cards_CURRENT_COPY    = 7,  /// Текущий экз
+        cards_SELECT_ALL_COPY = 8,  /// Признак выбор всех экз
+        cards_TEMPLATE_NAME   = 9,  /// Имя файла шаблона
+        cards_EXECUTOR        = 10, /// Исполнитель
+        cards_PRINTMAN        = 11, /// Отпечатал
+        cards_PHONE           = 12, /// Телефон
+        cards_INV_NUMBER      = 13, /// Инв.номер
+        cards_PRINT_DATE      = 14, /// Дата печати
+        cards_RECIVER_1       = 15, /// Получатель_1
+        cards_RECIVER_2       = 16, /// Получатель_2
+        cards_RECIVER_3       = 17, /// Получатель_3
+        cards_RECIVER_4       = 18, /// Получатель_4
+        cards_RECIVER_5       = 19, /// Получатель_5
+        cards_STATUS          = 20  /// Статус_Документа
+    };
 
     enum tInfoColumnOrder{
         tInfo_id     = 0,  ///ID
@@ -76,7 +99,7 @@ typedef QMap <int,QString> PixmapDescList;
         tInfo_mright  = 11, ///Отступ справа (мм)
         tInfo_p_width = 12,
         tInfo_p_height= 13
-    };
+                    };
 
     enum pageDetailColumnOrder{
         PD_id         = 0,  /// ID
@@ -226,21 +249,6 @@ typedef QMap <int,QString> PixmapDescList;
           * дополнительную проверку на совпадение остальных полей
           */
         Ans_MB_EXIST_AND_NOT_BRAK = 1510,
-        /**
-          *@short Дополнительна проверка, сопадают ли атрибуты документа,
-          * с атрибутами введенными пользователем
-          * в теле сообщения содержиться атрибуты документа МБ....
-          */
-
-        Que_CHECK_DOC_ATR         = 550,
-        /**
-          * @short Документ есть в БД, совпали атрибуты, поле отпечатал не проверяется
-          */
-        Ans_CHECK_DOC_ATR_EQU     = 1550,
-        /**
-          * @short Документ есть в БД, не совпали атрибуты, поле отпечатал не проверяется
-          */
-        Ans_CHECK_DOC_ATR_NEQ     = 1551,
 
         /**
           * @short Регистрация документа в БД учета
@@ -277,6 +285,8 @@ typedef QMap <int,QString> PixmapDescList;
           */
         Que_CreateFormatedFullDoc  = 5100, /// Полный документ
         Que_CreateFormatedPartDoc  = 5110, /// Только его часть
+        /// @short Полный документ для печати, в теле сообщения принтер, набор данных
+        Que_CreateFormatedFullDocAndPrint = 5200,  /// Сообщение уходит в сеть к демону
 
         /// @short Ans_TemplateNotFound  - Шаблон не найден или поврежден, в теле сообщения подробности
         Ans_TemplateNotFound   = 5101,
@@ -293,8 +303,6 @@ typedef QMap <int,QString> PixmapDescList;
           */
         Ans_ConvertFormatedDocToPng  = 5104,
 
-        /// @short Полный документ для печати, в теле сообщения принтер, набор данных
-        Que_CreateFormatedFullDocAndPrint = 5200,  /// Сообщение уходит в сеть к демону
         /**
           * @short Печать текущего документа,юзер посмотрел его превюшку и нажал на кнопку печать
           * В теле сообщения указан выбранный пользователем принтер
@@ -336,7 +344,7 @@ typedef QMap <int,QString> PixmapDescList;
         GoodBay          = 7000,        /// GateKeeper завершает работу и Вам пора
         Err_Message      = 7001,        /// Сообщение об ошибке.Подробности в теле сообщения
         NoMsgType        = 0
-       };
+                       };
 
     enum {
         Page_Intro     = 0,
@@ -346,7 +354,7 @@ typedef QMap <int,QString> PixmapDescList;
         Page_Preview   = 4,
         Page_Finish    = 5,
         Page_SetBrak   = 6
-    };
+                     };
 
     /**
      * @brief  Режимы предпросмотра при печати
@@ -355,9 +363,9 @@ typedef QMap <int,QString> PixmapDescList;
      * @li  PrintWithoutPreviewMode  Печать без просмотра
      */
     enum PreviewMode{
-       FullPreviewMode  = 0,
-       PartPreviewMode = 1,
-       PrintWithoutPreviewMode = 2
+        pre_FullMode       = 0,
+        pre_PartMode       = 1,
+        pre_ClearPrintMode = 2
     };
 
     enum{
@@ -371,14 +379,15 @@ typedef QMap <int,QString> PixmapDescList;
 
         DISCONNECT           = 5000
 
-   };
+                           };
 
 
 }
 
-
+Q_DECLARE_METATYPE(VPrn::PreviewMode);
 Q_DECLARE_METATYPE(VPrn::Jobs);
 Q_DECLARE_METATYPE(VPrn::MyCheckPoints);
+Q_DECLARE_METATYPE(VPrn::DocCardModelHeader);
 Q_DECLARE_METATYPE(VPrn::MessageType);
 Q_DECLARE_METATYPE(VPrn::trayIcons);
 Q_DECLARE_METATYPE(VPrn::trayStatus);

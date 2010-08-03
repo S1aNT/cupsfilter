@@ -20,15 +20,30 @@
 #include <QtCore/QHash>
 #include <QtCore/QPair>
 #include <QSizePolicy>
+#include <QStringListModel>
+#include <QStandardItemModel>
+#include <QDataWidgetMapper>
+#include <QPushButton>
+
+
 
 #include "mytypes.h"
 using namespace VPrn;
 PrintDataPage::PrintDataPage(QWidget *parent)
-    : QWidget(parent)
-    , doc_pages_count(0)
+    : QWidget(parent)    
     , first_split(false)
     , other_split(false)
+    , m_model(0)
+    , m_cards_model (0)
 {
+    QFont font;
+    font.setFamily(QString::fromUtf8("Times New Roman"));
+    font.setPointSize(14);
+    font.setBold(true);
+    //font.setWeight(75);
+
+    mapper = new QDataWidgetMapper(this);
+    mapper->setSubmitPolicy(QDataWidgetMapper::AutoSubmit);
 
     this->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::MinimumExpanding);
     this->setMinimumSize(320,240);
@@ -41,11 +56,6 @@ PrintDataPage::PrintDataPage(QWidget *parent)
 
     QGridLayout *centralgridLayout = new QGridLayout(this);
 
-    QFont font;
-    font.setFamily(QString::fromUtf8("Times New Roman"));
-    font.setPointSize(12);
-    font.setBold(true);
-    //font.setWeight(75);
 
     QGroupBox *centralGroupBox = new QGroupBox(this);
     centralGroupBox->setTitle(QObject::trUtf8("Название документа"));
@@ -108,13 +118,12 @@ PrintDataPage::PrintDataPage(QWidget *parent)
     total_copyes->setText(QObject::trUtf8("Печать всех экз."));
     total_copyes->setChecked(true);
 
-    QGroupBox *middleGroupBox = new QGroupBox(this);
-    middleGroupBox->setTitle(QObject::trUtf8("Шаблоны"));
-    QHBoxLayout *hBoxLayout_2 = new QHBoxLayout(middleGroupBox);
+    QLabel *label_tmplCB = new QLabel(commonGroupBox);
+    label_tmplCB->setFont(font);
+    label_tmplCB->setText(QObject::trUtf8("Шаблоны"));
 
-    templatesCBox = new QComboBox(middleGroupBox);
+    templatesCBox = new QComboBox(commonGroupBox);
     templatesCBox->setEnabled(true);
-    hBoxLayout_2->addWidget(templatesCBox);
 
     gridLayout->addWidget(label,            0, 0, 1, 1);
     gridLayout->addWidget(secretCBox,       0, 1, 1, 9);
@@ -131,7 +140,8 @@ PrintDataPage::PrintDataPage(QWidget *parent)
     gridLayout->addWidget(e_totalSBox,      4, 9, 1, 1);
     gridLayout->addWidget(label_2,          4, 6, 1, 1);
     gridLayout->addWidget(total_copyes,     5, 0, 1, 6);
-    gridLayout->addWidget(middleGroupBox,   6, 0, 1, 9);
+    gridLayout->addWidget(label_tmplCB,     6, 0, 1, 1);
+    gridLayout->addWidget(templatesCBox,    7, 0, 1, 10);
 
 
     QGroupBox *lastPageGroupBoxChecked = new QGroupBox(this);
@@ -247,35 +257,107 @@ PrintDataPage::PrintDataPage(QWidget *parent)
     centralgridLayout->addWidget( lastPageGroupBoxChecked     ,1,1,1,1 );
     centralgridLayout->addWidget( reciversListGroupBoxChecked ,2,0,1,3 );
 
+    //    QPushButton *tst = new QPushButton(this);
+    //    tst->setText("Next");
+    //    QObject::connect (tst, SIGNAL (clicked()),
+    //                      mapper, SLOT(toNext())
+    //             );
+    //    QObject::connect(mapper, SIGNAL(currentIndexChanged(int)),
+    //                     this, SLOT (showIndex(int))
+    //            );
+
+    //    centralgridLayout->addWidget(tst);
+
     setLayout(centralgridLayout);
     connector();
-
 }
 
-void PrintDataPage::setModel ( QStandardItemModel *model)
+void PrintDataPage::setTemplatesModel ( QStandardItemModel *model)
 {
     m_model = model;
     templatesCBox->setModel( m_model );
     templatesCBox->setModelColumn( VPrn::metaInfo_name );    
 }
 
-
-
-void PrintDataPage::setLabelText(const QString &l_txt)
+void PrintDataPage::setSecListModel(QStringListModel *m_list_model)
 {
-    //setSubTitle (l_txt);
+    secretCBox->setModel(m_list_model);
+    secretCBox->setCurrentIndex(-1);
 }
 
+void PrintDataPage::setCardDocModel( QStandardItemModel *model)
+{
 
+    m_cards_model = model;
+    qDebug() << "m_cards_model ROW:COL"
+            << m_cards_model->rowCount()    <<  " : "
+            << m_cards_model->columnCount();
 
-bool PrintDataPage::validatePage ()
+    //Настройка маппера
+    mapper->setModel(m_cards_model);
+
+    mapper->addMapping(docName_lineEd,VPrn::cards_DOC_NAME);
+    mapper->addMapping(secretCBox, VPrn::cards_STAMP, "currentIndex");
+    mapper->addMapping(punktLineEd,VPrn::cards_PUNKT);
+    mapper->addMapping(mbNumberLineEd,VPrn::cards_MB_NUMBER);
+    mapper->addMapping(pagesCountLineEd,VPrn::cards_PAGE_COUNT);
+    mapper->addMapping(e_currentSBox,VPrn::cards_CURRENT_COPY);
+    mapper->addMapping(e_totalSBox,VPrn::cards_COPY_COUNT);
+    mapper->addMapping(total_copyes,VPrn::cards_SELECT_ALL_COPY);
+    mapper->addMapping(templatesCBox, VPrn::cards_TEMPLATE_NAME, "currentIndex");
+
+    mapper->addMapping(executor_lineEd,VPrn::cards_EXECUTOR);
+    mapper->addMapping(pressman_lineEd,VPrn::cards_PRINTMAN);
+    mapper->addMapping(invNumber_lineEd,VPrn::cards_INV_NUMBER);
+    mapper->addMapping(telephone_lineEd,VPrn::cards_PHONE);
+    mapper->addMapping(dateField_dateEd,VPrn::cards_PRINT_DATE);
+
+    mapper->addMapping(reciver_lineEd_1,VPrn::cards_RECIVER_1);
+    mapper->addMapping(reciver_lineEd_2,VPrn::cards_RECIVER_2);
+    mapper->addMapping(reciver_lineEd_3,VPrn::cards_RECIVER_3);
+    mapper->addMapping(reciver_lineEd_4,VPrn::cards_RECIVER_4);
+    mapper->addMapping(reciver_lineEd_5,VPrn::cards_RECIVER_5);
+
+    // Грязный хак
+    QObject::connect(m_cards_model, SIGNAL(itemChanged(QStandardItem*)),
+                     mapper, SLOT (toLast())
+                     );
+
+}
+
+void PrintDataPage::showIndex(int ind)
+{
+    QMessageBox msg;
+    msg.setText(QObject::tr("Index %1").arg(ind,0,10));
+    msg.exec();
+}
+
+bool PrintDataPage::enableNext()
 {
     QMessageBox msgbox;
     bool Ok = true;
     {
+        Ok &= !docName_lineEd->text().isEmpty();
+        Ok &= !executor_lineEd->text().isEmpty();
+
         if (pressman_lineEd->text().isEmpty()){
             pressman_lineEd->setText(executor_lineEd->text());
+            Ok &= pressman_lineEd->isModified();
         }
+
+        if (secretCBox->currentIndex() == -1){
+            Ok &= false;
+        }
+
+        if (templatesCBox->currentIndex() == -1){
+            Ok &= false;
+        }
+        Ok &= !mbNumberLineEd->text().isEmpty();
+        Ok &= !pagesCountLineEd->text().isEmpty();
+        Ok &= !invNumber_lineEd->text().isEmpty();
+        Ok &= !telephone_lineEd->text().isEmpty();
+        Ok &= !dateField_dateEd->text().isEmpty();
+
 
         if (total_copyes->isChecked()){
             // Проверим что вкл. все поля в списке рассылки и список заполнен!
@@ -314,41 +396,42 @@ bool PrintDataPage::validatePage ()
     }
     if (Ok){
         emit field_checked();
+        //mapper->submit();
     }
     return Ok;
 }
 
 bool PrintDataPage::checkReciver(int r)
 {
-    bool Ok = false;
+    bool Ok = true;
     {
         switch (r){
         case 1:
-            Ok = reciver_lineEd_1->isModified();
+           // Ok = reciver_lineEd_1->isModified();
             if (reciver_lineEd_1->text().isEmpty()){
                 Ok &= false;
             }
             break;
         case 2:
-            Ok = reciver_lineEd_2->isModified();
+            //Ok = reciver_lineEd_2->isModified();
             if (reciver_lineEd_2->text().isEmpty()){
                 Ok &= false;
             }
             break;
         case 3:
-            Ok = reciver_lineEd_3->isModified();
+            //Ok = reciver_lineEd_3->isModified();
             if (reciver_lineEd_3->text().isEmpty()){
                 Ok &= false;
             }
             break;
         case 4:
-            Ok = reciver_lineEd_4->isModified();
+            //Ok = reciver_lineEd_4->isModified();
             if (reciver_lineEd_4->text().isEmpty()){
                 Ok &= false;
             }
             break;
         case 5:
-            Ok = reciver_lineEd_5->isModified();
+            //Ok = reciver_lineEd_5->isModified();
             if (reciver_lineEd_5->text().isEmpty()){
                 Ok &= false;
             }
@@ -358,21 +441,7 @@ bool PrintDataPage::checkReciver(int r)
     return Ok;
 }
 
-void PrintDataPage::setMode(int m_mode)
-{
-    switch (m_mode){
-    case 0:
-        //setPixmap(QWizard::WatermarkPixmap, QPixmap(":/set_date.png"));
-        break;
-    case 1:
-        //setPixmap(QWizard::WatermarkPixmap, QPixmap(":/gears.png"));
-        break;
-    case 2:
-        //setPixmap(QWizard::WatermarkPixmap, QPixmap(":/gears.png"));
-        break;
 
-    }
-}
 
 QString PrintDataPage::getSQL_mb_check() const
 {
@@ -406,6 +475,7 @@ QByteArray PrintDataPage::getAllFieldData()
       * в @fn void Tmpl_sql_plugin::init(const QString & spool,const QString & sid)
       * @file tmp_sql_plugin.cpp
       */
+    /*
     int cur_copyes;
     int all_copyes;
     if (total_copyes->isChecked()){// стоит отметка все экз. пишем 0!!!
@@ -469,25 +539,14 @@ QByteArray PrintDataPage::getAllFieldData()
     out << m_tagValue;
 
     return fields_data;
+    */
 }
-
-void PrintDataPage::setSecList(const QStringList &s_list)
-{
-    secretCBox->addItems(s_list);
-    secretCBox->setCurrentIndex(-1);
-}
-
 
 void PrintDataPage::setDocConverted()
 {
     docConverted_checkBox->setChecked(true);  
 }
 
-void PrintDataPage::setPageCounted(int pages)
-{
-    doc_pages_count = pages;
-    pagesCountLineEd->setText(QObject::trUtf8("%1 стр.").arg(pages,0,10));
-}
 
 //-------------------------------- PRIVATE FUNCTIONS ---------------------------
 void PrintDataPage::connector()

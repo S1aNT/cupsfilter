@@ -10,6 +10,7 @@ using namespace VPrn;
 
 CheckDataPage::CheckDataPage(QWidget *parent)
     : QWidget(parent)
+    , step (false)
 {
     this->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::MinimumExpanding);
     this->setWindowTitle(QObject::trUtf8("Проверка корректности введеных пользователем данных"));
@@ -120,44 +121,16 @@ CheckDataPage::CheckDataPage(QWidget *parent)
 
 }
 
-
-/*
-void CheckDataPage::setVisible(bool visible)
+void CheckDataPage::setEnableNext(bool flag)
 {
-
-    if (visible){
-        rb_group->setExclusive(false);
-        checkCorrectMB->setEnabled( false );
-        checkCorrectMB->setChecked( false );
-
-        printWithoutPreview->setEnabled( false );
-        printWithoutPreview->setChecked( false );
-
-        previewPartPages->setEnabled( false );
-        previewPartPages->setChecked( false );
-
-        previewAllPages->setEnabled( false );
-        previewAllPages->setChecked( false );
-
-        checkCorrectMB->setText(
-                QObject::trUtf8("Visible Проверка документа на существование в БД учета.")
-                );
-
-        checkMergeDocWithTemplates->setEnabled( false );
-        checkMergeDocWithTemplates->setChecked( false);
-        checkMergeDocWithTemplates->setText(
-                QObject::trUtf8("Идет процесс формирования наложения шаблона на документ и формирования стр. предпросмотра")
-                );
-        rb_group->setExclusive(true);
-    }
-
+    step = flag;
 }
-*/
 
 void CheckDataPage::setCheckMergeDocWithTemplates( bool flag, const QString & info )
 {
     checkMergeDocWithTemplates->setChecked( flag );
     checkMergeDocWithTemplates->setText( info );
+    checkMergeDocWithTemplates->setVisible(true);
 }
 
 void CheckDataPage::setAuthCheck( bool flag, const QString & info )
@@ -166,6 +139,7 @@ void CheckDataPage::setAuthCheck( bool flag, const QString & info )
     authUserToPrinter->setText( info );
     enablePreviewButton((checkCorrectMB->isChecked() &&
                          authUserToPrinter->isChecked()));
+    authUserToPrinter->setVisible(true);
 }
 
 void CheckDataPage::setMbCheck( bool flag, const QString & info )
@@ -174,6 +148,7 @@ void CheckDataPage::setMbCheck( bool flag, const QString & info )
     checkCorrectMB->setText( info );
     enablePreviewButton((checkCorrectMB->isChecked() &&
                          authUserToPrinter->isChecked()));
+    checkCorrectMB->setVisible(true);
 }
 
 void CheckDataPage::enablePreviewButton(bool mode)
@@ -185,23 +160,22 @@ void CheckDataPage::enablePreviewButton(bool mode)
 
 void CheckDataPage::startMergedDoc4PreviewFull(bool status)
 {
-    if (status){
-        qDebug() << Q_FUNC_INFO << "emit select_preview(true)";
-        emit select_preview(true);
+    if (status){    
+        emit select_mode(VPrn::pre_FullMode);
         enablePreviewButton(false);
     }
 }
 void CheckDataPage::startMergedDoc4PreviewPart(bool status)
 {
     if (status){
-        emit select_preview(false);
+        emit select_mode(VPrn::pre_PartMode);
         enablePreviewButton(false);
     }
 }
 void CheckDataPage::startMergedDoc4Print(bool status)
 {
     if (status){
-        emit select_print();
+        emit select_mode(VPrn::pre_ClearPrintMode);
         enablePreviewButton(false);
     }
 }

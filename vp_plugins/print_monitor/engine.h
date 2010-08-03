@@ -57,13 +57,11 @@ signals:
     //void ReadyForPrintPages(QByteArray page_list);
     // Получено требование завершить работу
     void reciveGoodBayMsg(const QString &shutdown_info);
-    // Требуется передать демону дополнительные параметы документа для его регистрации
-    // в бд учета
-    //void needRegisterDocInBase();
-    //Документ зарегистрирован в БД УЧЕТА
-    //void RegisterDocInBase(bool flag,const QString &info);
+    //Документ зарегистрирован в БД УЧЕТА (успех/неудача, расширенное описание)
+    void RegisterDocInBase(bool flag,const QString &info);
+
     // Результат авторизации доступа к устройству
-    //void authToDevice(bool flag,const QString &info);
+    void authToDevice(bool flag,const QString &info);
 
     void infoMessage(const QString &info);
     void gk_notReady(const QString &ext_info); // локальный сервер не готов к работе
@@ -82,7 +80,7 @@ signals:
     // Документ успешно конвертирован в pdf
     void doc_converted();
     // Подсчитали количество страниц
-    void getPagesCount (int p_count);
+    //void getPagesCount (int p_count);
 
 public slots:
     /**
@@ -91,7 +89,24 @@ public slots:
       * и устаналивает с ним долгие и доверительные отношения
       */
     void launchAndConnect();
-    void setAuthData(const QString &login,const QString &mandat);
+    void setAuthData(const QString &login,const QString &mandat);    
+
+    /**
+      * @fn void authUserToPrinter();
+      * @brief авторизация текущего пользователя на выбранное устройство печати
+      */
+    void authUserToPrinter();
+    /**
+      * @fn void checkMB();
+      * @brief Проверка по базе данных допустим ли такой МБ
+      */
+    void checkMB();
+    /**
+      * @fn
+      * @brief Пользователь выбрал один из режимов предпросмотра,
+      * необходимо выполнить преобразование pdf -> png и показать ему
+      */
+    void do_select_mode(int mode);
 
 private slots:
     void do_checkPointChanged(MyCheckPoints r_cpoint);
@@ -124,6 +139,27 @@ private:
     void afterConnectSteps();   
     void savePrintersListToModel(const QString &prn_list);
     void saveTemplatesListToModel(QByteArray tmpl_list);
+    void setSecLevelList(QStringList  &list );
+    /**
+      * @fn void setPageCountInModel(int pCnt);
+      * @brief Запись числа страниц в модель КАРТОЧКИ_ДОКУМЕНТА
+      */
+    void setPageCountInModel(int pCnt);
+
+    QString findPrinterInModel();
+
+    /**
+      * @fn void registerMB();
+      * @brief Регистрация в базе данных документа с выбранными параметрами
+      */
+    void registerMB();
+    /**
+      * @fn QByteArray getAllFieldData();
+      * @brief Формируем  из модели КАРТОЧКА_ДОКУМЕНТА массив данных
+      */
+    QByteArray getAllFieldData();
+    QString findTemplatesFilePathInModel ( int id );
+    QString findStampInModel ( int id );
 };
 #endif // ENGINE_H
 

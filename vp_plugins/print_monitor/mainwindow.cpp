@@ -18,6 +18,9 @@
 #include <QtGui/QDesktopWidget>
 #include <QtGui/QErrorMessage>
 
+#include <QTableView>
+
+
 #include "mainwindow.h"
 #include "mytypes.h"
 #include "engine.h"
@@ -116,23 +119,28 @@ void MainWindow::init(const QString &app_dir,const QString &input_file)
         introPage->setInputFile();
     }
 
-    engine->setDocCardModel    ( data_module->getDocCardModel()     );
-    engine->setPrintersModel   ( data_module->getPrintersModel()    );
-    engine->setStampsModel     ( data_module->getStampsModel()      );
-    engine->setTemplatesModel  ( data_module->getTemplatesModel()   );
-    engine->setMandatsModel    ( data_module->getMandatsModel() );
+    engine->setDocCardModel    ( data_module->getDocCardModel()   );
+    engine->setPrintersModel   ( data_module->getPrintersModel()  );
+    engine->setStampsModel     ( data_module->getStampsModel()    );
+    engine->setTemplatesModel  ( data_module->getTemplatesModel() );
+    engine->setMandatsModel    ( data_module->getMandatsModel()   );
     engine->launchAndConnect();
 
-    selectPage->setPrintersModel(data_module->getPrintersModel()    );
+    selectPage->setPrintersModel     ( data_module->getPrintersModel()  );
+    printDataPage->setSecListModel   ( data_module->getStampsModel()    );
+    printDataPage->setCardDocModel   ( data_module->getDocCardModel()   );
+    printDataPage->setTemplatesModel ( data_module->getTemplatesModel() );
 
-    //printData_page->setSecList(core_app->getSecLevelList());
-
+    QTableView *tbl = new QTableView();
+    tbl->setModel(data_module->getDocCardModel());
+    tbl->show();
 }
 
 void MainWindow::appendStartMsg(const QString &txt_msg)
 {
     eMessage->showMessage(txt_msg);
 }
+
 MainWindow::~MainWindow()
 {
 
@@ -210,8 +218,8 @@ void MainWindow::do_restart()
     stackedWidget->setCurrentIndex(pageId);
     this->setWindowTitle(stackedWidget->currentWidget()->windowTitle() );
     this->resize(320,240);
+    /// @todo Добавить очистку enableNext()  во всех страницах
 }
-
 
 void MainWindow::do_needAuthUser(const QString &login_mandat_list)
 {
@@ -240,6 +248,8 @@ void MainWindow::sendFileToConvertor()
 {
     engine->prepareFileToPrint(data_module->getWorkFile());
 }
+
+
 
 //------------------------------------ PRIVATE ---------------------------------------------
 void MainWindow::createConnection()
@@ -298,6 +308,28 @@ void MainWindow::createConnection()
     connect(engine,       SIGNAL( RecivePrintersList() ),
             introPage,    SLOT  ( setRecivePrintersList() )
             );
+    connect(selectPage,   SIGNAL(selectedPrinter(int)),
+            engine,       SLOT  (do_selectedPrinter(int))
+            );
+    connect(printDataPage, SIGNAL( field_checked() ),
+            engine,        SLOT  ( authUserToPrinter() )
+            );
+    connect(printDataPage, SIGNAL( field_checked() ),
+            engine,        SLOT  ( checkMB() )
+            );
+
+    connect (engine,      SIGNAL( authToDevice(bool,QString) ),
+             checkDataPage,SLOT  ( setAuthCheck(bool,QString) )
+             );
+
+    connect(engine,       SIGNAL ( RegisterDocInBase(bool,QString) ),
+            checkDataPage, SLOT  ( setMbCheck(bool,QString) )
+            );
+
+    connect(checkDataPage,SIGNAL  (select_mode(int)),
+            engine,         SLOT  (do_select_mode(int))
+            );
+
 }
 
 QPoint MainWindow::calcDeskTopCenter(int width,int height)
@@ -335,19 +367,22 @@ void MainWindow::readConfig(const QString &app_dir)
 
 bool MainWindow::lastCheck(int page)
 {
-    bool Ok = true;
+    bool Ok = false;
     {
         switch (page +1){
         case VPrn::Page_Intro:
             break;
         case VPrn::Page_Select:
-             Ok &= introPage->enableNext();
+            Ok = introPage->enableNext();
             break;
         case VPrn::Page_PrintData:
+            Ok = selectPage->enableNext();
             break;
         case VPrn::Page_CheckData:
+            Ok = printDataPage->enableNext();
             break;
         case VPrn::Page_Preview:
+            Ok = checkDataPage->enableNext();
             break;
         case VPrn::Page_Finish:
             break;
@@ -356,6 +391,7 @@ bool MainWindow::lastCheck(int page)
         }
     }
     return Ok;
+
 }
 
 //------------------------------------- PROTECTED ----------------------------------------

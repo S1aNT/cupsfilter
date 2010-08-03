@@ -32,14 +32,21 @@ class CheckDataPage : public QWidget
     Q_OBJECT
 public:
     explicit CheckDataPage(QWidget *parent = 0);
+    /**
+      * @fn bool enableNext();
+      * @brief Разрешает преход на следующую страницу
+      * если все шаги выполнены
+      */
+    bool enableNext(){return step;}
 signals:
-    void select_preview(bool full);
-    void select_print  ();
+    void select_mode(int mode);
 
 public slots:
     void setAuthCheck( bool flag, const QString & info );
     void setMbCheck  ( bool flag, const QString & info );
     void setCheckMergeDocWithTemplates( bool flag, const QString & info );
+    void setEnableNext(bool flag);
+
 private slots:
     /**
       *@fn void startMergedDoc(bool status);
@@ -58,6 +65,7 @@ private:
       * @var checkCorrectMB;     Проверка МБ и №экз по базе.
       * @var checkMergeDocWithTemplates; Автом. проверка статуса наложения шаблона на документ
       */
+    bool step;
     QLabel       * topLabel;
     QRadioButton * previewAllPages;
     QRadioButton * previewPartPages;

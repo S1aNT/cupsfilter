@@ -18,11 +18,17 @@ public:
     explicit SelectPage(QWidget *parent = 0);
     void setPrintersModel(QStandardItemModel *p_model );
 
-    int selectPrinterId(){return printer_id;}
+    /**
+      * @fn bool enableNext();
+      * @brief Разрешает преход на следующую страницу
+      * если все шаги инициализации выполнены
+      */
+    bool enableNext();
 private slots:
-    void setCurrentPrinter(int p_id){printer_id = p_id;}
+    void selectedPrinter(int idx);
+
 private:
-    int printer_id;    
+    QStandardItemModel *printer_model;
     QRadioButton * markBrakDoc;
     QRadioButton * accountingDoc;
     QRadioButton * printDoc;

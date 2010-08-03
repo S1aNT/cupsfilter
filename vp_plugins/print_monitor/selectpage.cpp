@@ -4,6 +4,9 @@
 #include <QtGui/QVBoxLayout>
 #include <QtGui/QComboBox>
 #include <QtGui/QRadioButton>
+#include <QtGui/QStandardItem>
+#include <QtGui/QStandardItemModel>
+#include <QtCore/QModelIndex>
 
 #include "mytypes.h"
 using namespace VPrn;
@@ -11,7 +14,7 @@ using namespace VPrn;
 
 SelectPage::SelectPage(QWidget *parent)
     : QWidget(parent)
-    , printer_id (-1)
+    , printer_model(0)
 {
     this->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::MinimumExpanding);
 
@@ -49,12 +52,45 @@ SelectPage::SelectPage(QWidget *parent)
     setLayout(verticalLayout);
 
     connect (printersCBox,SIGNAL(currentIndexChanged(int)),
-             this, SLOT(setCurrentPrinter(int)));
+             this,        SLOT(selectedPrinter(int))
+             );
 }
 
 
 void SelectPage::setPrintersModel(QStandardItemModel *p_model )
 {
-    printersCBox->setModel( p_model );
-    printersCBox->setModelColumn( 0 );
+    if (p_model){
+        printer_model = p_model;
+        printersCBox->setModel( printer_model );
+        printersCBox->setModelColumn( 0 );
+        printersCBox->setCurrentIndex(-1);
+    }
+}
+
+void SelectPage::selectedPrinter(int idx)
+{
+    for (int i=0; i< printer_model->rowCount();i++){
+        QModelIndex index = printer_model->index(i,3);
+        bool sel_flag = false;
+        if (i == idx){
+            sel_flag = true;
+        }
+        printer_model->setData(index,sel_flag,Qt::EditRole);
+    }
+}
+
+bool SelectPage::enableNext()
+{
+    bool Ok = true;
+    {
+        if (printersCBox->currentIndex() == -1){
+            Ok &= false;
+        }
+        Ok &= ( markBrakDoc->isChecked()   ||
+                accountingDoc->isChecked() ||
+                printDoc->isChecked()      ||
+                both_step->isChecked());
+
+    }
+    return Ok;
 }
