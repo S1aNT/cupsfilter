@@ -17,7 +17,7 @@ class SelectPage : public QWidget
 public:
     explicit SelectPage(QWidget *parent = 0);
     void setPrintersModel(QStandardItemModel *p_model );
-
+    void needRestart();
     /**
       * @fn bool enableNext();
       * @brief Разрешает преход на следующую страницу

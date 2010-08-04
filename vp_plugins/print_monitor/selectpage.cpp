@@ -94,3 +94,17 @@ bool SelectPage::enableNext()
     }
     return Ok;
 }
+
+void SelectPage::needRestart()
+{
+    printersCBox->setCurrentIndex(-1);
+    markBrakDoc->setChecked(false);
+    accountingDoc->setChecked(false);
+    printDoc->setChecked(false);
+    both_step->setChecked(false);
+
+    for (int i=0; i< printer_model->rowCount();i++){
+        QModelIndex index = printer_model->index(i,3);
+        printer_model->setData(index,false,Qt::EditRole);
+    }
+}
