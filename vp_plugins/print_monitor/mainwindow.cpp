@@ -15,7 +15,7 @@
 #include <QtGui/QWidget>
 #include <QtGui/QAction>
 #include <QtGui/QStackedWidget>
-#include <QtGui/QDesktopWidget>
+
 #include <QtGui/QErrorMessage>
 
 #include <QTableView>
@@ -174,7 +174,7 @@ void MainWindow::do_next()
         if ( ( pageId > VPrn::Page_Finish ) || ( pageId > stackedWidget->count()-1 ) ){
             pageId = VPrn::Page_Finish;
         }
-        if (pageId == VPrn::Page_Finish){
+        if (pageId == VPrn::Page_Preview){
             // Настроим кнопки
             nextButton->setText(QObject::trUtf8("Печать"));
         }
@@ -198,11 +198,11 @@ void MainWindow::do_prev()
     case VPrn::Page_CheckData:
         //Уменьшим окно
         this->resize(320,240);
+        nextButton->setText(QObject::trUtf8("Вперед >"));
         break;
     case VPrn::Page_Preview:
         //Увеличим окно
-        this->resize(800,600);
-        nextButton->setText(QObject::trUtf8("Вперед >"));
+        this->resize(800,600);        
         break;
     case VPrn::Page_Finish:
         break;
