@@ -17,20 +17,14 @@ class PreViewPage : public QWidget
     Q_OBJECT
 public:
     explicit PreViewPage(QWidget *parent = 0);
-    //void setVisible(bool visible);
-    /**
-     * @fn bool validatePage();
-     * @brief Данная функция проверяет корректность заполнения полей
-     * проверка последней минутки
-     */
-   bool validatePage ();
+        void needRestart();
+
+   bool enableNext();
 
 public slots:
     void showPicturesList(QStringList png_list);
 signals:
-    void printCurrentDoc();
-    void UserDemands2Restart(const QString &mb,int copy_num,
-                             int total_copy,bool all_copy );
+    void printCurrentDoc();    
 private slots:
     /**
       * @fn void zoomIn();
@@ -39,7 +33,7 @@ private slots:
       */
     void zoomIn();
     void zoomOut();
-    void restartButtonClicked();
+
 private:
     QCheckBox *checkPicturesList;
     ViewPort *leftFrame;

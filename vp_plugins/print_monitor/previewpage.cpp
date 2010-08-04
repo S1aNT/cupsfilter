@@ -128,6 +128,15 @@ PreViewPage::PreViewPage(QWidget *parent)
 
 }
 
+void PreViewPage::needRestart()
+{
+    checkPicturesList->setChecked(false);
+    imageFullItems.clear();
+    imageThumbItems.clear();
+    descImagesList.clear();
+    imageFilesList.clear();
+}
+
 void PreViewPage::showPicturesList(QStringList png_list)
 {
     if (png_list.size() >0 ){
@@ -153,9 +162,9 @@ void PreViewPage::showPicturesList(QStringList png_list)
 
                     if (page_type.compare("firstpage") == 0){
                         str_type = QString("<center>Экз.№%1<br/>%2[%3]</center>")
-                                  .arg(copy_num,
-                                       QObject::trUtf8("Лицевая сторона 1-й лист."),
-                                       page_number );
+                                   .arg(copy_num,
+                                        QObject::trUtf8("Лицевая сторона 1-й лист."),
+                                        page_number );
                     }
                     if (page_type.compare("lastpage") == 0){
                         str_type = QString("Экз.№%1.%2[%3]")
@@ -196,32 +205,17 @@ void PreViewPage::showPicturesList(QStringList png_list)
     }
 }
 
-bool PreViewPage::validatePage()
+bool PreViewPage::enableNext()
 {
-
-    emit printCurrentDoc();
-    return true;
+    if (checkPicturesList->isChecked()){
+        emit printCurrentDoc();
+        return true;
+    }else{
+        return false;
+    }
 }
 
-/*
-void PreViewPage::setVisible(bool visible)
-{
 
-
-    if (visible) {
-            this->setButtonText(QWizard::NextButton,QObject::trUtf8("Печать документа"));
-            wizard()->setButtonText(QWizard::CustomButton1, QObject::trUtf8("Рестарт"));
-            wizard()->setOption(QWizard::HaveCustomButton1, true);
-            connect(wizard(), SIGNAL(customButtonClicked(int)),
-                    this, SLOT(restartButtonClicked()));
-        } else {
-            wizard()->setOption(QWizard::HaveCustomButton1, false);
-            disconnect(wizard(), SIGNAL(customButtonClicked(int)),
-                       this, SLOT(restartButtonClicked()));
-        }
-
-}
-*/
 //------------------------------ PRIVATE SLOTS ---------------------------------
 void PreViewPage::zoomIn()
 {
@@ -233,21 +227,3 @@ void PreViewPage::zoomOut()
     zoomSlider->setValue(zoomSlider->value() + 1);
 }
 
-void PreViewPage::restartButtonClicked()
-{
-//    QString mb     = wizard()->field("mbNumberLineEd").toString();
-//    int cur_copy   = wizard()->field("e_currentSBox").toInt();
-//    int total_copy = wizard()->field("e_totalSBox").toInt();
-//    bool all_copy  = wizard()->field("total_copyes").toBool();
-
-    imageFullItems.clear();
-    imageThumbItems.clear();
-    descImagesList.clear();
-    imageFilesList.clear();
-
-    checkPicturesList->setChecked(false);
-    //emit UserDemands2Restart(mb,cur_copy,total_copy,all_copy);
-
-//    wizard()->setStartId(VPrn::Page_Select);
-//    wizard()->restart();
-}
