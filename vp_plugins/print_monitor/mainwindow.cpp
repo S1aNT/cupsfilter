@@ -174,6 +174,10 @@ void MainWindow::do_next()
         if ( ( pageId > VPrn::Page_Finish ) || ( pageId > stackedWidget->count()-1 ) ){
             pageId = VPrn::Page_Finish;
         }
+        if (pageId == VPrn::Page_Finish){
+            // Настроим кнопки
+            nextButton->setText(QObject::trUtf8("Печать"));
+        }
         stackedWidget->setCurrentIndex(pageId);
         this->setWindowTitle(stackedWidget->currentWidget()->windowTitle() );
     }
@@ -198,6 +202,7 @@ void MainWindow::do_prev()
     case VPrn::Page_Preview:
         //Увеличим окно
         this->resize(800,600);
+        nextButton->setText(QObject::trUtf8("Вперед >"));
         break;
     case VPrn::Page_Finish:
         break;
@@ -218,7 +223,11 @@ void MainWindow::do_restart()
     stackedWidget->setCurrentIndex(pageId);
     this->setWindowTitle(stackedWidget->currentWidget()->windowTitle() );
     this->resize(320,240);
-    /// @todo Добавить очистку enableNext()  во всех страницах
+    selectPage->needRestart();
+    printDataPage->needRestart();
+    checkDataPage->needRestart();
+    preViewPage->needRestart();
+    engine->needRestart();
 }
 
 void MainWindow::do_needAuthUser(const QString &login_mandat_list)
@@ -248,8 +257,6 @@ void MainWindow::sendFileToConvertor()
 {
     engine->prepareFileToPrint(data_module->getWorkFile());
 }
-
-
 
 //------------------------------------ PRIVATE ---------------------------------------------
 void MainWindow::createConnection()
@@ -308,27 +315,38 @@ void MainWindow::createConnection()
     connect(engine,       SIGNAL( RecivePrintersList() ),
             introPage,    SLOT  ( setRecivePrintersList() )
             );
-    connect(selectPage,   SIGNAL(selectedPrinter(int)),
-            engine,       SLOT  (do_selectedPrinter(int))
+    connect(selectPage,    SIGNAL (selectedPrinter(int)),
+            engine,        SLOT   (do_selectedPrinter(int))
             );
-    connect(printDataPage, SIGNAL( field_checked() ),
-            engine,        SLOT  ( authUserToPrinter() )
+    connect(printDataPage, SIGNAL ( field_checked() ),
+            engine,        SLOT   ( authUserToPrinter() )
             );
-    connect(printDataPage, SIGNAL( field_checked() ),
-            engine,        SLOT  ( checkMB() )
+    connect(printDataPage, SIGNAL ( field_checked() ),
+            engine,        SLOT   ( checkMB() )
             );
 
-    connect (engine,      SIGNAL( authToDevice(bool,QString) ),
-             checkDataPage,SLOT  ( setAuthCheck(bool,QString) )
+    connect (engine,       SIGNAL ( authToDevice(bool,QString) ),
+             checkDataPage,SLOT   ( setAuthCheck(bool,QString) )
              );
 
-    connect(engine,       SIGNAL ( RegisterDocInBase(bool,QString) ),
-            checkDataPage, SLOT  ( setMbCheck(bool,QString) )
+    connect(engine,        SIGNAL ( RegisterDocInBase(bool,QString) ),
+            checkDataPage, SLOT   ( setMbCheck(bool,QString) )
             );
 
-    connect(checkDataPage,SIGNAL  (select_mode(int)),
-            engine,         SLOT  (do_select_mode(int))
+    connect(checkDataPage, SIGNAL (select_mode(int)),
+            engine,        SLOT   (do_select_mode(int))
             );
+
+    connect(engine,        SIGNAL ( MergeDocWithTemplates(bool,QString) ),
+            checkDataPage, SLOT   ( setCheckMergeDocWithTemplates(bool,QString))
+            );
+    connect (engine,       SIGNAL ( PicturesList(QStringList ) ),
+             preViewPage,  SLOT   ( showPicturesList(QStringList ))
+             );
+    connect (preViewPage,  SIGNAL (printCurrentDoc()),
+             engine,       SLOT   (do_printCurrentDoc())
+             );
+
 
 }
 
@@ -385,6 +403,7 @@ bool MainWindow::lastCheck(int page)
             Ok = checkDataPage->enableNext();
             break;
         case VPrn::Page_Finish:
+            Ok = preViewPage->enableNext();
             break;
         case VPrn::Page_SetBrak:
             break;
