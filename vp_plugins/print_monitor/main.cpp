@@ -4,7 +4,7 @@
 #include <QtCore/QStringList>
 #include <QFile>
 #include <QTextStream>
-
+#include <QDateTime>
 #include "mainwindow.h"
 
 void myMessageOutput(QtMsgType type, const char *msg)
