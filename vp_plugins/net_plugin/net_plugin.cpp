@@ -106,6 +106,7 @@ void net_plugin::sendMessage(const Message &s_msg)
             doc_list.append(QObject::trUtf8("123456789;:;МБ-12/14;:;5;:;Приказ по кадрам 2;:;52;:;БРАК###"));
             str = QObject::trUtf8("[%1];:;%2").arg(m_uuid,doc_list);
             break;
+            /*
         case VPrn::Que_CHECK_DOC_ATR:
             if (r == 0){
                 loc_msg.setType( VPrn::Ans_CHECK_DOC_ATR_EQU );
@@ -115,6 +116,7 @@ void net_plugin::sendMessage(const Message &s_msg)
             }
             str = QObject::trUtf8("[%1];:;empty").arg(m_uuid);
             break;
+            */
         case VPrn::Que_IS_MB_EXIST:
             if (r == 0){
                 loc_msg.setType( VPrn::Ans_MB_NOT_EXIST );
