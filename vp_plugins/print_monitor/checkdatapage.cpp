@@ -126,6 +126,18 @@ void CheckDataPage::setEnableNext(bool flag)
     step = flag;
 }
 
+void CheckDataPage::needRestart()
+{
+    step = false;
+    checkMergeDocWithTemplates->setChecked( step );
+    checkMergeDocWithTemplates->setVisible( step );
+    authUserToPrinter->setChecked( step );
+    authUserToPrinter->setVisible( step );
+    checkCorrectMB->setChecked( step );
+    checkCorrectMB->setVisible( step );
+    enablePreviewButton( step );
+}
+
 void CheckDataPage::setCheckMergeDocWithTemplates( bool flag, const QString & info )
 {
     checkMergeDocWithTemplates->setChecked( flag );
@@ -155,7 +167,7 @@ void CheckDataPage::enablePreviewButton(bool mode)
 {    
     previewAllPages->setEnabled(mode);
     previewPartPages->setEnabled(mode);
-    printWithoutPreview->setEnabled(mode);
+    printWithoutPreview->setEnabled(mode);   
 }
 
 void CheckDataPage::startMergedDoc4PreviewFull(bool status)
@@ -163,6 +175,7 @@ void CheckDataPage::startMergedDoc4PreviewFull(bool status)
     if (status){    
         emit select_mode(VPrn::pre_FullMode);
         enablePreviewButton(false);
+        step = true;
     }
 }
 void CheckDataPage::startMergedDoc4PreviewPart(bool status)
@@ -170,6 +183,7 @@ void CheckDataPage::startMergedDoc4PreviewPart(bool status)
     if (status){
         emit select_mode(VPrn::pre_PartMode);
         enablePreviewButton(false);
+        step = true;
     }
 }
 void CheckDataPage::startMergedDoc4Print(bool status)
@@ -177,5 +191,6 @@ void CheckDataPage::startMergedDoc4Print(bool status)
     if (status){
         emit select_mode(VPrn::pre_ClearPrintMode);
         enablePreviewButton(false);
+        step = true;
     }
 }

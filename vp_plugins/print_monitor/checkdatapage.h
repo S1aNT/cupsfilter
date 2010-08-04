@@ -38,6 +38,7 @@ public:
       * если все шаги выполнены
       */
     bool enableNext(){return step;}
+    void needRestart();
 signals:
     void select_mode(int mode);
 
