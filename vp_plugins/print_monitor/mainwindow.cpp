@@ -131,9 +131,6 @@ void MainWindow::init(const QString &app_dir,const QString &input_file)
     printDataPage->setCardDocModel   ( data_module->getDocCardModel()   );
     printDataPage->setTemplatesModel ( data_module->getTemplatesModel() );
 
-    QTableView *tbl = new QTableView();
-    tbl->setModel(data_module->getDocCardModel());
-    tbl->show();
 }
 
 void MainWindow::appendStartMsg(const QString &txt_msg)
