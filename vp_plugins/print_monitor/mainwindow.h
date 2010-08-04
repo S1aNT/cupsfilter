@@ -9,6 +9,8 @@
 #include "datamodule.h"
 
 #include <QtGui/QDialog>
+#include <QtGui/QDesktopWidget>
+
 QT_BEGIN_NAMESPACE
 class QAction;
 class QStackedWidget;
@@ -19,7 +21,6 @@ class QStandardItemModel;
 class QHBoxLayout;
 class QVBoxLayout;
 class QSpacerItem;
-class QDesktopWidget;
 class QErrorMessage;
 QT_END_NAMESPACE
 
