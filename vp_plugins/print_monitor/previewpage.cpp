@@ -19,7 +19,7 @@ PreViewPage::PreViewPage(QWidget *parent)
 {
     this->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::MinimumExpanding);
     this->setMinimumSize(320,240);
-    this->setMaximumSize(800,600);
+    //this->setMaximumSize(800,600);
 
     checkPicturesList    = new QCheckBox( this );
     //checkPicturesList->setText(QObject::trUtf8("pic list "));
