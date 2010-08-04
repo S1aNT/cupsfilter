@@ -21,6 +21,7 @@ class PrintDataPage : public QWidget
     Q_OBJECT
 public:
     PrintDataPage(QWidget *parent = 0);
+    void needRestart();
 
     /**
       * @fn void setTemplatesModel ( QStandardItemModel *model);

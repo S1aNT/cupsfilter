@@ -257,16 +257,6 @@ PrintDataPage::PrintDataPage(QWidget *parent)
     centralgridLayout->addWidget( lastPageGroupBoxChecked     ,1,1,1,1 );
     centralgridLayout->addWidget( reciversListGroupBoxChecked ,2,0,1,3 );
 
-    //    QPushButton *tst = new QPushButton(this);
-    //    tst->setText("Next");
-    //    QObject::connect (tst, SIGNAL (clicked()),
-    //                      mapper, SLOT(toNext())
-    //             );
-    //    QObject::connect(mapper, SIGNAL(currentIndexChanged(int)),
-    //                     this, SLOT (showIndex(int))
-    //            );
-
-    //    centralgridLayout->addWidget(tst);
 
     setLayout(centralgridLayout);
     connector();
@@ -332,6 +322,13 @@ void PrintDataPage::showIndex(int ind)
     msg.exec();
 }
 
+void PrintDataPage::needRestart()
+{
+    m_cards_model->clear();
+    templatesCBox->setCurrentIndex(-1);
+    secretCBox->setCurrentIndex(-1);
+}
+
 bool PrintDataPage::enableNext()
 {
     QMessageBox msgbox;
@@ -352,6 +349,7 @@ bool PrintDataPage::enableNext()
         if (templatesCBox->currentIndex() == -1){
             Ok &= false;
         }
+
         Ok &= !mbNumberLineEd->text().isEmpty();
         Ok &= !pagesCountLineEd->text().isEmpty();
         Ok &= !invNumber_lineEd->text().isEmpty();
@@ -407,7 +405,7 @@ bool PrintDataPage::checkReciver(int r)
     {
         switch (r){
         case 1:
-           // Ok = reciver_lineEd_1->isModified();
+            // Ok = reciver_lineEd_1->isModified();
             if (reciver_lineEd_1->text().isEmpty()){
                 Ok &= false;
             }
