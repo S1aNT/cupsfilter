@@ -5,7 +5,7 @@ TARGET =p_monitor
 CONFIG += warn_on \
           qt \        
           precompile_header
-win32:DESTDIR = c:/opt/vprn
+win32:DESTDIR = d:/opt/vprn
 else:DESTDIR = /opt/vprn
 CONFIG(debug, debug|release) {
     message(Build Debug!)
