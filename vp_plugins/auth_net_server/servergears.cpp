@@ -232,6 +232,7 @@ void serverGears::reciveNetworkMessage(const Message &r_msg)
                     // дополнительного глубокого поиска
                     loc_msg.setType( VPrn::Ans_MB_EXIST_AND_NOT_BRAK );
                     break;
+                    /*
                 case VPrn::Ans_CHECK_DOC_ATR_EQU:
                     // Результаты глубокого поиска поля док. в БД и введеные юзером совпали
                     loc_msg.setType( VPrn::Ans_CHECK_DOC_ATR_EQU );
@@ -240,6 +241,7 @@ void serverGears::reciveNetworkMessage(const Message &r_msg)
                     // Результаты глубокого поиска поля док. в БД и введеные юзером не совпали
                     loc_msg.setType( VPrn::Ans_CHECK_DOC_ATR_NEQ );
                     break;
+                    */
                 case VPrn::Ans_MB_LIST:
                     // Получили затребованный список документов, отдами его клиенту
                     loc_msg.setType( VPrn::Ans_MB_LIST );
@@ -445,6 +447,7 @@ void serverGears::parseMessage( const Message &m_msg, const QString &c_uuid)
                 net_plugin->sendMessage(message);
             }
             break;
+            /*
        case VPrn::Que_CHECK_DOC_ATR:
             str.append(m_msg.messageData()); /// В теле сообщения query_sql;
             // Просто перешлем в сеть
@@ -457,6 +460,7 @@ void serverGears::parseMessage( const Message &m_msg, const QString &c_uuid)
                 net_plugin->sendMessage(message);
             }
             break;
+            */
         case VPrn::Que_AUTHOR_USER:
             // Запрос авторизации на устройство
             str.append(m_msg.messageData()); /// В теле сообщения device_uri;
