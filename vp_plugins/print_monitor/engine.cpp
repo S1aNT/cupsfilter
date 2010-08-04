@@ -55,6 +55,40 @@ void Engine::prepareFileToPrint(const QString & file_name)
     sendMessage2LocalSrv(msg);
 }
 
+void Engine::needRestart()
+{
+    QString mb;
+    QString cur_copy;
+    QString total_copy;
+    QModelIndex indx;
+
+    //Получим данные из модели
+    indx = m_DC_model->index(0,VPrn::cards_MB_NUMBER);
+    mb   = m_DC_model->data(indx,Qt::DisplayRole).toString() ;
+
+    indx = m_DC_model->index(0,VPrn::cards_CURRENT_COPY);
+    cur_copy = m_DC_model->data(indx,Qt::DisplayRole).toString();
+
+    indx = m_DC_model->index(0,VPrn::cards_COPY_COUNT);
+    total_copy = m_DC_model->data(indx,Qt::DisplayRole).toString();
+
+    QString str = tr("%1;:;%2;:;%3;:;")
+                  .arg(mb).arg(cur_copy).arg(total_copy);
+
+    indx = m_DC_model->index(0,VPrn::cards_SELECT_ALL_COPY);
+    if (m_DC_model->data(indx,Qt::DisplayRole).toBool()){
+        str.append("true");
+    }else{
+        str.append("false");
+    }
+
+    //Отправим киперу запрос на перезапуск процесса
+    Message msg(this);
+    msg.setType( VPrn::Que_UserDemands2Restart );
+    msg.setMessageData( str.toUtf8() );
+    sendMessage2LocalSrv( msg );
+}
+
 //-------------------------------- PUBLIC SLOTS  -------------------------------
 void Engine::setAuthData(const QString &login,const QString &mandat)
 {
@@ -169,6 +203,15 @@ void Engine::do_select_mode(int mode)
         sendMessage2LocalSrv(msg);
     }
 }
+
+void Engine::do_printCurrentDoc()
+{
+    Message msg(this);
+    msg.setType( VPrn::Que_PrintCurrentFormatedDoc );
+    msg.setMessageData ( findPrinterInModel().toUtf8() );
+    sendMessage2LocalSrv( msg );
+}
+
 //-------------------------------- PRIVATE SLOTS -------------------------------
 void Engine::do_checkPointChanged(MyCheckPoints r_cpoint)
 {
@@ -228,8 +271,7 @@ void Engine::parseMessage(const Message &r_msg)
             //rx.setMinimal(true);
             if(rx.indexIn(str) != -1){
                 currentUserName   = rx.cap(1);
-                currentUserMandat = rx.cap(2);
-                //emit gk_fullReady(currentUserName,currentUserMandat);
+                currentUserMandat = rx.cap(2);                
                 //Запрос уровней секретности для мандата
                 setAuthData(currentUserName,currentUserMandat );
                 afterConnectSteps();
@@ -253,10 +295,11 @@ void Engine::parseMessage(const Message &r_msg)
             emit needAuthUser(str);
             afterConnectSteps();
         }
-        break;
-    case VPrn::Ans_TemplateNotFound:
-        str.append( r_msg.messageData() );
-        emit MergeDocWithTemplates( false, str);
+        break;        
+    case VPrn::Ans_TemplateNotFound:{
+            str.append( r_msg.messageData() );
+            emit MergeDocWithTemplates( false, str);
+        }
         break;
     case VPrn::Ans_GiveMeTemplatesList:{
             // Получили данные запишем в модель
@@ -264,20 +307,18 @@ void Engine::parseMessage(const Message &r_msg)
         }
         break;
     case Ans_SourceDocNotFound:{
-            // Исходный документ не найден или не верного формата,
-            // в теле сообщения подробности
+            // Исходный документ не найден или не верного формата, в теле сообщения подробности
             str.append( r_msg.messageData() );
             emit MergeDocWithTemplates( false, str);
         }
         break;
     case VPrn::Ans_CreateFormatedDoc:{
-
             emit MergeDocWithTemplates( true,
                                         QObject::trUtf8("Применение шаблона к текущему документу, успешно завершено!"));
         }
         break;
     case VPrn::Ans_ConvertFormatedDocToPng:{
-            //emit PicturesList( r_msg.messageDataList() );
+            emit PicturesList( r_msg.messageDataList() );
         }
         break;
     case VPrn::GoodBay:{
@@ -327,8 +368,9 @@ void Engine::parseMessage(const Message &r_msg)
             emit authToDevice( false,str );
         }
         break;
-    case VPrn::Ans_Convert2PdfFinish:
-        emit doc_converted();
+    case VPrn::Ans_Convert2PdfFinish:{
+            emit doc_converted();
+        }
         break;
     case VPrn::Ans_PageCounting:{
             str.append(r_msg.messageData()); // Число страниц в str

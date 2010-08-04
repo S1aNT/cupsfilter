@@ -22,7 +22,7 @@ public:
 
     Engine(QObject*parent = 0,const QString &link = QString(),
            const QString &gk_bin = QString());
-
+    void needRestart();
     /**
       * @fn ~Engine();
       * @brief В деструкторе проверяем живость соденения и если оно есть прибиваем его
@@ -52,7 +52,7 @@ signals:
     // Результат наложения шаблона на документ
     void MergeDocWithTemplates( bool flag,const QString &info);
     // список путей к сформированным  страницам предпросмотра
-    //void PicturesList (QStringList page_list);
+    void PicturesList (QStringList page_list);
     // Список путей уже сформированным документам готовым для печати
     //void ReadyForPrintPages(QByteArray page_list);
     // Получено требование завершить работу
@@ -79,10 +79,10 @@ signals:
     void ReciveSecLevelList();
     // Документ успешно конвертирован в pdf
     void doc_converted();
-    // Подсчитали количество страниц
-    //void getPagesCount (int p_count);
+
 
 public slots:
+    void do_printCurrentDoc();
     /**
       * @fn void launchAndConnect();
       * @brief проверяет факт запуска GateKeeper (Запускает его если не запущен)
