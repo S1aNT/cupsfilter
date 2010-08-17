@@ -398,6 +398,8 @@ void Engine::parseMessage(const Message &r_msg)
             // Получили сообщение об ошибке Формат: КОД~~описание
         }
         break;
+    default:
+        break;
     }
 }
 
@@ -616,6 +618,7 @@ QByteArray Engine::getAllFieldData()
     QString t_fileName =  findTemplatesFilePathInModel(tmpl_id);
 
     out << t_fileName;
+
     // save hash
     out << m_tagValue;
 
