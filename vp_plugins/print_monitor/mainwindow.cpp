@@ -362,7 +362,11 @@ void MainWindow::readConfig(const QString &app_dir)
     QString ini_file =QString("%1/Technoserv/safe_printer.ini").arg(app_dir);
     if (QFile::exists(ini_file)){
         QSettings settings (ini_file,QSettings::IniFormat);
+
+#if QT_VERSION >= 0x040500
         settings.setIniCodec("UTF-8");
+#endif
+
         settings.beginGroup("SERVICE");
         link_name      = settings.value("link_name").toString();
         settings.endGroup();
@@ -372,8 +376,7 @@ void MainWindow::readConfig(const QString &app_dir)
         gatekeeper_bin = settings.value("gatekeeper_bin").toString();
         settings.endGroup();
     }else{
-        eMessage->showMessage("FileNotFound",
-                              QObject::trUtf8("Файл с настройками программы %1 не найден!\n%2")
+        eMessage->showMessage(QObject::trUtf8("Файл с настройками программы %1 не найден!\n%2")
                               .arg(ini_file)
                               .arg(QString(Q_FUNC_INFO))
                               );
