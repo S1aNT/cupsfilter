@@ -160,7 +160,7 @@ void Server::init()
 
                 if (Ok){
 #ifdef DEBUG_MODE
-                   myServerGears->setPrinterList( printer_list );
+                    myServerGears->setPrinterList( printer_list );
 #endif
                     // Инициализация плагинов
 
@@ -335,7 +335,11 @@ void Server::errorInfo(pluginsError eCode,QString e_msg)
         eType = "NetworkTransError";
         break;
     }
-    myEMsgBox->showMessage(e_msg,eType);
+#if QT_VERSION >= 0x040500
+    myEMsgBox->showMessage(eType,e_msg);
+#else
+    myEMsgBox->showMessage(e_msg.prepend(eType));
+#endif
 }
 
 void Server::setUserName(QString & login,QString &mandat)
@@ -428,10 +432,6 @@ void Server::do_ChekPointChanged(MyCheckPoints m_scheckPoint)
         showTrayMessage(InfoType,QObject::trUtf8("GateKeeper"),
                         QObject::trUtf8("Подключен новый клиент!"));
         break;
-
-        //    case VPrn::loc_MessageRecive:
-        //        showTrayMessage(InfoType,QObject::trUtf8("GateKeeper"),QObject::trUtf8("Полученно сообщение от локального клиента!"));
-        //        break;
     case VPrn::loc_Disconnected:
         showTrayMessage(InfoType,QObject::trUtf8("GateKeeper"),
                         QObject::trUtf8("Локальный клиент отключен!"));
@@ -439,6 +439,9 @@ void Server::do_ChekPointChanged(MyCheckPoints m_scheckPoint)
     case VPrn::loc_CantStartListen:
     case VPrn::glob_Error:
         setTrayStatus(VPrn::gk_ErrorState,myServerGears->lastError());
+        break;
+    default:
+        /** do nothing **/
         break;
     }
 }
@@ -606,7 +609,11 @@ bool Server::readConfig()
                           .arg(qApp->applicationDirPath());
         if (QFile::exists(ini_path)){
             QSettings settings (ini_path,QSettings::IniFormat);
+
+
+#if QT_VERSION >= 0x040500
             settings.setIniCodec("UTF-8");
+#endif
             settings.beginGroup("SERVICE");
             serverHostName = settings.value("server").toString();
             serverPort     = settings.value("port").toInt();
@@ -635,15 +642,15 @@ bool Server::readConfig()
 
 #ifdef DEBUG_MODE
             int size = settings.beginReadArray("PrinterList");
-             for (int i = 0; i < size; i++) {
-                 settings.setArrayIndex(i);
-                 Printers printer;
-                 printer.name     = settings.value("name").toString();
-                 printer.ip       = settings.value("ip").toString();
-                 printer.p_qqueue = settings.value("p_qqueue").toString();
-                 printer_list.append(printer);
-             }
-             settings.endArray();
+            for (int i = 0; i < size; i++) {
+                settings.setArrayIndex(i);
+                Printers printer;
+                printer.name     = settings.value("name").toString();
+                printer.ip       = settings.value("ip").toString();
+                printer.p_qqueue = settings.value("p_qqueue").toString();
+                printer_list.append(printer);
+            }
+            settings.endArray();
 #endif
             // Тестируем переменные
             if ( serverHostName.isEmpty() ||
