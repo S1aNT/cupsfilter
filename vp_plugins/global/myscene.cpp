@@ -86,7 +86,10 @@ void  myScene::createPage(qreal width,qreal height,qreal m_top,qreal m_bottom,
 
     border_rect->setPen(QPen(Qt::black,2,Qt::DotLine));
     border_rect->setBrush(QBrush(Qt::white));
+#if QT_VERSION >= 0x040500
     border_rect->setOpacity(1);
+#endif
+
     border_rect->setZValue(-900);
     border_rect->setData(ObjectName, "Border");
     border_rect->setParentItem(paper_rect);
@@ -285,7 +288,14 @@ void  myScene::contextMenuEvent( QGraphicsSceneContextMenuEvent* event )
         }
     }
     if (act == changeColorAction ){
-        QColor col = QColorDialog::getColor ( Qt::white,0,QObject::trUtf8("Выберите цвет текущего элемента ") ) ;
+        QColor col ;
+#if QT_VERSION >= 0x040500
+        col = QColorDialog::getColor ( Qt::white,0,QObject::trUtf8("Выберите цвет текущего элемента ") ) ;
+#else
+
+#endif
+
+
         if (col.isValid()) {// пользователь нажимает OK, и цвет устанавливается в выбранный
             m_undoStack->push( new CommandTextItemChangeColor( this, textItem,col ) );
         }
