@@ -58,6 +58,26 @@ Tmpl_sql_plugin::Tmpl_sql_plugin(QObject *parent)
         pagesModel = new EditPagesModel(this);
         tInfoModel = new TemplateInfoEditModel(this);
     }
+    // Заполним список базовых элементов шаблона
+
+    baseElemList.insert(VPrn::cards_DOC_NAME,    QObject::trUtf8("Название док-та"));
+    baseElemList.insert(VPrn::cards_STAMP,       QObject::trUtf8("Гриф"));
+    baseElemList.insert(VPrn::cards_MB_NUMBER,   QObject::trUtf8("МБ"));
+    baseElemList.insert(VPrn::cards_PUNKT, 	 QObject::trUtf8("Пункт перечня"));
+    baseElemList.insert(VPrn::cards_PAGE_COUNT,  QObject::trUtf8("Кол-во листов"));
+    baseElemList.insert(VPrn::cards_COPY_COUNT,  QObject::trUtf8("Кол-во экз."));
+    baseElemList.insert(VPrn::cards_CURRENT_COPY,QObject::trUtf8("Номер экз."));
+    baseElemList.insert(VPrn::cards_EXECUTOR,    QObject::trUtf8("Исполнитель"));
+    baseElemList.insert(VPrn::cards_PRINTMAN,    QObject::trUtf8("Отпечатал"));
+    baseElemList.insert(VPrn::cards_PHONE,       QObject::trUtf8("Телефон"));
+    baseElemList.insert(VPrn::cards_INV_NUMBER,  QObject::trUtf8("Инв. N"));
+    baseElemList.insert(VPrn::cards_PRINT_DATE,  QObject::trUtf8("Дата распечатки"));
+    baseElemList.insert(VPrn::cards_RECIVER_1,   QObject::trUtf8("Получатель N1"));
+    baseElemList.insert(VPrn::cards_RECIVER_2,   QObject::trUtf8("Получатель N2"));
+    baseElemList.insert(VPrn::cards_RECIVER_3,   QObject::trUtf8("Получатель N3"));
+    baseElemList.insert(VPrn::cards_RECIVER_4,   QObject::trUtf8("Получатель N4"));
+    baseElemList.insert(VPrn::cards_RECIVER_5,   QObject::trUtf8("Получатель N5"));
+
 }
 
 Tmpl_sql_plugin::~Tmpl_sql_plugin()
@@ -77,42 +97,9 @@ void Tmpl_sql_plugin::init(const QString & spool,const QString & sid)
 
     if (!sid.isEmpty()) {
         current_sid = sid;// Запомним уникальный номер
-        if (dir.cd(spool) && !spool.isEmpty()) {
-            // Проверим факт существования временного каталога
-            spoolDir = spool;
-            // Формируем пути для файлов
-            /*
-            for (int i=0; i<8;i++){
-                filesGrp.insert(i,QObject::trUtf8("%1/%2_page_%3.pdf")
-                                .arg(spool, sid).arg(i,0,10));
-            }
-            */
-            // Заполним список базовых элементов шаблона
-            /**
-              * @warning Если меняешь названия тут, не забудь поменять их
-              * в @fn QByteArray PrintDataPage::getAllFieldData()
-              * @file printdatapage.cpp
-              */
-            baseElemList
-                    << QObject::trUtf8("МБ")
-                    << QObject::trUtf8("Название док-та")
-                    << QObject::trUtf8("Гриф")
-                    << QObject::trUtf8("Пункт перечня")
-                    << QObject::trUtf8("Номер экз.")
-                    << QObject::trUtf8("Кол-во экз.")
-                    << QObject::trUtf8("Кол-во листов")
-                    << QObject::trUtf8("Исполнитель")
-                    << QObject::trUtf8("Отпечатал")
-                    << QObject::trUtf8("Телефон")
-                    << QObject::trUtf8("Инв. N")
-                    << QObject::trUtf8("Дата распечатки")
-                    << QObject::trUtf8("Получатель N1")
-                    << QObject::trUtf8("Получатель N2")
-                    << QObject::trUtf8("Получатель N3")
-                    << QObject::trUtf8("Получатель N4")
-                    << QObject::trUtf8("Получатель N5")
-                    << QObject::trUtf8("Произвольный текст")
-                    << QObject::trUtf8("Идентификатор Выч.Системы");
+        if (dir.cd(spool) && !spool.isEmpty()) {            
+            spoolDir = spool;            
+
         }else{
             e_msg = QObject::trUtf8("ERROR: каталог %1 не существует\n").arg(spool);
         }
@@ -128,7 +115,9 @@ void Tmpl_sql_plugin::init(const QString & spool,const QString & sid)
 
 QStringList Tmpl_sql_plugin::getBaseElemNameList() const
 {
-    return baseElemList;
+    return QStringList()<< baseElemList.values()
+            << QObject::trUtf8("Произвольный текст")
+            << QObject::trUtf8("Идентификатор Выч.Системы");
 }
 
 void Tmpl_sql_plugin::setViewMode()
@@ -155,7 +144,7 @@ void Tmpl_sql_plugin::setViewMode()
 
 bool Tmpl_sql_plugin::prepare_template(const QString &c_uuid,
                                        const QString &t_fileName,
-                                       const QHash<QString, QString> &hash,
+                                       QMap <int,QString> elemMap,
                                        int copy_number)
 {
 
@@ -178,7 +167,7 @@ bool Tmpl_sql_plugin::prepare_template(const QString &c_uuid,
                         QSqlQueryModel *elemInPageModel_client  = new QSqlQueryModel(this);
                         QSqlQueryModel *pagesModel_client           = new QSqlQueryModel(this);
                         QSqlQueryModel *pagesDetail                      = new QSqlQueryModel(this);
-                        Ok &= saveDataToBase(hash,db);// Обновим данные элементов
+                        Ok &= saveDataToBase(elemMap,db);// Обновим данные элементов
                         if (Ok){
                             // Заполнение моделей
                             Ok &= selectIntoModel(db,pagesModel_client,
@@ -224,7 +213,7 @@ bool Tmpl_sql_plugin::prepare_template(const QString &c_uuid,
                                 int t_page=0;
                                 while ( t_page<pagesDetail->rowCount() ){
                                     p_number  = pagesDetail->data(
-                                                 pagesDetail->index(t_page,0)).toInt();
+                                            pagesDetail->index(t_page,0)).toInt();
                                     page_fn.clear();
                                     switch (p_number){
                                     case VPrn::FirstPage:
@@ -628,7 +617,7 @@ void Tmpl_sql_plugin::doAddBaseElementToPage(int page,const QString &tag)
 }
 
 void Tmpl_sql_plugin::doAddImgElementToPage(int page,const QString &file_name)
- {
+{
     myScene *scene = scenesGrp.value(page);
     if (scene){
         if (QFile::exists(file_name)){
@@ -642,7 +631,7 @@ void Tmpl_sql_plugin::doAddImgElementToPage(int page,const QString &file_name)
         emit error(VPrn::InternalPluginError,
                    QObject::trUtf8("Ошибка добавления графического элемента в шаблон из файла %1").arg(file_name));
     }
- }
+}
 
 //***************** private functions **************************************
 
@@ -1269,28 +1258,22 @@ bool Tmpl_sql_plugin::fillModels()
     return Ok;
 }
 
-bool Tmpl_sql_plugin::saveDataToBase(const QHash<QString, QString> &hash,QSqlDatabase db)
+bool Tmpl_sql_plugin::saveDataToBase(const QMap <int,QString> elemMap,
+				     QSqlDatabase db)
 {
     QSqlQuery query (db);
     bool Ok = true;
     {
-        //UPDATE elem SET e_text='МБ-1' WHERE img =0 AND e_tag = 'МБ'
-        //        Ok &= query.prepare("UPDATE elem SET e_text='?' "
-        //                            "WHERE img = 0 AND e_tag ='?' ");
-        //        if (Ok){
-        QHashIterator<QString, QString> i(hash);
+        QMapIterator<int, QString> i(elemMap);
         while (i.hasNext()) {
             i.next();
-
-            //query.addBindValue( i.value() );
-            //query.addBindValue(  i.key() );
+            QString str = baseElemList.value(i.key());
             Ok &= query.exec(
                     QString("UPDATE elem SET e_text='%1' "
-                            "WHERE img = 0 AND e_tag ='%2' ").arg( i.value(),i.key() )
+                            "WHERE img = 0 AND e_tag ='%2' ").arg( i.value(),str )
                     );
         }
 
-        //}
     }
     if (!Ok){
         qDebug() << query.lastError().text();

@@ -104,8 +104,8 @@ public:
 
      /**
       * @fn  bool prepare_template(const QString &c_uuid,const QString &t_fileName,
-                                                       const QHash<QString, QString> &hash
-      *                                                int copy_number);
+                                  QMap <int,QString> elemMap
+      *                           int copy_number);
       * @brief Загружает требуемый шаблон, заполняет его требумыми данными и
       * формирует pdf страницы шаблона,данные из hash, формируем только
       * требуемый экземпляр шаблона. Особенность, что QGraphicsScene
@@ -118,7 +118,7 @@ public:
       */    
 
     bool prepare_template(const QString &c_uuid,const QString &t_fileName,
-                                 const QHash<QString, QString> &hash,  int copy_number );
+                          const QMap <int,QString> elemMap,  int copy_number );
     /**
       * @fn QStringList fillTemplatesCreatePages(const QString &c_uuid,
       *                                   const QByteArray client_data);
@@ -145,12 +145,12 @@ public:
 
 
     /**
-      * @fn bool saveDataToBase(const QHash<QString, QString> &hash,QSqlDatabase db);
+      * @fn bool saveDataToBase(const QMap <int,QString> elemMap,QSqlDatabase db);
       * @brief проходит по всем элементам каждой страницы и проверяет
       * есть ли там элемент с тегом = tag если есть, то записывает ему новое
       * значение, координаты элемента не меняются
       */
-    bool saveDataToBase(const QHash<QString, QString> &hash,QSqlDatabase db);
+    bool saveDataToBase(const QMap <int,QString> elemMap,QSqlDatabase db);
 
 signals:
     void error(pluginsError errCode,QString error_message);
@@ -242,7 +242,8 @@ private:
     QMap <int,myScene *> scenesGrp;
 
     QUndoGroup * undoGrp;
-    QStringList baseElemList;
+    //QStringList baseElemList;
+    QMap <int,QString> baseElemList;
     QString currentDBFileName;
     TemplateInfoEditModel  * tInfoModel;
     QSqlQueryModel * pSizeModel;
