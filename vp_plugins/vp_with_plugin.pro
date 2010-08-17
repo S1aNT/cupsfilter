@@ -5,7 +5,6 @@
 TEMPLATE = subdirs
 SUBDIRS	 = print_monitor \
            tEditor \
-           preview \
            auth_net_server \
            net_plugin \
            gs_plugin \
