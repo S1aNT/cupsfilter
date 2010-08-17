@@ -30,13 +30,11 @@ public:
 
     void final_clear();
     /**
-      * @fn void print2devide (const QString &client_uuid,  const QString &print_file,
-                                            const QString &prn_device,bool usePageCount);
+      * @fn void print2devide (const QString &client_uuid, QByteArray &printData);
       * @brief Печать  документа сформированного клиентом на устройство
       */
-    void print2devide (const QString &client_uuid,  const QString &print_file,
-                       const QString &prn_ip,const QString &prn_qqueue,
-                       bool usePageCount);
+
+    void print2devide (const QString &client_uuid, QByteArray &printData);
 
     /**
       * @fn  QString getUuid() const
@@ -75,6 +73,19 @@ public:
       * @brief  Формируем списк файлов для клиента отвечающих заданному фильтру
       */
     QStringList findFiles(const QString &client_uuid,const QStringList &filters);
+    /**
+      * @fn QStringList findFiles4Copy(const QString &client_uuid,
+      *                                int copyNum,
+      *                                const QStringList &filters
+      *                                );
+      *
+      * @brief  Формируем списк файлов для клиента отвечающих заданному фильтру
+      * для заданного конкретного экз.
+      */
+    QStringList findFiles4Copy(const QString &client_uuid, /*ID клиента*/
+                                          int copyNum, /*Номер экземпляра документа*/
+                                          const QStringList &filters /*Тип файлов*/
+                                          );
     /**
       * @fn  void getPageCount(const QString &client_uuid,const QString &input_fn);
       * @brief Используя pdfTk получим число страниц в pdf документе

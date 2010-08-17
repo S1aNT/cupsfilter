@@ -121,6 +121,7 @@ void GS_plugin::convertPs2Pdf(const QString &client_uuid,const QString &input_fn
     }
 }
 
+/*
 void GS_plugin::print2devide (const QString &client_uuid,  const QString &print_file,
                               const QString &prn_ip,   const QString &prn_qqueue,
                               bool usePageCount)
@@ -173,6 +174,70 @@ void GS_plugin::print2devide (const QString &client_uuid,  const QString &print_
         start_proc(client_uuid,"lpr",args,VPrn::job_PrintFile);
     }
 #endif
+}
+*/
+void GS_plugin::print2devide (const QString &client_uuid, QByteArray &printData)
+{
+    ClientData *c_d(0);
+    QString docName;      // Название документа
+    QString mb;           // Номер МБ
+    QString copyNumber;   // Номер экз.
+    QString copyCount;    // Число экз. для печати
+    int pageCount;        // Число стр в документе
+    QString IP;           // IP сервера
+    QString printerQueue; // Имя принтера (имя очереди для CUPS сервера)
+    int blockType;        // Тип блока данных (Первая стр, послед. стр., обратная сторона, фонарик)
+    qint64 blockSize;     // Размер распакованного блока данных
+    QByteArray dataBlock; // Блок данных (упакованный gzip)
+    QStringList args;
+
+    c_d = findClientData (client_uuid);
+    if (c_d){
+        QDataStream in(printData);
+        in.setVersion(QDataStream::Qt_3_0);
+        in >> docName;
+        in >> mb;
+        in >> copyNumber;
+        in >> copyCount;
+        in >> pageCount;
+        in >> IP;
+        in >> printerQueue;
+        in >> blockType;
+        in >> blockSize;
+        in >> dataBlock;
+        // Формируем имя файла
+        QString wrk_file =QString("%1/%2/%3_%4.ps")
+                          .arg(this->spoolDir)
+                          .arg(client_uuid)
+                          .arg(mb)
+                          .arg(copyNumber);
+
+        QFile file_unpack(wrk_file);
+        file_unpack.open(QIODevice::WriteOnly);
+        QDataStream out(&file_unpack);
+        out << qUncompress(dataBlock);
+        file_unpack.close();
+        bool flag = QFile::exists(wrk_file) &&
+                    file_unpack.size() == blockSize &&
+                    !docName.isEmpty() &&
+                    !mb.isEmpty() &&
+                    !copyNumber.isEmpty();
+        if (flag){
+#if defined(Q_OS_UNIX)
+            args.append(QString("-H %1").arg(IP));
+            args.append(QString("-P %1").arg(printerQueue));
+            args.append(tr("-#%1").arg(copyCount));
+            args.append(QObject::trUtf8("%1").arg(docName));
+            start_proc(client_uuid,"lpr",args,VPrn::job_PrintFile);
+#elif defined(Q_OS_WIN)
+#endif
+        }else{
+            error(VPrn::FileNotFound,
+                  QObject::trUtf8("Не удалось создать временный файл для печати или ошибочный размер!\n %1")
+                  .arg(wrk_file)
+                  );
+        }
+    }
 }
 
 void GS_plugin::mergeWithTemplate(const QString &client_uuid, const QStringList &t_files)
@@ -321,7 +386,7 @@ void GS_plugin::createClientData(const QString &client_uuid)
             //w_dir = QDir(wrk_dir);
 
             //if ( w_dir.exists() ){
-              //  recursiveDeletion( wrk_dir );
+            //  recursiveDeletion( wrk_dir );
             //}
 
             // Формируем требуемые каталоги
@@ -478,8 +543,8 @@ void GS_plugin::getPageCount(const QString &client_uuid,const QString &input_fn)
 {
     ClientData *c_d(0);
     if (input_fn.isEmpty()){
-         c_d = findClientData (client_uuid);
-         emit docReady4work(client_uuid,c_d->getPageCount());
+        c_d = findClientData (client_uuid);
+        emit docReady4work(client_uuid,c_d->getPageCount());
     }else{
         //pdfTk input_file dump_data
         QStringList args;
@@ -556,15 +621,28 @@ ClientData * GS_plugin::findClientData(const QString &client_uuid)
     return c_d;
 }
 
-QStringList GS_plugin::findFiles(const QString &client_uuid,const QStringList &filters)
+QStringList GS_plugin::findFiles(const QString &client_uuid,
+                                 const QStringList &filters)
+{
+    return QStringList() << findFiles4Copy(client_uuid,1,filters)
+                         << findFiles4Copy(client_uuid,2,filters)
+                         << findFiles4Copy(client_uuid,3,filters)
+                         << findFiles4Copy(client_uuid,4,filters)
+                         << findFiles4Copy(client_uuid,5,filters);
+}
+
+QStringList GS_plugin::findFiles4Copy(const QString &client_uuid, /*ID клиента*/
+                                      int copyNum, /*Номер экземпляра документа*/
+                                      const QStringList &filters /*Тип файлов*/
+                                      )
 {
     QStringList files;
-    QDir dir = QDir::current();
-
-    // Формируем списк файлов которые надо подвергнуть преобразованию в png
-    for (int i=1;i<6;i++){
-
-        dir = QDir(QString ("%1/%2/%3-copy").arg(spoolDir,client_uuid).arg(i,0,10) );
+    QDir dir;
+    if (copyNum >0  && copyNum <6){
+        // Формируем списк файлов для конкретного экз. документа
+        dir = QDir(QString ("%1/%2/%3-copy")
+                   .arg(spoolDir,client_uuid)
+                   .arg(copyNum,0,10) );
         dir.setFilter(QDir::Files | QDir::Hidden | QDir::NoSymLinks);
         dir.setNameFilters(filters);
         QFileInfoList list = dir.entryInfoList();
