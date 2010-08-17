@@ -6,8 +6,11 @@ CONFIG += warn_on \
     qt \
     console \
     precompile_header
-win32:DESTDIR = d:/opt/vprn
-else:DESTDIR = /opt/vprn
+win32 {
+DESTDIR = c:/opt/vprn
+}else{
+DESTDIR =/opt/vprn
+}
 CONFIG(debug, debug|release) {
     message(Build Debug!)
     RCC_DIR = ../build/$${TARGET}/debug/rcc
@@ -39,11 +42,13 @@ HEADERS += server.h \
     ../interfaces/itmpl_sql_plugin.h \
     ../global/mytypes.h \
     ../global/message.h \
-    ../global/templatesinfo.h
+    ../global/templatesinfo.h \
+    printtask.h
 SOURCES += server.cpp \
     main.cpp \
     servergears.cpp \
     ../global/message.cpp \
-../global/templatesinfo.cpp
+../global/templatesinfo.cpp \
+    printtask.cpp
 RESOURCES = images.qrc
 TRANSLATIONS = auth_net_server_ru.ts
