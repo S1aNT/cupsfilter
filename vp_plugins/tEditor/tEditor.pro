@@ -9,7 +9,11 @@ INCLUDEPATH += ../interfaces \
 TARGET = tEditor
 LANGUAGE = C++
 
-DESTDIR = /opt/vprn/
+win32 {
+DESTDIR = c:/opt/vprn
+}else{
+DESTDIR =/opt/vprn
+}
 
 CONFIG(debug, debug|release) {
     message(Build Debug!)
