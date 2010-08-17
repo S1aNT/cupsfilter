@@ -39,7 +39,9 @@ MainWindow::MainWindow():
     TProperDlg->setWindowFlags(Qt::Dialog |
                                Qt::CustomizeWindowHint |
                                Qt::WindowTitleHint |
+#if QT_VERSION >= 0x040500
                                Qt::WindowCloseButtonHint |
+#endif
                                Qt::WindowSystemMenuHint);
 
 
@@ -441,8 +443,19 @@ void MainWindow::do_viewCode()
 void MainWindow::doSetGridAction()
 {
     bool ok;
-    int gSize = QInputDialog::getInt(this, tr("Введите размер сетки (Ширина x Высота) в мм"),
-                                     tr("Размер:"), 25, 0, 100, 1, &ok);
+    int gSize;
+
+#if QT_VERSION >= 0x040500
+    gSize = QInputDialog::getInt(this,
+                                 QObject::trUtf8("Введите размер сетки (Ширина x Высота) в мм"),
+                                 QObject::trUtf8("Размер:"), 25, 0, 100, 1, &ok);
+#else
+    gSize = QInputDialog::getInteger(this,
+                                     QObject::trUtf8("Введите размер сетки (Ширина x Высота) в мм"),
+                                     QObject::trUtf8("Размер:"), 25, 0, 100, 1, &ok);
+#endif
+
+
     if (ok){
         // Данные режим работает на всех страницах шаблона
         for (int i = 0; i < tabWidget->count();i++){
@@ -594,7 +607,10 @@ void MainWindow::createActions()
 
     saveAsAct = new QAction(QIcon(":/t_save.png"),
                             tr("Сохранение шаблона как ..."),this);
+#if QT_VERSION >= 0x040500
     saveAsAct->setShortcut(QKeySequence::SaveAs);
+#endif
+
     saveAsAct->setStatusTip(tr("Сохранение текущего варианта шаблона в ..."));
     connect(saveAsAct, SIGNAL(triggered()),
             this,     SLOT(saveTemplatesAs()));
@@ -739,7 +755,9 @@ void MainWindow::readGlobal(const QString &app_dir)
 
     if (QFile::exists(ini_path)){
         QSettings settings (ini_path,QSettings::IniFormat);
+#if QT_VERSION >= 0x040500
         settings.setIniCodec("UTF-8");
+#endif
         settings.beginGroup("USED_DIR_FILE");
         spoolDir       = settings.value("spool_dir").toString();
 
