@@ -60,7 +60,8 @@ namespace VPrn{
         metaInfo_p_width, /// Ширина страницы (мм)
         metaInfo_p_height /// Высота страницы (мм)
     };
-    enum DocCardModelHeader{
+
+    enum DocCardOrder{
         cards_ID              = 0,  /// ID
         cards_DOC_NAME        = 1,  /// Имя документа
         cards_STAMP           = 2,  /// Выбранный гриф секретности
@@ -83,6 +84,8 @@ namespace VPrn{
         cards_RECIVER_5       = 19, /// Получатель_5
         cards_STATUS          = 20  /// Статус_Документа
     };
+
+
 
     enum tInfoColumnOrder{
         tInfo_id     = 0,  ///ID
@@ -327,14 +330,14 @@ namespace VPrn{
         Que_UserDemands2Restart      = 5500,
 
         /*
-         * @short Que_PrintThisFile
-         * @param (QString) файл для печати в формате QByteArray (сжатый)
+         * @short Que_PrintThisFile Печать файла на выбранный пользователем принтер
+         * @param (QString) JobID (уникально для каждого экз. документа)
          * @param (QString) Имя принтера (очереди печати на CUPS)
-         * @param (quint32) copy_number  число копий
+         * @param (qint8)   copy_number  число копий 1-100
          * @param (QString) user_name    имя пользователя
          * @param (QString) job_title    имя задания
-         * @param (quint32) array_size   размер не сжатого буфера
-         * @brief (QByteArray) Печать файла на выбранный пользователем принтер
+         * @param (quint64) array_size   размер не сжатого буфера
+         * @param (QByteArray) файл для печати в формате QByteArray (сжатый)
         */
         Que_PrintThisFile            = 6000,
         Ans_PrintThisFileSuccess     = 6010,
@@ -387,7 +390,7 @@ namespace VPrn{
 Q_DECLARE_METATYPE(VPrn::PreviewMode);
 Q_DECLARE_METATYPE(VPrn::Jobs);
 Q_DECLARE_METATYPE(VPrn::MyCheckPoints);
-Q_DECLARE_METATYPE(VPrn::DocCardModelHeader);
+Q_DECLARE_METATYPE(VPrn::DocCardOrder);
 Q_DECLARE_METATYPE(VPrn::MessageType);
 Q_DECLARE_METATYPE(VPrn::trayIcons);
 Q_DECLARE_METATYPE(VPrn::trayStatus);
