@@ -4,8 +4,11 @@ TARGET = gs_plugin
 CONFIG += plugin \
     warn_on \
     precompile_header
-win32:DESTDIR = d:/opt/vprn/plugins
-else:DESTDIR = /opt/vprn/plugins
+win32 {
+DESTDIR = c:/opt/vprn/plugins
+}else{
+DESTDIR =/opt/vprn/plugins
+}
 CONFIG(debug, debug|release) { 
     message(Build Debug!)
     RCC_DIR = ../build/$${TARGET}/debug/rcc
