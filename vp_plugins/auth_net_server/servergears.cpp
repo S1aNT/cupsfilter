@@ -473,6 +473,7 @@ void serverGears::parseMessage( const Message &m_msg, const QString &c_uuid)
                 net_plugin->sendMessage(message);
             }
             break;
+            */
         case VPrn::Que_Convert2Pdf:
             /// Клиент потребовал преобразовать ps файл в pdf
             str.append(m_msg.messageData()); /// В теле сообщения полный путь к файлу

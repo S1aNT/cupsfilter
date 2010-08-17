@@ -19,6 +19,11 @@
 #include <QtNetwork/QLocalServer>
 #include <QtNetwork/QLocalSocket>
 
+#ifdef DEBUG_MODE
+
+#include <QProcess>
+#include <QDataStream>
+#endif
 
 class QByteArray;
 
@@ -75,7 +80,6 @@ public:
       * @brief Только для отладки передаю список принтеров прочитанный из ini файла
       */
     void setPrinterList( PrinterList &p_list){ prn_list = p_list;}
-
 #endif
 
 signals:
