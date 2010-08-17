@@ -187,7 +187,10 @@ void net_plugin::sendMessage(const Message &s_msg)
                 str = QObject::trUtf8("[%1];:;empty").arg(m_uuid);
             }
             break;
+            default:
+            break;
         }
+
         loc_msg.setMessageData(  str.toUtf8() );
         emit messageReady(loc_msg);
     }else{
