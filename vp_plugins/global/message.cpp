@@ -74,8 +74,8 @@ QByteArray Message::createPacket() const
     QDataStream out(&packet, QIODevice::WriteOnly );
 
     out.setVersion(QDataStream::Qt_3_0);
-    // Вставим размер пакета равный нулю, но отведем под него 4 байта
-    out << (qint32)0;
+    // Вставим размер пакета равный нулю, но отведем под него 8 байт
+    out << (qint64)0;
 
     //Вставим Тип сообщения и само сообщение в пакет
     out << ( int ) this->type();
@@ -83,16 +83,7 @@ QByteArray Message::createPacket() const
     // возврат на начало блока
     out.device()->seek(0);
     // Вычислим размер блока данных и запишем их на свое место
-    out << (qint32)(packet.size() - sizeof(qint32));
-    //int t_size = packet.size();
-    //int t_type = ( int ) this->type();
-    //QByteArray t_arr = packet;
-
-    //qDebug() << "\ncreatePacket(): after creating "
-    //         << " packet " << t_arr
-    //         << " full packet size: " << t_size;
-
-
+    out << (qint64)(packet.size() - sizeof(qint64));
     return packet;
 }
 
