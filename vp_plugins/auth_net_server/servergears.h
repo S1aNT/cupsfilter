@@ -19,6 +19,8 @@
 #include <QtNetwork/QLocalServer>
 #include <QtNetwork/QLocalSocket>
 
+#include "printtask.h"
+
 #ifdef DEBUG_MODE
 
 #include <QProcess>
@@ -27,7 +29,7 @@
 
 class QByteArray;
 
-using namespace VPrn;
+
 
 class serverGears : public QLocalServer
 {
@@ -177,9 +179,14 @@ private:
     QSet<QLocalSocket *> clients;    
     QMap<QLocalSocket *,QString> clients_uuid;
     QMap<QLocalSocket *,QString> clients_name;
-
+    QMap<QString,QString> clientsPrintTask; // clients_uuid,taskID
     PrinterList prn_list;
+    /**
+      * @var QHash <QString,PrintTask> prn_taskList;
+      * @brief очередь заданий на печать для клиента с cliend_id
+      */
 
+    QMap <QString,PrintTask *> printTaskList;
     //-----------------------------------------------------------------------------
     /**
       * @fn void markDocInBaseAsFault(const QString &client_uuid,
@@ -189,10 +196,10 @@ private:
     void markDocInBaseAsFault(const QString &client_uuid,
                               const QString &data_str);
     /**
-      * @fn void printCurrentDoc(const QString &client_uuid,const QString &printer);
+      * @fn void printCurrentDoc(const QString &client_uuid,QString printer_queue);
       * @brief Печать текущего сформированнного документа
       */
-    void printCurrentFormatedDoc(const QString &client_uuid,const QString &printer);
+    void printCurrentFormatedDoc(const QString &client_uuid,QString printer_queue);
 
     /**
       * @fn void createFormatedDoc(const QString &client_uuid,bool full_doc,QByteArray data);
@@ -231,6 +238,28 @@ private:
       * @returns QLocalSocket * or 0
       */
     QLocalSocket *findClient(const QString &c_uuid);
+
+
+     /**
+       * @fn quint64 getCompresedFile(const QString &fileName,
+       *                                 QByteArray &data);
+       * @brief Читает существующий файл во временный буфер,
+       * сжимает его  с помощью zlib и пишет в data
+       */
+     quint64 getCompresedFile(const QString &fileName,
+                                        QByteArray &data);
+     void createPrintTask(const QString &client_uuid,
+                          const QString &printer_queue,
+                          const QString &first_page,
+                          const QString &other_page,
+                          const QString &over_page,
+                          const QString &last_page);
+
+     void splitListToFile(const QStringList fList,
+                          QString &first_page,
+                          QString &other_page,
+                          QString &over_page,
+                          QString &last_page );
 };
 
 #endif // SERVERGEARS_H
