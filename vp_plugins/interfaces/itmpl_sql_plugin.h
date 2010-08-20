@@ -26,7 +26,7 @@ class Itmpl_sql_plugin{
 public:
     virtual ~Itmpl_sql_plugin() {}
 
-    virtual void init(const QString & spool,const QString & sid) = 0;
+    virtual void init(const QString & spool) = 0;
 
     /**
      * @brief Триггер переключающий по кругу  режим отображения элементов
