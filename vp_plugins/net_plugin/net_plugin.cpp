@@ -230,7 +230,7 @@ void net_plugin::readyRead()
         if (packetSize == -1) {
             //Определим количество байт доступных для чтения;
             //на этом шаге необходимо получить больше 4-х байт
-            if( client->bytesAvailable() < sizeof(qint32) ){
+            if( client->bytesAvailable() < sizeof(packetSize) ){
                 return;
             }
             //Читаем размер пакета
