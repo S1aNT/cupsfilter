@@ -160,8 +160,8 @@ void MainWindow::loadPlugins()
             if (tmpl_plugin_Interface){
                 tmpl_plugin = tmpl_plugin_Interface;
 
-                QUuid uSID=QUuid::createUuid () ;  //generate SID
-                QString sid=uSID.toString().replace("{","").replace("}","");
+                //QUuid uSID=QUuid::createUuid () ;  //generate SID
+                //QString sid=uSID.toString().replace("{","").replace("}","");
 
                 connect ( plugin, SIGNAL ( error(VPrn::AppErrorType, QString) ),
                           this,   SLOT   ( errorInfo(VPrn::AppErrorType, QString) ) );
@@ -192,7 +192,7 @@ void MainWindow::loadPlugins()
                         this, SLOT(convert2Pdf())
                         );
 
-                tmpl_plugin->init(spoolDir,sid);
+                tmpl_plugin->init(spoolDir);
                 // Получим названия стандартных кнопок для шаблона
                 elemList = tmpl_plugin->getBaseElemNameList();
                 // Получим набор стеков Undo  и свяжем его с окном Undo
