@@ -87,10 +87,10 @@ public:
                                           const QStringList &filters /*Тип файлов*/
                                           );
     /**
-      * @fn  void getPageCount(const QString &client_uuid,const QString &input_fn);
+      * @fn  void calcPageCount(const QString &client_uuid,const QString &input_fn);
       * @brief Используя pdfTk получим число страниц в pdf документе
       */
-    void getPageCount(const QString &client_uuid,const QString &input_fn = QString());
+    void calcPageCount(const QString &client_uuid,const QString &input_fn = QString());
 
 signals:
     /**
@@ -118,7 +118,7 @@ signals:
       */
     void docReady4preview(const QString &client_uuid);
 
-    void error(pluginsError errCode,QString error_message);
+    void error(VPrn::AppErrorType errCode,QString error_message);
     /**
       * @fn void jobFinish (const QString &client_uuid,
       *                      VPrn::Jobs job_id,int code,

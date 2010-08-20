@@ -71,21 +71,21 @@ void GS_plugin::init(const QString &gs_bin, const QString &pdftk_bin,
                         new_file.close();
                     }else{
                         emit error(VPrn::FileIOError,
-                                   QObject::trUtf8("Ошибка создания файла %1\nОшибка %2")
-                                   .arg(gs_rcp).arg(new_file.errorString()));
+                                   QObject::trUtf8("Ошибка создания файла %1\nОшибка %2\n%3")
+                                   .arg(gs_rcp).arg(new_file.errorString()).arg(QString(Q_FUNC_INFO)));
                     }
                 }else{
                     emit error(VPrn::FileIOError,
-                               QObject::trUtf8("Файл %1 не найден\n")
-                               .arg(pdftk_bin));
+                               QObject::trUtf8("Файл %1 не найден\n%2")
+                               .arg(pdftk_bin).arg(QString(Q_FUNC_INFO)));
                 }
             }else{
                 emit error(VPrn::FileIOError,
-                           QObject::trUtf8("Каталог %1 не найден\n")
-                           .arg(temp_folder));
+                           QObject::trUtf8("Каталог %1 не найден\n%2")
+                           .arg(temp_folder).arg(QString(Q_FUNC_INFO)));
             }
         }else {
-            emit error(VPrn::FileIOError, QObject::trUtf8("Файл %1 не найден\n").arg(gs_bin));
+            emit error(VPrn::FileIOError, QObject::trUtf8("Файл %1 не найден\n%2").arg(gs_bin).arg(QString(Q_FUNC_INFO)));
         }
     }
     QDir::setCurrent(startnow);
@@ -117,7 +117,7 @@ void GS_plugin::convertPs2Pdf(const QString &client_uuid,const QString &input_fn
 
     }else {
         emit error(VPrn::FileIOError,
-                   QObject::trUtf8("ERROR : Файл %1 не найден\n").arg(input_fn));
+                   QObject::trUtf8("ERROR : Файл %1 не найден\n%2").arg(input_fn).arg(QString(Q_FUNC_INFO)));
     }
 }
 
@@ -246,14 +246,15 @@ void GS_plugin::mergeWithTemplate(const QString &client_uuid, const QStringList 
     ClientData *c_data = findClientData(client_uuid);
     if (!QFile::exists(c_data->getFirstPage() ) ){
         emit error (VPrn::FileIOError,
-                    QObject::trUtf8("Файл %1 не найден!")
-                    .arg(c_data->getFirstPage()) );
+                    QObject::trUtf8("Файл %1 не найден!\n%2")
+                    .arg(c_data->getFirstPage()).arg(QString(Q_FUNC_INFO)) );
         return;
     }
 
     if (t_files.size() == 0){
-        emit error (VPrn::InternalPluginError,
-                    QObject::trUtf8("Ошибка при подготовке шаблона!")     );
+        emit error (VPrn::InternalAppError,
+                    QObject::trUtf8("Ошибка при подготовке шаблона!\n%1").arg(QString(Q_FUNC_INFO))
+		    );
 
         return;
     }
@@ -306,8 +307,10 @@ void GS_plugin::convertPdfToPng(const QString &client_uuid,
     ClientData *c_data = findClientData(client_uuid);
 
     if (files.size() == 0){
-        emit error (VPrn::InternalPluginError,
-                    QObject::trUtf8("Ошибка при поиске файлов для преобразования, ничего не найденно !")     );
+        emit error (VPrn::FileNotFound,
+                    QObject::trUtf8("Ошибка при поиске файлов для преобразования, ничего не найденно !\n%1")
+                    .arg(QString(Q_FUNC_INFO))
+                    );
         return;
     }
     if (c_data){
@@ -346,7 +349,9 @@ void GS_plugin::convertPdfToPng(const QString &client_uuid,
                 args.append(file_name);
                 start_proc(client_uuid,gsBin,args,VPrn::job_ConvertToPng);
             }else{
-                emit error (VPrn::FileIOError,QObject::trUtf8("Ошибка в имени файла, при конвертации в pdf -> png!"));
+                emit error (VPrn::FileIOError,
+                            QObject::trUtf8("Ошибка в имени файла, при конвертации в pdf -> png!\n%1").arg(QString(Q_FUNC_INFO))
+                            );
 
             }
         }
@@ -402,16 +407,18 @@ void GS_plugin::createClientData(const QString &client_uuid)
 
                 Ok &= w_dir.mkpath(wrk_dir);
                 if (!Ok){
-                    emit error(VPrn::InternalPluginError,
-                               QObject::trUtf8("Ошибка создания рабочего каталога для клиента!\n%1").arg(wrk_dir)
+                    emit error(VPrn::FileIOError,
+                               QObject::trUtf8("Ошибка создания рабочего каталога для клиента! %1\n%2")
+                               .arg(wrk_dir).arg(QString(Q_FUNC_INFO))
                                );
                     return;
                 }
             }
         }else{
             Ok &=false;
-            emit error(VPrn::InternalPluginError,
-                       QObject::trUtf8("Ошибка создания внутренней учетной записи для клиента!")
+            emit error(VPrn::InternalAppError,
+                       QObject::trUtf8("Ошибка создания внутренней учетной записи для клиента!\n%1")
+                       .arg(QString(Q_FUNC_INFO))
                        );
 
         }
@@ -462,7 +469,7 @@ void GS_plugin::threadFinish(const QString &jobKey,int code,
         break;
     case VPrn::job_ConvertPs2Pdf: // Завершилась задача конвертирования ps в
         emit docConvertedToPdf(m_client_uuid);
-        getPageCount(m_client_uuid,mainPDF);
+        calcPageCount(m_client_uuid,mainPDF);
         break;
     case VPrn::job_SplitPageFirst:
         break;
@@ -491,9 +498,9 @@ void GS_plugin::threadFinish(const QString &jobKey,int code,
                             QFile::remove( c_data->getFirstPage() );
                         }
                         if ( !QFile::copy(mainPDF,c_data->getFirstPage() )){
-                            emit error(VPrn::InternalPluginError,
-                                       QObject::trUtf8("Ошибка копирования документа PDF из %1 в %2")
-                                       .arg(mainPDF,c_data->getFirstPage() )
+                            emit error(VPrn::FileIOError,
+                                       QObject::trUtf8("Ошибка копирования документа PDF из %1 в %2\n%3")
+                                       .arg(mainPDF,c_data->getFirstPage().arg(QString(Q_FUNC_INFO)) )
                                        );
                         }else{
                             emit docReady4work(m_client_uuid,pagesCount);
@@ -507,9 +514,9 @@ void GS_plugin::threadFinish(const QString &jobKey,int code,
                                  c_data->getOtherPage());
                     }
                 }else{
-                    emit error(VPrn::InternalPluginError,
-                               QObject::trUtf8("Ошибка разбора документа PDF %1")
-                               .arg(mainPDF)
+                    emit error(VPrn::InternalAppError,
+                               QObject::trUtf8("Ошибка разбора документа PDF %1\n%2")
+                               .arg(mainPDF).arg(QString(Q_FUNC_INFO))
                                );
                 }
 
@@ -539,7 +546,7 @@ void GS_plugin::start_proc(const QString &client_uuid,const QString &bin,
     proc->execute(bin, arg_list,QProcess::MergedChannels);
 }
 
-void GS_plugin::getPageCount(const QString &client_uuid,const QString &input_fn)
+void GS_plugin::calcPageCount(const QString &client_uuid,const QString &input_fn)
 {
     ClientData *c_d(0);
     if (input_fn.isEmpty()){
@@ -589,13 +596,13 @@ void GS_plugin::mergePdf(const QString &client_uuid,const QString &in_pdf,
     //pdftk in.pdf background back.pdf output out.pdf
     if (!QFile::exists(in_pdf)) {
         emit error(VPrn::FileIOError,
-                   QObject::trUtf8("ERROR : Файл %1 не найден\n").arg(in_pdf));
+                   QObject::trUtf8("ERROR : Файл %1 не найден\n%2").arg(in_pdf).arg(QString(Q_FUNC_INFO)));
         return;
     }
 
     if (!QFile::exists(back_pdf)) {
         emit error(VPrn::FileIOError,
-                   QObject::trUtf8("ERROR : Файл %1 не найден\n").arg(back_pdf));
+                   QObject::trUtf8("ERROR : Файл %1 не найден\n%2").arg(back_pdf).arg(QString(Q_FUNC_INFO)));
         return;
     }
 
@@ -625,10 +632,10 @@ QStringList GS_plugin::findFiles(const QString &client_uuid,
                                  const QStringList &filters)
 {
     return QStringList() << findFiles4Copy(client_uuid,1,filters)
-                         << findFiles4Copy(client_uuid,2,filters)
-                         << findFiles4Copy(client_uuid,3,filters)
-                         << findFiles4Copy(client_uuid,4,filters)
-                         << findFiles4Copy(client_uuid,5,filters);
+            << findFiles4Copy(client_uuid,2,filters)
+            << findFiles4Copy(client_uuid,3,filters)
+            << findFiles4Copy(client_uuid,4,filters)
+            << findFiles4Copy(client_uuid,5,filters);
 }
 
 QStringList GS_plugin::findFiles4Copy(const QString &client_uuid, /*ID клиента*/
@@ -666,7 +673,7 @@ void GS_plugin::recursiveDeletion(QString path)
         QFile file(path + "/" + *itFile);
         if ( !file.remove()){
             emit error(VPrn::FileIOError,
-                       QObject::trUtf8("Ошибка удаления файла %1!").arg(*itFile));
+                       QObject::trUtf8("Ошибка удаления файла %1!\n%2").arg(*itFile).arg(QString(Q_FUNC_INFO)));
         }
         ++itFile;
     }
@@ -682,7 +689,7 @@ void GS_plugin::recursiveDeletion(QString path)
     if ( !dir.rmdir(path)){
 
         emit error(VPrn::FileIOError,
-                   QObject::trUtf8("Ошибка удаления каталога %1!").arg(path));
+                   QObject::trUtf8("Ошибка удаления каталога %1!\n%2").arg(path).arg(QString(Q_FUNC_INFO)));
 
     }
 }
