@@ -165,11 +165,10 @@ void serverGears::readyRead()
         if (packetSize == -1) {
             //Определим количество байт доступных для чтения;
             //на этом шаге необходимо получить больше 4-х байт
-            if( client->bytesAvailable() < (int)sizeof(qint32) ){
+            if( client->bytesAvailable() < (int)sizeof(packetSize) ){
                 return;
             }
             //Читаем размер пакета
-            //client->read(reinterpret_cast<char*>(&packetSize), sizeof(qint32));
             in >> packetSize;
 
         }
@@ -407,7 +406,7 @@ void serverGears::parseMessage( const Message &m_msg, const QString &c_uuid)
                 message.setType ( VPrn::Ans_Convert2PdfFinish);
                 sendMessage( message,client );
                 gs_plugin->createClientData(c_uuid);
-                gs_plugin->getPageCount(c_uuid);
+                gs_plugin->calcPageCount(c_uuid);
             }
             break;
         case VPrn::Que_GiveMeTemplatesList:
@@ -956,6 +955,7 @@ void serverGears::printCurrentFormatedDoc(const QString &client_uuid,
             QList <int> copyes = pTask->getCopyes();
             for (int i=0; i < copyes.size();i++){
                 // Обработка i-го экз документа
+                /*
                 splitListToFile(gs_plugin->findFiles4Copy(client_uuid,
                                                           i,
                                                           QStringList() << "*out.pdf"),
@@ -963,6 +963,7 @@ void serverGears::printCurrentFormatedDoc(const QString &client_uuid,
 
                 createPrintTask(client_uuid, printer_queue,
                                 fpage,otherpage,overpage,lastpage);
+                                */
             }
         }
     }

@@ -165,7 +165,7 @@ private:
 
     QString              m_serverName;
     QLocalServer         *m_server;
-    qint32               packetSize;
+    qint64               packetSize;
 
     QString              e_info;
     Inet_plugin          *net_plugin;
