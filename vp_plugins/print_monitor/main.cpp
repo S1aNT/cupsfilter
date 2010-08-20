@@ -63,6 +63,7 @@ int main(int argc, char *argv[])
         return 0;
 
     QApplication::setQuitOnLastWindowClosed(true);
+
     qApp->setStyleSheet(" QPushButton:hover {background-color: black;} "
                         " QPushButton:hover {background-color: white;} "
                         " QPushButton { border-style: outset; border-width: 2px;"

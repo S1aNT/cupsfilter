@@ -48,6 +48,7 @@ private slots:
     void do_restart();
     void do_needAuthUser(const QString &login_mandat_list);
     void sendFileToConvertor();        
+    void errorInfo(VPrn::AppErrorType eCode,QString e_msg);
 
 private:        
     QDesktopWidget desktop;
@@ -74,7 +75,7 @@ private:
     QWidget        *verticalLayoutWidget;
     QWidget        *horizontalLayoutWidget;
     QFrame         *line;
-    QErrorMessage  *eMessage;
+    QErrorMessage  *myEMsgBox;
 
     DataModule     *data_module;
     Engine         *engine;

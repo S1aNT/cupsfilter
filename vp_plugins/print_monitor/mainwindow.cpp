@@ -29,11 +29,10 @@
 using namespace VPrn;
 
 MainWindow::MainWindow(QWidget *parent)
-    : QWidget(parent)
-    , pageId(0)
+        : QWidget(parent)
+        , pageId(0)
 
 {
-
     //получим размер экрана
     desktop_avail = desktop.availableGeometry(desktop.primaryScreen());
 
@@ -42,26 +41,26 @@ MainWindow::MainWindow(QWidget *parent)
     this->setMaximumSize(desktop_avail.width()-5,desktop_avail.height()-5);
     this->move( calcDeskTopCenter(this->width(),this->height() ));
 
-    verticalLayoutWidget = new QWidget;
+    verticalLayoutWidget = new QWidget();
     mainLayout = new QVBoxLayout(verticalLayoutWidget);
 
     //------------------------------- Центральная часть    -------------------------------
-    stackedWidget = new QStackedWidget;
-    introPage     = new IntroPage();
-    selectPage    = new SelectPage();
-    printDataPage = new PrintDataPage();
-    checkDataPage = new CheckDataPage();
-    preViewPage   = new PreViewPage();
-    finishPage    = new FinishPage();
-
-    stackedWidget->addWidget(introPage);
-    stackedWidget->addWidget(selectPage);
-    stackedWidget->addWidget(printDataPage);
-    stackedWidget->addWidget(checkDataPage);
-    stackedWidget->addWidget(preViewPage);
-    stackedWidget->addWidget(finishPage);
-    //Установка макс размеров
-    printDataPage->setMaximumSize(desktop_avail.width()-5,desktop_avail.height()-5);
+    stackedWidget = new QStackedWidget();
+    //    introPage     = new IntroPage();
+    //    selectPage    = new SelectPage();
+    //    printDataPage = new PrintDataPage();
+    //    checkDataPage = new CheckDataPage();
+    //    preViewPage   = new PreViewPage();
+    //    finishPage    = new FinishPage();
+    //
+    //    stackedWidget->addWidget(introPage);
+    //    stackedWidget->addWidget(selectPage);
+    //    stackedWidget->addWidget(printDataPage);
+    //    stackedWidget->addWidget(checkDataPage);
+    //    stackedWidget->addWidget(preViewPage);
+    //    stackedWidget->addWidget(finishPage);
+    //    //Установка макс размеров
+    //    printDataPage->setMaximumSize(desktop_avail.width()-5,desktop_avail.height()-5);
 
     //------------------------------- Нижний блок - Кнопки -------------------------------
     line = new QFrame();
@@ -98,14 +97,20 @@ MainWindow::MainWindow(QWidget *parent)
     mainLayout->addWidget(horizontalLayoutWidget);
 
     setLayout(mainLayout);
-    this->setWindowTitle(stackedWidget->currentWidget()->windowTitle() );
+    qDebug() << Q_FUNC_INFO << stackedWidget->currentIndex ();
+
+    if (stackedWidget->currentIndex () != -1 ){
+        this->setWindowTitle(stackedWidget->currentWidget()->windowTitle() );
+    }else{
+        this->setWindowTitle( QObject::trUtf8("Ошибка создания окон мастера") );
+    }
 }
 
 void MainWindow::init(const QString &app_dir,const QString &input_file)
 {
     this->readConfig(app_dir);
     //Основной потребитель ошибок
-    eMessage = new QErrorMessage(this);
+    myEMsgBox = new QErrorMessage(this);
 
     //Формируем хранителя данных
     data_module = new DataModule(this);
@@ -135,7 +140,7 @@ void MainWindow::init(const QString &app_dir,const QString &input_file)
 
 void MainWindow::appendStartMsg(const QString &txt_msg)
 {
-    eMessage->showMessage(txt_msg);
+    myEMsgBox->showMessage(txt_msg);
 }
 
 MainWindow::~MainWindow()
@@ -246,13 +251,23 @@ void MainWindow::do_needAuthUser(const QString &login_mandat_list)
 
         UMDlg->exec();
     }else{
-        eMessage->showMessage(QObject::trUtf8("Ошибка разбора сообщения сервера."));
+        myEMsgBox->showMessage(QObject::trUtf8("Ошибка разбора сообщения сервера."));
     }
 }
 
 void MainWindow::sendFileToConvertor()
 {
     engine->prepareFileToPrint(data_module->getWorkFile());
+}
+
+void MainWindow::errorInfo(VPrn::AppErrorType eCode,QString e_msg)
+{
+    QString extMsg = QString("eCode %1. AppsError:%2\n%3")
+                     .arg(eCode,0,10)
+                     .arg(e_msg)
+                     .arg(QString(Q_FUNC_INFO));
+    myEMsgBox->showMessage(extMsg);
+    qDebug() << extMsg;
 }
 
 //------------------------------------ PRIVATE ---------------------------------------------
@@ -274,12 +289,11 @@ void MainWindow::createConnection()
              this,      SLOT(do_restart())
              );
 
-    connect (data_module,SIGNAL(error(QString,QString)),
-             eMessage,SLOT(showMessage(QString,QString))
+    connect (data_module,SIGNAL(error(VPrn::AppErrorType,QString)),
+             this,       SLOT (errorInfo(VPrn::AppErrorType,QString))
              );
-
-    connect (engine,   SIGNAL( error(QString,QString) ),
-             eMessage, SLOT  ( showMessage (QString,QString) )
+    connect (engine,   SIGNAL( error(VPrn::AppErrorType,QString) ),
+             this,     SLOT (errorInfo(VPrn::AppErrorType,QString))
              );
     connect(engine,    SIGNAL( LocalSrvRegistr() ),
             introPage, SLOT  ( setLocalSrvRegistr() )
@@ -376,10 +390,10 @@ void MainWindow::readConfig(const QString &app_dir)
         gatekeeper_bin = settings.value("gatekeeper_bin").toString();
         settings.endGroup();
     }else{
-        eMessage->showMessage(QObject::trUtf8("Файл с настройками программы %1 не найден!\n%2")
-                              .arg(ini_file)
-                              .arg(QString(Q_FUNC_INFO))
-                              );
+        myEMsgBox->showMessage(QObject::trUtf8("Файл с настройками программы %1 не найден!\n%2")
+                               .arg(ini_file)
+                               .arg(QString(Q_FUNC_INFO))
+                               );
     }
 }
 
