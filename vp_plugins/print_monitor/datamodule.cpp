@@ -92,7 +92,7 @@ bool DataModule::setWorkFile(const QString & i_file)
     if (QFile::exists(i_file)){
         m_Work_file = i_file;
     }else{
-        emit error("fileNotFound",
+        emit error(VPrn::FileNotFound,
                    QObject::trUtf8("Файл %1 заданный для печати не существует!\n%2")
                    .arg(i_file).arg(QString(Q_FUNC_INFO))
                    );

@@ -2,8 +2,12 @@
 #define DATAMODULE_H
 
 #include <QObject>
+#include "mytypes.h"
+
 QT_FORWARD_DECLARE_CLASS (QStandardItemModel)
 QT_FORWARD_DECLARE_CLASS (QStringListModel)
+
+using namespace VPrn;
 
 class DataModule : public QObject
 {
@@ -33,7 +37,7 @@ public:
     bool setWorkFile(const QString & i_file);
     QString getWorkFile() const{return m_Work_file;}
 signals:
-    void error(const QString &eCode,const QString &eMsg);
+    void error(VPrn::AppErrorType eCode,const QString eMsg);
 
 public slots:
 
