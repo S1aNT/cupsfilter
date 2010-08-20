@@ -134,31 +134,21 @@ void LocalClient::prepareError(QLocalSocket::LocalSocketError socketError)
 {
     switch (socketError) {
     case QLocalSocket::ConnectionRefusedError:
-        setError(tr("Соединение отклонено удаленным сервером %1").arg(m_srvName));
+        emit error(VPrn::SocketError,
+			QObject::trUtf8("Соединение отклонено удаленным сервером %1\n%2")
+			.arg(m_srvName)
+			.arg( QString(Q_FUNC_INFO) )
+		   );
 
-        break;
-    case QLocalSocket::ServerNotFoundError:
-        //setState(VPrn::HostNotFound);
         break;
     default:
-        setError(tr("При работе с сервером %1 произошла ошибка :%2")
-                 .arg( m_srvName, socket->errorString() )
-                 );
-
+        emit error(VPrn::SocketError,
+			QObject::trUtf8("При работе с сервером %1 произошла ошибка :%2\n%3")
+			.arg( m_srvName, socket->errorString() )
+			.arg( QString(Q_FUNC_INFO) )
+		   );
     }
 }
 
-void LocalClient::setError(const QString &info)
-{
-    e_info  = info;
-    qDebug() << "Error info " << info;
-    //setState(VPrn::InternalError);
-    emit error(info);
-}
 
-//void LocalClient::setState(LocalClientState state)
-//{
-//    m_state = state;
-//    emit stateChanged(m_state);
-//}
 
