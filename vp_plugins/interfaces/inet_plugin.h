@@ -14,7 +14,7 @@ class Inet_plugin{
 
 public:
     virtual ~Inet_plugin() {}
-    virtual void init(const QString &host,int port,const QString &sid) = 0 ;
+    virtual void init(const QString &host,int port) = 0 ;
     virtual void sendMessage( const Message &m_msg) = 0;
     //virtual MyCheckPoints state() const = 0;
 
