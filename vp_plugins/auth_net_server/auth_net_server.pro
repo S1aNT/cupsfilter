@@ -3,8 +3,7 @@ QT += sql \
 TEMPLATE += app
 TARGET = auth_net_server
 CONFIG += warn_on \
-    qt \
-    console \
+    qt \    
     precompile_header
 win32:DESTDIR = c:/opt/vprn
 else:DESTDIR = /opt/vprn
