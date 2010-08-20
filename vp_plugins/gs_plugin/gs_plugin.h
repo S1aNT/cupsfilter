@@ -15,20 +15,27 @@
 
 QT_FORWARD_DECLARE_CLASS (QString)
 
-using namespace VPrn;
+        using namespace VPrn;
 
 class GS_plugin :public QObject, Igs_plugin
 {
     Q_OBJECT
     Q_INTERFACES(Igs_plugin)
-public:
+        public:
             GS_plugin(QObject *parent=0);
 
     void init(const QString &gs_bin,const QString &pdftk_bin,
-              const QString &temp_folder);
+              const QString &gsprint_bin,const QString &temp_folder);
     void convertPs2Pdf(const QString &client_uuid,const QString &input_fn);
 
     void final_clear();
+    /**
+      * @fn void directPrint(const QString &client_uuid,const QString &file_name,
+      *                      const QString &printer_name,int copies);
+      * @brief прямая печать на "локальный" прописанный в системе принтер
+      */
+    void directPrint(const QString &client_uuid,const QString &file_name,
+                     const QString &printer_name,int copies);
     /**
       * @fn void print2devide (const QString &client_uuid, QByteArray &printData);
       * @brief Печать  документа сформированного клиентом на устройство
@@ -83,9 +90,9 @@ public:
       * для заданного конкретного экз.
       */
     QStringList findFiles4Copy(const QString &client_uuid, /*ID клиента*/
-                                          int copyNum, /*Номер экземпляра документа*/
-                                          const QStringList &filters /*Тип файлов*/
-                                          );
+                               int copyNum, /*Номер экземпляра документа*/
+                               const QStringList &filters /*Тип файлов*/
+                               );
     /**
       * @fn  void calcPageCount(const QString &client_uuid,const QString &input_fn);
       * @brief Используя pdfTk получим число страниц в pdf документе
@@ -93,6 +100,7 @@ public:
     void calcPageCount(const QString &client_uuid,const QString &input_fn = QString());
 
 signals:
+    void pluginNotReady();
     /**
       * @fn void docConvertedToPdf(const QString &client_uuid)
       * @brief Испукается при завершении процесса конвертации ps -> pdf
@@ -138,6 +146,7 @@ private:
     QString gsBin;
     QString spoolDir;
     QString pdftkBin;
+    QString gsprintBin;
     QString gs_rcp;
 
     QStringList myEnv; // Мои переменные среды для gs
@@ -187,6 +196,7 @@ private:
       * @brief Рекурсивное удалаление каталога со всем его содержимым
       */
     void recursiveDeletion(QString path);
+    void createRCPfile(const QString &tmp_dir);
     //-----------------------------------------------------------------------------------------------------
     /**
       * @var clients_list; Список uuid,client_id

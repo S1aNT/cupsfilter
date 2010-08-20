@@ -18,7 +18,7 @@
 #include <QtGui/QPixmap>
 
 GS_plugin::GS_plugin(QObject *parent)
-    :QObject (parent)
+        :QObject (parent)
 {
     //    if (!QMetaType::isRegistered(QMetaType::type("JobsType"))){
     //        qRegisterMetaType<VPrn::Jobs>("JobsType");
@@ -34,59 +34,47 @@ void GS_plugin::final_clear()
 }
 
 void GS_plugin::init(const QString &gs_bin, const QString &pdftk_bin,
-                     const QString &temp_folder)
+                     const QString &gsprint_bin,const QString &temp_folder)
 {
     QDir dir;
-    QFile new_file;
-    const QString startnow = QDir::currentPath();
 
-    bool Ok = true;
-    {
-        Ok &= QFile::exists(gs_bin);
-        if (Ok){// Проверим факт существования по указанному пути бинарника ghostscript
-            gsBin = gs_bin;
+    const QString startnow = QDir::currentPath();    
 
-            Ok &= dir.cd(temp_folder) && !temp_folder.isEmpty();
-            if (Ok){// Проверим факт существования временного каталога
-                spoolDir = temp_folder;
-                myEnv << QObject::trUtf8("TMPDIR=%1").arg(temp_folder);
-
-                Ok &=QFile::exists(pdftk_bin);
-                if (Ok){// Проверим факт существования по указанному пути бинарника
-                    pdftkBin = pdftk_bin;
-                    // Файл не существует но он мне нужен значит создаем его
-                    gs_rcp=QString("%1/%2.rcp").arg(temp_folder,getUuid());
-                    // Надо больше спать из за отсутсвия этой строчки 20 минут искал ошибку
-                    new_file.setFileName(gs_rcp);
-                    if (new_file.open(QIODevice::WriteOnly | QIODevice::Text)) {
-                        QTextStream out(&new_file);
-                        out     << QObject::trUtf8("-dQUIET\n")
-                                << QObject::trUtf8("-dNOPAUSE\n")
-                                << QObject::trUtf8("-dPARANOIDSAFER\n")
-                                << QObject::trUtf8("-dBATCH\n")
-                                << QObject::trUtf8("-r600\n")
-                                << QObject::trUtf8("-dPDFSETTINGS=/prepress\n")
-                                << QObject::trUtf8("-dEmbedAllFonts=true\n")
-                                << QObject::trUtf8("-sDEVICE=pdfwrite\n");
-                        new_file.close();
-                    }else{
-                        emit error(VPrn::FileIOError,
-                                   QObject::trUtf8("Ошибка создания файла %1\nОшибка %2\n%3")
-                                   .arg(gs_rcp).arg(new_file.errorString()).arg(QString(Q_FUNC_INFO)));
-                    }
-                }else{
-                    emit error(VPrn::FileIOError,
-                               QObject::trUtf8("Файл %1 не найден\n%2")
-                               .arg(pdftk_bin).arg(QString(Q_FUNC_INFO)));
-                }
-            }else{
-                emit error(VPrn::FileIOError,
-                           QObject::trUtf8("Каталог %1 не найден\n%2")
-                           .arg(temp_folder).arg(QString(Q_FUNC_INFO)));
-            }
-        }else {
-            emit error(VPrn::FileIOError, QObject::trUtf8("Файл %1 не найден\n%2").arg(gs_bin).arg(QString(Q_FUNC_INFO)));
-        }
+    // Проверка существования и доступности бинарников
+    if (!QFile::exists(gs_bin)){
+        emit error(VPrn::FileIOError,
+                   QObject::trUtf8("Файл %1 не существует или недостачно прав доступа\n%2")
+                   .arg(gs_bin)
+                   .arg(QString(Q_FUNC_INFO)));
+        emit pluginNotReady();
+        return;
+    }
+    // Проверка существования и доступности бинарников
+    if (!QFile::exists(pdftk_bin)){
+        emit error(VPrn::FileIOError,
+                   QObject::trUtf8("Файл %1 не существует или недостачно прав доступа\n%2")
+                   .arg(pdftk_bin)
+                   .arg(QString(Q_FUNC_INFO)));
+        emit pluginNotReady();
+        return;
+    }
+    if (!QFile::exists(gsprint_bin)){
+        emit error(VPrn::FileIOError,
+                   QObject::trUtf8("Файл %1 не существует или недостачно прав доступа\n%2")
+                   .arg(gsprint_bin)
+                   .arg(QString(Q_FUNC_INFO)));
+        emit pluginNotReady();
+        return;
+    }
+    if (dir.cd(temp_folder)){// Проверим факт существования временного каталога
+        spoolDir = temp_folder;
+        myEnv << QObject::trUtf8("TMPDIR=%1").arg(temp_folder);
+        createRCPfile(spoolDir);
+    }else{
+        emit error(VPrn::FileIOError,
+                   QObject::trUtf8("Временный каталог %1 не найден\n%2")
+                   .arg(temp_folder).arg(QString(Q_FUNC_INFO)));
+        emit pluginNotReady();
     }
     QDir::setCurrent(startnow);
 }
@@ -176,6 +164,15 @@ void GS_plugin::print2devide (const QString &client_uuid,  const QString &print_
 #endif
 }
 */
+
+void GS_plugin::directPrint(const QString &client_uuid,const QString &file_name,
+                            const QString &printer_name,int copies)
+{
+#if defined(Q_OS_UNIX)
+#elif defined(Q_OS_WIN)
+#endif
+}
+
 void GS_plugin::print2devide (const QString &client_uuid, QByteArray &printData)
 {
     ClientData *c_d(0);
@@ -254,7 +251,7 @@ void GS_plugin::mergeWithTemplate(const QString &client_uuid, const QStringList 
     if (t_files.size() == 0){
         emit error (VPrn::InternalAppError,
                     QObject::trUtf8("Ошибка при подготовке шаблона!\n%1").arg(QString(Q_FUNC_INFO))
-		    );
+                    );
 
         return;
     }
@@ -693,5 +690,32 @@ void GS_plugin::recursiveDeletion(QString path)
 
     }
 }
-Q_EXPORT_PLUGIN2(Igs_plugin, GS_plugin)
-;
+
+void GS_plugin::createRCPfile(const QString &tmp_dir)
+{
+    gs_rcp=QString("%1/%2.rcp").arg(tmp_dir,getUuid());
+    QFile new_file;
+
+    new_file.setFileName(gs_rcp);
+    if (new_file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        QTextStream out(&new_file);
+        out     << QObject::trUtf8("-dQUIET\n")
+                << QObject::trUtf8("-dNOPAUSE\n")
+                << QObject::trUtf8("-dPARANOIDSAFER\n")
+                << QObject::trUtf8("-dBATCH\n")
+                << QObject::trUtf8("-r600\n")
+                << QObject::trUtf8("-dPDFSETTINGS=/prepress\n")
+                << QObject::trUtf8("-dEmbedAllFonts=true\n")
+                << QObject::trUtf8("-sDEVICE=pdfwrite\n");
+        new_file.close();
+    }else{
+        emit error(VPrn::FileIOError,
+                   QObject::trUtf8("Ошибка создания файла %1\nОшибка %2\n%3")
+                   .arg(gs_rcp)
+                   .arg(new_file.errorString())
+                   .arg(QString(Q_FUNC_INFO)));
+        void pluginNotReady();
+    }
+}
+
+Q_EXPORT_PLUGIN2(Igs_plugin, GS_plugin);
