@@ -6,19 +6,16 @@ CONFIG += warn_on \
     qt \
     console \
     precompile_header
-win32 {
-DESTDIR = c:/opt/vprn
-}else{
-DESTDIR =/opt/vprn
-}
-CONFIG(debug, debug|release) {
+win32:DESTDIR = c:/opt/vprn
+else:DESTDIR = /opt/vprn
+CONFIG(debug, debug|release) { 
     message(Build Debug!)
     RCC_DIR = ../build/$${TARGET}/debug/rcc
     MOC_DIR = ../build/$${TARGET}/debug/moc
     OBJECTS_DIR = ../build/$${TARGET}/debug/obj
     DESTDIR = $${DESTDIR}/debug
 }
-else {
+else { 
     message(Build Release!)
     RCC_DIR = ../build/$${TARGET}/release/rcc
     MOC_DIR = ../build/$${TARGET}/release/moc
@@ -48,7 +45,8 @@ SOURCES += server.cpp \
     main.cpp \
     servergears.cpp \
     ../global/message.cpp \
-../global/templatesinfo.cpp \
+    ../global/templatesinfo.cpp \
     printtask.cpp
 RESOURCES = images.qrc
 TRANSLATIONS = auth_net_server_ru.ts
+FORMS += ../test_gui/form.ui
