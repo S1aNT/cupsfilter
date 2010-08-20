@@ -83,7 +83,7 @@ namespace VPrn{
         cards_RECIVER_4       = 18, /// Получатель_4
         cards_RECIVER_5       = 19, /// Получатель_5
         cards_STATUS          = 20  /// Статус_Документа
-    };
+                            };
 
 
 
@@ -128,19 +128,25 @@ namespace VPrn{
         elem_text_img    = 13  /// Тип элемента текст или картинка(1/0)
                        };
 
-    enum pluginsError {
+    enum AppErrorType {
         NoError,
         FileNotFound,
         FileIOError,
         UnknownError,
-        DriverNotLoad,
+        SqlDriverNotLoad,
         NotConnectedToDB,
         DBOpeningError,
         SQLQueryError,
         SQLCommonError,
-        InternalPluginError,
+        InternalAppError,
         AuthCommonError,
-        NetworkTransError
+        NetworkError,
+        PluginsNotLoad,
+        SocketError,
+        ConfigError,
+        notDefainedMode,
+	appNotStarted,
+        TemplateNotLoad
     };
 
     enum pageNumbers {
@@ -369,7 +375,7 @@ namespace VPrn{
         pre_FullMode       = 0,
         pre_PartMode       = 1,
         pre_ClearPrintMode = 2
-    };
+                         };
 
     enum{
 
@@ -387,6 +393,7 @@ namespace VPrn{
 
 }
 
+Q_DECLARE_METATYPE(VPrn::AppErrorType);
 Q_DECLARE_METATYPE(VPrn::PreviewMode);
 Q_DECLARE_METATYPE(VPrn::Jobs);
 Q_DECLARE_METATYPE(VPrn::MyCheckPoints);
