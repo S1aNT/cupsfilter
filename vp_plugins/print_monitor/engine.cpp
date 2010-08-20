@@ -121,7 +121,7 @@ void Engine::launchAndConnect()
         m_LocalClient->connectToServer(link_name);
 
     }else{
-        emit error("configError",
+        emit error(VPrn::ConfigError,
                    QObject::trUtf8("Ошибка в файле конфигурации. Проверьте параметры:\n"
                                    " Раздел [SERVICE] параметр link_name\n"
                                    " Раздел [USED_DIR_FILE] параметр gatekeeper_bin\n%1")
@@ -190,7 +190,7 @@ void Engine::do_select_mode(int mode)
             msg.setType( VPrn::Que_CreateFormatedFullDocAndPrint );
             break;
         default:
-            emit error("notDefainedMode",
+            emit error(VPrn::notDefainedMode,
                        QObject::trUtf8("Выбран не существующий режим предпросмотра/печати.\n%1")
                        .arg(QString(Q_FUNC_INFO))
                        );
@@ -231,7 +231,8 @@ void Engine::do_checkPointChanged(MyCheckPoints r_cpoint)
             // Попытка номер 2
             stopLaunch = true;
         }else{
-            emit error("appNotStarted", proc.errorString() );
+
+            emit error(VPrn::appNotStarted,QString("%1\n%2").arg(proc.errorString()).arg(QString(Q_FUNC_INFO)) );
         }
         QTimer::singleShot(3000,this,SLOT(launchAndConnect()));
     }
@@ -276,7 +277,7 @@ void Engine::parseMessage(const Message &r_msg)
                 setAuthData(currentUserName,currentUserMandat );
                 afterConnectSteps();
             }else{
-                emit error("localSocketError",
+                emit error(VPrn::SocketError,
                            QObject::trUtf8("Ошибка при получении имени и мандата текщего пользователя")
                            .arg(QString(Q_FUNC_INFO))
                            );

@@ -48,7 +48,7 @@ public:
     void prepareFileToPrint(const QString & file_name);
 
 signals:
-    void error(const QString &eCode,const QString &eMsg);
+    void error(VPrn::AppErrorType eCode,const QString eMsg);
     // Результат наложения шаблона на документ
     void MergeDocWithTemplates( bool flag,const QString &info);
     // список путей к сформированным  страницам предпросмотра
