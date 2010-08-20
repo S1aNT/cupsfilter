@@ -33,9 +33,11 @@ serverGears::serverGears(QObject *parent,const QString &srvName)
     /// Создаем локальный сервер
     m_server = new QLocalServer(this);
     if (!m_server->listen(m_serverName)) {
-        setError(QObject::trUtf8("Не могу запустить локальный сервер: %1.")
-                 .arg(m_server->errorString()));
-
+        emit error(VPrn::SocketError,
+                   QObject::trUtf8("Не могу запустить локальный сервер: %1.\n%2")
+                   .arg(m_server->errorString())
+                   .arg(QString(Q_FUNC_INFO))
+                   );
         setCheckPoint(VPrn::loc_CantStartListen);
     }else{
         connect(m_server, SIGNAL(newConnection()),
@@ -61,7 +63,10 @@ void serverGears::setNetPlugin(Inet_plugin *NetPlugin)
     if (NetPlugin){
         net_plugin = NetPlugin;
     }else{
-        setError(QObject::trUtf8("Ошибка при попытке использования сетевого плагина."));
+        emit error(VPrn::PluginsNotLoad,
+                   QObject::trUtf8("Ошибка при попытке использования сетевого плагина.\n %1.")
+                   .arg(QString(Q_FUNC_INFO))
+                   );
     }
 }
 
@@ -70,7 +75,10 @@ void serverGears::setGsPlugin(Igs_plugin *GsPlugin)
     if (GsPlugin){
         gs_plugin = GsPlugin;
     }else{
-        setError(QObject::trUtf8("Ошибка при попытке использования сетевого плагина."));
+        emit error(VPrn::PluginsNotLoad,
+                   QObject::trUtf8("Ошибка при попытке использования PostcSript плагина.\n %1.")
+                   .arg(QString(Q_FUNC_INFO))
+                   );
     }
 }
 
@@ -78,8 +86,11 @@ void serverGears::setTmplPlugin(Itmpl_sql_plugin *TmplPlugin)
 {
     if (TmplPlugin){
         tmpl_plugin = TmplPlugin;
-    }else{
-        setError(QObject::trUtf8("Ошибка при попытке использования плагина работы с шаблонами."));
+    }else{        
+        emit error(VPrn::PluginsNotLoad,
+                   QObject::trUtf8("Ошибка при попытке использования плагина работы с шаблонами.\n %1.")
+                   .arg(QString(Q_FUNC_INFO))
+                   );
     }
 }
 
@@ -97,8 +108,12 @@ void serverGears::sayGoodBayAllClients()
     }
 }
 
-void serverGears::findTemplatesInPath(const QString t_path)
+void serverGears::findTemplatesInPath(const QString &t_path)
 {
+    if (t_path.isEmpty()){
+        return;
+    }
+
     QStringList filters;
     QDir dir;
 
@@ -122,14 +137,17 @@ void serverGears::prepareError(QLocalSocket::LocalSocketError socketError)
 
     switch (socketError) {
     case QLocalSocket::ConnectionRefusedError:
-        setError(QObject::trUtf8("Соединение было сброшенно клиентом [%1]").arg(clientName));
-        break;
-    case QLocalSocket::PeerClosedError:
+        emit error(VPrn::NetworkError,
+                   QObject::trUtf8("Соединение было сброшенно клиентом [%1].\n %2.")
+                   .arg(clientName).arg(QString(Q_FUNC_INFO))
+                   );
         break;
     default:
-        setError(QObject::trUtf8("При работе с клиентом [%1] произошла ошибка:%2")
-                 .arg( clientName, client->errorString() )
-                 );
+        emit error(VPrn::NetworkError,
+                   QObject::trUtf8("При работе с клиентом [%1] произошла ошибка:%2.\n %3.")
+                   .arg(clientName, client->errorString())
+                   .arg(QString(Q_FUNC_INFO))
+                   );
     }
     setCheckPoint(VPrn::net_CommonError);
 }
@@ -304,8 +322,11 @@ void serverGears::reciveNetworkMessage(const Message &r_msg)
                     sendMessage(loc_msg,client);
                 }
             }
-        }else{
-            setError(QObject::trUtf8("Ошибочный ответ от демона СУРД!"));
+        }else{            
+            emit error(VPrn::InternalAppError,
+                       QObject::trUtf8("Ошибочный ответ от демона СУРД!.\n %1.")
+                       .arg(QString(Q_FUNC_INFO))
+                       );
         }
     }
 }
@@ -319,6 +340,7 @@ void serverGears::client_init()
 
         QString c_uuid =  gs_plugin->getUuid();
         clients_uuid.insert(client,c_uuid);
+        qDebug() << Q_FUNC_INFO << c_uuid;
 
         gs_plugin->createClientData(c_uuid);
         connect(client, SIGNAL(readyRead()),
@@ -357,11 +379,6 @@ void serverGears::disconnected()
     //}
 }
 //-------------------------- PRIVATE -------------------------------------------
-void serverGears::setError(const QString &info)
-{
-    e_info  = info;
-    emit error(e_info);
-}
 
 void serverGears::setCheckPoint(MyCheckPoints cp)
 {
@@ -603,7 +620,10 @@ QLocalSocket *serverGears::findClient(const QString &c_uuid)
         }
     }
     // Только некромантам интересны мертвые клиенты
-    setError(QObject::trUtf8("Ответ клиенту который уже отсоединился!"));
+    emit error(VPrn::InternalAppError,
+               QObject::trUtf8("Ответ клиенту который уже отсоединился!\n %1.")
+               .arg(QString(Q_FUNC_INFO))
+               );
     return client;
 }
 
@@ -718,11 +738,11 @@ void serverGears::createFormatedDoc(const QString &client_uuid,
     }
     if (Ok &&  gs_plugin ){
         QStringList files = gs_plugin->findFiles(client_uuid,
-                              QStringList() << "t_firstpage.pdf"
-                                            << "t_otherpage.pdf"
-                                            << "t_oversidepage.pdf"
-                                            << "t_lastpage.pdf"
-                                            );
+                                                 QStringList() << "t_firstpage.pdf"
+                                                 << "t_otherpage.pdf"
+                                                 << "t_oversidepage.pdf"
+                                                 << "t_lastpage.pdf"
+                                                 );
         // Поставим клиенту признак весь документ или нет конвертировать в png после объединения
         gs_plugin->setConvertToPngMode(client_uuid, full_doc );
 
@@ -792,7 +812,7 @@ void serverGears::createPrintTask(const QString &client_uuid,
             net_plugin->sendMessage(message);
             clientsPrintTask.insert(client_uuid,jobId);
         }else{
-            emit error(QObject::trUtf8("Ошибка чтения файла %1!\n%2")
+            emit error(VPrn::FileIOError,QObject::trUtf8("Ошибка чтения файла %1!\n%2")
                        .arg(first_page)
                        .arg(QString(Q_FUNC_INFO))
                        );
@@ -817,7 +837,7 @@ void serverGears::createPrintTask(const QString &client_uuid,
 
                 net_plugin->sendMessage(message);
             }else{
-                emit error(QObject::trUtf8("Ошибка чтения файла %1!\n%2")
+                emit error(VPrn::FileIOError,QObject::trUtf8("Ошибка чтения файла %1!\n%2")
                            .arg(other_page)
                            .arg(QString(Q_FUNC_INFO))
                            );
@@ -841,7 +861,7 @@ void serverGears::createPrintTask(const QString &client_uuid,
 
                 net_plugin->sendMessage(message);
             }else{
-                emit error(QObject::trUtf8("Ошибка чтения файла %1!\n%2")
+                emit error(VPrn::FileIOError,QObject::trUtf8("Ошибка чтения файла %1!\n%2")
                            .arg(over_page)
                            .arg(QString(Q_FUNC_INFO))
                            );
@@ -868,18 +888,14 @@ void serverGears::createPrintTask(const QString &client_uuid,
 
                 net_plugin->sendMessage(message);
             }else{
-                emit error(QObject::trUtf8("Ошибка чтения файла %1!\n%2")
+                emit error(VPrn::FileIOError,QObject::trUtf8("Ошибка чтения файла %1!\n%2")
                            .arg(last_page)
                            .arg(QString(Q_FUNC_INFO))
                            );
             }
         }
     }else{
-        /** @todo Все emit error привести к одному виду
-          *  emit error(QString(errorType),QObject::trUtf8("Не загруженны требуемые плагины!\n%1")
-          *         .arg(QString(Q_FUNC_INFO)) );
-          */
-        emit error(QObject::trUtf8("Не загруженны требуемые плагины!\n%1")
+        emit error(VPrn::PluginsNotLoad,QObject::trUtf8("Не загруженны требуемые плагины!\n%1")
                    .arg(QString(Q_FUNC_INFO))
                    );
     }

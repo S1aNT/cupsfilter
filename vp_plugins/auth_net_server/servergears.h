@@ -74,7 +74,7 @@ public:
       * @fn void findTemplatesInPath(const QString t_path);
       * @brief Поиск файлов шаблонов отвечающих маске *.tmpl в заданном каталоге
       */
-    void findTemplatesInPath(const QString t_path);
+    void findTemplatesInPath(const QString &t_path);
 
 #ifdef DEBUG_MODE
     /**
@@ -88,7 +88,7 @@ signals:
     void messageReady( const Message &msg );
     void networkProtocolError();
     void checkPointChanged(MyCheckPoints cp);
-    void error(const QString &e_info);
+    void error(VPrn::AppErrorType eCode, QString e_info);
     void clearClientSpool(const QString c_uuid);
 
     //public slots:
@@ -220,12 +220,7 @@ private:
       */
     void sendMessage( const Message &m_msg, QLocalSocket *client);
 
-    /**
-      * @fn setError(const QString &info);
-      * @brief Устанавливает состояние ошибки,  записывает новое описание ошибки
-      */
-    void setError(const QString &info);
-    /**
+     /**
       * @fn void setCheckPoint(MyCheckPoints cp);
       * @brief Сохраняет последнюю пройденную контрольну точку и испускает
       * сигнал с этим радостным событием.
