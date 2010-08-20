@@ -29,7 +29,7 @@ void mySocketClient::readyRead()
         if (packetSize == -1) {
             //Определим количество байт доступных для чтения;
             //на этом шаге необходимо получить больше 4-х байт
-            if( this->bytesAvailable() < sizeof(qint32) ){
+            if( this->bytesAvailable() < sizeof(packetSize) ){
                 return;
             }
             //Читаем размер пакета
@@ -41,16 +41,6 @@ void mySocketClient::readyRead()
         }
         //Сбросим размер пакета, для обработки следующего
         packetSize = -1;
-
-//        //Прочтем и проверим формат протокола
-//        qint32 m_format;
-//        in >> m_format;
-//        if( m_format != format ) {
-//            setError(QObject::trUtf8("Ошибка в формате протокола, при обмене данными с сервером %1")
-//                     .arg(this->serverName()));
-//            return;
-//        }
-
         // Прочтем тип сообщения
         int m_Type;
         in >> m_Type;

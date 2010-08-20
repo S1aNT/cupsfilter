@@ -47,7 +47,7 @@ private:
       * @var client;     Указательна клиента
       */
 
-    qint32 packetSize;
+    qint64 packetSize;
 
     QString e_info;
      MyCheckPoints m_chekpoints;

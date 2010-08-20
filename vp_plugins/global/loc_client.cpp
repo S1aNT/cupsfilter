@@ -94,7 +94,7 @@ void LocalClient::readData()
     while (socket->bytesAvailable() > 0){
         if (packetSize == -1) {
 
-            if( socket->bytesAvailable() < sizeof(qint32) ){
+            if( socket->bytesAvailable() < sizeof(packetSize) ){
                 return;
             }
 
@@ -107,19 +107,8 @@ void LocalClient::readData()
 
         packetSize = -1;
 
-
-        qint32 m_format;
-        in >> m_format;
-        if( m_format != VPrn::format ) {
-            setError(tr("Ошибка формата при работе с сервером %1")
-                     .arg(m_srvName));
-            return;
-        }
-
-
         int m_Type;
         in >> m_Type;
-
 
         QByteArray msg;
         in >> msg;

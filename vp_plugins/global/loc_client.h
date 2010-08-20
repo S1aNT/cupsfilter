@@ -40,7 +40,7 @@ private:
     QString m_srvName;
     QString e_info;
     bool ready;
-    qint32 packetSize;
+    qint64 packetSize;
     //LocalClientState m_state;
 
     void setError(const QString &info);
