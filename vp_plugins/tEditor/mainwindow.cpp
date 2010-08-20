@@ -21,13 +21,16 @@
 
 #include <QtSql/QSqlQueryModel>
 
-#include <QInputDialog>
+#include <QtGui/QInputDialog>
+#include <QtGui/QErrorMessage>
 
 MainWindow::MainWindow():
         auth_plugin(0)
         , tmpl_plugin(0)
         , secondChance(false)
 {
+    qRegisterMetaType<VPrn::AppErrorType>("AppErrorType");
+    myEMsgBox = new QErrorMessage(this);
 
     this->readGlobal(qApp->applicationDirPath());
     templ_load = false;
@@ -130,11 +133,7 @@ void MainWindow::loadPlugins()
         QPluginLoader pluginMessageer(pluginsDir.absoluteFilePath(fileName));
         QObject *plugin = pluginMessageer.instance();
         if (plugin) {
-            connect(plugin,
-                    SIGNAL(error(QString )),
-                    this,
-                    SLOT (errorA(QString ))
-                    );
+
             // Загрузка плагина авторизации
             auth_plugin_Interface = qobject_cast<Auth_plugin *>(plugin);
             if (auth_plugin_Interface){
@@ -144,6 +143,8 @@ void MainWindow::loadPlugins()
                         this,
                         SLOT(saveUserName(QString&)) // Мне нужно только имя
                         );
+                connect ( plugin, SIGNAL ( error(VPrn::AppErrorType, QString) ),
+                          this,   SLOT   ( errorInfo(VPrn::AppErrorType, QString) ) );
 
 #if defined(Q_OS_UNIX)
                 //auth_plugin->init(ticket_fname);
@@ -162,11 +163,8 @@ void MainWindow::loadPlugins()
                 QUuid uSID=QUuid::createUuid () ;  //generate SID
                 QString sid=uSID.toString().replace("{","").replace("}","");
 
-                connect(plugin,
-                        SIGNAL(error(pluginsError,QString )),
-                        this,
-                        SLOT (errorInfo(pluginsError,QString ))
-                        );
+                connect ( plugin, SIGNAL ( error(VPrn::AppErrorType, QString) ),
+                          this,   SLOT   ( errorInfo(VPrn::AppErrorType, QString) ) );
 
                 connect(this,
                         SIGNAL(addBaseElementToPage(int,const QString &)),
@@ -230,8 +228,10 @@ void MainWindow::loadPlugins()
                         vPage->gr_view()->setScene(scene);
                         vPage->setUndoStack(i.value()->undoStack());
                     }else{
-                        emit error(tr("Ошибочное число страниц [%1] в шаблоне").arg(i.key(),0,10)
-                                   ,true);
+                        this->errorInfo(VPrn::InternalAppError,QObject::trUtf8("Ошибочное число страниц [%1] в шаблоне\n%2")
+                                               .arg(i.key(),0,10)
+                                               .arg(QString(Q_FUNC_INFO))
+                                               );
                     }
                 }
             }
@@ -322,10 +322,11 @@ void MainWindow::do_CmdButtonClick(const QString &line)
             emit addBaseElementToPage(page,line);
         }
     }else{
-        QString e_msg = tr("Необходимо предварительно загрузить шаблон!");
-        this->errorB(e_msg);
+        this->errorInfo(VPrn::TemplateNotLoad,
+                   QObject::trUtf8("Необходимо предварительно загрузить шаблон!.\n%1")
+                   .arg(QString(Q_FUNC_INFO))
+                   );
     }
-
 }
 
 void MainWindow::saveUserName(QString & u_name)
@@ -406,20 +407,15 @@ void MainWindow::saveTemplatesAs()
     }
 }
 
-void MainWindow::errorA(QString e_msg)
+
+
+void MainWindow::errorInfo(VPrn::AppErrorType eCode,QString e_msg)
 {
-    error(e_msg,true);
+    QString extMsg = QString("eCode %1. AppsError:%2\n").arg(eCode,0,10).arg(e_msg);
+    myEMsgBox->showMessage(extMsg);
 }
 
-void MainWindow::errorInfo(pluginsError eCode,QString e_msg)
-{
-    error(e_msg,true);
-}
 
-void MainWindow::errorB(QString e_msg)
-{
-    error(e_msg,false);
-}
 
 void MainWindow::do_viewCode()
 {
@@ -434,9 +430,10 @@ void MainWindow::do_viewCode()
             }
         }
     }else{
-        QString e_msg = tr("Плагин для работы с шаблонами не загружен!");
-        errorA(e_msg);
-
+        this->errorInfo(VPrn::PluginsNotLoad,
+                   QObject::trUtf8("Плагин для работы с шаблонами не загружен!\n%1")
+                   .arg(QString(Q_FUNC_INFO))
+                   );
     }
 }
 
@@ -544,23 +541,6 @@ void MainWindow::loadFromFile(const QString &file_name)
     templ_load = Ok;
 }
 
-void MainWindow::error(QString e_msg,bool admin)
-{
-    QMessageBox msgBox;
-    QPushButton *abortButton;
-    QString info_txt;
-    msgBox.setIcon(QMessageBox::Critical);
-    msgBox.setWindowTitle(QObject::trUtf8("Информационное сообщение"));
-    info_txt =QObject::trUtf8("Для решения этой проблемы обратитесь к системному администратору!");
-    msgBox.setInformativeText(info_txt);
-    abortButton=msgBox.addButton(QObject::trUtf8("Выход"), QMessageBox::RejectRole);
-    if (admin){
-        /// @todo Не работает выход
-        QObject::connect(&msgBox,SIGNAL(rejected()),qApp,SLOT(quit()));
-    }
-    msgBox.setText(e_msg);
-    msgBox.exec();
-}
 
 void MainWindow::pageSelect(int page)
 {
@@ -750,7 +730,7 @@ void MainWindow::readGlobal(const QString &app_dir)
     // Читаем файл настроек
     // TODO add emit log_message
     // QString l_msg = QString("[%1]").arg(QString::fromAscii(Q_FUNC_INFO));
-    QString e_msg;
+
     QString ini_path =QString("%1/Technoserv/safe_printer.ini").arg(app_dir);
 
     if (QFile::exists(ini_path)){
@@ -772,8 +752,7 @@ void MainWindow::readGlobal(const QString &app_dir)
         settings.endGroup();
 
     }else{
-        e_msg = QObject::trUtf8("Файл с настройками программы %1 не найден!").arg(ini_path);
-        errorA(e_msg);
+        this->errorInfo(VPrn::FileNotFound,QObject::trUtf8("Файл с настройками программы %1 не найден!").arg(ini_path));
     }
 }
 

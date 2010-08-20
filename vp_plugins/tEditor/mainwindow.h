@@ -15,6 +15,7 @@ class QTextEdit;
 class QStringListModel;
 class QStandardItemModel;
 class QSqlQueryModel;
+class QErrorMessage;
 QT_END_NAMESPACE
 
 class View;
@@ -52,9 +53,7 @@ private slots:
     void saveUserName(QString & u_name);
 
 
-    void errorA(QString e_msg); // Ошибка А типа - завершать рабту
-    void errorB(QString e_msg); // Ошибка Б типа -  не  завершить работу
-    void errorInfo(pluginsError eCode,QString e_msg); // Ошибка А типа -  завершить работу
+    void errorInfo(VPrn::AppErrorType eCode,QString e_msg); // Ошибка А типа -  завершить работу
     void do_CmdButtonClick(const QString &line);// Нажали командную кнопку
     //void do_angle_direct();
     void do_viewCode();
@@ -73,7 +72,7 @@ private:
     void createDockWindows();
     void loadPlugins();
 
-    void error(QString e_msg,bool admin);
+
     void printTempl();
     void readGlobal(const QString &app_dir);
 
@@ -130,6 +129,8 @@ private:
     QString ticket_fname;
     QString local_t_path; // Путь к локальным шаблонам пользователя
     QString global_t_path;
+    // Основное окошко ошибок
+    QErrorMessage * myEMsgBox;
 
     /**
       * @var QSqlQueryModel * pagesModel; Указатель на модель СТРАНИЦЫ_ШАБЛОНА
