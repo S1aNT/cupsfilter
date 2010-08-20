@@ -12,7 +12,7 @@ class Igs_plugin{
 public:
     virtual ~Igs_plugin() {}
     virtual void init(const QString &gs_bin,const QString &pdftk_bin,
-                      const QString &temp_folder)=0;
+                      const QString &gsprint_bin,const QString &temp_folder)=0;
     virtual void convertPs2Pdf(const QString &client_uuid,
                                const QString &input_fn) = 0;
     virtual void convertPdfToPng(const QString &client_uuid,
