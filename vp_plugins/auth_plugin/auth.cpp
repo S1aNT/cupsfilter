@@ -52,12 +52,19 @@ void Auth::init (const QString &mandat_filename)
         if (!buf.isEmpty()){
             emit get_User_name_mandat(user_name,user_mandat);
         }else{
-            emit error(VPrn::AuthCommonError,QObject::trUtf8("Ошибка преобразования имени пользователя %1 в Latin1.")
-                       .arg(user_name));
+
+            emit error(VPrn::AuthCommonError,
+	        QObject::trUtf8("Ошибка преобразования имени пользователя %1 в Latin1.%2\n")
+                       .arg(user_name)
+			.arg(QString(Q_FUNC_INFO))
+);
         }
 
     }else{
-        emit error(VPrn::FileIOError,QObject::trUtf8("Error: Файл мандата [%1] не найден!").arg(mandat_filename));
+        emit error(VPrn::FileIOError,
+		QObject::trUtf8("Error: Файл мандата [%1] не найден!\n%2")
+			.arg(mandat_filename)
+                        .arg(QString(Q_FUNC_INFO)));
     }
 
 }
@@ -112,8 +119,9 @@ void  Auth::init ()
     if (!buf.isEmpty()){
         emit get_User_name_mandat(user_name,user_mandat);
     }else{
-        emit error(VPrn::AuthCommonError,QObject::trUtf8("Ошибка преобразования имени пользователя %1 в Latin1.")
-                   .arg(user_name));
+        emit error(VPrn::AuthCommonError,
+		QObject::trUtf8("Ошибка преобразования имени пользователя %1 в Latin1.\n%2")
+                   .arg(user_name).arg(QString(Q_FUNC_INFO)));
     }
 }
 

@@ -29,20 +29,22 @@ class Auth : public QObject, Auth_plugin
     Q_INTERFACES(Auth_plugin)
 
 public:
-    Auth(){};
+    Auth(){}
     void init (const QString &mandat_filename);
     void init ();
 
 signals:
-    void error(pluginsError errCode,QString error_message);
+    void error(VPrn::AppErrorType errCode,QString error_message);
+
     void get_User_name_mandat(QString &userName,QString &userMandat);
 private:
-    // Получить имя пользователя из реестра
-    QString ask4System();
-protected:
     QString user_name;
     QString user_mandat;
     QString plugin_path;
+
+    // Получить имя пользователя из реестра
+    QString ask4System();
+
 };
 //! [0]
 
