@@ -23,21 +23,15 @@ public:
                           const QString &back_pdf,
                           const QString &out_pdf) = 0;
 
-    virtual void print2devide (const QString &client_uuid,  const QString &print_file,
-                               const QString &prn_ip,const QString &prn_qqueue,
-                               bool usePageCount) = 0;
+    virtual void print2devide (const QString &client_uuid, QByteArray &printData) = 0;
     virtual void mergeWithTemplate(const QString &client_uuid, const QStringList &t_files) = 0 ;
 
     virtual void createClientData(const QString &client_uuid) = 0;
     virtual void deleteClientData(const QString &client_uuid) = 0;
     virtual void setConvertToPngMode(const QString &client_uuid, bool full_doc ) = 0;
     virtual QStringList findFiles(const QString &client_uuid,const QStringList &filters) = 0;
-    virtual QStringList findFiles4Copy(const QString &client_uuid, /*ID клиента*/
-                                       int copyNum, /*Номер экземпляра документа*/
-                                       const QStringList &filters /*Тип файлов*/
-                                       ) = 0;
-    virtual QString getUuid() const = 0;
-    virtual void getPageCount(const QString &client_uuid,const QString &input_fn = QString() )= 0;
+    virtual QString getUuid() const = 0;    
+    virtual void calcPageCount(const QString &client_uuid,const QString &input_fn = QString() )= 0;
 };
 
 
