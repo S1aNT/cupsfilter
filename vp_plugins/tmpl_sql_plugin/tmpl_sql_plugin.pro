@@ -11,7 +11,7 @@ INCLUDEPATH += ../interfaces \
 TARGET = tmpl_sql_plugin
 
 win32 {
-DESTDIR = d:/opt/vprn/plugins
+DESTDIR = c:/opt/vprn/plugins
 }else{
 DESTDIR =/opt/vprn/plugins
 }
