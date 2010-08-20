@@ -8,12 +8,10 @@
 #include <stdlib.h>
 #include <QtCore/QDateTime>
 #include <QList>
-//#include <QtGui/QPrinterInfo>
-//#include <QtGui/QPrinter>
+
 #endif
-
+#include <QtCore/QUuid>
 #include "net_plugin.h"
-
 
 net_plugin::net_plugin(QObject *parent)
     : QObject(parent)
@@ -21,19 +19,16 @@ net_plugin::net_plugin(QObject *parent)
     , Port (0)
     , client(0)
     , packetSize(-1)
-    , Sid(QString())
-    //  , m_state(VPrn::InitClientState)
     , e_info(QString())
 {
 
 }
 
 //---------------------------- PUBLIC ------------------------------------------
-void net_plugin::init(const QString &host, int port,const QString &sid)
+void net_plugin::init(const QString &host, int port)
 {
     this->HostName = host;
     this->Port = port;
-    this->Sid = sid;
 
     client = new QTcpSocket(this);
     connect(client, SIGNAL(readyRead()),
@@ -47,7 +42,11 @@ void net_plugin::init(const QString &host, int port,const QString &sid)
 #ifdef DEBUG_MODE
     Message message( this );
     message.setType(Ans_RegisterGlobal);
-    QString str = QObject::trUtf8("[%1];:;").arg(Sid);
+    QString str = QObject::trUtf8("[%1];:;")
+                                    .arg(QUuid::createUuid().toString()
+                                                .replace("{","")
+                                                .replace("}","")
+                       );
     message.setMessageData(  str.toUtf8() );
     emit messageReady(message);
 #endif
@@ -262,11 +261,15 @@ void net_plugin::readyRead()
 
 void net_plugin::onConnected()
 {
-    //QString m_body =QString("/me;:;%1;:;%2").arg(Sid).arg(REGISTER_CMD,0,10);
-    /// @todo k МИШЕ УСТРАНИТЬ ДУБЛИРОВАНИЕ ИНФОРМАЦИИ
+    //QString m_body =QString("/me;:;%1;:;%2").arg().arg(REGISTER_CMD,0,10);
+
     Message message( this );
     message.setType(VPrn::Que_RegisterGlobal);
-    QString str = QObject::trUtf8("[%1];:;").arg(Sid);
+    /// @todo k МИШЕ Нужен ли этот SID ? для работы
+    QString str = QObject::trUtf8("[%1];:;").arg(QUuid::createUuid().toString()
+                                                .replace("{","")
+                                                .replace("}","")
+                                                );
     message.setMessageData( str.toUtf8() ); // Пробразуем в QByteArray
     sendMessage(message);
 }
@@ -291,7 +294,8 @@ void net_plugin::selectError(QAbstractSocket::SocketError err)
     default:
         e_msg = QObject::trUtf8("Код ошибки %1").arg(err,0,10);
     }
-    emit error(VPrn::NetworkTransError,e_msg);
+    e_msg.append("\n").append(QString(Q_FUNC_INFO));
+    emit error(VPrn::NetworkError,e_msg);
     //setState(VPrn::InternalError);
 }
 

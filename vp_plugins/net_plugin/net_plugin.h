@@ -19,12 +19,11 @@ class net_plugin :public QObject, Inet_plugin
 
 public:
     net_plugin(QObject *parent=0);
-    //socketState state() const;
-    void init(const QString &host,int port,const QString &sid);
+    void init(const QString &host,int port);
     void sendMessage(const Message &s_msg);
 
 signals:
-    void error(pluginsError errCode,QString error_message);
+    void error(VPrn::AppErrorType errCode,QString error_message);
     /**
       * @fn void messageReady( const Message &msg );
       * @brief Как только полученно полноценное сообщение из сети оно в 
@@ -48,8 +47,7 @@ private:
       * @var HostName;         Имя хоста для связи
       * @var Port;             Порт для связи
       * @var client;           Указатель на клиента
-      * @var packetSize;       Размер передаваемого блока данных
-      * @var Sid;              Уникальный номер      
+      * @var packetSize;       Размер передаваемого блока данных      
       * @var m_state;          Статус Локального сервера
       * @var e_info;           Последняя возникшая ошибка
       */
@@ -57,8 +55,8 @@ private:
     QString HostName;
     quint16 Port;
     QTcpSocket *client;  
-    qint32 packetSize;
-    QString Sid;
+    qint64 packetSize;
+
     //socketState m_state;
     QString e_info;
     /**
