@@ -5,7 +5,7 @@ dbWorker::dbWorker(QObject *parent)
     : QObject(parent)
     , m_sqlDriver(false)
 {
-    qRegisterMetaType<pluginsError>("pluginsError");
+    qRegisterMetaType<VPrn::AppErrorType>("AppErrorType");
     m_baseElemList
             << QObject::trUtf8("МБ")
             << QObject::trUtf8("Название док-та")

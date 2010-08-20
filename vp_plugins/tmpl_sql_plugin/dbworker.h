@@ -66,7 +66,7 @@ public:
     void closeTemplate  (const QString &client_id);
 
 signals:
-    void error(pluginsError errCode,QString error_message);
+    void error(VPrn::AppErrorType errCode,QString &error_message);
 
 public slots:
     /**
