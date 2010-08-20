@@ -40,44 +40,42 @@ MainWindow::MainWindow(QWidget *parent)
     //this->setMinimumSize(320,240);
     this->setMaximumSize(desktop_avail.width()-5,desktop_avail.height()-5);
     this->move( calcDeskTopCenter(this->width(),this->height() ));
-
-    verticalLayoutWidget = new QWidget();
-    mainLayout = new QVBoxLayout(verticalLayoutWidget);
+    mainLayout = new QVBoxLayout(this);
 
     //------------------------------- Центральная часть    -------------------------------
     stackedWidget = new QStackedWidget();
-    //    introPage     = new IntroPage();
-    //    selectPage    = new SelectPage();
-    //    printDataPage = new PrintDataPage();
-    //    checkDataPage = new CheckDataPage();
-    //    preViewPage   = new PreViewPage();
-    //    finishPage    = new FinishPage();
-    //
-    //    stackedWidget->addWidget(introPage);
-    //    stackedWidget->addWidget(selectPage);
-    //    stackedWidget->addWidget(printDataPage);
-    //    stackedWidget->addWidget(checkDataPage);
-    //    stackedWidget->addWidget(preViewPage);
-    //    stackedWidget->addWidget(finishPage);
-    //    //Установка макс размеров
-    //    printDataPage->setMaximumSize(desktop_avail.width()-5,desktop_avail.height()-5);
+    introPage     = new IntroPage();
+    selectPage    = new SelectPage();
+    printDataPage = new PrintDataPage();
+    checkDataPage = new CheckDataPage();
+    preViewPage   = new PreViewPage();
+    finishPage    = new FinishPage();
 
-    //------------------------------- Нижний блок - Кнопки -------------------------------
-    line = new QFrame();
+    stackedWidget->addWidget(introPage);
+    stackedWidget->addWidget(selectPage);
+    stackedWidget->addWidget(printDataPage);
+    stackedWidget->addWidget(checkDataPage);
+    stackedWidget->addWidget(preViewPage);
+    stackedWidget->addWidget(finishPage);
+    //Установка макс размеров
+    printDataPage->setMaximumSize(desktop_avail.width()-5,desktop_avail.height()-5);
+
+
+    line = new QFrame(this);
+    line->setObjectName(QString::fromUtf8("line"));
     line->setFrameShape(QFrame::HLine);
     line->setFrameShadow(QFrame::Sunken);
 
-    horizontalLayoutWidget = new QWidget();
-    horizontalLayout = new QHBoxLayout(horizontalLayoutWidget);
+    //------------------------------- Нижний блок - Кнопки -------------------------------
 
-    helpButton = new QPushButton(horizontalLayoutWidget);
+    horizontalLayout = new QHBoxLayout();
     horizontalSpacer = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
-    prevButton = new QPushButton(horizontalLayoutWidget);
-    nextButton = new QPushButton(horizontalLayoutWidget);
-    restartButton = new QPushButton(horizontalLayoutWidget);
     horizontalSpacer_2 = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
-    exitButton = new QPushButton(horizontalLayoutWidget);
-
+    helpButton       = new QPushButton(this);
+    prevButton       = new QPushButton(this);
+    nextButton       = new QPushButton(this);
+    restartButton    = new QPushButton(this);
+    exitButton       = new QPushButton(this);
     helpButton->setText(QObject::trUtf8("Справка"));
     prevButton->setText(QObject::trUtf8("< Назад"));
     nextButton->setText(QObject::trUtf8("Вперед >"));
@@ -92,12 +90,10 @@ MainWindow::MainWindow(QWidget *parent)
     horizontalLayout->addItem(horizontalSpacer_2);
     horizontalLayout->addWidget(exitButton);
     //-------------------------------------- Компоновка ----------------------------------------------------
-    mainLayout->addWidget(stackedWidget);
-    mainLayout->addWidget(line);    
-    mainLayout->addWidget(horizontalLayoutWidget);
 
-    setLayout(mainLayout);
-    qDebug() << Q_FUNC_INFO << stackedWidget->currentIndex ();
+    mainLayout->addWidget(stackedWidget);
+    mainLayout->addWidget(line);
+    mainLayout->addLayout(horizontalLayout);
 
     if (stackedWidget->currentIndex () != -1 ){
         this->setWindowTitle(stackedWidget->currentWidget()->windowTitle() );
