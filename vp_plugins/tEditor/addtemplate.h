@@ -53,7 +53,7 @@ public:
 signals:
     void needCreateEmptyTemplates(QString &fileName);
 
-    void error(pluginsError errCode,QString error_message);
+    void error(VPrn::AppErrorType errCode,QString error_message);
 
 private slots:
     void setPortret();

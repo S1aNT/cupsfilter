@@ -363,8 +363,10 @@ void AddTemplate::setData4Models()
                 if (cellData.isValid()){
                     if (!tInfoModel->setData(cellIndex,cellData,Qt::EditRole)){
                         emit error (SQLCommonError,
-                                    QObject::trUtf8("При записи в поле [%1] произошла ошибка. %2")
-                                    .arg(i).arg(tInfoModel->lastError().text()));
+                                    QObject::trUtf8("При записи в поле [%1] произошла ошибка.%2\n%3")
+                                    .arg(i).arg(tInfoModel->lastError().text())
+                                    .arg(QString(Q_FUNC_INFO))
+);
                     }
                 }
             }
