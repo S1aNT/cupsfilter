@@ -30,14 +30,14 @@
 using namespace VPrn;
 
 Tmpl_sql_plugin::Tmpl_sql_plugin(QObject *parent)
-    : QObject(parent)
+        : QObject(parent)
 {
     m_dbOpened      = false;
     m_dbConnect     = false;
     view_code_state = false;
     m_connectionName = QLatin1String("TCONN");
 
-    qRegisterMetaType<pluginsError>("pluginsError");
+    qRegisterMetaType<VPrn::AppErrorType>("AppErrorType");
     qRegisterMetaType<pSizeColumnOrder>("pSizeColumnOrder");
 
     //Создаем группу стеков Undo
@@ -90,27 +90,18 @@ Tmpl_sql_plugin::~Tmpl_sql_plugin()
 
 //****************************** public functions ******************************
 
-void Tmpl_sql_plugin::init(const QString & spool,const QString & sid)
+void Tmpl_sql_plugin::init(const QString & spool)
 {
-    QString e_msg;
     QDir dir;
-
-    if (!sid.isEmpty()) {
-        current_sid = sid;// Запомним уникальный номер
-        if (dir.cd(spool) && !spool.isEmpty()) {            
-            spoolDir = spool;            
-
-        }else{
-            e_msg = QObject::trUtf8("ERROR: каталог %1 не существует\n").arg(spool);
-        }
-
+    if (dir.cd(spool) ) {
+        spoolDir = spool;
     }else{
-        e_msg = QObject::trUtf8("ERROR: Неверный SID для документа\n").arg(sid);
+        emit error(VPrn::InternalAppError,
+                   QObject::trUtf8("Каталог %1 не существует или нет прав доступа\n%2")
+                                    .arg(spool)
+                                    .arg(QString(Q_FUNC_INFO))
+                                    );
     }
-    if (!e_msg.isEmpty()) {
-        emit error(InternalPluginError,e_msg);
-    }
-
 }
 
 QStringList Tmpl_sql_plugin::getBaseElemNameList() const
@@ -227,15 +218,15 @@ bool Tmpl_sql_plugin::prepare_template(const QString &c_uuid,
                                             page_fn.append("t_firstpage.pdf");
                                         }
                                         break;
-                                     case VPrn::SecondPage:
+                                    case VPrn::SecondPage:
                                         page_fn = path;
                                         page_fn.append("t_otherpage.pdf");
                                         break;
-                                     case VPrn::ThirdPage:
+                                    case VPrn::ThirdPage:
                                         page_fn = path;
-                                        page_fn.append("t_oversidepage.pdf");
+                                        page_fn.append("t_overepage.pdf");
                                         break;
-                                     case VPrn::FourthPage:
+                                    case VPrn::FourthPage:
                                         page_fn = path;
                                         page_fn.append("t_lastpage.pdf");
                                         break;
@@ -297,14 +288,17 @@ bool Tmpl_sql_plugin::prepare_template(const QString &c_uuid,
                         }
                         db.close();
                     }else{
-                        emit error(FileIOError,
-                                   QObject::trUtf8("Файл [%1] шаблона не существует!")
+                        emit error(VPrn::FileIOError,
+                                   QObject::trUtf8("Файл [%1] шаблона не существует!\n%2")
                                    .arg(t_fileName)
+                                   .arg(QString(Q_FUNC_INFO))
                                    );
                         Ok &= false;
                     }
                 }else{
-                    emit error(DriverNotLoad,QObject::trUtf8("Не могу загрузить драйвер sqlite!"));
+                    emit error(VPrn::SqlDriverNotLoad,
+                               QObject::trUtf8("Не могу загрузить драйвер sqlite!\n%1")
+                               .arg(QString(Q_FUNC_INFO)));
                     Ok &=false;
                 }
             }
@@ -323,7 +317,9 @@ bool Tmpl_sql_plugin::createConnection()
         DB_ = QSqlDatabase::addDatabase(QLatin1String("QSQLITE"));
         if (DB_.driver()
             && DB_.driver()->lastError().type() == QSqlError::ConnectionError) {
-            emit error(DriverNotLoad,QObject::trUtf8("Не могу загрузить драйвер sqlite!"));
+            emit error(VPrn::SqlDriverNotLoad,
+                       QObject::trUtf8("Не могу загрузить драйвер sqlite!\n%1")
+                       .arg(QString(Q_FUNC_INFO)));
             openingOk = false;
         }
 
@@ -341,9 +337,9 @@ bool Tmpl_sql_plugin::openDataBase(const QString & t_fileName)
             Ok &= InitDB();
         }
         if (!Ok){
-            emit error(DBOpeningError,
-                       QObject::trUtf8("Не могу открыть файл шаблона: %1\nОшибка %2")
-                       .arg(t_fileName).arg(DB_.lastError().text()));
+            emit error(VPrn::DBOpeningError,
+                       QObject::trUtf8("Не могу открыть файл шаблона: %. Ошибка %2\n%3")
+                       .arg(t_fileName).arg(DB_.lastError().text()).arg(QString(Q_FUNC_INFO)));
             DumpError(DB_.lastError());
             DB_.close();
             //DB_.removeDatabase();//m_connectionName);
@@ -396,14 +392,14 @@ void Tmpl_sql_plugin::convert2Pdf()
                         scene->render(&painter);
                     }else{
                         Ok &=false;
-                        emit error(VPrn::InternalPluginError,
+                        emit error(VPrn::InternalAppError,
                                    QObject::trUtf8("Ошибка преобразования шаблона в pdf.\n"
                                                    "Нарушенна структура шаблона"));
                     }
                 }
             }
         }else{
-            emit error(VPrn::InternalPluginError,
+            emit error(VPrn::InternalAppError,
                        QObject::trUtf8("Ошибка преобразования шаблона в pdf.\n"
                                        "Необходимо вначале открыть существующий или создать новый шаблон"));
         }
@@ -458,15 +454,15 @@ void Tmpl_sql_plugin::createEmptyTemplate()
                 if (Ok){
                     Ok &= fillModels();
                 }else{
-                    emit error(SQLCommonError,
-                               QObject::trUtf8("Ошибка создания пустого шаблона в файле %1")
-                               .arg(currentDBFileName));
+                    emit error(VPrn::SQLCommonError,
+                               QObject::trUtf8("Ошибка создания пустого шаблона в файле %1\n%2")
+                               .arg(currentDBFileName).arg(QString(Q_FUNC_INFO)));
                 }
             }
         }else{
             Ok = false;
-            emit error(FileNotFound,QObject::trUtf8("Ошибка создания временного файла %1")
-                       .arg(currentDBFileName));
+            emit error(VPrn::FileNotFound,QObject::trUtf8("Ошибка создания временного файла %1\n%2")
+                       .arg(currentDBFileName).arg(QString(Q_FUNC_INFO)));
         }
     }
     m_dbOpened = Ok;
@@ -488,7 +484,7 @@ void Tmpl_sql_plugin::saveTemplates()
                 int p_id;
                 myScene *scene(0);
                 myTextItem *tElem(0);
-		PicItem *tImg(0);
+                PicItem *tImg(0);
 
                 QGraphicsItem *item;
 
@@ -562,22 +558,28 @@ void Tmpl_sql_plugin::saveTemplates()
                                     }
                                 }
                             }else{
-                                emit error (VPrn::SQLQueryError,QObject::trUtf8("Ошибка [%1] при заполнении шаблона")
-                                            .arg( query.lastError().text() )
+                                emit error (VPrn::SQLQueryError,
+                                            QObject::trUtf8("Ошибка [%1] при заполнении шаблона\n%2")
+                                            .arg( query.lastError().text())
+                                            .arg( QString( Q_FUNC_INFO ) )
                                             );
                             }
                         }else{
-                            emit error (VPrn::SQLQueryError,QObject::trUtf8("Ошибка [%1] при очистке шаблона")
+                            emit error (VPrn::SQLQueryError,
+                                        QObject::trUtf8("Ошибка [%1] при очистке шаблона\n%2")
                                         .arg( query.lastError().text() )
+                                        .arg(QString(Q_FUNC_INFO))
                                         );
                         }
                     }
                 }
             }
         }else{
-            emit error(VPrn::InternalPluginError,
+            emit error(VPrn::InternalAppError,
                        QObject::trUtf8("Ошибка сохранения шаблона.\n"
-                                       "Необходимо вначале открыть существующий или создать новый шаблон"));
+                                       "Необходимо вначале открыть существующий или создать новый шаблон\n%1")
+                       .arg(QString(Q_FUNC_INFO))
+                       );
         }
     }
 }
@@ -598,8 +600,11 @@ void Tmpl_sql_plugin::saveTemplatesAs(const QString & fileName)
                     this->openTemplates(currentDBFileName);
                 }
             }else{
-                emit error(FileIOError,
-                           QObject::trUtf8("Ошибка сохранения шаблона по заданному пути %1").arg(fileName));
+                emit error(VPrn::FileIOError,
+                           QObject::trUtf8("Ошибка сохранения шаблона по заданному пути %1\n%2")
+                           .arg(fileName)
+                           .arg(QString(Q_FUNC_INFO))
+                           );
             }
         }
     }
@@ -611,8 +616,9 @@ void Tmpl_sql_plugin::doAddBaseElementToPage(int page,const QString &tag)
     if (scene){
         scene->addBaseElem(tag);
     }else{
-        emit error(VPrn::InternalPluginError,
-                   QObject::trUtf8("Ошибка добавления элемента %1 в шаблон\n").arg(tag));
+        emit error(VPrn::InternalAppError,
+                   QObject::trUtf8("Ошибка добавления элемента %1 в шаблон\n%2")
+                   .arg(tag).arg(QString(Q_FUNC_INFO)));
     }
 }
 
@@ -623,13 +629,15 @@ void Tmpl_sql_plugin::doAddImgElementToPage(int page,const QString &file_name)
         if (QFile::exists(file_name)){
             scene->AddImgElement(file_name);
         }else{
-            emit error(VPrn::InternalPluginError,
-                       QObject::trUtf8("Графический элемент %1 не найден!").arg(file_name));
+            emit error(VPrn::InternalAppError,
+                       QObject::trUtf8("Графический элемент %1 не найден!\n%2")
+                       .arg(file_name).arg(QString(Q_FUNC_INFO)));
 
         }
     }else{
-        emit error(VPrn::InternalPluginError,
-                   QObject::trUtf8("Ошибка добавления графического элемента в шаблон из файла %1").arg(file_name));
+        emit error(VPrn::InternalAppError,
+                   QObject::trUtf8("Ошибка добавления графического элемента в шаблон из файла %1\n%2")
+                   .arg(file_name).arg(QString(Q_FUNC_INFO)));
     }
 }
 
@@ -738,8 +746,9 @@ bool Tmpl_sql_plugin::isValidFileName(const QString & fileName)
     {
         QRegExp rx("(.+)tmpl");
         if(rx.indexIn(fileName.toLower()) == -1){
-            emit error(FileIOError,
-                       QObject::trUtf8("Файла шаблона должен иметь расширение tmpl!"));
+            emit error(VPrn::FileIOError,
+                       QObject::trUtf8("Файла шаблона должен иметь расширение tmpl!\n%1")
+                       .arg(QString(Q_FUNC_INFO)));
             Ok = false;
         }
     }
@@ -843,12 +852,13 @@ int Tmpl_sql_plugin::getId4pageSizeTable(QSqlQuery &query,const QString & findSi
                 }else{
                     emit error(VPrn::SQLCommonError,
                                QObject::trUtf8("Ошибка разбора шаблона.\n"
-                                               "Не найдена запись  [%1] в таблице размеров страниц").arg(findSize));
+                                               "Не найдена запись [%1] в таблице размеров страниц\n%2")
+                               .arg(findSize).arg(QString(Q_FUNC_INFO)));
                 }
             }else{
                 qDebug() << "last query = " << query.lastQuery();
                 DumpError(query.lastError());
-                emit error(VPrn::SQLCommonError, QObject::trUtf8("Ошибка разбора шаблона."));
+                emit error(VPrn::SQLCommonError, QObject::trUtf8("Ошибка разбора шаблона.\n%1").arg(QString(Q_FUNC_INFO)));
             }
         }
     }
@@ -1154,9 +1164,9 @@ bool Tmpl_sql_plugin::isCreateFile(const QString & fileName)
         if (QFile::exists(fileName)){
             Ok &= QFile::remove(fileName);
             if (!Ok){
-                emit error(FileIOError,
-                           QObject::trUtf8("Ошибка удаления временного файла %1")
-                           .arg(fileName));
+                emit error(VPrn::FileIOError,
+                           QObject::trUtf8("Ошибка удаления временного файла %1\n%2")
+                           .arg(fileName).arg(QString(Q_FUNC_INFO)));
             }
         }else{
             QFile file(fileName);
@@ -1165,9 +1175,9 @@ bool Tmpl_sql_plugin::isCreateFile(const QString & fileName)
                 file.close();
                 Ok &= file.remove();
             }else{
-                emit error(FileIOError,QObject::trUtf8("Ошибка создания файла шаблона %1."
-                                                       "\nError %2")
-                           .arg(fileName).arg(file.errorString()));
+                emit error(VPrn::FileIOError,QObject::trUtf8("Ошибка создания файла шаблона %1. %2\n%3")
+                           .arg(fileName).arg(file.errorString()).arg(QString(Q_FUNC_INFO))
+                           );
             }
         }
     }
@@ -1192,8 +1202,8 @@ bool Tmpl_sql_plugin::fillModels()
         pSizeModel->setHeaderData(pSize_width, Qt::Horizontal, QObject::trUtf8("Ширина (мм)"));
         pSizeModel->setHeaderData(pSize_height, Qt::Horizontal, QObject::trUtf8("Высота (мм)"));
         if (pSizeModel->lastError().isValid()){
-            emit error(SQLQueryError,QObject::trUtf8("Ошибка получения свойств шаблона. %1")
-                       .arg(pSizeModel->lastError().text()));
+            emit error(VPrn::SQLQueryError,QObject::trUtf8("Ошибка получения свойств шаблона. %1\n%2")
+                       .arg(pSizeModel->lastError().text()).arg(QString(Q_FUNC_INFO)));
             Ok &= false;
         }
 
@@ -1201,8 +1211,8 @@ bool Tmpl_sql_plugin::fillModels()
         pagesModel->refresh();
 
         if (pagesModel->lastError().isValid()){
-            emit error(SQLQueryError,QObject::trUtf8("Ошибка получения свойств шаблона. %1")
-                       .arg(pagesModel->lastError().text()));
+            emit error(VPrn::SQLQueryError,QObject::trUtf8("Ошибка получения свойств шаблона. %1\n%2")
+                       .arg(pagesModel->lastError().text()).arg(QString(Q_FUNC_INFO)));
             Ok &= false;
         }
         /// @todo МОДЕЛЬ переделать на чтение запись
@@ -1242,16 +1252,16 @@ bool Tmpl_sql_plugin::fillModels()
         elemInPageModel->setHeaderData(VPrn::elem_text_img,
                                        Qt::Horizontal, QObject::trUtf8("Тип элемента текст/картинка (1/0)"));
         if (elemInPageModel->lastError().isValid()){
-            emit error(SQLQueryError,QObject::trUtf8("Ошибка получения свойств шаблона. %1")
-                       .arg(elemInPageModel->lastError().text()));
+            emit error(VPrn::SQLQueryError,QObject::trUtf8("Ошибка получения свойств шаблона. %1\n%2")
+                       .arg(elemInPageModel->lastError().text()).arg(QString(Q_FUNC_INFO)));
             Ok &= false;
         }
         /// Чтение данных в редактируемую модель
         tInfoModel->refresh();
 
         if (tInfoModel->lastError().isValid()){
-            emit error(SQLQueryError,QObject::trUtf8("Ошибка получения свойств шаблона. %1")
-                       .arg(tInfoModel->lastError().text()));
+            emit error(VPrn::SQLQueryError,QObject::trUtf8("Ошибка получения свойств шаблона. %1\n%2")
+                       .arg(tInfoModel->lastError().text()).arg(QString(Q_FUNC_INFO)));
             Ok &= false;
         }
     }
@@ -1259,7 +1269,7 @@ bool Tmpl_sql_plugin::fillModels()
 }
 
 bool Tmpl_sql_plugin::saveDataToBase(const QMap <int,QString> elemMap,
-				     QSqlDatabase db)
+                                     QSqlDatabase db)
 {
     QSqlQuery query (db);
     bool Ok = true;
@@ -1277,8 +1287,8 @@ bool Tmpl_sql_plugin::saveDataToBase(const QMap <int,QString> elemMap,
     }
     if (!Ok){
         qDebug() << query.lastError().text();
-        emit error(SQLQueryError,QObject::trUtf8("Ошибка обновления элементов шаблона. %1")
-                   .arg( query.lastError().text() )
+        emit error(VPrn::SQLQueryError,QObject::trUtf8("Ошибка обновления элементов шаблона. %1\n%2")
+                   .arg( query.lastError().text() ).arg(QString(Q_FUNC_INFO))
                    );
     }
     return Ok;
@@ -1296,16 +1306,16 @@ bool Tmpl_sql_plugin::selectIntoModel(QSqlDatabase db, QSqlQueryModel *model,
 
         if (model->lastError().isValid()){
             Ok &=false;
-            emit error(SQLQueryError,
-                       QObject::trUtf8("Ошибка получения элементов шаблона. %1")
-                       .arg( model->lastError().text() )
+            emit error(VPrn::SQLQueryError,
+                       QObject::trUtf8("Ошибка получения элементов шаблона. %1\n%2")
+                       .arg( model->lastError().text() ).arg(QString(Q_FUNC_INFO))
                        );
         }
     }
     return Ok;
 }
 Q_EXPORT_PLUGIN2(Itmpl_sql_plugin, Tmpl_sql_plugin)
-;
+        ;
 
 
 

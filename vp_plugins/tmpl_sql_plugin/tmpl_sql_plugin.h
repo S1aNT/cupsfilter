@@ -59,13 +59,13 @@ class Tmpl_sql_plugin : public QObject , Itmpl_sql_plugin
     Q_INTERFACES(Itmpl_sql_plugin)
 public:
 
-            Tmpl_sql_plugin(QObject *parent = 0);
+     Tmpl_sql_plugin(QObject *parent = 0);
     ~Tmpl_sql_plugin();
     /**
-      * @fn init(const QString & spool,const QString & sid)
+      * @fn init(const QString & spool)
       * Первоначальная настройка плагина
       */
-    void init(const QString & spool,const QString & sid);
+    void init(const QString & spool);
 
 
     inline bool isDBOpened()   {return m_dbOpened;}
@@ -102,7 +102,7 @@ public:
       */
     void setUserName (const QString &user){userName = user;}
 
-     /**
+    /**
       * @fn  bool prepare_template(const QString &c_uuid,const QString &t_fileName,
                                   QMap <int,QString> elemMap
       *                           int copy_number);
@@ -153,7 +153,7 @@ public:
     bool saveDataToBase(const QMap <int,QString> elemMap,QSqlDatabase db);
 
 signals:
-    void error(pluginsError errCode,QString error_message);
+    void error(VPrn::AppErrorType errCode,QString error_message);
     void allTemplatesPagesParsed();
     void allPagesConverted();
 
@@ -209,12 +209,11 @@ public slots:
 private:
     /**
       * @var userName;    имя текущего пользователя полученное от подсистемы авторизации
-      * @var spoolDir    каталог для временных файлов
-      * @var current_sid  уникальный сеансовый номер
+      * @var spoolDir    каталог для временных файлов     
       */
     QString userName;
     QString spoolDir;
-    QString current_sid;
+
 
     bool view_code_state;
 
