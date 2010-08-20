@@ -47,7 +47,7 @@ void  myScene::createPageForPrint(qreal width,qreal height)
     this->setSceneRect(0, 0, width,height);
     this->setBackgroundBrush(Qt::white);
 
-    QPixmap pixmap = QPixmap(width,height);
+    QPixmap pixmap = QPixmap(int (width),int(height));
     pixmap.fill(Qt::white);
 
     QGraphicsPixmapItem *paper_rect =  new QGraphicsPixmapItem();
