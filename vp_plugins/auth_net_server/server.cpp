@@ -27,19 +27,20 @@
 
 
 Server::Server(QWidget *parent)
-    : QDialog(parent)
-    , myServerGears(0)
-    , myNet_plugin(0)
-    , myAuth_plugin(0)
-    , myGs_plugin(0)
-    , myTmpl_plugin(0)
-    , m_GateKeeperReady(false)
+        : QDialog(parent)
+        , myServerGears(0)
+        , myNet_plugin(0)
+        , myAuth_plugin(0)
+        , myGs_plugin(0)
+        , myTmpl_plugin(0)
+        , m_GateKeeperReady(false)
 {
 
     /// Регистрируем типы @todo Надо сделать отдельную функцию,
     /// в которой регистрировать все типы и вызвать ее из main
 
     qRegisterMetaType<VPrn::MessageType>("MessageType");
+    qRegisterMetaType<VPrn::AppErrorType>("AppErrorType");
 
     myEMsgBox = new QErrorMessage(this);
 
@@ -128,77 +129,64 @@ Server::Server(QWidget *parent)
 
 void Server::init()
 {
+    QString eMsg;
     bool Ok = true;
     {
         Ok &= readConfig();
         if ( Ok ){
-            if (!localSrvName.isEmpty()){
-                // Создаем основной объект
-#if defined(Q_OS_UNIX)
-                //Проверка на наличие файла pipe если есть удалим
-                QString f_pipe = QObject::tr("/tmp/%1").arg(localSrvName);
-                if ( QFile::exists( f_pipe ) ){
-                    QFile::remove( f_pipe );
-                }
-#endif
-                myServerGears = new serverGears(this,localSrvName);
-                if (!local_t_path.isEmpty()){
-                    myServerGears->findTemplatesInPath(local_t_path);
-                }
-                if (!global_t_path.isEmpty()){
-                    myServerGears->findTemplatesInPath(global_t_path);
-                }
-                connect (myServerGears,SIGNAL(checkPointChanged(MyCheckPoints)),
-                         this, SLOT(do_ChekPointChanged(MyCheckPoints))
-                         );
-                connect ( myServerGears, SIGNAL ( error( QString) ),
-                          myEMsgBox,     SLOT   ( showMessage( QString) ) );
 
-                connect ( myServerGears, SIGNAL ( clearClientSpool (const QString &) ),
-                          this,          SLOT   ( clearClientSpool (const QString &) ) );
-                Ok &= loadPlugins();
+            // Создаем основной объект
+            myServerGears = new serverGears(this,localSrvName);
+            connect (myServerGears,SIGNAL(checkPointChanged(MyCheckPoints)),
+                     this,         SLOT(do_ChekPointChanged(MyCheckPoints))
+                     );
+            connect ( myServerGears,SIGNAL( error(VPrn::AppErrorType, QString) ),
+                      this,         SLOT  ( errorInfo(VPrn::AppErrorType, QString) )
+                      );
+            connect ( myServerGears,SIGNAL( clearClientSpool (const QString &) ),
+                      this,         SLOT  ( clearClientSpool (const QString &) )
+                      );
 
-                if (Ok){
+            myServerGears->findTemplatesInPath(local_t_path);
+            myServerGears->findTemplatesInPath(global_t_path);
+
 #ifdef DEBUG_MODE
-                    myServerGears->setPrinterList( printer_list );
+                myServerGears->setPrinterList( printer_list );
 #endif
-                    // Инициализация плагинов
+            if ( loadPlugins() ){// Проверка удачной загузки плагинов
+                /// @todo Перевести эти чекбоксы на событие инициализация плагина
 
+                authCheckBox->setChecked(true);
+                gsCheckBox->setChecked(true);
+                tmplCheckBox->setChecked(true);
+                netCheckBox->setChecked(true);
+
+                //-------------------------------- Инициализация плагинов
 #if defined(Q_OS_UNIX)
-                    //myAuth_plugin->init(ticket_fname);
-                    myAuth_plugin->init();
+                //myAuth_plugin->init(ticket_fname);
+                myAuth_plugin->init();
 #elif defined(Q_OS_WIN)
-                    myAuth_plugin->init();
-#endif                    
-                    if (myGs_plugin){                        
-                        myGs_plugin->init(gsBin, pdftkBin,spoolDir);
-                        gsCheckBox->setChecked(true);
-                        myServerGears->setGsPlugin(myGs_plugin);
-                        current_sid =  myGs_plugin->getUuid();
+                myAuth_plugin->init();
+#endif
+                myGs_plugin->init(gsBin, pdftkBin,spoolDir);
+                myNet_plugin->init(serverHostName, serverPort);
+                myTmpl_plugin->init(spoolDir);
+                //--------------------------------- Передадим указатели на плагины
+                myServerGears->setGsPlugin(myGs_plugin);
+                myServerGears->setTmplPlugin(myTmpl_plugin);
+                myServerGears->setNetPlugin(myNet_plugin);
 
-                        if (myNet_plugin){
-                            /// @todo current_sid не нужен переделать
-                            myNet_plugin->init(serverHostName, serverPort,current_sid);
-
-                            myServerGears->setNetPlugin(myNet_plugin);
-                        }
-                        if ( myTmpl_plugin ){
-                            /// @todo Переделать только spoolDir реально нужен
-                            myTmpl_plugin->init(spoolDir,current_sid);
-                            myServerGears->setTmplPlugin(myTmpl_plugin);
-                            tmplCheckBox->setChecked(true);
-                        }                                                
-                    }                    
-                }else{
-                    setTrayStatus(VPrn::gk_ErrorState,
-                                  QObject::trUtf8("Ошибка при загрузке плагинов"));
-                }
+            }else{
+                eMsg = QObject::trUtf8("Ошибка при загрузке плагинов");
             }
         }else{
-            //demonState_LE->setText(QObject::trUtf8("Ошибка конфигурации"));
-            setTrayStatus(VPrn::gk_ErrorState,
-                          QObject::trUtf8("Ошибка при чтении файла конфигурации"));
+            eMsg = QObject::trUtf8("Ошибка при чтении файла конфигурации");
         }
+    }
+    if (Ok){
+        setTrayStatus(VPrn::gk_Started,QObject::trUtf8("Готов работать!"));
+    }else{
+        setTrayStatus(VPrn::gk_ErrorState,eMsg);
     }
     m_GateKeeperReady = Ok;
 }
@@ -304,43 +292,16 @@ void Server::iconActivated(QSystemTrayIcon::ActivationReason reason)
     }
 }
 
-void Server::errorInfo(pluginsError eCode,QString e_msg)
+void Server::errorInfo(VPrn::AppErrorType eCode,QString e_msg)
 {
-    QString eType;
-    switch (eCode){
-    case VPrn::NoError:
-        eType = "NoError";
-        break;
-    case VPrn::FileNotFound:
-        eType = "FileNotFound";
-    case VPrn::FileIOError:
-        eType = "FileIOError";
-    case VPrn::UnknownError:
-        eType = "UnknownError";
-    case VPrn::DriverNotLoad:
-        eType = "DriverNotLoad";
-    case VPrn::NotConnectedToDB:
-        eType = "NotConnectedToDB";
-    case VPrn::DBOpeningError:
-        eType = "DBOpeningError";
-    case VPrn::SQLQueryError:
-        eType = "SQLQueryError";
-    case VPrn::SQLCommonError:
-        eType = "SQLCommonError";
-    case VPrn::InternalPluginError:
-        eType = "InternalPluginError";
-    case VPrn::AuthCommonError:
-        eType = "AuthCommonError";
-    case VPrn::NetworkTransError:
-        eType = "NetworkTransError";
-        break;
-    }
-#if QT_VERSION >= 0x040500
-    myEMsgBox->showMessage(eType,e_msg);
-#else
-    myEMsgBox->showMessage(e_msg.prepend(eType));
-#endif
+    QString extMsg = QString("eCode %1. AppsError:%2\n%3")
+                     .arg(eCode,0,10)
+                     .arg(e_msg)
+                     .arg(QString(Q_FUNC_INFO));
+    myEMsgBox->showMessage(extMsg);
+    qDebug() << extMsg;
 }
+
 
 void Server::setUserName(QString & login,QString &mandat)
 {
@@ -364,7 +325,7 @@ void Server::setUserName(QString & login,QString &mandat)
         }
     }
     setTrayStatus(my_TrayStatus,info_msg);
-    authCheckBox->setChecked(true);
+
     if (myServerGears){
         myServerGears->setAuthData(login,mandat);
     }
@@ -507,34 +468,28 @@ bool Server::loadPlugins()
         QPluginLoader pluginManager(pluginsDir.absoluteFilePath(fileName));
         QObject *plugin = pluginManager.instance();
         if (plugin) {
-            bool needUnloadPlugin = true;
+            bool needUnlugin = true;
             {
                 if (!myTmpl_plugin){
                     tmpl_plugin_Interface = qobject_cast<Itmpl_sql_plugin *> (plugin);
                     if ( tmpl_plugin_Interface ){
-                        needUnloadPlugin = false;
+                        needUnlugin = false;
                         myTmpl_plugin = tmpl_plugin_Interface;
 
-                        connect(plugin, SIGNAL (error(pluginsError,QString )),
-                                this,   SLOT   (errorInfo(pluginsError,QString ))
-                                );
+                        connect ( plugin, SIGNAL ( error(VPrn::AppErrorType, QString) ),
+                                  this,   SLOT   ( errorInfo(VPrn::AppErrorType, QString) ) );
                     }
                 }
                 if (!myGs_plugin){
                     /// Загрузка плагина работы с ghostscript
                     gs_plugin_Interface = qobject_cast<Igs_plugin *> (plugin);
                     if (gs_plugin_Interface){
-                        needUnloadPlugin = false;
+                        needUnlugin = false;
                         myGs_plugin = gs_plugin_Interface;
 
-                        connect(plugin, SIGNAL (error(pluginsError,QString )),
-                                this,   SLOT   (errorInfo(pluginsError,QString ))
-                                );
-                        //                        connect (plugin,
-                        //                                 SIGNAL( jobFinish(const QString &,VPrn::Jobs,int,const QString &)),
-                        //                                 myServerGears,
-                        //                                 SLOT  ( doJobFinish(const QString &,VPrn::Jobs,int,const QString &))
-                        //                                 );
+                        connect ( plugin, SIGNAL ( error(VPrn::AppErrorType, QString) ),
+                                  this,   SLOT   ( errorInfo(VPrn::AppErrorType, QString) ) );
+
                         connect (plugin,
                                  SIGNAL( docReady4work(const QString &,int) ),
                                  myServerGears,
@@ -561,12 +516,11 @@ bool Server::loadPlugins()
                     /// Загрузка плагина авторизации
                     auth_plugin_Interface = qobject_cast<Auth_plugin *>(plugin);
                     if (auth_plugin_Interface){
-                        needUnloadPlugin = false;
+                        needUnlugin = false;
                         myAuth_plugin = auth_plugin_Interface;
 
-                        connect(plugin, SIGNAL(error(pluginsError,QString )),
-                                this,   SLOT (errorInfo(pluginsError,QString ))
-                                );
+                        connect ( plugin, SIGNAL ( error(VPrn::AppErrorType, QString) ),
+                                  this,   SLOT   ( errorInfo(VPrn::AppErrorType, QString) ) );
 
                         connect(plugin, SIGNAL(get_User_name_mandat(QString &,QString &)),
                                 this,   SLOT(setUserName(QString&,QString&))
@@ -577,19 +531,18 @@ bool Server::loadPlugins()
                     /// Загрузка сетевого плагина
                     net_plugin_Interface = qobject_cast<Inet_plugin *> (plugin);
                     if (net_plugin_Interface) {
-                        needUnloadPlugin = false;
+                        needUnlugin = false;
                         // Сохраним указатель на плагин как данные класса
                         myNet_plugin = net_plugin_Interface;
-                        connect(plugin, SIGNAL(error(pluginsError,QString )),
-                                this,   SLOT (errorInfo(pluginsError,QString ))
-                                );
-                        connect(plugin, SIGNAL(messageReady(Message)),
-                                myServerGears,   SLOT(reciveNetworkMessage(Message))
-                                );
+                        connect ( plugin, SIGNAL ( error(VPrn::AppErrorType, QString) ),
+                                  this,   SLOT   ( errorInfo(VPrn::AppErrorType, QString) ) );
+                        connect (plugin,  SIGNAL   (messageReady(Message)),
+                                 myServerGears,   SLOT(reciveNetworkMessage(Message))
+                                 );
                     }
                 }
             }
-            if ( needUnloadPlugin ){
+            if ( needUnlugin ){
                 // Выгрузим его нафиг не наш он плагин, сто пудово :)
                 qDebug() << QObject::trUtf8("Plugin's [%1] unload").arg(pluginsDir.absoluteFilePath(fileName));
                 pluginManager.unload();

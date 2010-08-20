@@ -85,7 +85,7 @@ private slots:
 
     void iconActivated(QSystemTrayIcon::ActivationReason reason);
 
-    void errorInfo(pluginsError eCode,QString e_msg);
+    void errorInfo(VPrn::AppErrorType eCode,QString e_msg);
     /**
       * @fn void setUserName(const QString & login,const QString &mandat);
       * @brief Заполнение параметров аторизации пользователя
@@ -159,7 +159,7 @@ private:
     bool    m_GateKeeperReady;
     QString m_lastError;
     QString currentStatus;
-    QString current_sid;
+
 
     /**
       * @brief --------- Блок переменных из ini файла ------------------------
