@@ -12,11 +12,6 @@ TARGET = simple_print
 CONFIG   += console warn
 CONFIG   -= app_bundle
 
-win32{
-   DESTDIR = c:/opt/vprn
-}else{
-   DESTDIR = /opt/vprn
-}
 
 TEMPLATE = app
 
