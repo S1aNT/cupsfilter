@@ -18,7 +18,7 @@ net_plugin::net_plugin(QObject *parent)
     , HostName(QString())
     , Port (0)
     , client(0)
-    , packetSize(-1)
+    , packetSize(0)
     , e_info(QString())
 {
 
@@ -227,7 +227,7 @@ void net_plugin::readyRead()
     in.setVersion(QDataStream::Qt_3_0);
 
     while (client->bytesAvailable() > 0){
-        if (packetSize == -1) {
+        if (packetSize == 0) {
             //Определим количество байт доступных для чтения;
             //на этом шаге необходимо получить больше 4-х байт
             if( client->bytesAvailable() < sizeof(packetSize) ){
@@ -241,7 +241,7 @@ void net_plugin::readyRead()
             return;
         }
         //Сбросим размер пакета, для обработки следующего
-        packetSize = -1;
+        packetSize = 0;
 
         // Прочтем тип сообщения
         int m_Type;
