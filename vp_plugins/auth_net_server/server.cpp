@@ -168,7 +168,7 @@ void Server::init()
 #elif defined(Q_OS_WIN)
                 myAuth_plugin->init();
 #endif
-                myGs_plugin->init(gsBin, pdftkBin,spoolDir);
+                myGs_plugin->init(gsBin, pdftkBin,gsprintBin,spoolDir);
                 myNet_plugin->init(serverHostName, serverPort);
                 myTmpl_plugin->init(spoolDir);
                 //--------------------------------- Передадим указатели на плагины
@@ -223,18 +223,13 @@ void Server::setVisible(bool visible)
 void Server::closeEvent(QCloseEvent *event)
 {
     if (trayIcon->isVisible()) {
-        //        QMessageBox::information(this, QObject::trUtf8("GateKeeper"),
-        //                                 QObject::trUtf8("Данная программа будет продолжать работу в системном трее.\n"
-        //                                                 "Для завершения работы, выберите Выход "
-        //                                                 "в контекстном меню программы. "));
-        if (m_GateKeeperReady){
+     if (m_GateKeeperReady){
             hide();
             event->ignore();
         }else{
             event->accept();
         }
     }
-
 }
 
 void Server::createActions()
@@ -575,9 +570,11 @@ bool Server::readConfig()
 
             settings.beginGroup("POSTSCRIPT");
             gsBin = settings.value("gs_bin").toString();
+            gsprintBin = settings.value("gsprint").toString();
             settings.endGroup();
             settings.beginGroup("PDF");
             pdftkBin = settings.value("pdfTK").toString();
+
             settings.endGroup();
 
             settings.beginGroup("USED_DIR_FILE");

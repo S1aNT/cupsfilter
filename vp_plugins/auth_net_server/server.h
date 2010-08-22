@@ -181,6 +181,7 @@ private:
     QString ticket_fname;
     QString gsBin;
     QString pdftkBin;
+    QString gsprintBin;
     QString spoolDir;
 
     QString local_t_path;
