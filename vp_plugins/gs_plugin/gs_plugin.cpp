@@ -109,131 +109,31 @@ void GS_plugin::convertPs2Pdf(const QString &client_uuid,const QString &input_fn
     }
 }
 
-/*
-void GS_plugin::print2devide (const QString &client_uuid,  const QString &print_file,
-                              const QString &prn_ip,   const QString &prn_qqueue,
-                              bool usePageCount)
-{
-    //-q -dQUIET -dNOPAUSE -dPARANOIDSAFER -dBATCH -r300 -sDEVICE=pdfwrite -sOutputFile="%printer%pdfcreator" -c .setpdfwrite -f %1
-    //gs -q -dQUIET -dNOPAUSE -dPARANOIDSAFER -dBATCH -r300 -sDEVICE -dLanguageLevel=1 -sOutputFile=- /opt/vprn/print.ps | lpr -H 127.0.0.1 -P Print2Pdf
-
-    // Поиск данных для клиента
-    QStringList args;
-
-    ClientData *c_data = findClientData(client_uuid);
-    int print_copy;
-    if (usePageCount){
-        print_copy = c_data->getPageCount();
-        print_copy -=1;
-    }else{
-        print_copy = 1;
-    }
-    // Вначале преобразуем исходный документ pdf->ps затем отправим в lpr
-    args.clear();
-    args.append("-q");
-    args.append("-dQUIET");
-    args.append("-dNOPAUSE");
-    args.append("-dBATCH");
-    args.append("-dPARANOIDSAFER");
-    args.append("-r600");
-    args.append("-sDEVICE=pswrite");
-    args.append("-dLanguageLevel=1 ");
-
-
-#if defined(Q_OS_UNIX)
-    args.append("-sOutputFile=-");
-    args.append(QString("%1").arg(print_file));
-
-    args.append("| lpr ");
-    args.append(QString("-H %1").arg(prn_ip));
-    args.append(QString("-P %1").arg(prn_qqueue));
-    args.append(tr("-#%1").arg(print_copy));    
-    start_proc(client_uuid,gsBin,args,VPrn::job_PrintFile);
-#elif defined(Q_OS_WIN)
-
-    for (int i=0;i<print_copy;i++){
-        args.clear();
-        args.append("-S");
-        args.append("192.168.112.2");
-        args.append("-P QQQQ");
-        args.append("-o l");
-        args.append("-d");
-        args.append(print_file);
-        start_proc(client_uuid,"lpr",args,VPrn::job_PrintFile);
-    }
-#endif
-}
-*/
-
 void GS_plugin::directPrint(const QString &client_uuid,const QString &file_name,
                             const QString &printer_name,int copies)
 {
-#if defined(Q_OS_UNIX)
-#elif defined(Q_OS_WIN)
-#endif
-}
-
-void GS_plugin::print2devide (const QString &client_uuid, QByteArray &printData)
-{
-    ClientData *c_d(0);
-    QString docName;      // Название документа
-    QString mb;           // Номер МБ
-    QString copyNumber;   // Номер экз.
-    QString copyCount;    // Число экз. для печати
-    int pageCount;        // Число стр в документе
-    QString IP;           // IP сервера
-    QString printerQueue; // Имя принтера (имя очереди для CUPS сервера)
-    int blockType;        // Тип блока данных (Первая стр, послед. стр., обратная сторона, фонарик)
-    qint64 blockSize;     // Размер распакованного блока данных
-    QByteArray dataBlock; // Блок данных (упакованный gzip)
+    // Поиск данных для клиента
     QStringList args;
-
-    c_d = findClientData (client_uuid);
-    if (c_d){
-        QDataStream in(printData);
-        in.setVersion(QDataStream::Qt_3_0);
-        in >> docName;
-        in >> mb;
-        in >> copyNumber;
-        in >> copyCount;
-        in >> pageCount;
-        in >> IP;
-        in >> printerQueue;
-        in >> blockType;
-        in >> blockSize;
-        in >> dataBlock;
-        // Формируем имя файла
-        QString wrk_file =QString("%1/%2/%3_%4.ps")
-                          .arg(this->spoolDir)
-                          .arg(client_uuid)
-                          .arg(mb)
-                          .arg(copyNumber);
-
-        QFile file_unpack(wrk_file);
-        file_unpack.open(QIODevice::WriteOnly);
-        QDataStream out(&file_unpack);
-        out << qUncompress(dataBlock);
-        file_unpack.close();
-        bool flag = QFile::exists(wrk_file) &&
-                    file_unpack.size() == blockSize &&
-                    !docName.isEmpty() &&
-                    !mb.isEmpty() &&
-                    !copyNumber.isEmpty();
-        if (flag){
-#if defined(Q_OS_UNIX)
-            args.append(QString("-H %1").arg(IP));
-            args.append(QString("-P %1").arg(printerQueue));
-            args.append(tr("-#%1").arg(copyCount));
-            args.append(QObject::trUtf8("%1").arg(docName));
-            start_proc(client_uuid,"lpr",args,VPrn::job_PrintFile);
-#elif defined(Q_OS_WIN)
+    QString prn_bin;
+    /// @todo Проверить число копий если в документе больше 100 страниц,
+    /// то как их распечатает lpr и gsprint
+    if (gsprintBin.isEmpty()){
+        emit error(VPrn::FileNotFound,
+                   QObject::trUtf8("Файл %1 не найден или отсутсвуют права доступа\n %2")
+                                    .arg(gsprintBin).arg(QString(Q_FUNC_INFO))
+                   );
+    }else{
+#if defined(Q_OS_UNIX)        
+        prn_bin ="lpr"; /// @todo добавить переменную при инициализации
+        args.append(QString("-P %1").arg(printer_name));
+        args.append(tr("-#%1").arg(copies,0,10));
+#elif defined(Q_OS_WIN)    
+        args.append(printer_name); // Первый параметр имя принтера
+        args.append(tr("%1").arg(copies,0,10));
 #endif
-        }else{
-            error(VPrn::FileNotFound,
-                  QObject::trUtf8("Не удалось создать временный файл для печати или ошибочный размер!\n %1")
-                  .arg(wrk_file)
-                  );
-        }
+        args.append(file_name);
+        start_proc(client_uuid,prn_bin,args,VPrn::job_PrintFile);
+        emit filePrinted(client_uuid);
     }
 }
 

@@ -21,8 +21,8 @@ class GS_plugin :public QObject, Igs_plugin
 {
     Q_OBJECT
     Q_INTERFACES(Igs_plugin)
-        public:
-            GS_plugin(QObject *parent=0);
+public:
+    GS_plugin(QObject *parent=0);
 
     void init(const QString &gs_bin,const QString &pdftk_bin,
               const QString &gsprint_bin,const QString &temp_folder);
@@ -36,13 +36,6 @@ class GS_plugin :public QObject, Igs_plugin
       */
     void directPrint(const QString &client_uuid,const QString &file_name,
                      const QString &printer_name,int copies);
-    /**
-      * @fn void print2devide (const QString &client_uuid, QByteArray &printData);
-      * @brief Печать  документа сформированного клиентом на устройство
-      */
-
-    void print2devide (const QString &client_uuid, QByteArray &printData);
-
     /**
       * @fn  QString getUuid() const
       * @brief служебная функция генерирует ключ
@@ -138,6 +131,11 @@ signals:
       */
     void jobFinish(const QString &client_uuid,VPrn::Jobs job_id,int code,
                    const QString &output_message);
+    /**
+      * @fn void filePrinted(client_uuid);
+      * @brief Сообщим клиенту, что его файл распечатан
+      */
+    void filePrinted(const QString &client_uuid);
 
 private slots:
     void threadFinish(const QString &jobKey,int code,const QString &output_message);
