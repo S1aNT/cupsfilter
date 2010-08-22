@@ -4,6 +4,7 @@
 #include <QList>
 #include <QPrinterInfo>
 #include  <QDebug>
+#include <QProcess>
 
 
 int main(int argc, char *argv[])
@@ -13,6 +14,22 @@ int main(int argc, char *argv[])
     QStringList arg_list = a.arguments();
     QFile prn_file;
 
+        QProcess process;
+	QString out_txt;
+        process.setReadChannelMode(QProcess::MergedChannels);
+        process.start("c:/opt/vprn/debug/gsprint.bat", QStringList()
+                      << "PDF"
+                      << "1"
+		      << "d:/test.ps");
+
+        if (!process.waitForFinished()) {
+            out_txt = QObject::trUtf8("gsprint not finished!");
+        } else {
+            out_txt = process.readAll();
+        }
+        qDebug() <<  out_txt;
+
+/*
     qDebug() << "Available printers:\n";
     QList<QPrinterInfo> prn_list = QPrinterInfo::availablePrinters();
     for (int i = 0; i< prn_list.size();i++){
@@ -30,5 +47,7 @@ int main(int argc, char *argv[])
             qDebug() << "file: " << arg_list.at(0) << "not send to printer: " << arg_list.at(1) << "\n";
         }
     }
-    return a.exec();
+*/
+    a.exec();
+    return 0;
 }
