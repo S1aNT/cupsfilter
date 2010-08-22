@@ -419,6 +419,7 @@ bool MainWindow::lastCheck(int page)
             break;
         }
     }
+    return true;
     return Ok;
 
 }
