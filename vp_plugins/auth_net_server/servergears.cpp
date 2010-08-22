@@ -19,7 +19,7 @@ using namespace VPrn;
 
 serverGears::serverGears(QObject *parent,const QString &srvName)
     : QLocalServer(parent)
-    , packetSize(-1)
+    , packetSize(0)
     , e_info(QString())
     , net_plugin(0)
     , gs_plugin(0)
@@ -162,7 +162,7 @@ void serverGears::readyRead()
     in.setVersion(QDataStream::Qt_3_0); // Так сообщение может переслаться в сетевой сокет, то надо подумать и о Мише с его 3 QT
 
     while (client->bytesAvailable() > 0){
-        if (packetSize == -1) {
+        if (packetSize == 0) {
             //Определим количество байт доступных для чтения;
             //на этом шаге необходимо получить больше 4-х байт
             if( client->bytesAvailable() < (int)sizeof(packetSize) ){
@@ -180,7 +180,7 @@ void serverGears::readyRead()
             return;
         }
         //Сбросим размер пакета, для обработки следующего
-        packetSize = -1;
+        packetSize = 0;
         // Прочтем тип сообщения
         int m_Type;
         in >> m_Type;
