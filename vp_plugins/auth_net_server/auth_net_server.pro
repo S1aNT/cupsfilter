@@ -48,4 +48,3 @@ SOURCES += server.cpp \
     printtask.cpp
 RESOURCES = images.qrc
 TRANSLATIONS = auth_net_server_ru.ts
-FORMS += ../test_gui/form.ui
