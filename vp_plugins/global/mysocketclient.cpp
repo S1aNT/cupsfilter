@@ -4,7 +4,7 @@
 
 mySocketClient::mySocketClient(QLocalSocket *parent)
         : QLocalSocket (parent)
-        , packetSize(-1)
+        , packetSize(0)
         , e_info(QString())
 {
     connect(this,SIGNAL(connected()),
@@ -26,7 +26,7 @@ void mySocketClient::readyRead()
     in.setVersion(QDataStream::Qt_4_0);
 
     while (this->bytesAvailable() > 0){
-        if (packetSize == -1) {
+        if (packetSize == 0) {
             //Определим количество байт доступных для чтения;
             //на этом шаге необходимо получить больше 4-х байт
             if( this->bytesAvailable() < sizeof(packetSize) ){
@@ -40,7 +40,7 @@ void mySocketClient::readyRead()
             return;
         }
         //Сбросим размер пакета, для обработки следующего
-        packetSize = -1;
+        packetSize = 0;
         // Прочтем тип сообщения
         int m_Type;
         in >> m_Type;
