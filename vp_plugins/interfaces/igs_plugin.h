@@ -23,9 +23,9 @@ public:
                           const QString &back_pdf,
                           const QString &out_pdf) = 0;
 
-    virtual void print2devide (const QString &client_uuid, QByteArray &printData) = 0;
+    virtual  void directPrint(const QString &client_uuid,const QString &file_name,
+                              const QString &printer_name,int copies) = 0;
     virtual void mergeWithTemplate(const QString &client_uuid, const QStringList &t_files) = 0 ;
-
     virtual void createClientData(const QString &client_uuid) = 0;
     virtual void deleteClientData(const QString &client_uuid) = 0;
     virtual void setConvertToPngMode(const QString &client_uuid, bool full_doc ) = 0;
