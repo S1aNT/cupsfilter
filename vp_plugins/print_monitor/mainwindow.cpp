@@ -226,6 +226,8 @@ void MainWindow::do_restart()
     checkDataPage->needRestart();
     preViewPage->needRestart();
     engine->needRestart();
+    nextButton->setText(QObject::trUtf8("Вперед >"));
+
 }
 
 void MainWindow::do_needAuthUser(const QString &login_mandat_list)
@@ -419,9 +421,7 @@ bool MainWindow::lastCheck(int page)
             break;
         }
     }
-    return true;
     return Ok;
-
 }
 
 //------------------------------------- PROTECTED ----------------------------------------
