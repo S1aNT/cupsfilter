@@ -151,7 +151,7 @@ void Server::init()
             myServerGears->findTemplatesInPath(global_t_path);
 
 #ifdef DEBUG_MODE
-                myServerGears->setPrinterList( printer_list );
+            myServerGears->setPrinterList( printer_list );
 #endif
             if ( loadPlugins() ){// Проверка удачной загузки плагинов
                 /// @todo Перевести эти чекбоксы на событие инициализация плагина
@@ -223,7 +223,7 @@ void Server::setVisible(bool visible)
 void Server::closeEvent(QCloseEvent *event)
 {
     if (trayIcon->isVisible()) {
-     if (m_GateKeeperReady){
+        if (m_GateKeeperReady){
             hide();
             event->ignore();
         }else{
@@ -595,7 +595,16 @@ bool Server::readConfig()
             for (int i = 0; i < size; i++) {
                 settings.setArrayIndex(i);
                 Printers printer;
+#if QT_VERSION >= 0x040500
                 printer.name     = settings.value("name").toString();
+#else
+                {
+                    // Так как QT < 4.5 не поддерживает кодировку :(
+                    QVariant v = settings.value("name").toString();
+                    QString s= v.toString();
+                    printer.name = QString::fromUtf8(s.toLatin1());
+                }
+#endif
                 printer.ip       = settings.value("ip").toString();
                 printer.p_qqueue = settings.value("p_qqueue").toString();
                 printer_list.append(printer);
