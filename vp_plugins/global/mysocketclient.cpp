@@ -4,7 +4,7 @@
 
 mySocketClient::mySocketClient(QLocalSocket *parent)
         : QLocalSocket (parent)
-        , packetSize(0)
+        , packetSize(-1)
         , e_info(QString())
 {
     connect(this,SIGNAL(connected()),
@@ -23,24 +23,25 @@ void mySocketClient::readyRead()
     qDebug() << Q_FUNC_INFO << QObject::trUtf8(" Recive %1 bytes \n").arg(this->bytesAvailable(),0,10);
     //Свяжем поток и сокет
     QDataStream in ( this );
-    in.setVersion(QDataStream::Qt_4_0);
+    in.setVersion(QDataStream::Qt_3_0);
 
     while (this->bytesAvailable() > 0){
-        if (packetSize == 0) {
+        if (packetSize == -1) {
             //Определим количество байт доступных для чтения;
             //на этом шаге необходимо получить больше 4-х байт
-            if( this->bytesAvailable() < sizeof(packetSize) ){
+            if( (qint32) this->bytesAvailable() < (qint32) sizeof(packetSize) ){
                 return;
             }
             //Читаем размер пакета
             in >> packetSize;
+            qDebug() << Q_FUNC_INFO << " packet size "  << packetSize << "\n";
         }
         //Проверим что в сокет пришел весь пакет а не его огрызки
         if (this->bytesAvailable() < packetSize){
             return;
         }
         //Сбросим размер пакета, для обработки следующего
-        packetSize = 0;
+        packetSize = -1;
         // Прочтем тип сообщения
         int m_Type;
         in >> m_Type;
