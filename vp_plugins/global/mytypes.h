@@ -342,7 +342,7 @@ namespace VPrn{
          * @param (qint8)   copy_number  число копий 1-100
          * @param (QString) user_name    имя пользователя
          * @param (QString) job_title    имя задания
-         * @param (quint64) array_size   размер не сжатого буфера
+         * @param (qint64) array_size   размер не сжатого буфера
          * @param (QByteArray) файл для печати в формате QByteArray (сжатый)
         */
         Que_PrintThisFile            = 6000,
