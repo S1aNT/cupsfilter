@@ -37,9 +37,7 @@ void GS_plugin::init(const QString &gs_bin, const QString &pdftk_bin,
                      const QString &gsprint_bin,const QString &temp_folder)
 {
     QDir dir;
-
     const QString startnow = QDir::currentPath();    
-
     // Проверка существования и доступности бинарников
     if (!QFile::exists(gs_bin)){
         emit error(VPrn::FileIOError,
@@ -48,6 +46,8 @@ void GS_plugin::init(const QString &gs_bin, const QString &pdftk_bin,
                    .arg(QString(Q_FUNC_INFO)));
         emit pluginNotReady();
         return;
+    }else{
+        gsBin = gs_bin;
     }
     // Проверка существования и доступности бинарников
     if (!QFile::exists(pdftk_bin)){
@@ -57,6 +57,8 @@ void GS_plugin::init(const QString &gs_bin, const QString &pdftk_bin,
                    .arg(QString(Q_FUNC_INFO)));
         emit pluginNotReady();
         return;
+    }else{
+        pdftkBin = pdftk_bin;
     }
     if (!QFile::exists(gsprint_bin)){
         emit error(VPrn::FileIOError,
@@ -65,6 +67,8 @@ void GS_plugin::init(const QString &gs_bin, const QString &pdftk_bin,
                    .arg(QString(Q_FUNC_INFO)));
         emit pluginNotReady();
         return;
+    }else{
+        gsprintBin = gsprint_bin;
     }
     if (dir.cd(temp_folder)){// Проверим факт существования временного каталога
         spoolDir = temp_folder;
