@@ -18,7 +18,7 @@ net_plugin::net_plugin(QObject *parent)
     , HostName(QString())
     , Port (0)
     , client(0)
-    , packetSize(0)
+    , packetSize(-1)
     , e_info(QString())
 {
 
@@ -227,21 +227,22 @@ void net_plugin::readyRead()
     in.setVersion(QDataStream::Qt_3_0);
 
     while (client->bytesAvailable() > 0){
-        if (packetSize == 0) {
+        if (packetSize == -1) {
             //Определим количество байт доступных для чтения;
             //на этом шаге необходимо получить больше 4-х байт
-            if( client->bytesAvailable() < sizeof(packetSize) ){
+            if( (qint32) client->bytesAvailable() < (qint32) sizeof(packetSize) ){
                 return;
             }
             //Читаем размер пакета
             in >> packetSize;
+            qDebug() << Q_FUNC_INFO << " packet size "  << packetSize << "\n";
         }
         //Проверим что в сокет пришел весь пакет а не его огрызки
         if (client->bytesAvailable() < packetSize){
             return;
         }
         //Сбросим размер пакета, для обработки следующего
-        packetSize = 0;
+        packetSize = -1;
 
         // Прочтем тип сообщения
         int m_Type;

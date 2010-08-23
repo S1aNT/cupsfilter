@@ -55,7 +55,7 @@ private:
     QString HostName;
     quint16 Port;
     QTcpSocket *client;  
-    qint64 packetSize;
+    qint32 packetSize;
 
     //socketState m_state;
     QString e_info;
