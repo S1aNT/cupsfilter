@@ -23,12 +23,11 @@ ProcessT::~ProcessT()
 
 void ProcessT::run()
 {
+    qDebug() << Q_FUNC_INFO << "Executing command" << m_Command << m_Args << "\n";
     if ( m_Command.isEmpty() ) {
         qWarning() << Q_FUNC_INFO << "No command set, doing nothing";
         return;
-    }
-
-    qDebug() << Q_FUNC_INFO << "Executing command" << m_Command << m_Args << "\n";
+    }    
 
     QProcess proc;
     // Add  to the environment
