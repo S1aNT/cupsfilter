@@ -165,7 +165,7 @@ private:
 
     QString              m_serverName;
     QLocalServer         *m_server;
-    qint64               packetSize;
+    qint32               packetSize;
 
     QString              e_info;
     Inet_plugin          *net_plugin;
@@ -236,12 +236,12 @@ private:
 
 
      /**
-       * @fn quint64 getCompresedFile(const QString &fileName,
+       * @fn qint64 getCompresedFile(const QString &fileName,
        *                                 QByteArray &data);
        * @brief Читает существующий файл во временный буфер,
        * сжимает его  с помощью zlib и пишет в data
        */
-     quint64 getCompresedFile(const QString &fileName,
+     qint64 getCompresedFile(const QString &fileName,
                                         QByteArray &data);
      void createPrintTask(const QString &client_uuid,
                           const QString &printer_queue,

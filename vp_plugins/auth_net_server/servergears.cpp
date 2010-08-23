@@ -19,7 +19,7 @@ using namespace VPrn;
 
 serverGears::serverGears(QObject *parent,const QString &srvName)
     : QLocalServer(parent)
-    , packetSize(0)
+    , packetSize(-1)
     , e_info(QString())
     , net_plugin(0)
     , gs_plugin(0)
@@ -160,16 +160,18 @@ void serverGears::readyRead()
     //Свяжем поток и сокет
     QDataStream in ( client );
     in.setVersion(QDataStream::Qt_3_0); // Так сообщение может переслаться в сетевой сокет, то надо подумать и о Мише с его 3 QT
+    qDebug() << "client->bytesAvailable() =" << client->bytesAvailable() <<"\n";
 
     while (client->bytesAvailable() > 0){
-        if (packetSize == 0) {
+        if (packetSize == -1) {
             //Определим количество байт доступных для чтения;
             //на этом шаге необходимо получить больше 4-х байт
-            if( client->bytesAvailable() < (int)sizeof(packetSize) ){
+            if( (qint32) client->bytesAvailable() < (qint32) sizeof(packetSize) ){
                 return;
             }
             //Читаем размер пакета
             in >> packetSize;
+            qDebug() << Q_FUNC_INFO << " packet size "  << packetSize << "\n";
 
         }
         //Проверим что в сокет пришел весь пакет а не его огрызки
@@ -179,8 +181,11 @@ void serverGears::readyRead()
         if (in.atEnd()){
             return;
         }
+        qDebug() << Q_FUNC_INFO << "recive full packet size "
+                 << packetSize << "\n";
+
         //Сбросим размер пакета, для обработки следующего
-        packetSize = 0;
+        packetSize = -1;
         // Прочтем тип сообщения
         int m_Type;
         in >> m_Type;
@@ -499,7 +504,7 @@ void serverGears::parseMessage( const Message &m_msg, const QString &c_uuid)
        case VPrn::Que_Register:
             /// Клиент только подключился, в теле сообщения его самоназвание запомним его
             /// сообщим ему что он авторизирован и вернем присвоенный uuid в теле сообщения uuid
-            str.append(m_msg.messageData());
+            //str.append(m_msg.messageData());
             //clients_name.insert( client, str);
 
             message.setType(VPrn::Ans_Register);
@@ -715,6 +720,7 @@ void serverGears::createFormatedDoc(const QString &client_uuid,
     in >> t_fileName;
     // читаем значения
     in >> m_tagValue;
+    /*
     // Формируем  задание для печати
     PrintTask *pTask = new  PrintTask(this);
     pTask->setCopyes(doc_copyes);
@@ -723,7 +729,7 @@ void serverGears::createFormatedDoc(const QString &client_uuid,
     pTask->setPageCount (m_tagValue.value(VPrn::cards_PAGE_COUNT).toInt());
 
     printTaskList.insert(client_uuid,pTask);
-
+*/
     // Формируем страницы шаблона в pdf
     bool Ok = true;
     {
@@ -756,7 +762,7 @@ void serverGears::markDocInBaseAsFault(const QString &client_uuid,
 
 }
 
-quint64 serverGears::getCompresedFile(const QString &fileName,
+qint64 serverGears::getCompresedFile(const QString &fileName,
                                       QByteArray &data)
 {
     data.clear();
@@ -781,7 +787,7 @@ void serverGears::createPrintTask(const QString &client_uuid,
 {
     QByteArray task_data;
     QByteArray file_data;
-    quint64 fileSize;
+    qint64 fileSize;
     Message message;
 
     PrintTask *pTask(0);
