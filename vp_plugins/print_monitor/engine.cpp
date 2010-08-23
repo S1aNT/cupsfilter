@@ -20,18 +20,18 @@
 #include <QPair>
 
 Engine::Engine(QObject *parent,const QString &link,const QString &gk_bin)
-    : QObject(parent)
-    , m_DC_model(0)
-    , m_Prn_model(0)
-    , m_Tmpl_model(0)
-    , m_Mandats_model(0)
-    , m_Stamp_model(0)
-    , m_LocalClient(0)
-    , stopLaunch(false)
-    , currentUserName(QString())
-    , currentUserMandat(QString())
-    , link_name(QString())
-    , gatekeeper_bin(QString())
+        : QObject(parent)
+        , m_DC_model(0)
+        , m_Prn_model(0)
+        , m_Tmpl_model(0)
+        , m_Mandats_model(0)
+        , m_Stamp_model(0)
+        , m_LocalClient(0)
+        , stopLaunch(false)
+        , currentUserName(QString())
+        , currentUserMandat(QString())
+        , link_name(QString())
+        , gatekeeper_bin(QString())
 {
     qRegisterMetaType<VPrn::MessageType>("MessageType");
     link_name      = link;
@@ -500,37 +500,31 @@ QString Engine::findPrinterInModel()
 
 QByteArray Engine::getAllFieldData()
 {
-    /**
-      * @warning Если меняешь названия тут, не забудь поменять их
-      * в @fn void Tmpl_sql_plugin::init(const QString & spool,const QString & sid)
-      * @file tmp_sql_plugin.cpp
-      */
-
-    QHash <QString, QString> m_tagValue;
+    QMap <int,QString> m_tagValue;
     QModelIndex indx;
     QByteArray fields_data;
+
     int cur_copyes;
     int all_copyes;
 
     //формируем хеш значений
     indx = m_DC_model->index(0,VPrn::cards_DOC_NAME);
-    m_tagValue.insert( QObject::trUtf8("Название док-та"),
-                       m_DC_model->data(indx,Qt::DisplayRole).toString());
+    m_tagValue[VPrn::cards_DOC_NAME] = m_DC_model->data(indx,Qt::DisplayRole)
+                                       .toString();
 
     indx = m_DC_model->index(0,VPrn::cards_MB_NUMBER);
-    m_tagValue.insert( QObject::trUtf8("МБ"),
-                       m_DC_model->data(indx,Qt::DisplayRole).toString() );
+    m_tagValue[VPrn::cards_MB_NUMBER] = m_DC_model->data(indx,Qt::DisplayRole)
+                                        .toString() ;
 
     indx = m_DC_model->index(0,VPrn::cards_PUNKT);
-    m_tagValue.insert( QObject::trUtf8("Пункт перечня"),
-                       m_DC_model->data(indx,Qt::DisplayRole).toString() );
+    m_tagValue[VPrn::cards_PUNKT] = m_DC_model->data(indx,Qt::DisplayRole)
+                                    .toString() ;
 
     indx = m_DC_model->index(0,VPrn::cards_PAGE_COUNT);
-    m_tagValue.insert( QObject::trUtf8("Кол-во листов"),
-                       m_DC_model->data(indx,Qt::DisplayRole).toString());
+    m_tagValue[VPrn::cards_PAGE_COUNT] = m_DC_model->data(indx,Qt::DisplayRole)
+                                         .toString() ;
 
-    indx = m_DC_model->index(0,VPrn::cards_SELECT_ALL_COPY);
-
+    indx = m_DC_model->index(0,VPrn::cards_SELECT_ALL_COPY);    
     // стоит отметка все экз. пишем 0!!!
     if (  m_DC_model->data(indx,Qt::DisplayRole).toBool() ){
         cur_copyes = 0;
@@ -542,63 +536,64 @@ QByteArray Engine::getAllFieldData()
         indx = m_DC_model->index(0,VPrn::cards_COPY_COUNT);
         all_copyes = m_DC_model->data(indx,Qt::DisplayRole).toInt();
     }
-    m_tagValue.insert( QObject::trUtf8("Номер экз."), QString("%1").arg(cur_copyes,0,10) );
-    m_tagValue.insert( QObject::trUtf8("Кол-во экз."), QString("%1").arg(all_copyes,0,10) );
+
+    m_tagValue[VPrn::cards_CURRENT_COPY]= QString("%1").arg(cur_copyes,0,10) ;
+    m_tagValue[VPrn::cards_COPY_COUNT]=  QString("%1").arg(all_copyes,0,10) ;
 
     indx = m_DC_model->index(0,VPrn::cards_STAMP);
-    int stamp_id = m_DC_model->data(indx,Qt::DisplayRole).toInt();
-    m_tagValue.insert( QObject::trUtf8("Гриф"), findStampInModel(stamp_id) );
+    int stamp_id = m_DC_model->data(indx,Qt::DisplayRole).toInt();    
+    m_tagValue[VPrn::cards_STAMP] = findStampInModel(stamp_id);
 
     indx = m_DC_model->index(0,VPrn::cards_EXECUTOR);
-    m_tagValue.insert( QObject::trUtf8("Исполнитель"),
-                       m_DC_model->data(indx,Qt::DisplayRole).toString());
+     m_tagValue[VPrn::cards_EXECUTOR] = m_DC_model->data(indx,Qt::DisplayRole)
+                                         .toString() ;
 
     indx = m_DC_model->index(0,VPrn::cards_PRINTMAN);
-    m_tagValue.insert( QObject::trUtf8("Отпечатал"),
-                       m_DC_model->data(indx,Qt::DisplayRole).toString());
+    m_tagValue[VPrn::cards_PRINTMAN] = m_DC_model->data(indx,Qt::DisplayRole)
+                                         .toString() ;
 
     indx = m_DC_model->index(0,VPrn::cards_PHONE);
-    m_tagValue.insert( QObject::trUtf8("Телефон"),
-                       m_DC_model->data(indx,Qt::DisplayRole).toString());
+     m_tagValue[VPrn::cards_PHONE] = m_DC_model->data(indx,Qt::DisplayRole)
+                                         .toString() ;
 
     indx = m_DC_model->index(0,VPrn::cards_INV_NUMBER);
-    m_tagValue.insert( QObject::trUtf8("Инв. N"),
-                       m_DC_model->data(indx,Qt::DisplayRole).toString());
+    m_tagValue[VPrn::cards_INV_NUMBER] = m_DC_model->data(indx,Qt::DisplayRole)
+                                         .toString() ;
 
     indx = m_DC_model->index(0,VPrn::cards_PRINT_DATE);
-    m_tagValue.insert( QObject::trUtf8("Дата распечатки"),
-                       m_DC_model->data(indx,Qt::DisplayRole).toString());
+    m_tagValue[VPrn::cards_PRINT_DATE] = m_DC_model->data(indx,Qt::DisplayRole)
+                                         .toString() ;
 
     QString rec;
     indx = m_DC_model->index(0,VPrn::cards_RECIVER_1);
     rec = m_DC_model->data(indx,Qt::DisplayRole).toString();
     if (!rec.isEmpty()){
-        m_tagValue.insert(QObject::trUtf8("Получатель N1"), rec);
+       m_tagValue[VPrn::cards_RECIVER_1] = rec;
         rec.clear();
     }
 
     indx = m_DC_model->index(0,VPrn::cards_RECIVER_2);
     rec = m_DC_model->data(indx,Qt::DisplayRole).toString();
     if (!rec.isEmpty()){
-        m_tagValue.insert(QObject::trUtf8("Получатель N2"), rec);
+       m_tagValue[VPrn::cards_RECIVER_2] = rec;
         rec.clear();
     }
     indx = m_DC_model->index(0,VPrn::cards_RECIVER_3);
     rec = m_DC_model->data(indx,Qt::DisplayRole).toString();
     if (!rec.isEmpty()){
-        m_tagValue.insert(QObject::trUtf8("Получатель N3"), rec);
+        m_tagValue[VPrn::cards_RECIVER_3] = rec;
         rec.clear();
     }
     indx = m_DC_model->index(0,VPrn::cards_RECIVER_4);
     rec = m_DC_model->data(indx,Qt::DisplayRole).toString();
     if (!rec.isEmpty()){
-        m_tagValue.insert(QObject::trUtf8("Получатель N4"), rec);
+       m_tagValue[VPrn::cards_RECIVER_4] = rec;
         rec.clear();
     }
     indx = m_DC_model->index(0,VPrn::cards_RECIVER_5);
     rec = m_DC_model->data(indx,Qt::DisplayRole).toString();
     if (!rec.isEmpty()){
-        m_tagValue.insert(QObject::trUtf8("Получатель N5"), rec);
+        m_tagValue[VPrn::cards_RECIVER_5] = rec;
         rec.clear();
     }
 
