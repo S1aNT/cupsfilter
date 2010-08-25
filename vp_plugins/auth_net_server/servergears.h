@@ -182,7 +182,7 @@ private:
     QMap<QString,QString> clientsPrintTask; // clients_uuid,taskID
     PrinterList prn_list;
     /**
-      * @var QHash <QString,PrintTask> prn_taskList;
+      * @var QMap <QString,PrintTask> prn_taskList;
       * @brief очередь заданий на печать для клиента с cliend_id
       */
 
@@ -202,11 +202,13 @@ private:
     void printCurrentFormatedDoc(const QString &client_uuid,QString printer_queue);
 
     /**
-      * @fn void createFormatedDoc(const QString &client_uuid,bool full_doc,QByteArray data);
+      * @fn void createFormatedDoc(const QString &client_uuid,
+                                    VPrn::PreviewMode prn_mode,QByteArray data);
       * @brief Формирует документ, готовит pdf из шаблона, объединяет их с документом
-      * ставит признак весь документ конвертировать в png или только первые страницы
+      * Определяет весь документ конвертировать в png или только первые страницы
       */
-    void createFormatedDoc(const QString &client_uuid,bool full_doc,QByteArray data);
+    void createFormatedDoc(const QString &client_uuid,
+                           VPrn::PreviewMode prn_mode,QByteArray data);
 
     /**
       * @fn void parseMessage( const Message &msg, const QString &c_uuid);

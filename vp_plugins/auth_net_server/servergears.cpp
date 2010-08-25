@@ -487,16 +487,17 @@ void serverGears::parseMessage( const Message &m_msg, const QString &c_uuid)
        case VPrn::Que_CreateFormatedFullDoc:
             // Запрос формирование полного документа, как для печати,
             // нужно вернуть список png страничек сделанного документа
-            createFormatedDoc(c_uuid,true,m_msg.messageData());
+            createFormatedDoc(c_uuid,VPrn::pre_FullMode,m_msg.messageData());
             break;
        case VPrn::Que_CreateFormatedPartDoc:
             // Запрос формирование частичного документа, как для печати,
             // нужно вернуть список png страничек сделанного документа
-            createFormatedDoc(c_uuid,false,m_msg.messageData());
+            createFormatedDoc(c_uuid,VPrn::pre_PartMode,m_msg.messageData());
             break;
        case VPrn::Que_CreateFormatedFullDocAndPrint:
             // Запрос формирование полного документа, для печати,
             //  и распечатка его
+            createFormatedDoc(c_uuid,VPrn::pre_ClearPrintMode,m_msg.messageData());
             break;
        case VPrn::Que_PrintCurrentFormatedDoc:
             printCurrentFormatedDoc(c_uuid,m_msg.messageData());
@@ -707,8 +708,9 @@ void serverGears::do_docReady4preview (const QString &client_uuid)
 }
 
 void serverGears::createFormatedDoc(const QString &client_uuid,
-                                    bool full_doc,QByteArray data)
+                                    VPrn::PreviewMode prn_mode,QByteArray data)
 {
+    qDebug() << Q_FUNC_INFO << "data.size() " << data.size() << "\n";
     QString t_fileName;
     QList <int> doc_copyes;
     QMap <int,QString> m_tagValue;
@@ -720,40 +722,33 @@ void serverGears::createFormatedDoc(const QString &client_uuid,
     in >> t_fileName;
     // читаем значения
     in >> m_tagValue;
-    /*
-    // Формируем  задание для печати
-    PrintTask *pTask = new  PrintTask(this);
-    pTask->setCopyes(doc_copyes);
-    pTask->setDocName( m_tagValue.value( VPrn::cards_DOC_NAME ) );
-    pTask->setMB( m_tagValue.value( VPrn::cards_MB_NUMBER) );
-    pTask->setPageCount (m_tagValue.value(VPrn::cards_PAGE_COUNT).toInt());
 
+
+    // Формируем  задание для печати
+    PrintTask *pTask = new  PrintTask(this);   
+    pTask->setDocName( m_tagValue.value( VPrn::cards_DOC_NAME ) );    
+    pTask->setPageCount (m_tagValue.value(VPrn::cards_PAGE_COUNT).toInt());  
     printTaskList.insert(client_uuid,pTask);
-*/
+
     // Формируем страницы шаблона в pdf
     bool Ok = true;
     {
-        for (int i=0; i< doc_copyes.size();i++){
+        for (int i=1; i<= doc_copyes.size();i++){
             m_tagValue[VPrn::cards_CURRENT_COPY] = QString("%1")
                                                    .arg(i,0,10);
             Ok &= tmpl_plugin->prepare_template(client_uuid,
                                                 t_fileName,
-                                                m_tagValue,i);
+                                                m_tagValue,i);           
         }
     }
     if (Ok &&  gs_plugin ){
         QStringList files = gs_plugin->findFiles(client_uuid,
-                                                 QStringList() << "t_firstpage.pdf"
-                                                 << "t_otherpage.pdf"
-                                                 << "t_oversidepage.pdf"
-                                                 << "t_lastpage.pdf"
+                                                 QStringList() << "t_*.pdf"
                                                  );
-        // Поставим клиенту признак весь документ или нет конвертировать в png после объединения
-        gs_plugin->setConvertToPngMode(client_uuid, full_doc );
-
         // Сформируем документ подготовленный к печати  документ + шаблон
-        gs_plugin->mergeWithTemplate(client_uuid, files ) ;
+        gs_plugin->mergeWithTemplate(client_uuid, files,prn_mode ) ;
     }
+
 }
 
 void serverGears::markDocInBaseAsFault(const QString &client_uuid,
@@ -958,10 +953,11 @@ void serverGears::printCurrentFormatedDoc(const QString &client_uuid,
     pTask = printTaskList.value(client_uuid);
     if (pTask){
         if (gs_plugin && !printer_queue.isEmpty() ){
+            /*
             QList <int> copyes = pTask->getCopyes();
             for (int i=0; i < copyes.size();i++){
                 // Обработка i-го экз документа
-                /*
+
                 splitListToFile(gs_plugin->findFiles4Copy(client_uuid,
                                                           i,
                                                           QStringList() << "*out.pdf"),
@@ -969,8 +965,9 @@ void serverGears::printCurrentFormatedDoc(const QString &client_uuid,
 
                 createPrintTask(client_uuid, printer_queue,
                                 fpage,otherpage,overpage,lastpage);
-                                */
+
             }
+        */
         }
     }
 }
