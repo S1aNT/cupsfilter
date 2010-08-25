@@ -349,6 +349,18 @@ namespace VPrn{
         Ans_PrintThisFileSuccess     = 6010,
         Ans_PrintThisFileFailure     = 6050,
 
+        /*
+         * @short Запрос пользователь должен пометить экз документа как ЧИСТОВИК/БРАК
+         * @param (QString) Название документа
+         * @param (QString) Принтер на котором печатался документ
+         * @param (QString) МБ номер документа
+         * @param (qint8)   Номер экземпляра
+         * ----------------------------------------------------------
+         *
+         */
+        Que_UserNeedMarkCopies       = 6100,
+
+        Ans_UserNeedMarkCopies       = 6110,
         ///Служебные сообщения
         GoodBay          = 7000,        /// GateKeeper завершает работу и Вам пора
         Err_Message      = 7001,        /// Сообщение об ошибке.Подробности в теле сообщения
