@@ -224,7 +224,7 @@ bool Tmpl_sql_plugin::prepare_template(const QString &c_uuid,
                                         break;
                                     case VPrn::ThirdPage:
                                         page_fn = path;
-                                        page_fn.append("t_overepage.pdf");
+                                        page_fn.append("t_oversidepage.pdf");
                                         break;
                                     case VPrn::FourthPage:
                                         page_fn = path;
