@@ -375,20 +375,7 @@ namespace VPrn{
         pre_FullMode       = 0,
         pre_PartMode       = 1,
         pre_ClearPrintMode = 2
-                         };
-
-    enum{
-
-
-
-        RAW_SQL_CMD          = 202,
-        USER_SAY_DOC_GOOD    = 203,
-        USER_SAY_DOC_BAD     = 204,
-
-
-        DISCONNECT           = 5000
-
-                           };
+    };
 
 
 }
