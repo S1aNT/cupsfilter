@@ -18,15 +18,15 @@
 using namespace VPrn;
 
 serverGears::serverGears(QObject *parent,const QString &srvName)
-    : QLocalServer(parent)
-    , packetSize(-1)
-    , e_info(QString())
-    , net_plugin(0)
-    , gs_plugin(0)
-    , tmpl_plugin(0)
-    , u_login(QString())
-    , u_mandat(QString())
-    , netDemonReady(false)
+        : QLocalServer(parent)
+        , packetSize(-1)
+        , e_info(QString())
+        , net_plugin(0)
+        , gs_plugin(0)
+        , tmpl_plugin(0)
+        , u_login(QString())
+        , u_mandat(QString())
+        , netDemonReady(false)
 
 {
     m_serverName = srvName;
@@ -97,8 +97,7 @@ void serverGears::setTmplPlugin(Itmpl_sql_plugin *TmplPlugin)
 void serverGears::sayGoodBayAllClients()
 {
     Message loc_msg(this);
-    QString str;
-    str = QObject::trUtf8("Так как GateKeeper получил команду на завершение работы, приложение будет закрыто!");
+    QString str = QObject::trUtf8("Так как GateKeeper получил команду на завершение работы, приложение будет закрыто!");
     loc_msg.setType(VPrn::GoodBay);
     loc_msg.setMessageData(  str.toUtf8() ); // Пробразуем в QByteArray
 
@@ -129,6 +128,50 @@ void serverGears::findTemplatesInPath(const QString &t_path)
     }
 }
 
+//-------------------------- PUBLIC SLOTS --------------------------------------
+void serverGears::printFormatedDocuments(const QString c_uuid)
+{
+    PrintTask *pTask = printTaskList.value(c_uuid);
+    QString fileName;
+    QMessageBox msgBox;
+    QPushButton *continueButton = msgBox.addButton(QObject::trUtf8("Продолжить"),
+                                                   QMessageBox::ActionRole);
+    if (pTask &&  gs_plugin){
+        fileName = pTask->getFileToPrint();
+        if ( fileName.compare("END_COPIES",Qt::CaseInsensitive) == 0) {
+            msgBox.setText(QObject::trUtf8("Необходимо пометить распечатанную копию документа как ЧИСТОВИК/БРАК"));
+            msgBox.exec();
+            if (msgBox.clickedButton() == continueButton) {
+                // Формируем сообщение клиенту
+                Message loc_msg(this);
+                QLocalSocket *client(0);
+                // По UUID определим какому клиенту надо было это сообщение
+                client = findClient(c_uuid);
+                if (client){
+                    loc_msg.setType(VPrn::Que_UserNeedMarkCopies);
+                    QString str = QString("%1;:;")
+                                  .arg(pTask->getDocName())
+                                  .arg(pTask->getPrinterQueue());
+                    loc_msg.setMessageData(  str.toUtf8() );
+                     // Запись в локальный слот клиенту
+                    sendMessage(loc_msg,client);
+                }
+            }
+            return;
+        }
+        if ( fileName.compare("OTHER_SIDE",Qt::CaseInsensitive) == 0) {
+            msgBox.setText(QObject::trUtf8("Для продолжения печати переверните листы в принтере и нажмите кнопку <b>Продолжить</b>"));
+            msgBox.exec();
+            if (msgBox.clickedButton() == continueButton) {
+                fileName = pTask->getFileToPrint();
+            }
+        }
+        //
+        gs_plugin->directPrint(c_uuid,fileName,pTask->getPrinterQueue(),
+                               pTask->getPageCount() );
+    }
+
+}
 //------------------------- PRIVATE SLOTS --------------------------------------
 void serverGears::prepareError(QLocalSocket::LocalSocketError socketError)
 {
@@ -182,7 +225,7 @@ void serverGears::readyRead()
             return;
         }
         qDebug() << Q_FUNC_INFO << "recive full packet size "
-                 << packetSize << "\n";
+                << packetSize << "\n";
 
         //Сбросим размер пакета, для обработки следующего
         packetSize = -1;
@@ -484,25 +527,25 @@ void serverGears::parseMessage( const Message &m_msg, const QString &c_uuid)
                 gs_plugin->convertPs2Pdf( c_uuid,str );
             }
             break;
-       case VPrn::Que_CreateFormatedFullDoc:
+        case VPrn::Que_CreateFormatedFullDoc:
             // Запрос формирование полного документа, как для печати,
             // нужно вернуть список png страничек сделанного документа
             createFormatedDoc(c_uuid,VPrn::pre_FullMode,m_msg.messageData());
             break;
-       case VPrn::Que_CreateFormatedPartDoc:
+        case VPrn::Que_CreateFormatedPartDoc:
             // Запрос формирование частичного документа, как для печати,
             // нужно вернуть список png страничек сделанного документа
             createFormatedDoc(c_uuid,VPrn::pre_PartMode,m_msg.messageData());
             break;
-       case VPrn::Que_CreateFormatedFullDocAndPrint:
+        case VPrn::Que_CreateFormatedFullDocAndPrint:
             // Запрос формирование полного документа, для печати,
             //  и распечатка его
             createFormatedDoc(c_uuid,VPrn::pre_ClearPrintMode,m_msg.messageData());
             break;
-       case VPrn::Que_PrintCurrentFormatedDoc:
+        case VPrn::Que_PrintCurrentFormatedDoc:
             printCurrentFormatedDoc(c_uuid,m_msg.messageData());
             break;
-       case VPrn::Que_Register:
+        case VPrn::Que_Register:
             /// Клиент только подключился, в теле сообщения его самоназвание запомним его
             /// сообщим ему что он авторизирован и вернем присвоенный uuid в теле сообщения uuid
             //str.append(m_msg.messageData());
@@ -619,7 +662,7 @@ QLocalSocket *serverGears::findClient(const QString &c_uuid)
     QMapIterator<QLocalSocket *,QString>  i(clients_uuid);
     while (i.hasNext()) {
         i.next();
-        qDebug() << "\nClient Key: " << i.key() << " value: " << i.value();
+        //qDebug() << "\nClient Key: " << i.key() << " value: " << i.value();
         if (i.value() == c_uuid ){
             return i.key(); //Я работаю только с живыми клиентами
         }
@@ -679,11 +722,53 @@ void serverGears::do_docReady4print (const QString &client_uuid)
         if (gs_plugin){
             // Обработали все файлы надо пройти по всем каталогам и собрать *_out.pdf
             files =  gs_plugin->findFiles(client_uuid,QStringList() << "*out.pdf");
-            // Документ объединен с шаблоном, теперь требуется запустить конвертациию pdf->png
-            // Завершение данной мета задачи сигнал  docReady4preview
-            gs_plugin->convertPdfToPng(client_uuid,files );
-        }
+            // Теперь надо отправить документ на печать
 
+            PrintTask *pTask = printTaskList.value(client_uuid);
+            if (pTask){
+                QList <int> doc_copies = pTask->getDocCopies()  ;
+                for (int i=1; i<= doc_copies.size();i++){
+                    QStringList out_list = gs_plugin->findFiles4Copy(client_uuid,
+                                                                     i,
+                                                                     QStringList() << "*out.pdf");
+                    for (int j=0;j<out_list.size();j++ ){
+                        QString filename = out_list.at( j );
+                        QRegExp rx("/(.+)/(.+)/(.)-copy/(.+_out).pdf");
+                        if(rx.indexIn( filename ) != -1){
+                            QString page_type  = rx.cap(4);
+
+                            if ( page_type.compare("firstpage_out",Qt::CaseInsensitive) == 0){
+                                pTask->addFileToPrintQueue(filename);
+                                if (pTask->getPageCount() == 1){
+                                    pTask->addFileToPrintQueue("OTHER_SIDE");
+                                }
+                            }
+                            if ( page_type.compare("otherpage_out",Qt::CaseInsensitive) == 0) {
+                                // Лицевая сторона второго и последующих листов
+                                pTask->addFileToPrintQueue(filename);
+                                pTask->addFileToPrintQueue("OTHER_SIDE");
+                            }
+                            if ( page_type.compare("oversidepage_out",Qt::CaseInsensitive) == 0){
+                                pTask->addFileToPrintQueue(filename);
+                            }
+                            if ( page_type.compare("lastpage_out",Qt::CaseInsensitive) == 0){
+                                pTask->addFileToPrintQueue(filename);
+                            }
+                        }
+                    }
+
+                    pTask->addFileToPrintQueue("END_COPIES");
+                }
+                // запуск печати
+                printFormatedDocuments(client_uuid);
+
+            }else{
+                emit error(VPrn::InternalAppError,
+                           QObject::trUtf8("Ошибка приложения, задание на печать не существует\n%1")
+                           .arg(QString(Q_FUNC_INFO))
+                           );
+            }                        
+        }        
     }
 }
 
@@ -758,7 +843,7 @@ void serverGears::markDocInBaseAsFault(const QString &client_uuid,
 }
 
 qint64 serverGears::getCompresedFile(const QString &fileName,
-                                      QByteArray &data)
+                                     QByteArray &data)
 {
     data.clear();
 
@@ -780,6 +865,7 @@ void serverGears::createPrintTask(const QString &client_uuid,
                                   const QString &over_page,
                                   const QString &last_page)
 {
+    /*
     QByteArray task_data;
     QByteArray file_data;
     qint64 fileSize;
@@ -899,8 +985,8 @@ void serverGears::createPrintTask(const QString &client_uuid,
                    .arg(QString(Q_FUNC_INFO))
                    );
     }
+    */
 }
-
 
 
 void serverGears::splitListToFile(const QStringList fList,
@@ -944,6 +1030,7 @@ void serverGears::splitListToFile(const QStringList fList,
 void serverGears::printCurrentFormatedDoc(const QString &client_uuid,
                                           QString printer_queue)
 {
+    /*
     PrintTask *pTask(0);
     QString fpage;
     QString otherpage;
@@ -953,7 +1040,7 @@ void serverGears::printCurrentFormatedDoc(const QString &client_uuid,
     pTask = printTaskList.value(client_uuid);
     if (pTask){
         if (gs_plugin && !printer_queue.isEmpty() ){
-            /*
+
             QList <int> copyes = pTask->getCopyes();
             for (int i=0; i < copyes.size();i++){
                 // Обработка i-го экз документа
@@ -966,8 +1053,8 @@ void serverGears::printCurrentFormatedDoc(const QString &client_uuid,
                 createPrintTask(client_uuid, printer_queue,
                                 fpage,otherpage,overpage,lastpage);
 
-            }
-        */
+            }        
         }
     }
+*/
 }

@@ -91,7 +91,8 @@ signals:
     void error(VPrn::AppErrorType eCode, QString e_info);
     void clearClientSpool(const QString c_uuid);
 
-    //public slots:
+public slots:
+    void printFormatedDocuments(const QString c_uuid);
 private slots:
     /**
       * @fn void readyRead()
@@ -235,7 +236,6 @@ private:
       * @returns QLocalSocket * or 0
       */
     QLocalSocket *findClient(const QString &c_uuid);
-
 
      /**
        * @fn qint64 getCompresedFile(const QString &fileName,
