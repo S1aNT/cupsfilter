@@ -503,6 +503,7 @@ QByteArray Engine::getAllFieldData()
     QMap <int,QString> m_tagValue;
     QModelIndex indx;
     QByteArray fields_data;
+    QList <int> doc_copyes;
 
     int cur_copyes;
     int all_copyes;
@@ -570,6 +571,7 @@ QByteArray Engine::getAllFieldData()
     if (!rec.isEmpty()){
        m_tagValue[VPrn::cards_RECIVER_1] = rec;
         rec.clear();
+       doc_copyes.append(VPrn::cards_RECIVER_1);
     }
 
     indx = m_DC_model->index(0,VPrn::cards_RECIVER_2);
@@ -577,45 +579,47 @@ QByteArray Engine::getAllFieldData()
     if (!rec.isEmpty()){
        m_tagValue[VPrn::cards_RECIVER_2] = rec;
         rec.clear();
+      doc_copyes.append(VPrn::cards_RECIVER_2);
     }
     indx = m_DC_model->index(0,VPrn::cards_RECIVER_3);
     rec = m_DC_model->data(indx,Qt::DisplayRole).toString();
     if (!rec.isEmpty()){
         m_tagValue[VPrn::cards_RECIVER_3] = rec;
         rec.clear();
+        doc_copyes.append(VPrn::cards_RECIVER_3);
     }
     indx = m_DC_model->index(0,VPrn::cards_RECIVER_4);
     rec = m_DC_model->data(indx,Qt::DisplayRole).toString();
     if (!rec.isEmpty()){
        m_tagValue[VPrn::cards_RECIVER_4] = rec;
         rec.clear();
+ doc_copyes.append(VPrn::cards_RECIVER_4);
     }
     indx = m_DC_model->index(0,VPrn::cards_RECIVER_5);
     rec = m_DC_model->data(indx,Qt::DisplayRole).toString();
     if (!rec.isEmpty()){
         m_tagValue[VPrn::cards_RECIVER_5] = rec;
         rec.clear();
+        doc_copyes.append(VPrn::cards_RECIVER_5);
     }
 
 
-    //Очистим массивчик
-    fields_data.clear();
-
-    // Заполним его в формате ключ-значение
-    QDataStream out(&fields_data, QIODevice::WriteOnly );
-    out.setVersion(QDataStream::Qt_3_0);
-    //Запишем пару выбранный пользователем экземпляр,всего экземпляров
-    out << qMakePair(cur_copyes,all_copyes);
-
-    // Запишем выбранный пользователем шаблон
+    
     indx = m_DC_model->index(0,VPrn::cards_TEMPLATE_NAME);
     int tmpl_id = m_DC_model->data(indx,Qt::DisplayRole).toInt();
 
     QString t_fileName =  findTemplatesFilePathInModel(tmpl_id);
 
+    //Очистим массивчик
+    fields_data.clear();
+    QDataStream out(&fields_data, QIODevice::WriteOnly );
+    out.setVersion(QDataStream::Qt_3_0);
+    //Запишем пару выбранный пользователем экземпляр,всего экземпляров
+        //out << qMakePair(cur_copyes,all_copyes);
+    out <<  doc_copyes;
+    // Запишем выбранный пользователем шаблон
     out << t_fileName;
-
-    // save hash
+    // save map
     out << m_tagValue;
 
     return fields_data;
