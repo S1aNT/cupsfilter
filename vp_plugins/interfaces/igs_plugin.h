@@ -32,6 +32,10 @@ public:
     virtual void deleteClientData(const QString &client_uuid) = 0;
     virtual void setConvertToPngMode(const QString &client_uuid, bool full_doc ) = 0;
     virtual QStringList findFiles(const QString &client_uuid,const QStringList &filters) = 0;
+    virtual QStringList findFiles4Copy(const QString &client_uuid, /*ID клиента*/
+                               int copyNum, /*Номер экземпляра документа*/
+                               const QStringList &filters /*Тип файлов*/
+                               ) = 0;
     virtual QString getUuid() const = 0;    
     virtual void calcPageCount(const QString &client_uuid,const QString &input_fn = QString() )= 0;
 };
