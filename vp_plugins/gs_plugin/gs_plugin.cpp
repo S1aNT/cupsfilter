@@ -124,7 +124,7 @@ void GS_plugin::directPrint(const QString &client_uuid,const QString &file_name,
     if (gsprintBin.isEmpty()){
         emit error(VPrn::FileNotFound,
                    QObject::trUtf8("Файл %1 не найден или отсутсвуют права доступа\n %2")
-                                    .arg(gsprintBin).arg(QString(Q_FUNC_INFO))
+                   .arg(gsprintBin).arg(QString(Q_FUNC_INFO))
                    );
     }else{
 #if defined(Q_OS_UNIX)        
@@ -141,8 +141,11 @@ void GS_plugin::directPrint(const QString &client_uuid,const QString &file_name,
     }
 }
 
-void GS_plugin::mergeWithTemplate(const QString &client_uuid, const QStringList &t_files)
+void GS_plugin::mergeWithTemplate(const QString &client_uuid,
+                                  const QStringList &t_files,
+                                  VPrn::PreviewMode prn_mode)
 {
+
     // Поиск данных для клиента
     ClientData *c_data = findClientData(client_uuid);
     if (!QFile::exists(c_data->getFirstPage() ) ){
@@ -199,6 +202,15 @@ void GS_plugin::mergeWithTemplate(const QString &client_uuid, const QStringList 
 
         }
     }
+    QStringList out_list = this->findFiles(client_uuid, QStringList()
+                                           << "*_out.pdf"
+                                           );
+    if (prn_mode == VPrn::pre_ClearPrintMode ){
+        c_data->setConvertMode(true);
+    }else{
+        c_data->setConvertMode(false);
+    }
+    convertPdfToPng(client_uuid,out_list);
 }
 
 void GS_plugin::convertPdfToPng(const QString &client_uuid,

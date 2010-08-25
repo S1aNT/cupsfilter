@@ -44,11 +44,14 @@ public:
 
     /**
       * @fn void mergeWithTemplate(const QString &client_uuid,
-      *                                                   const QStringList &t_files);
+      *                            const QStringList &t_files,
+                                   VPrn::PreviewMode prn_mode);
       * @brief Объединяет исходный файл состоящий из 2х частей с элементами шаблона
       * для i экз документа
       */
-    void mergeWithTemplate(const QString &client_uuid, const QStringList &t_files );
+    void mergeWithTemplate(const QString &client_uuid,
+                           const QStringList &t_files,
+                           VPrn::PreviewMode prn_mode );
     /**
       * @fn void convertPdfToPng(const QString &client_uuid,
       *                          const QString &filename);
