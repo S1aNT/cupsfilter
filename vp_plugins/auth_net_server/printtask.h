@@ -26,17 +26,20 @@ public:
     void setPrinterQueue ( const QString &s) ;    
     void setDocName      ( const QString &s) ;   
     void setPageCount    ( int cnt)          ;
-    void addFileToPrintQueue  ( const QString &s) ;
+    void addFileToPrintQueue  ( const QString &s);
+    void setDocCopies    ( QList <int> &copies );
 
     QString getDocName()      const { return m_docName; }   
     QString getPrinterQueue() const { return m_printerQueue; }
     int     getPageCount()          { return m_pageCount; }    
-    QString getFileToPrintQueue()   { return queueFiles2Print.pop() ;}
+    QString getFileToPrint()        { return m_queueFiles2Print.pop() ;}
+    QList <int> getDocCopies()      { return m_doc_copyes;}
 private:
     QString m_docName;      // Название документа   
     QString m_printerQueue; // Имя принтера (имя очереди для CUPS сервера)    
     int     m_pageCount;    // Кол-во стр в документе    
-    QStack <QString>    queueFiles2Print; // Очередь файлов для печати
+    QStack <QString> m_queueFiles2Print; // Очередь файлов для печати
+    QList <int>      m_doc_copyes; // Копии документа (1-5 получатели)
 };
 
 

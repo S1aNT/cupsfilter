@@ -7,7 +7,8 @@ PrintTask::PrintTask(QObject *parent)
         ,m_pageCount(0)
 
 {
-    queueFiles2Print.clear();
+    m_queueFiles2Print.clear();
+    m_doc_copyes.clear();
 }
 
 void PrintTask::setPrinterQueue ( const QString &s)
@@ -36,6 +37,9 @@ void PrintTask::addFileToPrintQueue  ( const QString &s)
     if (s.isEmpty()){
         return;
     }
-    queueFiles2Print.push(s);
+    m_queueFiles2Print.push(s);
 }
-
+void PrintTask::setDocCopies    ( QList <int> &copies )
+{
+    m_doc_copyes =copies;
+}
