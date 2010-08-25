@@ -395,6 +395,10 @@ void Engine::parseMessage(const Message &r_msg)
             sendMessage2LocalSrv(msg);
         }
         break;
+    case VPrn::Que_UserNeedMarkCopies:{
+
+        }
+        break;
     case VPrn::Err_Message:{
             // Получили сообщение об ошибке Формат: КОД~~описание
         }
@@ -526,6 +530,7 @@ QByteArray Engine::getAllFieldData()
                                          .toString() ;
 
     indx = m_DC_model->index(0,VPrn::cards_SELECT_ALL_COPY);    
+    /*
     // стоит отметка все экз. пишем 0!!!
     if (  m_DC_model->data(indx,Qt::DisplayRole).toBool() ){
         cur_copyes = 0;
@@ -537,7 +542,7 @@ QByteArray Engine::getAllFieldData()
         indx = m_DC_model->index(0,VPrn::cards_COPY_COUNT);
         all_copyes = m_DC_model->data(indx,Qt::DisplayRole).toInt();
     }
-
+ */
     m_tagValue[VPrn::cards_CURRENT_COPY]= QString("%1").arg(cur_copyes,0,10) ;
     m_tagValue[VPrn::cards_COPY_COUNT]=  QString("%1").arg(all_copyes,0,10) ;
 
@@ -546,16 +551,16 @@ QByteArray Engine::getAllFieldData()
     m_tagValue[VPrn::cards_STAMP] = findStampInModel(stamp_id);
 
     indx = m_DC_model->index(0,VPrn::cards_EXECUTOR);
-     m_tagValue[VPrn::cards_EXECUTOR] = m_DC_model->data(indx,Qt::DisplayRole)
-                                         .toString() ;
+    m_tagValue[VPrn::cards_EXECUTOR] = m_DC_model->data(indx,Qt::DisplayRole)
+                                       .toString() ;
 
     indx = m_DC_model->index(0,VPrn::cards_PRINTMAN);
     m_tagValue[VPrn::cards_PRINTMAN] = m_DC_model->data(indx,Qt::DisplayRole)
-                                         .toString() ;
+                                       .toString() ;
 
     indx = m_DC_model->index(0,VPrn::cards_PHONE);
-     m_tagValue[VPrn::cards_PHONE] = m_DC_model->data(indx,Qt::DisplayRole)
-                                         .toString() ;
+    m_tagValue[VPrn::cards_PHONE] = m_DC_model->data(indx,Qt::DisplayRole)
+                                    .toString() ;
 
     indx = m_DC_model->index(0,VPrn::cards_INV_NUMBER);
     m_tagValue[VPrn::cards_INV_NUMBER] = m_DC_model->data(indx,Qt::DisplayRole)
@@ -569,38 +574,38 @@ QByteArray Engine::getAllFieldData()
     indx = m_DC_model->index(0,VPrn::cards_RECIVER_1);
     rec = m_DC_model->data(indx,Qt::DisplayRole).toString();
     if (!rec.isEmpty()){
-       m_tagValue[VPrn::cards_RECIVER_1] = rec;
+        m_tagValue[VPrn::cards_RECIVER_1] = rec;
         rec.clear();
-       doc_copyes.append(VPrn::cards_RECIVER_1);
+        doc_copyes.append(VPrn::FirstPage);
     }
 
     indx = m_DC_model->index(0,VPrn::cards_RECIVER_2);
     rec = m_DC_model->data(indx,Qt::DisplayRole).toString();
     if (!rec.isEmpty()){
-       m_tagValue[VPrn::cards_RECIVER_2] = rec;
+        m_tagValue[VPrn::cards_RECIVER_2] = rec;
         rec.clear();
-      doc_copyes.append(VPrn::cards_RECIVER_2);
+        doc_copyes.append(VPrn::FirstPageN2);
     }
     indx = m_DC_model->index(0,VPrn::cards_RECIVER_3);
     rec = m_DC_model->data(indx,Qt::DisplayRole).toString();
     if (!rec.isEmpty()){
         m_tagValue[VPrn::cards_RECIVER_3] = rec;
         rec.clear();
-        doc_copyes.append(VPrn::cards_RECIVER_3);
+        doc_copyes.append(VPrn::FirstPageN3);
     }
     indx = m_DC_model->index(0,VPrn::cards_RECIVER_4);
     rec = m_DC_model->data(indx,Qt::DisplayRole).toString();
     if (!rec.isEmpty()){
-       m_tagValue[VPrn::cards_RECIVER_4] = rec;
+        m_tagValue[VPrn::cards_RECIVER_4] = rec;
         rec.clear();
- doc_copyes.append(VPrn::cards_RECIVER_4);
+        doc_copyes.append(VPrn::FirstPageN4);
     }
     indx = m_DC_model->index(0,VPrn::cards_RECIVER_5);
     rec = m_DC_model->data(indx,Qt::DisplayRole).toString();
     if (!rec.isEmpty()){
         m_tagValue[VPrn::cards_RECIVER_5] = rec;
         rec.clear();
-        doc_copyes.append(VPrn::cards_RECIVER_5);
+        doc_copyes.append(VPrn::FirstPageN2);
     }
 
 
@@ -615,7 +620,7 @@ QByteArray Engine::getAllFieldData()
     QDataStream out(&fields_data, QIODevice::WriteOnly );
     out.setVersion(QDataStream::Qt_3_0);
     //Запишем пару выбранный пользователем экземпляр,всего экземпляров
-        //out << qMakePair(cur_copyes,all_copyes);
+    //out << qMakePair(cur_copyes,all_copyes);
     out <<  doc_copyes;
     // Запишем выбранный пользователем шаблон
     out << t_fileName;
