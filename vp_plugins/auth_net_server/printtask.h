@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QMap>
 #include <QList>
+#include <QStack>
 
 /**
   * @class PrintTask
@@ -20,27 +21,22 @@ class PrintTask : public QObject
 {
     Q_OBJECT
 public:
-    explicit PrintTask(QObject *parent = 0);    
-    void setPrinterQueue ( const QString &s) { m_printerQueue = s;}
-    void setJobId4Copy   ( const QString &s,int copy){m_jobId4copy[copy] = s;}
-    void setCopyes       ( QList <int> cnt)  { m_copyes = cnt;}
-    void setDocName      ( const QString &s) { m_docName = s;}
-    void setMB           ( const QString &s) { m_mb = s;}
-    void setPageCount    ( int cnt)          { m_pageCount = cnt; }
+    explicit PrintTask   ( QObject *parent = 0 );
 
-    QString getDocName()      const { return m_docName; }
-    QString getMB()           const { return m_mb; }
+    void setPrinterQueue ( const QString &s) ;    
+    void setDocName      ( const QString &s) ;   
+    void setPageCount    ( int cnt)          ;
+    void addFileToPrintQueue  ( const QString &s) ;
+
+    QString getDocName()      const { return m_docName; }   
     QString getPrinterQueue() const { return m_printerQueue; }
-    int     getPageCount()          { return m_pageCount; }
-    QList <int>  getCopyes()        { return m_copyes; }
-    QString getJobId4Copy(int copy) { return m_jobId4copy.value(copy); }
+    int     getPageCount()          { return m_pageCount; }    
+    QString getFileToPrintQueue()   { return queueFiles2Print.pop() ;}
 private:
-    QString m_docName;      // Название документа
-    QString m_mb;           // Номер МБ    
+    QString m_docName;      // Название документа   
     QString m_printerQueue; // Имя принтера (имя очереди для CUPS сервера)    
     int     m_pageCount;    // Кол-во стр в документе    
-    QList  <int>         m_copyes;    // Число экз. документа
-    QMap   <int,QString> m_jobId4copy;
+    QStack <QString>    queueFiles2Print; // Очередь файлов для печати
 };
 
 
