@@ -127,17 +127,16 @@ void GS_plugin::directPrint(const QString &client_uuid,const QString &file_name,
                    .arg(gsprintBin).arg(QString(Q_FUNC_INFO))
                    );
     }else{
-#if defined(Q_OS_UNIX)        
-        prn_bin ="lpr"; /// @todo добавить переменную при инициализации
+        prn_bin = gsprintBin;
+#if defined(Q_OS_UNIX)                
         args.append(QString("-P %1").arg(printer_name));
         args.append(tr("-#%1").arg(copies,0,10));
-#elif defined(Q_OS_WIN)    
+#elif defined(Q_OS_WIN)
         args.append(printer_name); // Первый параметр имя принтера
         args.append(tr("%1").arg(copies,0,10));
 #endif
         args.append(file_name);
         start_proc(client_uuid,prn_bin,args,VPrn::job_PrintFile);
-        emit filePrinted(client_uuid);
     }
 }
 
@@ -202,15 +201,12 @@ void GS_plugin::mergeWithTemplate(const QString &client_uuid,
 
         }
     }
-    QStringList out_list = this->findFiles(client_uuid, QStringList()
-                                           << "*_out.pdf"
-                                           );
+
     if (prn_mode == VPrn::pre_ClearPrintMode ){
         c_data->setConvertMode(true);
     }else{
         c_data->setConvertMode(false);
-    }
-    convertPdfToPng(client_uuid,out_list);
+    }    
 }
 
 void GS_plugin::convertPdfToPng(const QString &client_uuid,
@@ -375,10 +371,15 @@ void GS_plugin::threadFinish(const QString &jobKey,int code,
     case VPrn::job_MergePdf:
         if (c_data->isFinishedMerge() ){
             // Все варианты документа объеденнены с шаблоном отправим сигнал
+             QStringList out_list = this->findFiles(m_client_uuid, QStringList()
+                                           << "*_out.pdf"
+                                           );
+            convertPdfToPng(m_client_uuid,out_list);
             emit docReady4print( m_client_uuid );
         }
         break;
     case VPrn::job_PrintFile:
+         emit filePrinted(m_client_uuid);
         break;
     case VPrn::job_ConvertPs2Pdf: // Завершилась задача конвертирования ps в
         emit docConvertedToPdf(m_client_uuid);
