@@ -493,7 +493,7 @@ QString Engine::findPrinterInModel()
         if (sel_flag){
             QModelIndex index_ip = m_Prn_model->index(i, 1);
             QModelIndex index_qqueue = m_Prn_model->index(i, 2);
-            device_profile = QString("%1.%2")
+            device_profile = QString("%1;:;%2")
                              .arg(m_Prn_model->data(index_ip, Qt::DisplayRole).toString())
                              .arg(m_Prn_model->data(index_qqueue, Qt::DisplayRole).toString());
             break;
