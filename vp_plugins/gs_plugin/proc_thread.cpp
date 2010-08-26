@@ -9,7 +9,7 @@
 
 
 ProcessT::ProcessT( QObject *parent,const QString &jobKey)
-    : QThread( parent )
+        : QThread( parent )
 {
     m_ChanMode = QProcess::SeparateChannels;
     job_key = jobKey;
@@ -20,6 +20,9 @@ ProcessT::~ProcessT()
     wait();
     qDebug() << Q_FUNC_INFO << "Thread destroyed";
 }
+
+
+
 
 void ProcessT::run()
 {
@@ -34,8 +37,9 @@ void ProcessT::run()
     if (!n_Env.isEmpty()){
         proc.setEnvironment(n_Env);
     }
-
+    qDebug() << "m_Args\n" << m_Args << "\n";
     proc.setProcessChannelMode( m_ChanMode );
+
     proc.start( m_Command, m_Args );
     if (!proc.waitForStarted()) {
         m_Output =QString("Ошибка при запуске приложения %1").arg(m_Command);
@@ -45,6 +49,7 @@ void ProcessT::run()
         proc.waitForFinished(-1);
         proc.closeWriteChannel();
         m_Output = proc.readAll();//.trimmed();
+        qDebug() << Q_FUNC_INFO << "m_Output " << m_Output << "\n";
         emit jobFinish(job_key,proc.exitCode(), m_Output );
     }
 }
