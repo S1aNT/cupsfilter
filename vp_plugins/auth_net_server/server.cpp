@@ -505,6 +505,11 @@ bool Server::loadPlugins()
                                  myServerGears,
                                  SLOT ( do_docReady4preview (const QString &) )
                                  );
+                        connect (plugin,
+                                 SIGNAL( filePrinted(const QString &) ),
+                                 myServerGears,
+                                 SLOT ( printFormatedDocuments(const QString &) )
+                                 );
                     }
                 }
                 if (!myAuth_plugin){
