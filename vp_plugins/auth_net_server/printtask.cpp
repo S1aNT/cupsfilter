@@ -1,4 +1,6 @@
 #include "printtask.h"
+#include <QRegExp>
+#include <QStringList>
 
 PrintTask::PrintTask(QObject *parent)
         :QObject(parent)
@@ -16,10 +18,14 @@ void PrintTask::setPrinterQueue ( const QString &s)
     if (s.isEmpty()){
         return;
     }
-    m_printerQueue = s;
+    QStringList list = s.split(".");
+    if (list.size() !=0 ){
+        // пришло в формате dns_name.printer_name
+        m_printerQueue = QString("\"%1\"").arg(list.last());
+    }
 }
 
-void PrintTask::setDocName      ( const QString &s)
+void PrintTask::setDocName( const QString &s)
 {
     if (s.isEmpty()){
         return;
@@ -37,9 +43,18 @@ void PrintTask::addFileToPrintQueue  ( const QString &s)
     if (s.isEmpty()){
         return;
     }
-    m_queueFiles2Print.push(s);
+    m_queueFiles2Print.enqueue(s);
 }
 void PrintTask::setDocCopies    ( QList <int> &copies )
 {
     m_doc_copyes =copies;
+}
+
+QString PrintTask::getFileToPrint()
+{
+    QString str;
+    if (!m_queueFiles2Print.isEmpty()){
+        str= m_queueFiles2Print.dequeue();
+    }
+    return str;
 }

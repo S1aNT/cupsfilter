@@ -4,7 +4,7 @@
 #include <QObject>
 #include <QMap>
 #include <QList>
-#include <QStack>
+#include <QQueue>
 
 /**
   * @class PrintTask
@@ -32,13 +32,13 @@ public:
     QString getDocName()      const { return m_docName; }   
     QString getPrinterQueue() const { return m_printerQueue; }
     int     getPageCount()          { return m_pageCount; }    
-    QString getFileToPrint()        { return m_queueFiles2Print.pop() ;}
+    QString getFileToPrint();
     QList <int> getDocCopies()      { return m_doc_copyes;}
 private:
     QString m_docName;      // Название документа   
     QString m_printerQueue; // Имя принтера (имя очереди для CUPS сервера)    
     int     m_pageCount;    // Кол-во стр в документе    
-    QStack <QString> m_queueFiles2Print; // Очередь файлов для печати
+    QQueue <QString> m_queueFiles2Print; // Очередь файлов для печати
     QList <int>      m_doc_copyes; // Копии документа (1-5 получатели)
 };
 
