@@ -324,9 +324,6 @@ void MainWindow::createConnection()
     connect(engine,       SIGNAL( RecivePrintersList() ),
             introPage,    SLOT  ( setRecivePrintersList() )
             );
-    connect(selectPage,    SIGNAL (selectedPrinter(int)),
-            engine,        SLOT   (do_selectedPrinter(int))
-            );
     connect(printDataPage, SIGNAL ( field_checked() ),
             engine,        SLOT   ( authUserToPrinter() )
             );
