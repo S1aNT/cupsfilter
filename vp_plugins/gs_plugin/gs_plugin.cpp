@@ -131,16 +131,27 @@ void GS_plugin::directPrint(const QString &client_uuid,const QString &file_name,
 #if defined(Q_OS_UNIX)                
         args.append(QString("-P %1").arg(printer_name));
         args.append(tr("-#%1").arg(copies,0,10));
-#elif defined(Q_OS_WIN)
-        //-color -noquery -all -printer %1 -copies %2 %3
-        args.append("-color");
-        args.append("-noquery");
-        args.append("-all");
-        args.append(QString("-printer \"%1\"").arg(printer_name));
-        args.append(QString("-copies %1").arg(copies,0,10));
-#endif
-        args.append(file_name);
+        args.append(QString("\"%1\"").arg(file_name).toLatin1());
         start_proc(client_uuid,prn_bin,args,VPrn::job_PrintFile);
+#elif defined(Q_OS_WIN)
+        // Все грустно :( формируем одну длинную строчку
+        QString cmd = tr("\"%1\" -color -noquery -all -printer \"%2\" -copies %3 \"%4\"")
+                      .arg(prn_bin)
+                      .arg(printer_name)
+                      .arg(copies,0,10)
+                      .arg(file_name);
+        qDebug()<< Q_FUNC_INFO << "cmd = " << cmd;
+         start_proc(client_uuid,cmd,args,VPrn::job_PrintFile);
+        //-color -noquery -all -printer %1 -copies %2 %3
+        //args.append("-color");
+        //args.append("-noquery");
+        //args.append("-all");
+        //args.append(QString("-printer \"%1\"").arg(printer_name).toLatin1());
+        //args.append(QString("\"-copies %1\"").arg(copies,0,10).toLatin1());
+#endif
+
+        //start_proc(client_uuid,QString("\"%1\" -printer \"Apple\" -copies 1 c:/var/tmp/spool/e053b690-419a-4545-aab1-496f79a26f16/1-copy/lastpage_out.pdf").arg(prn_bin).toLatin1(),args,VPrn::job_PrintFile);
+
     }
 }
 
@@ -375,15 +386,15 @@ void GS_plugin::threadFinish(const QString &jobKey,int code,
     case VPrn::job_MergePdf:
         if (c_data->isFinishedMerge() ){
             // Все варианты документа объеденнены с шаблоном отправим сигнал
-             QStringList out_list = this->findFiles(m_client_uuid, QStringList()
-                                           << "*_out.pdf"
-                                           );
+            QStringList out_list = this->findFiles(m_client_uuid, QStringList()
+                                                   << "*_out.pdf"
+                                                   );
             convertPdfToPng(m_client_uuid,out_list);
             emit docReady4print( m_client_uuid );
         }
         break;
     case VPrn::job_PrintFile:
-         emit filePrinted(m_client_uuid);
+        emit filePrinted(m_client_uuid);
         break;
     case VPrn::job_ConvertPs2Pdf: // Завершилась задача конвертирования ps в
         emit docConvertedToPdf(m_client_uuid);
