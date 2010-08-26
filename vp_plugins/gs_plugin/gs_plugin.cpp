@@ -132,8 +132,12 @@ void GS_plugin::directPrint(const QString &client_uuid,const QString &file_name,
         args.append(QString("-P %1").arg(printer_name));
         args.append(tr("-#%1").arg(copies,0,10));
 #elif defined(Q_OS_WIN)
-        args.append(printer_name); // Первый параметр имя принтера
-        args.append(tr("%1").arg(copies,0,10));
+        //-color -noquery -all -printer %1 -copies %2 %3
+        args.append("-color");
+        args.append("-noquery");
+        args.append("-all");
+        args.append(QString("-printer \"%1\"").arg(printer_name));
+        args.append(QString("-copies %1").arg(copies,0,10));
 #endif
         args.append(file_name);
         start_proc(client_uuid,prn_bin,args,VPrn::job_PrintFile);
