@@ -1,4 +1,5 @@
 #include "printtask.h"
+#include <QDebug>
 #include <QRegExp>
 #include <QStringList>
 
@@ -22,7 +23,8 @@ void PrintTask::setPrinterQueue ( const QString &s)
     QStringList list = s.split(";:;");
     if (list.size() !=0 ){
         // пришло в формате dns_name.printer_name
-        m_printerQueue = QString("\"%1\"").arg(list.last());
+        m_printerQueue = list.last();
+        qDebug() << "m_printerQueue: " << m_printerQueue <<"\n";
     }
 }
 

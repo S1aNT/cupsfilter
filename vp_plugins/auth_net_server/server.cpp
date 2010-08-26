@@ -610,6 +610,8 @@ bool Server::readConfig()
                     printer.name = QString::fromUtf8(s.toLatin1());
                 }
 #endif
+                qDebug() << "p_qqueue: " << settings.value("p_qqueue").toString()
+                         << "\n";
                 printer.ip       = settings.value("ip").toString();
                 printer.p_qqueue = settings.value("p_qqueue").toString();
                 printer_list.append(printer);
