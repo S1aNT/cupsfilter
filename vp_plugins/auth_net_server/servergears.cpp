@@ -113,6 +113,7 @@ void serverGears::findTemplatesInPath(const QString &t_path)
         return;
     }
 
+
     QStringList filters;
     QDir dir;
 
@@ -131,7 +132,8 @@ void serverGears::findTemplatesInPath(const QString &t_path)
 //-------------------------- PUBLIC SLOTS --------------------------------------
 void serverGears::printFormatedDocuments(const QString c_uuid)
 {
-    PrintTask *pTask = printTaskList.value(c_uuid);
+    PrintTask *pTask = findpTack(c_uuid);
+
     QString fileName;
     QMessageBox msgBox;
     QPushButton *continueButton = msgBox.addButton(QObject::trUtf8("Продолжить"),
@@ -153,7 +155,7 @@ void serverGears::printFormatedDocuments(const QString c_uuid)
                                   .arg(pTask->getDocName())
                                   .arg(pTask->getPrinterQueue());
                     loc_msg.setMessageData(  str.toUtf8() );
-                     // Запись в локальный слот клиенту
+                    // Запись в локальный слот клиенту
                     sendMessage(loc_msg,client);
                 }
             }
@@ -417,13 +419,8 @@ void serverGears::disconnected()
 
     setCheckPoint(VPrn::loc_Disconnected);
     //Потребуем  от сервера удалить все файлы, которые создавали в интересах клиента
+    /// @todo FIXME
     emit clearClientSpool( c_uuid );
-
-    // Проверка что еще остались бойцы
-    //if (clients.isEmpty()){
-    //Нет ни одного подключенного клиента, заканчиваем работу
-    //setCheckPoint(VPrn::loc_NeedShutdown);
-    //}
 }
 //-------------------------- PRIVATE -------------------------------------------
 
@@ -507,19 +504,27 @@ void serverGears::parseMessage( const Message &m_msg, const QString &c_uuid)
             }
             break;
 
-        case VPrn::Que_AUTHOR_USER:
-            // Запрос авторизации на устройство
-            str.append(m_msg.messageData()); /// В теле сообщения device_uri;
-            // Просто перешлем в сеть
-            message.setType(VPrn::Que_AUTHOR_USER);
-            message.setMessageData(
-                    QString("[%1];:;%2;:;%3;:;%4").arg( c_uuid, str, u_mandat,u_login )
-                    .toUtf8() );
-            if (net_plugin){
-                net_plugin->sendMessage(message);
+        case VPrn::Que_AUTHOR_USER:{
+
+                // Запрос авторизации на устройство
+                // Сохраним в очереди печати текущий выбранный принтер
+                PrintTask *pTask = findpTack(c_uuid);
+                if (pTask){
+                    /// В теле сообщения device_uri;
+                    pTask->setPrinterQueue(m_msg.messageData());
+                    // Просто перешлем в сеть
+                    str.append(m_msg.messageData()); /// В теле сообщения device_uri;
+
+                    message.setType(VPrn::Que_AUTHOR_USER);
+                    message.setMessageData(
+                            QString("[%1];:;%2;:;%3;:;%4").arg( c_uuid, str, u_mandat,u_login )
+                            .toUtf8() );
+                    if (net_plugin){
+                        net_plugin->sendMessage(message);
+                    }
+                }
             }
             break;
-            
         case VPrn::Que_Convert2Pdf:
             /// Клиент потребовал преобразовать ps файл в pdf
             str.append(m_msg.messageData()); /// В теле сообщения полный путь к файлу
@@ -543,14 +548,10 @@ void serverGears::parseMessage( const Message &m_msg, const QString &c_uuid)
             createFormatedDoc(c_uuid,VPrn::pre_ClearPrintMode,m_msg.messageData());
             break;
         case VPrn::Que_PrintCurrentFormatedDoc:
-            printCurrentFormatedDoc(c_uuid,m_msg.messageData());
+            // запуск печати
+            printFormatedDocuments(c_uuid);
             break;
         case VPrn::Que_Register:
-            /// Клиент только подключился, в теле сообщения его самоназвание запомним его
-            /// сообщим ему что он авторизирован и вернем присвоенный uuid в теле сообщения uuid
-            //str.append(m_msg.messageData());
-            //clients_name.insert( client, str);
-
             message.setType(VPrn::Ans_Register);
             message.setMessageData(  c_uuid.toUtf8() ); // Пробразуем в QByteArray
             sendMessage( message,client) ;
@@ -711,9 +712,11 @@ void serverGears::do_docReady4print (const QString &client_uuid)
 {
     QLocalSocket *client(0);
     Message msg( this );
+
     QStringList files;
 
     // По UUID определим какому клиенту надо было это сообщение
+
     client = findClient(client_uuid);
     if (client){
         msg.setType(VPrn::Ans_CreateFormatedDoc); // На документ успешно наложен шаблон
@@ -724,7 +727,7 @@ void serverGears::do_docReady4print (const QString &client_uuid)
             files =  gs_plugin->findFiles(client_uuid,QStringList() << "*out.pdf");
             // Теперь надо отправить документ на печать
 
-            PrintTask *pTask = printTaskList.value(client_uuid);
+            PrintTask *pTask = findpTack(client_uuid);
             if (pTask){
                 QList <int> doc_copies = pTask->getDocCopies()  ;
                 for (int i=1; i<= doc_copies.size();i++){
@@ -746,9 +749,10 @@ void serverGears::do_docReady4print (const QString &client_uuid)
                             if ( page_type.compare("otherpage_out",Qt::CaseInsensitive) == 0) {
                                 // Лицевая сторона второго и последующих листов
                                 pTask->addFileToPrintQueue(filename);
-                                pTask->addFileToPrintQueue("OTHER_SIDE");
+
                             }
                             if ( page_type.compare("oversidepage_out",Qt::CaseInsensitive) == 0){
+                                pTask->addFileToPrintQueue("OTHER_SIDE");
                                 pTask->addFileToPrintQueue(filename);
                             }
                             if ( page_type.compare("lastpage_out",Qt::CaseInsensitive) == 0){
@@ -758,10 +762,7 @@ void serverGears::do_docReady4print (const QString &client_uuid)
                     }
 
                     pTask->addFileToPrintQueue("END_COPIES");
-                }
-                // запуск печати
-                printFormatedDocuments(client_uuid);
-
+                }               
             }else{
                 emit error(VPrn::InternalAppError,
                            QObject::trUtf8("Ошибка приложения, задание на печать не существует\n%1")
@@ -809,11 +810,12 @@ void serverGears::createFormatedDoc(const QString &client_uuid,
     in >> m_tagValue;
 
 
-    // Формируем  задание для печати
-    PrintTask *pTask = new  PrintTask(this);   
-    pTask->setDocName( m_tagValue.value( VPrn::cards_DOC_NAME ) );    
-    pTask->setPageCount (m_tagValue.value(VPrn::cards_PAGE_COUNT).toInt());  
-    printTaskList.insert(client_uuid,pTask);
+    PrintTask *pTask = findpTack(client_uuid);
+
+    pTask->setDocName( m_tagValue.value( VPrn::cards_DOC_NAME ) );
+    pTask->setDocCopies( doc_copyes);
+    pTask->setPageCount (m_tagValue.value(VPrn::cards_PAGE_COUNT).toInt());   
+
 
     // Формируем страницы шаблона в pdf
     bool Ok = true;
@@ -865,130 +867,28 @@ void serverGears::createPrintTask(const QString &client_uuid,
                                   const QString &over_page,
                                   const QString &last_page)
 {
-    /*
-    QByteArray task_data;
-    QByteArray file_data;
-    qint64 fileSize;
-    Message message;
-
-    PrintTask *pTask(0);
-    // JobID (уникально для каждого экз. документа)
-    QString jobId = gs_plugin->getUuid();
-
-    // Поиск данных для печати документа
-    pTask = printTaskList.value(client_uuid);
-    if (gs_plugin && net_plugin && pTask){
-
-        // Формируем задание для печати первой стр.
-        fileSize = getCompresedFile(first_page,file_data);
-        if (fileSize != 0  && !file_data.isEmpty()){
-            message.clear();
-            task_data.clear();
-
-            message.setType(VPrn::Que_PrintThisFile);
-            QDataStream out(&task_data, QIODevice::WriteOnly );
-            out << jobId;
-            out << printer_queue;        // Имя принтера (очереди печати на CUPS)
-            out << qint8(1);             // Число копий
-            out << u_login;              // Имя пользователя
-            out << pTask->getDocName();              // Имя задания
-            out << fileSize;             // Размер не сжатого буфера
-            out << file_data;            // Файл для печати в формате QByteArray (сжатый)
-
-            net_plugin->sendMessage(message);
-            clientsPrintTask.insert(client_uuid,jobId);
-        }else{
-            emit error(VPrn::FileIOError,QObject::trUtf8("Ошибка чтения файла %1!\n%2")
-                       .arg(first_page)
-                       .arg(QString(Q_FUNC_INFO))
-                       );
-        }
-        // Для многостраничных документов
-        if (pTask->getPageCount() > 1){
-            // Формируем задание для печати последующих стр.
-            fileSize = getCompresedFile(other_page,file_data);
-            if (fileSize != 0  && !file_data.isEmpty()){
-                message.clear();
-                task_data.clear();
-
-                message.setType(VPrn::Que_PrintThisFile);
-                QDataStream out(&task_data, QIODevice::WriteOnly );
-                out << jobId;
-                out << printer_queue;        // Имя принтера (очереди печати на CUPS)
-                out << qint8(pTask->getPageCount() - 1);             // Число копий
-                out << u_login;              // Имя пользователя
-                out << pTask->getDocName();              // Имя задания
-                out << fileSize;             // Размер не сжатого буфера
-                out << file_data;            // Файл для печати в формате QByteArray (сжатый)
-
-                net_plugin->sendMessage(message);
-            }else{
-                emit error(VPrn::FileIOError,QObject::trUtf8("Ошибка чтения файла %1!\n%2")
-                           .arg(other_page)
-                           .arg(QString(Q_FUNC_INFO))
-                           );
-            }
-
-            // Формируем задание для печати обратных стр.
-            fileSize = getCompresedFile(over_page,file_data);
-            if (fileSize != 0  && !file_data.isEmpty()){
-                message.clear();
-                task_data.clear();
-
-                message.setType(VPrn::Que_PrintThisFile);
-                QDataStream out(&task_data, QIODevice::WriteOnly );
-                out << jobId;
-                out << printer_queue;        // Имя принтера (очереди печати на CUPS)
-                out << qint8(pTask->getPageCount() - 1);             // Число копий
-                out << u_login;              // Имя пользователя
-                out << pTask->getDocName();              // Имя задания
-                out << fileSize;             // Размер не сжатого буфера
-                out << file_data;            // Файл для печати в формате QByteArray (сжатый)
-
-                net_plugin->sendMessage(message);
-            }else{
-                emit error(VPrn::FileIOError,QObject::trUtf8("Ошибка чтения файла %1!\n%2")
-                           .arg(over_page)
-                           .arg(QString(Q_FUNC_INFO))
-                           );
-            }
-        }
-
-        // Проверим задан ди файл фонарика, его может и не быть
-        if (!last_page.isEmpty()){
-            // Формируем задание для фонарика.
-            fileSize = getCompresedFile(last_page,file_data);
-            if (fileSize != 0  && !file_data.isEmpty()){
-                message.clear();
-                task_data.clear();
-
-                message.setType(VPrn::Que_PrintThisFile);
-                QDataStream out(&task_data, QIODevice::WriteOnly );
-                out << jobId;
-                out << printer_queue;        // Имя принтера (очереди печати на CUPS)
-                out << qint8(1);             // Число копий
-                out << u_login;              // Имя пользователя
-                out << pTask->getDocName();              // Имя задания
-                out << fileSize;             // Размер не сжатого буфера
-                out << file_data;            // Файл для печати в формате QByteArray (сжатый)
-
-                net_plugin->sendMessage(message);
-            }else{
-                emit error(VPrn::FileIOError,QObject::trUtf8("Ошибка чтения файла %1!\n%2")
-                           .arg(last_page)
-                           .arg(QString(Q_FUNC_INFO))
-                           );
-            }
-        }
-    }else{
-        emit error(VPrn::PluginsNotLoad,QObject::trUtf8("Не загруженны требуемые плагины!\n%1")
-                   .arg(QString(Q_FUNC_INFO))
-                   );
-    }
-    */
 }
 
+PrintTask *serverGears::findpTack(const QString &c_uuid)
+{
+    // Формируем  задание для печати
+    PrintTask *pTask(0);
 
+    QMapIterator<PrintTask *,QString>  i(clients_printTask);
+    while (i.hasNext()) {
+        i.next();
+        //qDebug() << "\nClient Key: " << i.key() << " value: " << i.value();
+        if (i.value() == c_uuid ){
+            return i.key(); //Я работаю только с живыми клиентами
+        }
+    }
+    // Нет задания на печать для данного клиента формируем его
+    pTask= new  PrintTask(this);
+    clients_printTask.insert(pTask,c_uuid);
+    return pTask;
+}
+
+//-------------------------- grabage -------------------------
 void serverGears::splitListToFile(const QStringList fList,
                                   QString &first_page,
                                   QString &other_page,
@@ -1030,31 +930,5 @@ void serverGears::splitListToFile(const QStringList fList,
 void serverGears::printCurrentFormatedDoc(const QString &client_uuid,
                                           QString printer_queue)
 {
-    /*
-    PrintTask *pTask(0);
-    QString fpage;
-    QString otherpage;
-    QString overpage;
-    QString lastpage;
-    // Поиск данных для печати документа
-    pTask = printTaskList.value(client_uuid);
-    if (pTask){
-        if (gs_plugin && !printer_queue.isEmpty() ){
 
-            QList <int> copyes = pTask->getCopyes();
-            for (int i=0; i < copyes.size();i++){
-                // Обработка i-го экз документа
-
-                splitListToFile(gs_plugin->findFiles4Copy(client_uuid,
-                                                          i,
-                                                          QStringList() << "*out.pdf"),
-                                fpage,otherpage,overpage,lastpage);
-
-                createPrintTask(client_uuid, printer_queue,
-                                fpage,otherpage,overpage,lastpage);
-
-            }        
-        }
-    }
-*/
 }

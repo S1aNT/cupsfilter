@@ -180,14 +180,14 @@ private:
     QSet<QLocalSocket *> clients;    
     QMap<QLocalSocket *,QString> clients_uuid;
     QMap<QLocalSocket *,QString> clients_name;
-    QMap<QString,QString> clientsPrintTask; // clients_uuid,taskID
+    QMap<PrintTask *,   QString> clients_printTask;
     PrinterList prn_list;
     /**
       * @var QMap <QString,PrintTask> prn_taskList;
       * @brief очередь заданий на печать для клиента с cliend_id
       */
 
-    QMap <QString,PrintTask *> printTaskList;
+
     //-----------------------------------------------------------------------------
     /**
       * @fn void markDocInBaseAsFault(const QString &client_uuid,
@@ -237,6 +237,13 @@ private:
       */
     QLocalSocket *findClient(const QString &c_uuid);
 
+    /**
+      * @fn PrintTask *findPTack(const QString &c_uuid);
+      * @brief Ищет по uuid зарегистрированного клиента и возвращает
+      * указатель на задачу печати или 0
+      * @returns QLocalSocket * or 0
+      */
+     PrintTask *findpTack(const QString &c_uuid);
      /**
        * @fn qint64 getCompresedFile(const QString &fileName,
        *                                 QByteArray &data);
