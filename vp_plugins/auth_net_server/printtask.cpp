@@ -18,7 +18,8 @@ void PrintTask::setPrinterQueue ( const QString &s)
     if (s.isEmpty()){
         return;
     }
-    QStringList list = s.split(".");
+
+    QStringList list = s.split(";:;");
     if (list.size() !=0 ){
         // пришло в формате dns_name.printer_name
         m_printerQueue = QString("\"%1\"").arg(list.last());

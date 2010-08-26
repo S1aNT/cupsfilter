@@ -510,10 +510,11 @@ void serverGears::parseMessage( const Message &m_msg, const QString &c_uuid)
                 // Сохраним в очереди печати текущий выбранный принтер
                 PrintTask *pTask = findpTack(c_uuid);
                 if (pTask){
+                    QString str = m_msg.messageData();
                     /// В теле сообщения device_uri;
-                    pTask->setPrinterQueue(m_msg.messageData());
+                    pTask->setPrinterQueue(str);
                     // Просто перешлем в сеть
-                    str.append(m_msg.messageData()); /// В теле сообщения device_uri;
+                    str.append(str.replace(";:;",".")); /// В теле сообщения device_uri;
 
                     message.setType(VPrn::Que_AUTHOR_USER);
                     message.setMessageData(
