@@ -47,9 +47,12 @@ void ProcessT::run()
 #elif defined(Q_OS_WIN)
     // Создадим временный файл
     QTemporaryFile t_file;
+
+    t_file.setAutoRemove(false);
     t_file.setFileTemplate("XXXXXXXX.bat");
     QTextStream out(&t_file);
     if (t_file.open()){
+        QString tmp_cmd = t_file.fileName();
         out << tr("@echo off\n");
         if (m_Command.contains(" ") ){
             out << tr("\"%1\" ").arg(m_Command);
@@ -61,8 +64,7 @@ void ProcessT::run()
         }
         t_file.close();
 
-
-        proc.start( t_file.fileName() );
+        proc.start( tmp_cmd );
 #endif
         if (!proc.waitForStarted()) {
             m_Output =QString("Ошибка при запуске приложения %1").arg(m_Command);
@@ -84,6 +86,9 @@ void ProcessT::run()
         qDebug() << QString("Cmd %1 with arg: ").arg(m_Command) << m_Args;
 
     }    
+#if defined(Q_OS_WIN)
+    t_file.remove();
+#endif
 }
 
 void ProcessT::addToEnv(const QStringList & pairs_list )
