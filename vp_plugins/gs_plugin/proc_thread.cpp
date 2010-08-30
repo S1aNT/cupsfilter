@@ -5,8 +5,8 @@
 #include <QtCore/QStringList>
 #include <QtCore/QProcess>
 #include <QtCore/QRegExp>
-
-
+#include <QTextStream>
+#include <QTemporaryFile>
 
 ProcessT::ProcessT( QObject *parent,const QString &jobKey)
         : QThread( parent )
@@ -30,7 +30,7 @@ void ProcessT::run()
     if ( m_Command.isEmpty() ) {
         qWarning() << Q_FUNC_INFO << "No command set, doing nothing";
         return;
-    }    
+    }
 
     QProcess proc;
     // Add  to the environment
@@ -39,8 +39,19 @@ void ProcessT::run()
     }
     qDebug() << "m_Args\n" << m_Args << "\n";
     proc.setProcessChannelMode( m_ChanMode );
+    // Создадим временный файл
+    QTemporaryFile t_file;
+    t_file.setFileTemplate("XXXXXXXX.bat");
+    QTextStream out(&t_file);
+    out << tr("@echo off\n%1 ").arg(m_Command);
 
-    proc.start( m_Command, m_Args );
+    for (int i=0;i<m_Args.size();i++){
+        out << m_Args.at(i) << " ";
+    }
+    t_file.close();
+
+    //proc.start( m_Command, m_Args );
+    proc.start( t_file.fileName() );
     if (!proc.waitForStarted()) {
         m_Output =QString("Ошибка при запуске приложения %1").arg(m_Command);
         emit jobFinish(job_key,-1, m_Output );
