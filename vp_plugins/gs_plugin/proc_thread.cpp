@@ -5,8 +5,11 @@
 #include <QtCore/QStringList>
 #include <QtCore/QProcess>
 #include <QtCore/QRegExp>
+
+#if defined(Q_OS_WIN)
 #include <QTextStream>
 #include <QTemporaryFile>
+#endif
 
 ProcessT::ProcessT( QObject *parent,const QString &jobKey)
         : QThread( parent )
@@ -39,30 +42,48 @@ void ProcessT::run()
     }
     qDebug() << "m_Args\n" << m_Args << "\n";
     proc.setProcessChannelMode( m_ChanMode );
+#if defined(Q_OS_UNIX)
+    proc.start( m_Command, m_Args );
+#elif defined(Q_OS_WIN)
     // Создадим временный файл
     QTemporaryFile t_file;
     t_file.setFileTemplate("XXXXXXXX.bat");
     QTextStream out(&t_file);
-    out << tr("@echo off\n%1 ").arg(m_Command);
+    if (t_file.open()){
+        out << tr("@echo off\n");
+        if (m_Command.contains(" ") ){
+            out << tr("\"%1\" ").arg(m_Command);
+        }else{
+            out << tr("%1 ").arg(m_Command);
+        }
+        for (int i=0;i<m_Args.size();i++){
+            out << m_Args.at(i) << " ";
+        }
+        t_file.close();
 
-    for (int i=0;i<m_Args.size();i++){
-        out << m_Args.at(i) << " ";
-    }
-    t_file.close();
 
-    //proc.start( m_Command, m_Args );
-    proc.start( t_file.fileName() );
-    if (!proc.waitForStarted()) {
-        m_Output =QString("Ошибка при запуске приложения %1").arg(m_Command);
-        emit jobFinish(job_key,-1, m_Output );
-        qDebug()<< m_Output;
+        proc.start( t_file.fileName() );
+#endif
+        if (!proc.waitForStarted()) {
+            m_Output =QString("Ошибка при запуске приложения %1").arg(m_Command);
+            emit jobFinish(job_key,-1, m_Output );
+            qDebug()<< m_Output;
+        }else{
+            proc.waitForFinished(-1);
+            proc.closeWriteChannel();
+            m_Output = proc.readAll();//.trimmed();
+            qDebug() << Q_FUNC_INFO << "m_Output " << m_Output << "\n";
+            emit jobFinish(job_key,proc.exitCode(), m_Output );
+        }
     }else{
-        proc.waitForFinished(-1);
-        proc.closeWriteChannel();
-        m_Output = proc.readAll();//.trimmed();
-        qDebug() << Q_FUNC_INFO << "m_Output " << m_Output << "\n";
-        emit jobFinish(job_key,proc.exitCode(), m_Output );
-    }
+        emit jobFinish(job_key,-1,
+                       QObject::trUtf8("Ошибка создания временного файла %1\n%2")
+                       .arg( t_file.fileName())
+                       .arg(QString(Q_FUNC_INFO))
+                       );
+        qDebug() << QString("Cmd %1 with arg: ").arg(m_Command) << m_Args;
+
+    }    
 }
 
 void ProcessT::addToEnv(const QStringList & pairs_list )
