@@ -133,21 +133,15 @@ void GS_plugin::directPrint(const QString &client_uuid,const QString &file_name,
         args.append(tr("-#%1").arg(copies,0,10));
         args.append(QString("\"%1\"").arg(file_name).toLatin1());
         start_proc(client_uuid,prn_bin,args,VPrn::job_PrintFile);
-#elif defined(Q_OS_WIN)
-        // Все грустно :( формируем одну длинную строчку
-        QString cmd = tr("\"%1\" -color -noquery -all -printer \"%2\" -copies %3 \"%4\"")
-                      .arg(prn_bin)
-                      .arg(printer_name)
-                      .arg(copies,0,10)
-                      .arg(file_name);
-        qDebug()<< Q_FUNC_INFO << "cmd = " << cmd;
-         start_proc(client_uuid,cmd,args,VPrn::job_PrintFile);
+#elif defined(Q_OS_WIN)        
         //-color -noquery -all -printer %1 -copies %2 %3
-        //args.append("-color");
-        //args.append("-noquery");
-        //args.append("-all");
-        //args.append(QString("-printer \"%1\"").arg(printer_name).toLatin1());
-        //args.append(QString("\"-copies %1\"").arg(copies,0,10).toLatin1());
+        args.append("-color");
+        args.append("-noquery");
+        args.append("-all");
+        args.append(QString("-printer \"%1\"").arg(printer_name).toLatin1());
+        args.append(QString("-copies %1").arg(copies,0,10));
+        args.append(file_name);
+        start_proc(client_uuid,prn_bin,args,VPrn::job_PrintFile);
 #endif
 
         //start_proc(client_uuid,QString("\"%1\" -printer \"Apple\" -copies 1 c:/var/tmp/spool/e053b690-419a-4545-aab1-496f79a26f16/1-copy/lastpage_out.pdf").arg(prn_bin).toLatin1(),args,VPrn::job_PrintFile);
