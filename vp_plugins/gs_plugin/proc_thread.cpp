@@ -9,6 +9,7 @@
 #if defined(Q_OS_WIN)
 #include <QTextStream>
 #include <QTemporaryFile>
+#include <QFileInfo>
 #endif
 
 ProcessT::ProcessT( QObject *parent,const QString &jobKey)
@@ -40,52 +41,66 @@ void ProcessT::run()
     if (!n_Env.isEmpty()){
         proc.setEnvironment(n_Env);
     }
-    qDebug() << "m_Args\n" << m_Args << "\n";
-    proc.setProcessChannelMode( m_ChanMode );
-#if defined(Q_OS_UNIX)
-    proc.start( m_Command, m_Args );
-#elif defined(Q_OS_WIN)
-    // Создадим временный файл
-    QTemporaryFile t_file;
 
-    t_file.setAutoRemove(false);
-    t_file.setFileTemplate("XXXXXXXX.bat");
-    QTextStream out(&t_file);
-    if (t_file.open()){
-        QString tmp_cmd = t_file.fileName();
-        out << tr("@echo off\n");
-        if (m_Command.contains(" ") ){
-            out << tr("\"%1\" ").arg(m_Command);
+    proc.setProcessChannelMode( m_ChanMode );
+
+#if defined(Q_OS_UNIX)
+    qDebug() << "m_Args\n" << m_Args << "\n";
+    proc.start( m_Command, m_Args );
+#elif defined(Q_OS_WIN)    
+    QFile t_file;
+    QString tmp_cmd;
+    {
+        // Генерация уникального имени файла
+        QTemporaryFile tmp_file;// Создадим временный файл
+        tmp_file.setFileTemplate("XXXXXXXX.bat");
+        if (tmp_file.open()){
+            QFileInfo f_info(tmp_file);
+            tmp_cmd = f_info.absoluteFilePath();
+            tmp_file.close();
+            t_file.setFileName(tmp_cmd);
         }else{
-            out << tr("%1 ").arg(m_Command);
+            emit jobFinish(job_key,-1,
+                           QObject::trUtf8("Ошибка создания временного файла %1\n%2")
+                           .arg( tmp_cmd )
+                           .arg(QString(Q_FUNC_INFO))
+                           );
+            return;
+        }
+    }
+    QTextStream out(&t_file);
+    if (t_file.open(QIODevice::WriteOnly)){
+        out << QObject::tr("@echo off\n");
+        if (m_Command.contains(" ") ){
+            out << QObject::tr("\"%1\" ").arg(m_Command);
+        }else{
+            out << QObject::tr("%1 ").arg(m_Command);
         }
         for (int i=0;i<m_Args.size();i++){
             out << m_Args.at(i) << " ";
         }
         t_file.close();
-
         proc.start( tmp_cmd );
-#endif
-        if (!proc.waitForStarted()) {
-            m_Output =QString("Ошибка при запуске приложения %1").arg(m_Command);
-            emit jobFinish(job_key,-1, m_Output );
-            qDebug()<< m_Output;
-        }else{
-            proc.waitForFinished(-1);
-            proc.closeWriteChannel();
-            m_Output = proc.readAll();//.trimmed();
-            qDebug() << Q_FUNC_INFO << "m_Output " << m_Output << "\n";
-            emit jobFinish(job_key,proc.exitCode(), m_Output );
-        }
     }else{
         emit jobFinish(job_key,-1,
-                       QObject::trUtf8("Ошибка создания временного файла %1\n%2")
-                       .arg( t_file.fileName())
+                       QObject::trUtf8("Ошибка записи данных во временный файл %1\n%2")
+                       .arg( tmp_cmd )
                        .arg(QString(Q_FUNC_INFO))
                        );
-        qDebug() << QString("Cmd %1 with arg: ").arg(m_Command) << m_Args;
-
-    }    
+        return;
+    }
+#endif
+    if (!proc.waitForStarted(10000)) {
+        m_Output =QString("Ошибка при запуске приложения %1").arg(m_Command);
+        emit jobFinish(job_key,-1, m_Output );
+        qDebug()<< m_Output << " QProcess::error() " << proc.error();
+    }else{
+        proc.waitForFinished(-1);
+        proc.closeWriteChannel();
+        m_Output = proc.readAll();//.trimmed();
+        qDebug() << Q_FUNC_INFO << "m_Output " << m_Output << "\n";
+        emit jobFinish(job_key,proc.exitCode(), m_Output );
+    }
 #if defined(Q_OS_WIN)
     t_file.remove();
 #endif
