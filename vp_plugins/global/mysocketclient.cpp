@@ -20,7 +20,7 @@ mySocketClient::mySocketClient(QLocalSocket *parent)
 
 void mySocketClient::readyRead()
 {
-    qDebug() << Q_FUNC_INFO << QObject::trUtf8(" Recive %1 bytes \n").arg(this->bytesAvailable(),0,10);
+    //qDebug() << Q_FUNC_INFO << QObject::trUtf8(" Recive %1 bytes \n").arg(this->bytesAvailable(),0,10);
     //Свяжем поток и сокет
     QDataStream in ( this );
     in.setVersion(QDataStream::Qt_3_0);
@@ -34,7 +34,7 @@ void mySocketClient::readyRead()
             }
             //Читаем размер пакета
             in >> packetSize;
-            qDebug() << Q_FUNC_INFO << " packet size "  << packetSize << "\n";
+            //qDebug() << Q_FUNC_INFO << " packet size "  << packetSize << "\n";
         }
         //Проверим что в сокет пришел весь пакет а не его огрызки
         if (this->bytesAvailable() < packetSize){
