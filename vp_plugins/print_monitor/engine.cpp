@@ -508,112 +508,80 @@ QByteArray Engine::getAllFieldData()
     QModelIndex indx;
     QByteArray fields_data;
     QList <int> doc_copyes;
+    QString t_fileName;
 
-    int cur_copyes;
-    int all_copyes;
-
-    //формируем хеш значений
-    indx = m_DC_model->index(0,VPrn::cards_DOC_NAME);
-    m_tagValue[VPrn::cards_DOC_NAME] = m_DC_model->data(indx,Qt::DisplayRole)
-                                       .toString();
-
-    indx = m_DC_model->index(0,VPrn::cards_MB_NUMBER);
-    m_tagValue[VPrn::cards_MB_NUMBER] = m_DC_model->data(indx,Qt::DisplayRole)
-                                        .toString() ;
-
-    indx = m_DC_model->index(0,VPrn::cards_PUNKT);
-    m_tagValue[VPrn::cards_PUNKT] = m_DC_model->data(indx,Qt::DisplayRole)
-                                    .toString() ;
-
-    indx = m_DC_model->index(0,VPrn::cards_PAGE_COUNT);
-    m_tagValue[VPrn::cards_PAGE_COUNT] = m_DC_model->data(indx,Qt::DisplayRole)
-                                         .toString() ;
-
-    indx = m_DC_model->index(0,VPrn::cards_SELECT_ALL_COPY);    
-    /*
-    // стоит отметка все экз. пишем 0!!!
-    if (  m_DC_model->data(indx,Qt::DisplayRole).toBool() ){
-        cur_copyes = 0;
-        all_copyes = 5;
-    }else{
-        indx = m_DC_model->index(0,VPrn::cards_CURRENT_COPY);
-        cur_copyes = m_DC_model->data(indx,Qt::DisplayRole).toInt();
-
-        indx = m_DC_model->index(0,VPrn::cards_COPY_COUNT);
-        all_copyes = m_DC_model->data(indx,Qt::DisplayRole).toInt();
-    }
- */
-    m_tagValue[VPrn::cards_CURRENT_COPY]= QString("%1").arg(cur_copyes,0,10) ;
-    m_tagValue[VPrn::cards_COPY_COUNT]=  QString("%1").arg(all_copyes,0,10) ;
-
-    indx = m_DC_model->index(0,VPrn::cards_STAMP);
-    int stamp_id = m_DC_model->data(indx,Qt::DisplayRole).toInt();    
-    m_tagValue[VPrn::cards_STAMP] = findStampInModel(stamp_id);
-
-    indx = m_DC_model->index(0,VPrn::cards_EXECUTOR);
-    m_tagValue[VPrn::cards_EXECUTOR] = m_DC_model->data(indx,Qt::DisplayRole)
-                                       .toString() ;
-
-    indx = m_DC_model->index(0,VPrn::cards_PRINTMAN);
-    m_tagValue[VPrn::cards_PRINTMAN] = m_DC_model->data(indx,Qt::DisplayRole)
-                                       .toString() ;
-
-    indx = m_DC_model->index(0,VPrn::cards_PHONE);
-    m_tagValue[VPrn::cards_PHONE] = m_DC_model->data(indx,Qt::DisplayRole)
-                                    .toString() ;
-
-    indx = m_DC_model->index(0,VPrn::cards_INV_NUMBER);
-    m_tagValue[VPrn::cards_INV_NUMBER] = m_DC_model->data(indx,Qt::DisplayRole)
-                                         .toString() ;
-
-    indx = m_DC_model->index(0,VPrn::cards_PRINT_DATE);
-    m_tagValue[VPrn::cards_PRINT_DATE] = m_DC_model->data(indx,Qt::DisplayRole)
-                                         .toString() ;
-
-    QString rec;
-    indx = m_DC_model->index(0,VPrn::cards_RECIVER_1);
-    rec = m_DC_model->data(indx,Qt::DisplayRole).toString();
-    if (!rec.isEmpty()){
-        m_tagValue[VPrn::cards_RECIVER_1] = rec;
-        rec.clear();
-        doc_copyes.append(VPrn::FirstPage);
-    }
-
-    indx = m_DC_model->index(0,VPrn::cards_RECIVER_2);
-    rec = m_DC_model->data(indx,Qt::DisplayRole).toString();
-    if (!rec.isEmpty()){
-        m_tagValue[VPrn::cards_RECIVER_2] = rec;
-        rec.clear();
-        doc_copyes.append(VPrn::FirstPageN2);
-    }
-    indx = m_DC_model->index(0,VPrn::cards_RECIVER_3);
-    rec = m_DC_model->data(indx,Qt::DisplayRole).toString();
-    if (!rec.isEmpty()){
-        m_tagValue[VPrn::cards_RECIVER_3] = rec;
-        rec.clear();
-        doc_copyes.append(VPrn::FirstPageN3);
-    }
-    indx = m_DC_model->index(0,VPrn::cards_RECIVER_4);
-    rec = m_DC_model->data(indx,Qt::DisplayRole).toString();
-    if (!rec.isEmpty()){
-        m_tagValue[VPrn::cards_RECIVER_4] = rec;
-        rec.clear();
-        doc_copyes.append(VPrn::FirstPageN4);
-    }
-    indx = m_DC_model->index(0,VPrn::cards_RECIVER_5);
-    rec = m_DC_model->data(indx,Qt::DisplayRole).toString();
-    if (!rec.isEmpty()){
-        m_tagValue[VPrn::cards_RECIVER_5] = rec;
-        rec.clear();
-        doc_copyes.append(VPrn::FirstPageN2);
+    for (int j=0;j<m_DC_model->columnCount();j++){
+        indx = m_DC_model->index(0,j);
+        QVariant cell_data = m_DC_model->data(indx,Qt::DisplayRole);
+        QString tmp_item = cell_data.toString();
+        qDebug() <<Q_FUNC_INFO << "\ncell_data: " << tmp_item;
+        if (!cell_data.isNull()){
+            switch (j){
+            case VPrn::cards_DOC_NAME:
+                m_tagValue[VPrn::cards_DOC_NAME] = cell_data.toString();
+                break;
+            case VPrn::cards_MB_NUMBER:
+                m_tagValue[VPrn::cards_MB_NUMBER] = cell_data.toString();
+                break;
+            case VPrn::cards_STAMP:
+                m_tagValue[VPrn::cards_STAMP] = findStampInModel(cell_data.toInt());
+                break;
+            case VPrn::cards_PUNKT:
+                m_tagValue[VPrn::cards_PUNKT] = cell_data.toString();
+                break;
+            case VPrn::cards_PAGE_COUNT:
+                m_tagValue[VPrn::cards_PAGE_COUNT] = cell_data.toString();
+                break;
+            case VPrn::cards_EXECUTOR:
+                m_tagValue[VPrn::cards_EXECUTOR] = cell_data.toString();
+                break;
+            case VPrn::cards_PRINTMAN:
+                m_tagValue[VPrn::cards_PRINTMAN] = cell_data.toString();
+                break;
+            case VPrn::cards_PHONE:
+                m_tagValue[VPrn::cards_PHONE] = cell_data.toString();
+                break;
+            case VPrn::cards_INV_NUMBER:
+                m_tagValue[VPrn::cards_INV_NUMBER] = cell_data.toString();
+                break;
+            case VPrn::cards_PRINT_DATE:
+                m_tagValue[VPrn::cards_PRINT_DATE] = cell_data.toString();
+                break;
+            case VPrn::cards_RECIVER_1:
+                m_tagValue[VPrn::cards_RECIVER_1] = cell_data.toString();
+                doc_copyes.append(VPrn::FirstPage);
+                break;
+            case VPrn::cards_RECIVER_2:
+                m_tagValue[VPrn::cards_RECIVER_2] = cell_data.toString();
+                doc_copyes.append(VPrn::FirstPageN2);
+                break;
+            case VPrn::cards_RECIVER_3:
+                m_tagValue[VPrn::cards_RECIVER_3] = cell_data.toString();
+                doc_copyes.append(VPrn::FirstPageN3);
+                break;
+            case VPrn::cards_RECIVER_4:
+                m_tagValue[VPrn::cards_RECIVER_4] = cell_data.toString();
+                doc_copyes.append(VPrn::FirstPageN4);
+                break;
+            case VPrn::cards_RECIVER_5:
+                m_tagValue[VPrn::cards_RECIVER_5] = cell_data.toString();
+                doc_copyes.append(VPrn::FirstPageN5);
+                break;
+            case VPrn::cards_TEMPLATE_NAME:
+                t_fileName =  findTemplatesFilePathInModel(cell_data.toInt());
+                break;
+            case VPrn::cards_CURRENT_COPY:
+                m_tagValue[VPrn::cards_CURRENT_COPY] = cell_data.toString();
+                break;
+            default:
+                break;
+            }
+        }
     }
 
+    m_tagValue[VPrn::cards_COPY_COUNT]= QString("%1")
+                                        .arg(doc_copyes.count(),0,10) ;
 
-    
-    indx = m_DC_model->index(0,VPrn::cards_TEMPLATE_NAME);
-    int tmpl_id = m_DC_model->data(indx,Qt::DisplayRole).toInt();
-
-    QString t_fileName =  findTemplatesFilePathInModel(tmpl_id);
 
     //Очистим массивчик
     fields_data.clear();
