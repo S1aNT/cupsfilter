@@ -20,8 +20,8 @@ ViewPort::ViewPort(QWidget *parent)
     graphicsView = new QGraphicsView;
     scene = new QGraphicsScene();
     scene->setBackgroundBrush(QBrush(Qt::gray));
-    graphicsView->horizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
-    graphicsView->verticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+    graphicsView->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+    graphicsView->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
     graphicsView->setRenderHint(QPainter::Antialiasing, false);
     graphicsView->setDragMode(QGraphicsView::RubberBandDrag);
     graphicsView->setOptimizationFlags(QGraphicsView::DontSavePainterState);
