@@ -98,9 +98,9 @@ void Tmpl_sql_plugin::init(const QString & spool)
     }else{
         emit error(VPrn::InternalAppError,
                    QObject::trUtf8("Каталог %1 не существует или нет прав доступа\n%2")
-                                    .arg(spool)
-                                    .arg(QString(Q_FUNC_INFO))
-                                    );
+                   .arg(spool)
+                   .arg(QString(Q_FUNC_INFO))
+                   );
     }
 }
 
@@ -156,8 +156,8 @@ bool Tmpl_sql_plugin::prepare_template(const QString &c_uuid,
                     if (db.open() ){
                         // Создаем модели
                         QSqlQueryModel *elemInPageModel_client  = new QSqlQueryModel(this);
-                        QSqlQueryModel *pagesModel_client           = new QSqlQueryModel(this);
-                        QSqlQueryModel *pagesDetail                      = new QSqlQueryModel(this);
+                        QSqlQueryModel *pagesModel_client       = new QSqlQueryModel(this);
+                        QSqlQueryModel *pagesDetail             = new QSqlQueryModel(this);
                         Ok &= saveDataToBase(elemMap,db);// Обновим данные элементов
                         if (Ok){
                             // Заполнение моделей
@@ -187,7 +187,7 @@ bool Tmpl_sql_plugin::prepare_template(const QString &c_uuid,
                                     p_width  = MM_TO_POINT(pagesModel_client->data(pagesModel_client->index(i,1)).toDouble());
                                     p_height = MM_TO_POINT(pagesModel_client->data(pagesModel_client->index(i,2)).toDouble());
                                 }
-
+                                pdfprinter.setFullPage(true);
                                 pdfprinter.setOutputFormat(QPrinter::PdfFormat);
                                 pdfprinter.setResolution( QPrinter::HighResolution );
                                 // Формирование ориентации страниц шаблона
