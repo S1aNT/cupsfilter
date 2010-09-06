@@ -41,12 +41,13 @@ void PrintTask::setPageCount    ( int cnt)
     m_pageCount = cnt;
 }
 
-void PrintTask::addFileToPrintQueue  ( const QString &s)
+void PrintTask::addFileToPrintQueue ( const QString &s,int pCopies)
 {
     if (s.isEmpty()){
         return;
     }
     m_queueFiles2Print.enqueue(s);
+    m_CalcPageCount.enqueue(pCopies);
 }
 void PrintTask::setDocCopies    ( QList <int> &copies )
 {
@@ -60,4 +61,20 @@ QString PrintTask::getFileToPrint()
         str= m_queueFiles2Print.dequeue();
     }
     return str;
+}
+int PrintTask::getPageCount()
+{
+   int p;
+    if (!m_CalcPageCount.isEmpty()){
+        p= m_CalcPageCount.dequeue();
+    }
+    return p;
+}
+bool PrintTask::isNextFileToPrint()
+{
+    return !m_queueFiles2Print.isEmpty();
+}
+void PrintTask::clearQueue()
+{
+    m_queueFiles2Print.clear();
 }
