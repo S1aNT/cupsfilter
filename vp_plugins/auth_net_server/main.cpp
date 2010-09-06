@@ -12,39 +12,8 @@
 #include <QtCore/QTextCodec>
 #include <QtCore/QFile>
 
-
 #include "server.h"
-
-void myMessageOutput(QtMsgType type, const char *msg)
-{
-    QString log = QString ("%1/auth_net_server.log").arg( qApp->applicationDirPath() );
-    QFile logFile(log);
-
-    if (!logFile.open(QFile::Append| QFile::Text)){
-        logFile.open(stderr, QIODevice::WriteOnly);
-    }
-
-     QTextStream out;
-     out.setDevice(&logFile);
-     out.setCodec("UTF-8");
-
-     out << "\nDateTime: " << QDateTime::currentDateTime ().toString("dd.MM.yyyy hh:mm:ss");
-     switch (type) {
-     case QtDebugMsg:
-        out << QObject::trUtf8("Debug: %1\n").arg(QString(msg)) <<"\n";
-         break;
-     case QtWarningMsg:
-         out << QObject::trUtf8("Warning: %1\n").arg(QString(msg))<<"\n";
-         break;
-     case QtCriticalMsg:
-         out << QObject::trUtf8("Critical: %1\n").arg(QString(msg))<<"\n";
-         break;
-     case QtFatalMsg:
-         out << QObject::trUtf8("Fatal: %1\n").arg(QString(msg))<<"\n";
-         abort();
-     }
-     logFile.close();
-}
+#include "config.h"
 
 int main(int argc, char *argv[])
 {
@@ -54,11 +23,9 @@ int main(int argc, char *argv[])
     QTextCodec::setCodecForTr(codec);
     QTextCodec::setCodecForCStrings(codec);
     QTextCodec::setCodecForLocale(codec);
-    qInstallMsgHandler(myMessageOutput);
-
     QtSingleApplication app(argc, argv, true);
 
-
+    installLog("GateKeeper",QObject::trUtf8("Техносерв А/Г"));
 
     if (!QSystemTrayIcon::isSystemTrayAvailable()) {
         QMessageBox::critical(0, QObject::trUtf8("GateKeeper"),
