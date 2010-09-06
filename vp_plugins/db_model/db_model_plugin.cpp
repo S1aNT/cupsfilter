@@ -323,9 +323,19 @@ void DB_model_plugin::fillElementsInfo(QSqlDatabase DB_,QStandardItemModel *mode
             itemList.append(new QStandardItem (
                     query.value(field_border).toInt() )
                             );
-            itemList.append(new QStandardItem (
-                    query.value(field_img_data).toString() )
+
+            {
+                /** @remarks Перед использованием надо произвести
+                  * обратную конвертацию fromBase64()
+                  */
+                QByteArray pixBuf = query.value(field_img_data)
+                                                .toByteArray().toBase64();
+                itemList.append(new QStandardItem ( QString(pixBuf) )
                             );
+
+                qDebug() << "field_img_data "<< pixBuf
+                         << " size: "        << pixBuf.size();
+            }
             itemList.append(new QStandardItem (
                     query.value(field_img_scaled).toDouble() )
                             );
