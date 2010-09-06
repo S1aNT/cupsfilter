@@ -12,6 +12,7 @@
 #include <QtCore/QRegExp>
 #include <QtCore/QMapIterator>
 #include <QtCore/QFileInfoList>
+#include <QTimer>
 
 #include <QtGui/QMessageBox>
 
@@ -129,6 +130,11 @@ void serverGears::findTemplatesInPath(const QString &t_path)
 }
 
 //-------------------------- PUBLIC SLOTS --------------------------------------
+void serverGears::test_printFormatedDocuments(const QString &c_uuid)
+{
+    QTimer::singleShot(10000, this, SLOT( printFormatedDocuments(c_uuid) ) );
+
+}
 void serverGears::printFormatedDocuments(const QString c_uuid)
 {    
     if (!gs_plugin){
@@ -164,6 +170,7 @@ void serverGears::printFormatedDocuments(const QString c_uuid)
     while(  pTask->isNextFileToPrint() ){
         // Получим очередной файл для печати
         fileName = pTask->getFileToPrint();
+        qDebug() << "Current print file: " << fileName;
         // Определим действие с ним опробуем преобразовать в Int
         bool Ok;
         int marker = fileName.toInt(&Ok,10);
@@ -179,7 +186,7 @@ void serverGears::printFormatedDocuments(const QString c_uuid)
             case 333:
                 loc_msg.setType(VPrn::Que_UserNeedCheckLastPage);
                 break;
-            case 44:
+            case 444:
                 loc_msg.setType(VPrn::Que_UserNeedMarkCopies);
                 QString str = QString("%1;:;")
                               .arg(pTask->getDocName())
@@ -821,16 +828,16 @@ void serverGears::do_docReady4print (const QString &client_uuid)
             orderList.insert(7,QString("444"));
             qDebug() << "--------- Begin order list";
 
-            for (int i=0; i< orderList.count();i++){
-                if ( 4 == i){
-                    pTask->addFileToPrintQueue(orderList.value(i),
-                                               pTask->getPageCount()
+            for (int l=0; i< orderList.count();l++){
+                if ( l == 4){
+                    pTask->addFileToPrintQueue(orderList.value(l),
+                                               pTask->getPagesInDocCount()
                                                );
-                    qDebug() << "value: " << orderList.value(i)
+                    qDebug() << "value: " << orderList.value(l)
                              << "pages: " << pTask->getPageCount();
                 }else{
                    pTask->addFileToPrintQueue(orderList.value(i),1);
-                   qDebug() << "value: " << orderList.value(i) << "pages: 1" ;
+                   qDebug() << "value: " << orderList.value(l) << "pages: 1" ;
                 }
             }
 

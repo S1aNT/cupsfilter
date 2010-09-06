@@ -93,6 +93,7 @@ signals:
 
 public slots:
     void printFormatedDocuments(const QString c_uuid);
+    void test_printFormatedDocuments(const QString &c_uuid);
 private slots:
     /**
       * @fn void readyRead()
