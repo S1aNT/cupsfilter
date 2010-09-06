@@ -31,6 +31,7 @@ public:
 
     QString getDocName()      const { return m_docName; }   
     QString getPrinterQueue() const { return m_printerQueue; }
+    int     getPagesInDocCount(){return m_pageCount;}
     int     getPageCount() ;
     QString getFileToPrint();
     QList <int> getDocCopies()      { return m_doc_copyes;}
