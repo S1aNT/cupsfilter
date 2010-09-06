@@ -111,8 +111,7 @@ void serverGears::findTemplatesInPath(const QString &t_path)
 {
     if (t_path.isEmpty()){
         return;
-    }
-
+    }    
 
     QStringList filters;
     QDir dir;
@@ -131,48 +130,71 @@ void serverGears::findTemplatesInPath(const QString &t_path)
 
 //-------------------------- PUBLIC SLOTS --------------------------------------
 void serverGears::printFormatedDocuments(const QString c_uuid)
-{
+{    
+    if (!gs_plugin){
+        emit error(VPrn::InternalAppError,
+                   QObject::trUtf8("Ошибка приложения, плагин работы с GhostScript не загружен\n%1")
+                   .arg(QString(Q_FUNC_INFO))
+                   );
+        return;        
+    }    
     PrintTask *pTask = findpTack(c_uuid);
-
-    QString fileName;
-    QMessageBox msgBox;
-    QPushButton *continueButton = msgBox.addButton(QObject::trUtf8("Продолжить"),
-                                                   QMessageBox::ActionRole);
-    if (pTask &&  gs_plugin){
-        fileName = pTask->getFileToPrint();
-        if ( fileName.compare("END_COPIES",Qt::CaseInsensitive) == 0) {
-            msgBox.setText(QObject::trUtf8("Необходимо пометить распечатанную копию документа как ЧИСТОВИК/БРАК"));
-            msgBox.exec();
-            if (msgBox.clickedButton() == continueButton) {
-                // Формируем сообщение клиенту
-                Message loc_msg(this);
-                QLocalSocket *client(0);
-                // По UUID определим какому клиенту надо было это сообщение
-                client = findClient(c_uuid);
-                if (client){
-                    loc_msg.setType(VPrn::Que_UserNeedMarkCopies);
-                    QString str = QString("%1;:;")
-                                  .arg(pTask->getDocName())
-                                  .arg(pTask->getPrinterQueue());
-                    loc_msg.setMessageData(  str.toUtf8() );
-                    // Запись в локальный слот клиенту
-                    sendMessage(loc_msg,client);
-                }
-            }
-            return;
-        }
-        if ( fileName.compare("OTHER_SIDE",Qt::CaseInsensitive) == 0) {
-            msgBox.setText(QObject::trUtf8("Для продолжения печати переверните листы в принтере и нажмите кнопку <b>Продолжить</b>"));
-            msgBox.exec();
-            if (msgBox.clickedButton() == continueButton) {
-                fileName = pTask->getFileToPrint();
-            }
-        }
-        //
-        gs_plugin->directPrint(c_uuid,fileName,pTask->getPrinterQueue(),
-                               pTask->getPageCount() );
+    if (!pTask){
+        emit error(VPrn::InternalAppError,
+                   QObject::trUtf8("Ошибка приложения, задание на печать не существует\n%1")
+                   .arg(QString(Q_FUNC_INFO))
+                   );
+        return;
     }
 
+    QLocalSocket *client(0);
+    // По UUID определим какому клиенту надо было это сообщение
+    client = findClient(c_uuid);
+    if (!client){
+        emit error(VPrn::InternalAppError,
+                   QObject::trUtf8("Ошибка приложения, клиент защищенного принтера отключен\n%1")
+                   .arg(QString(Q_FUNC_INFO))
+                   );
+        return;
+    }
+    // ------------ Конец всех трагических случайностей ------------------------
+
+    QString fileName;
+
+    while(  pTask->isNextFileToPrint() ){
+        // Получим очередной файл для печати
+        fileName = pTask->getFileToPrint();
+        // Определим действие с ним опробуем преобразовать в Int
+        bool Ok;
+        int marker = fileName.toInt(&Ok,10);
+        if (Ok){// Нашли маркер
+            Message loc_msg(this);
+            switch (marker){
+            case 111:
+                loc_msg.setType(VPrn::Que_BeginPrintCopies);
+                break;
+            case 222:
+                loc_msg.setType(VPrn::Que_UserNeedFlipPages);
+                break;
+            case 333:
+                loc_msg.setType(VPrn::Que_UserNeedCheckLastPage);
+                break;
+            case 44:
+                loc_msg.setType(VPrn::Que_UserNeedMarkCopies);
+                QString str = QString("%1;:;")
+                              .arg(pTask->getDocName())
+                              .arg(pTask->getPrinterQueue());
+                loc_msg.setMessageData(  str.toUtf8() );
+                break;
+            }
+            sendMessage(loc_msg,client);// Запись в локальный слот клиенту
+        }else{
+            // Просто файл для печати отправим на принтер, туда ему и дорога
+            gs_plugin->directPrint(c_uuid,fileName,
+                                   pTask->getPrinterQueue(),
+                                   pTask->getPageCount() );
+        }
+    }
 }
 //------------------------- PRIVATE SLOTS --------------------------------------
 void serverGears::prepareError(QLocalSocket::LocalSocketError socketError)
@@ -711,66 +733,109 @@ void serverGears::do_docReady4work (const QString &client_uuid,int pCount)
 
 void serverGears::do_docReady4print (const QString &client_uuid)
 {
-    QLocalSocket *client(0);
-    Message msg( this );
+    /**
+    * @remarks Формируем очередь заданий на печать:
+    * @li 111         - Начало экземпляра документа
+    * @li fileToPrint - Первый лист, лицевая сторона
+    * @li fileToPrint - Последующие листы, лицевая сторона
+    * @li 222         - Требование перевернуть листы
+    * @li fileToPrint - Обратная сторона документа
+    * @li fileToPrint - Фонарик
+    * @li 333         - Конец экземпляра
+    */
+    QLocalSocket *client(0);    
 
-    QStringList files;
-
-    // По UUID определим какому клиенту надо было это сообщение
-
+    //Обработка неприятностей
+    if (!gs_plugin){
+        emit error(VPrn::InternalAppError,
+                   QObject::trUtf8("Ошибка приложения, плагин работы с GhostScript не загружен\n%1")
+                   .arg(QString(Q_FUNC_INFO))
+                   );
+        return;
+    }
+    // По UUID определим какому клиенту надо было это сообщение    
     client = findClient(client_uuid);
-    if (client){
-        msg.setType(VPrn::Ans_CreateFormatedDoc); // На документ успешно наложен шаблон
-        sendMessage(msg,client); // Запись в локальный слот клиенту
+    if (!client){
+        emit error(VPrn::InternalAppError,
+                   QObject::trUtf8("Ошибка приложения, клиента защищенного принтера отключен\n%1")
+                   .arg(QString(Q_FUNC_INFO))
+                   );
+        return;
+    }
+    // Определим его очередь печати
+    PrintTask *pTask = findpTack(client_uuid);
+    if (!pTask){
+        emit error(VPrn::InternalAppError,
+                   QObject::trUtf8("Ошибка приложения, задание на печать не существует\n%1")
+                   .arg(QString(Q_FUNC_INFO))
+                   );
+        return;
+    }
+    //------------------- Настоящая работа ------------------------------------
+    // Отправим сообщение локальному клиенту
+    Message msg( this );
+    msg.setType(VPrn::Ans_CreateFormatedDoc); // На документ успешно наложен шаблон
+    sendMessage(msg,client);                  // Запись в локальный слот клиенту
+    //очистим очередь печати для клиента
+    pTask->clearQueue();    
+    QList <int> doc_copies = pTask->getDocCopies();
+    for (int i=1; i<= doc_copies.size();i++){
+        QStringList files = gs_plugin->findFiles4Copy(client_uuid,i,
+                                                      QStringList() << "*out.pdf");
+        if (files.count() !=-1){
+            QMap <int,QString> orderList;
+            // Формируем задание для данного экземпляра
+            orderList.insert(0,QString("111"));
 
-        if (gs_plugin){
-            // Обработали все файлы надо пройти по всем каталогам и собрать *_out.pdf
-            files =  gs_plugin->findFiles(client_uuid,QStringList() << "*out.pdf");
-            // Теперь надо отправить документ на печать
-
-            PrintTask *pTask = findpTack(client_uuid);
-            if (pTask){
-                QList <int> doc_copies = pTask->getDocCopies()  ;
-                for (int i=1; i<= doc_copies.size();i++){
-                    QStringList out_list = gs_plugin->findFiles4Copy(client_uuid,
-                                                                     i,
-                                                                     QStringList() << "*out.pdf");
-                    for (int j=0;j<out_list.size();j++ ){
-                        QString filename = out_list.at( j );
-                        QRegExp rx("/(.+)/(.+)/(.)-copy/(.+_out).pdf");
-                        if(rx.indexIn( filename ) != -1){
-                            QString page_type  = rx.cap(4);
-
-                            if ( page_type.compare("firstpage_out",Qt::CaseInsensitive) == 0){
-                                pTask->addFileToPrintQueue(filename);
-                                if (pTask->getPageCount() == 1){
-                                    pTask->addFileToPrintQueue("OTHER_SIDE");
-                                }
-                            }
-                            if ( page_type.compare("otherpage_out",Qt::CaseInsensitive) == 0) {
-                                // Лицевая сторона второго и последующих листов
-                                pTask->addFileToPrintQueue(filename);
-
-                            }
-                            if ( page_type.compare("oversidepage_out",Qt::CaseInsensitive) == 0){
-                                pTask->addFileToPrintQueue("OTHER_SIDE");
-                                pTask->addFileToPrintQueue(filename);
-                            }
-                            if ( page_type.compare("lastpage_out",Qt::CaseInsensitive) == 0){
-                                pTask->addFileToPrintQueue(filename);
-                            }
-                        }
+            for (int j=0;j<files.size();j++){
+                QString filename = files.at( j );
+                QRegExp rx("/(.+)/(.+)/(.)-copy/(.+_out).pdf");
+                if(rx.indexIn( filename ) != -1){
+                    QString page_type  = rx.cap(4);
+                    if ( page_type.compare("firstpage_out",Qt::CaseInsensitive) == 0){
+                        orderList.insert(1,filename);
                     }
+                    if ( page_type.compare("otherpage_out",Qt::CaseInsensitive) == 0) {
+                        // Лицевая сторона второго и последующих листов
+                        orderList.insert(2,filename);
+                    }
+                    if ( page_type.compare("oversidepage_out",Qt::CaseInsensitive) == 0){
+                        orderList.insert(3,QString("222"));
+                        orderList.insert(4,filename);
+                    }
+                    if ( page_type.compare("lastpage_out",Qt::CaseInsensitive) == 0){
+                        orderList.insert(5,QString("333"));
+                        orderList.insert(6,filename);
+                    }
+                }
+            }
+            // Проверка особого случая есть 1 стр, есть фонарик,
+            // но нет последующих страниц документа
+            if (!orderList.value(1).isEmpty() &&
+                orderList.value(3).isEmpty() &&
+                orderList.value(4).isEmpty() &&
+                !orderList.value(6).isEmpty()
+                ){
+                orderList.insert(3,QString("OTHER_SIDE"));
+            }
+            orderList.insert(7,QString("444"));
+            qDebug() << "--------- Begin order list";
 
-                    pTask->addFileToPrintQueue("END_COPIES");
-                }               
-            }else{
-                emit error(VPrn::InternalAppError,
-                           QObject::trUtf8("Ошибка приложения, задание на печать не существует\n%1")
-                           .arg(QString(Q_FUNC_INFO))
-                           );
-            }                        
-        }        
+            for (int i=0; i< orderList.count();i++){
+                if ( 4 == i){
+                    pTask->addFileToPrintQueue(orderList.value(i),
+                                               pTask->getPageCount()
+                                               );
+                    qDebug() << "value: " << orderList.value(i)
+                             << "pages: " << pTask->getPageCount();
+                }else{
+                   pTask->addFileToPrintQueue(orderList.value(i),1);
+                   qDebug() << "value: " << orderList.value(i) << "pages: 1" ;
+                }
+            }
+
+            qDebug() << "--------- End order list";
+        }
     }
 }
 
@@ -839,11 +904,6 @@ void serverGears::createFormatedDoc(const QString &client_uuid,
 
 }
 
-void serverGears::markDocInBaseAsFault(const QString &client_uuid,
-                                       const QString &data_str)
-{
-
-}
 
 qint64 serverGears::getCompresedFile(const QString &fileName,
                                      QByteArray &data)
@@ -861,14 +921,6 @@ qint64 serverGears::getCompresedFile(const QString &fileName,
     return file_in.size();
 }
 
-void serverGears::createPrintTask(const QString &client_uuid,
-                                  const QString &printer_queue,
-                                  const QString &first_page,
-                                  const QString &other_page,
-                                  const QString &over_page,
-                                  const QString &last_page)
-{
-}
 
 PrintTask *serverGears::findpTack(const QString &c_uuid)
 {
@@ -890,42 +942,26 @@ PrintTask *serverGears::findpTack(const QString &c_uuid)
 }
 
 //-------------------------- grabage -------------------------
+void serverGears::createPrintTask(const QString &client_uuid,
+                                  const QString &printer_queue,
+                                  const QString &first_page,
+                                  const QString &other_page,
+                                  const QString &over_page,
+                                  const QString &last_page)
+{
+}
+void serverGears::markDocInBaseAsFault(const QString &client_uuid,
+                                       const QString &data_str)
+{
+
+}
+
 void serverGears::splitListToFile(const QStringList fList,
                                   QString &first_page,
                                   QString &other_page,
                                   QString &over_page,
                                   QString &last_page )
 {
-    if (fList.isEmpty()){
-        return ;
-    }
-
-    first_page.clear();
-    other_page.clear();
-    over_page.clear();
-    last_page.clear();
-
-    for (int j=0;j<fList.size();j++ ){
-        QString filename = fList.at( j );
-        QRegExp rx("/(.+)/(.+)/(.)-copy/(.+_out).pdf");
-        if(rx.indexIn( filename ) != -1){
-            QString page_type  = rx.cap(4);
-
-            if ( page_type.compare("firstpage_out",Qt::CaseInsensitive) == 0){
-                first_page = filename;
-            }
-            if ( page_type.compare("otherpage_out",Qt::CaseInsensitive) == 0) {
-                // Лицевая сторона второго и последующих листов
-                other_page = filename ;
-            }
-            if ( page_type.compare("oversidepage_out",Qt::CaseInsensitive) == 0){
-                over_page = filename;
-            }
-            if ( page_type.compare("lastpage_out",Qt::CaseInsensitive) == 0){
-                last_page = filename;
-            }
-        }
-    }
 }
 
 void serverGears::printCurrentFormatedDoc(const QString &client_uuid,
