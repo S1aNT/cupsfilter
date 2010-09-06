@@ -31,6 +31,7 @@ INCLUDEPATH += ../interfaces \
     ../qt_single_apps
 include(../qt_single_apps/qtsingleapplication.pri)
 HEADERS += server.h \
+           ../global/config.h \
     servergears.h \
     ../interfaces/auth_plugin.h \
     ../interfaces/inet_plugin.h \
