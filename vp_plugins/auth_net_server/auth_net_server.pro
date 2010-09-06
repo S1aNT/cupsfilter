@@ -3,7 +3,7 @@ QT += sql \
 TEMPLATE += app
 TARGET = auth_net_server
 CONFIG += warn_on \
-    qt \    
+    qt \
     precompile_header
 win32:DESTDIR = c:/opt/vprn
 else:DESTDIR = /opt/vprn
@@ -31,7 +31,7 @@ INCLUDEPATH += ../interfaces \
     ../qt_single_apps
 include(../qt_single_apps/qtsingleapplication.pri)
 HEADERS += server.h \
-           ../global/config.h \
+    ../global/config.h \
     servergears.h \
     ../interfaces/auth_plugin.h \
     ../interfaces/inet_plugin.h \
@@ -40,12 +40,12 @@ HEADERS += server.h \
     ../global/mytypes.h \
     ../global/message.h \
     ../global/templatesinfo.h \
-    printtask.h
+    printtask.h 
 SOURCES += server.cpp \
     main.cpp \
     servergears.cpp \
     ../global/message.cpp \
     ../global/templatesinfo.cpp \
-    printtask.cpp
+    printtask.cpp 
 RESOURCES = images.qrc
 TRANSLATIONS = auth_net_server_ru.ts
