@@ -508,7 +508,7 @@ bool Server::loadPlugins()
                         connect (plugin,
                                  SIGNAL( filePrinted(const QString &) ),
                                  myServerGears,
-                                 SLOT ( printFormatedDocuments(const QString &) )
+                                 SLOT ( test_printFormatedDocuments(const QString &) )
                                  );
                     }
                 }

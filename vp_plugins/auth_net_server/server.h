@@ -113,6 +113,7 @@ private slots:
       * почистим каталог, на радость обишникам
       */
     void clearClientSpool( const QString &client_uuid );
+
 private:
     void createActions();
     void createTrayIcon();
