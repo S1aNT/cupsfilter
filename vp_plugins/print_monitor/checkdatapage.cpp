@@ -143,6 +143,7 @@ void CheckDataPage::setCheckMergeDocWithTemplates( bool flag, const QString & in
     checkMergeDocWithTemplates->setChecked( flag );
     checkMergeDocWithTemplates->setText( info );
     checkMergeDocWithTemplates->setVisible(true);
+    step = flag;
 }
 
 void CheckDataPage::setAuthCheck( bool flag, const QString & info )
@@ -175,7 +176,7 @@ void CheckDataPage::startMergedDoc4PreviewFull(bool status)
     if (status){    
         emit select_mode(VPrn::pre_FullMode);
         enablePreviewButton(false);
-        step = true;
+        step = false;
     }
 }
 void CheckDataPage::startMergedDoc4PreviewPart(bool status)
@@ -183,7 +184,7 @@ void CheckDataPage::startMergedDoc4PreviewPart(bool status)
     if (status){
         emit select_mode(VPrn::pre_PartMode);
         enablePreviewButton(false);
-        step = true;
+        step = false;
     }
 }
 void CheckDataPage::startMergedDoc4Print(bool status)
