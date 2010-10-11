@@ -4,10 +4,10 @@
 #include <QWidget>
 
 QT_FORWARD_DECLARE_CLASS ( QLabel )
-QT_FORWARD_DECLARE_CLASS ( QGridLayout )
+QT_FORWARD_DECLARE_CLASS ( QVBoxLayout )
 QT_FORWARD_DECLARE_CLASS ( QLineEdit )
 QT_FORWARD_DECLARE_CLASS ( QPlainTextEdit )
-QT_FORWARD_DECLARE_CLASS ( QGroupBox )
+
 
 class FinishPage : public QWidget
 {
@@ -16,29 +16,17 @@ public:
     explicit FinishPage(QWidget *parent = 0);
 
 signals:
+    /**
+      * @brief Ответ пользователя, утверждает он документ или нет
+      */
+    void saveCopiesState(bool doc_state);
 
 public slots:
+    void addInfoMsg(const QString &info);
+
 private:
-    QGroupBox *groupBox;
-    QGridLayout *gridLayout;
-    QLabel *stampLab;
-    QLabel *mbLab;
-    QLabel *numberLab;
-    QLabel *pageCountLab;
-    QLineEdit *pageCountLE;
-    QLineEdit *stampLE;
-    QLineEdit *mbLE;
-    QLineEdit *numberLE;
-    QLabel *docNameLab;
-    QLineEdit *printerLE;
-    QLabel *printerLab;
-    QPlainTextEdit *docNamePE;
-    QLabel *executorLab;
-    QLineEdit *executorLE;
-    QLabel *printManLab;
-    QLineEdit *printManLE;
-    QLabel *printDateLab;
-    QLineEdit *printDateLE;
+    QPlainTextEdit *myInfoEdit;
+
 };
 
 #endif // FINISHPAGE_H
