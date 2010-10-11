@@ -5,6 +5,7 @@
 #include <QtCore/QMap>
 #include <QtGui/QPixmap>
 
+
 namespace VPrn{
 
 #define MY_DEBUG
@@ -17,6 +18,8 @@ namespace VPrn{
 #define CM_TO_POINT(cm) ((cm)*28.3465058)     /////// 28.346456693
 #define DM_TO_POINT(dm) ((dm)*283.465058)
 #define INCH_TO_POINT(inch) ((inch)*72.0)
+
+
 
     typedef QMap <int,QPixmap> PixmapList;
     typedef QMap <int,QString> PixmapDescList;
@@ -205,7 +208,8 @@ namespace VPrn{
         job_SplitPageOther,       /// Разбиение документа на последующие стр.
         job_MergePdf,             /// Объединение двух pdf в один
         job_PrintFile,            /// Печать документа на принтер
-        job_ConvertToPng          /// Преобразование в png исходного файла
+        job_ConvertToPng,         /// Преобразование в png исходного файла
+        job_CatPages              /// Объединение двух pdf файлов в один
     };
 
     enum MessageType {
@@ -357,8 +361,16 @@ namespace VPrn{
         Ans_PrintThisFileSuccess     = 6010,
         Ans_PrintThisFileFailure     = 6050,
 
+        /**
+          * @short Que_CheckFileSize Запрос у мишиного демона, может ли он принять файл
+          * @param (qint64) array_size   размер не сжатого буфера
+          */
+        Que_CheckFileSize            = 6060,
+        Ans_CheckFileSizeSuccess     = 6065, // Ответ может
+        Ans_CheckFileSizeFailure     = 6070, // Ответ нет не может
+
         /*
-         * @short Запрос пользователь должен пометить экз документа как ЧИСТОВИК/БРАК
+         * @short Запрос/ответ пользователь должен пометить экз документа как ЧИСТОВИК/БРАК
          * @param (QString) Название документа
          * @param (QString) Принтер на котором печатался документ
          * @param (QString) МБ номер документа
