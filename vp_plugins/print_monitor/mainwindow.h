@@ -50,6 +50,13 @@ private slots:
     void sendFileToConvertor();        
     void errorInfo(VPrn::AppErrorType eCode,QString e_msg);
 
+    /**
+     * @fn do_UserNeedFlipPages();
+     * @brief Запрос на переворот страниц
+     */
+    void do_UserNeedFlipPages();
+    void do_UserNeedCheckLastPage();
+    void do_UserNeedMarkCopies(const QString &detail_data);
 private:        
     QDesktopWidget desktop;
     int            pageId;
@@ -93,6 +100,7 @@ private:
       * @brief Проверка можно ли перейти на следующую страницу
       */
     bool lastCheck(int page);
+
 
 };
 

@@ -268,6 +268,85 @@ void MainWindow::errorInfo(VPrn::AppErrorType eCode,QString e_msg)
     qDebug() << extMsg;
 }
 
+
+void MainWindow::do_UserNeedFlipPages()
+{
+    QMessageBox msgBox;
+    msgBox.setText(QObject::trUtf8("Оконченна печать лицевой стороный документа."));
+    msgBox.setInformativeText(QObject::trUtf8("Для продолжения печати переверните листы и нажмите кнопку ПЕЧАТЬ или отмена"));
+    msgBox.setDetailedText(QObject::trUtf8("Внимание в случае отмены печати документа, текущий экземпляр документа будет помечен, как брак"));
+
+    QPushButton *printButton = msgBox.addButton(QObject::trUtf8("Печать"), QMessageBox::ActionRole);
+    QPushButton *abortButton = msgBox.addButton(QObject::trUtf8("Отмена"), QMessageBox::RejectRole);
+
+    msgBox.exec();
+
+    if (msgBox.clickedButton() == printButton) {
+        // connect
+        engine->do_printCurrentDoc();
+    } else if (msgBox.clickedButton() == abortButton) {
+        // abort
+        engine->markCurrentDocBrack();
+    }
+
+}
+
+void MainWindow::do_UserNeedCheckLastPage()
+{
+    QMessageBox msgBox;
+    msgBox.setText(QObject::trUtf8("Оконченна печать обратной стороны документа."));
+    msgBox.setInformativeText(QObject::trUtf8("Для продолжения печати установите последний лист документа и нажмите кнопку ПЕЧАТЬ или отмена"));
+    msgBox.setDetailedText(QObject::trUtf8("Внимание в случае отмены печати документа, текущий экземпляр документа будет помечен, как брак"));
+
+    QPushButton *printButton = msgBox.addButton(QObject::trUtf8("Печать"), QMessageBox::ActionRole);
+    QPushButton *abortButton = msgBox.addButton(QObject::trUtf8("Отмена"), QMessageBox::RejectRole);
+
+    msgBox.exec();
+
+    if (msgBox.clickedButton() == printButton) {
+        // connect
+        engine->do_printCurrentDoc();
+    } else if (msgBox.clickedButton() == abortButton) {
+        // abort
+        engine->markCurrentDocBrack();
+    }
+
+}
+
+void MainWindow::do_UserNeedMarkCopies(const QString &detail_data)
+{
+    // Разборки в малом Токио
+    qDebug() << "detail_data " << detail_data;
+    if (!detail_data.isEmpty() && detail_data.contains(";:;")){
+        QStringList d_list =  detail_data.split(";:;");
+
+        QMessageBox msgBox;
+        msgBox.setText(QObject::trUtf8("Оконченна печать документа %1").arg(d_list.at(0)));
+        msgBox.setInformativeText(QObject::trUtf8("Необходимо пометить текущий документ как ЧИСТОВИК или БРАК"));
+        msgBox.setDetailedText(QObject::trUtf8("Документ %1 был распечатан на принтере %2.\nНомер МБ - %3\nЭкземпляр - %4\nЧисло страниц %5")
+                               .arg(d_list.at(0))
+                               .arg(d_list.at(1))
+                               .arg(d_list.at(2))
+                               .arg(d_list.at(3))
+                               .arg(d_list.at(4))
+                               );
+
+        QPushButton *clearButton = msgBox.addButton(QObject::trUtf8("Чистовик"), QMessageBox::ActionRole);
+        QPushButton *brakButton = msgBox.addButton(QObject::trUtf8("Брак"), QMessageBox::RejectRole);
+
+        msgBox.exec();
+
+        if (msgBox.clickedButton() == clearButton) {
+            // connect
+            engine->markCurrentDocClear();
+        } else if (msgBox.clickedButton() == brakButton) {
+            // abort
+            engine->markCurrentDocBrack();
+        }
+    }
+}
+
+
 //------------------------------------ PRIVATE ---------------------------------------------
 void MainWindow::createConnection()
 {
@@ -353,6 +432,23 @@ void MainWindow::createConnection()
              engine,       SLOT   (do_printCurrentDoc())
              );
 
+    connect (engine,       SIGNAL (showInfoMsg(QString)),
+             finishPage,   SLOT   (addInfoMsg(QString))
+             );
+    connect (engine,       SIGNAL (UserNeedFlipPages()),
+             this,   SLOT   (do_UserNeedFlipPages())
+             );
+    connect (engine, SIGNAL (UserNeedCheckLastPage()),
+             this,   SLOT   (do_UserNeedCheckLastPage())
+             );
+
+    connect (engine,       SIGNAL (UserNeedMarkCopies(const QString&)),
+             this,   SLOT   (do_UserNeedMarkCopies(const QString&))
+             );
+
+    connect (finishPage,       SIGNAL (saveCopiesState(bool)),
+             engine,   SLOT   (do_saveCopiesState(bool))
+             );
 
 }
 
