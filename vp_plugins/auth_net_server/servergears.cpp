@@ -30,7 +30,7 @@ serverGears::serverGears(QObject *parent,const QString &srvName)
         , netDemonReady(false)
 
 {
-    m_serverName = srvName;
+    m_serverName = srvName;   
     /// Создаем локальный сервер
     m_server = new QLocalServer(this);
     if (!m_server->listen(m_serverName)) {
@@ -41,6 +41,8 @@ serverGears::serverGears(QObject *parent,const QString &srvName)
                    );
         setCheckPoint(VPrn::loc_CantStartListen);
     }else{
+        // До загрузки всех плагинов не принимаем сообщения от клиентов
+        m_server->setMaxPendingConnections(0);
         connect(m_server, SIGNAL(newConnection()),
                 this,     SLOT(client_init()));
         setCheckPoint(VPrn::loc_ServerStart);
@@ -55,26 +57,33 @@ MyCheckPoints serverGears::checkPoints() const
 
 void serverGears::setAuthData(const QString &userName,const QString &userMandat)
 {
-    u_login = userName;
-    u_mandat = userMandat;
+    if ( !userName.isEmpty()){
+        u_login = userName;
+    }
+    if ( !userMandat.isEmpty()){
+        u_mandat = userMandat;        
+    }
+    this->init();
 }
 
 void serverGears::setNetPlugin(Inet_plugin *NetPlugin)
 {
     if (NetPlugin){
         net_plugin = NetPlugin;
+        this->init();
     }else{
         emit error(VPrn::PluginsNotLoad,
                    QObject::trUtf8("Ошибка при попытке использования сетевого плагина.\n %1.")
                    .arg(QString(Q_FUNC_INFO))
                    );
-    }
+    }    
 }
 
 void serverGears::setGsPlugin(Igs_plugin *GsPlugin)
 {
     if (GsPlugin){
         gs_plugin = GsPlugin;
+        this->init();
     }else{
         emit error(VPrn::PluginsNotLoad,
                    QObject::trUtf8("Ошибка при попытке использования PostcSript плагина.\n %1.")
@@ -87,6 +96,7 @@ void serverGears::setTmplPlugin(Itmpl_sql_plugin *TmplPlugin)
 {
     if (TmplPlugin){
         tmpl_plugin = TmplPlugin;
+        this->init();
     }else{        
         emit error(VPrn::PluginsNotLoad,
                    QObject::trUtf8("Ошибка при попытке использования плагина работы с шаблонами.\n %1.")
@@ -129,80 +139,6 @@ void serverGears::findTemplatesInPath(const QString &t_path)
     }
 }
 
-//-------------------------- PUBLIC SLOTS --------------------------------------
-void serverGears::test_printFormatedDocuments(const QString &c_uuid)
-{
-    QTimer::singleShot(10000, this, SLOT( printFormatedDocuments(c_uuid) ) );
-
-}
-void serverGears::printFormatedDocuments(const QString c_uuid)
-{    
-    if (!gs_plugin){
-        emit error(VPrn::InternalAppError,
-                   QObject::trUtf8("Ошибка приложения, плагин работы с GhostScript не загружен\n%1")
-                   .arg(QString(Q_FUNC_INFO))
-                   );
-        return;        
-    }    
-    PrintTask *pTask = findpTack(c_uuid);
-    if (!pTask){
-        emit error(VPrn::InternalAppError,
-                   QObject::trUtf8("Ошибка приложения, задание на печать не существует\n%1")
-                   .arg(QString(Q_FUNC_INFO))
-                   );
-        return;
-    }
-
-    QLocalSocket *client(0);
-    // По UUID определим какому клиенту надо было это сообщение
-    client = findClient(c_uuid);
-    if (!client){
-        emit error(VPrn::InternalAppError,
-                   QObject::trUtf8("Ошибка приложения, клиент защищенного принтера отключен\n%1")
-                   .arg(QString(Q_FUNC_INFO))
-                   );
-        return;
-    }
-    // ------------ Конец всех трагических случайностей ------------------------
-
-    QString fileName;
-
-    while(  pTask->isNextFileToPrint() ){
-        // Получим очередной файл для печати
-        fileName = pTask->getFileToPrint();
-        qDebug() << "Current print file: " << fileName;
-        // Определим действие с ним опробуем преобразовать в Int
-        bool Ok;
-        int marker = fileName.toInt(&Ok,10);
-        if (Ok){// Нашли маркер
-            Message loc_msg(this);
-            switch (marker){
-            case 111:
-                loc_msg.setType(VPrn::Que_BeginPrintCopies);
-                break;
-            case 222:
-                loc_msg.setType(VPrn::Que_UserNeedFlipPages);
-                break;
-            case 333:
-                loc_msg.setType(VPrn::Que_UserNeedCheckLastPage);
-                break;
-            case 444:
-                loc_msg.setType(VPrn::Que_UserNeedMarkCopies);
-                QString str = QString("%1;:;")
-                              .arg(pTask->getDocName())
-                              .arg(pTask->getPrinterQueue());
-                loc_msg.setMessageData(  str.toUtf8() );
-                break;
-            }
-            sendMessage(loc_msg,client);// Запись в локальный слот клиенту
-        }else{
-            // Просто файл для печати отправим на принтер, туда ему и дорога
-            gs_plugin->directPrint(c_uuid,fileName,
-                                   pTask->getPrinterQueue(),
-                                   pTask->getPageCount() );
-        }
-    }
-}
 //------------------------- PRIVATE SLOTS --------------------------------------
 void serverGears::prepareError(QLocalSocket::LocalSocketError socketError)
 {
@@ -391,6 +327,24 @@ void serverGears::reciveNetworkMessage(const Message &r_msg)
                     loc_msg.setType(VPrn::Ans_STAMP_LIST);
                     loc_msg.setMessageData(  m_body.toUtf8() );
                     break;
+                case VPrn::Ans_CheckFileSizeSuccess:
+                    //sendFileToDemon(m_uuid); // Место есть можно отправлять демону файл
+                    debugDirectPrint(m_uuid);
+                    break;
+                case VPrn::Ans_CheckFileSizeFailure:
+                    str = QObject::trUtf8("Недостаточно места на сервере печати!");
+                    loc_msg.setType(VPrn::Err_Message);
+                    loc_msg.setMessageData(  str.toUtf8() );
+                    break;
+                case VPrn::Ans_PrintThisFileSuccess:
+                    checkCurrentFile(m_uuid); // Проверим следующий файл
+                    break;
+                case VPrn::Ans_PrintThisFileFailure:
+                    str = QObject::trUtf8("Ошибка при печати документа %1!")
+                          .arg(m_body);
+                    loc_msg.setType(VPrn::Err_Message);
+                    loc_msg.setMessageData(  str.toUtf8() );
+                    break;
                 default:
                     /* do nothing */
                     break;
@@ -428,6 +382,18 @@ void serverGears::client_init()
         connect(client, SIGNAL(error(QLocalSocket::LocalSocketError)),
                 this,   SLOT(prepareError(QLocalSocket::LocalSocketError)));
         setCheckPoint(VPrn::loc_NewClientStarted);
+        /** @todo Подумать как объединить дублированние информации
+          * ClientData из gs_plugin и  PrintTask
+          */
+        // Создаем учетные данные для печати документа
+        PrintTask *pTask = findpTack(c_uuid);
+        if (!pTask){
+            emit error(VPrn::InternalAppError,
+                       QObject::trUtf8("Ошибка приложения, задание на печать не существует\n%1")
+                       .arg(QString(Q_FUNC_INFO))
+                       );
+            return;
+        }
     }
 }
 
@@ -461,8 +427,8 @@ void serverGears::setCheckPoint(MyCheckPoints cp)
 
 void serverGears::parseMessage( const Message &m_msg, const QString &c_uuid)
 {
-    QLocalSocket *client(0);
 
+    QLocalSocket *client(0);    
     Message message( this );
     QString str;
 
@@ -473,7 +439,7 @@ void serverGears::parseMessage( const Message &m_msg, const QString &c_uuid)
         switch (m_msg.type()){
         case VPrn::Que_UserDemands2Restart:
             str.append(m_msg.messageData()); /// В теле сообщения параметры
-            markDocInBaseAsFault(c_uuid,str);// Пометка документа в базе как бракованный
+            //markDocInBaseAsFault(c_uuid,str);// Пометка документа в базе как бракованный
 
             //Сформируем набор сообщений и отправим клиенту
             if (gs_plugin ){
@@ -533,8 +499,7 @@ void serverGears::parseMessage( const Message &m_msg, const QString &c_uuid)
             }
             break;
 
-        case VPrn::Que_AUTHOR_USER:{
-
+        case VPrn::Que_AUTHOR_USER:{                
                 // Запрос авторизации на устройство
                 // Сохраним в очереди печати текущий выбранный принтер
                 PrintTask *pTask = findpTack(c_uuid);
@@ -579,13 +544,12 @@ void serverGears::parseMessage( const Message &m_msg, const QString &c_uuid)
             break;
         case VPrn::Que_PrintCurrentFormatedDoc:
             // запуск печати
-            printFormatedDocuments(c_uuid);
+            checkCurrentFile(c_uuid);
             break;
         case VPrn::Que_Register:
             message.setType(VPrn::Ans_Register);
             message.setMessageData(  c_uuid.toUtf8() ); // Пробразуем в QByteArray
-            sendMessage( message,client) ;
-
+            sendMessage( message,client) ;            
             break;
         case VPrn::Que_ServerStatus:
             // Клиент запросил состояние сервера
@@ -743,8 +707,7 @@ void serverGears::do_docReady4print (const QString &client_uuid)
     /**
     * @remarks Формируем очередь заданий на печать:
     * @li 111         - Начало экземпляра документа
-    * @li fileToPrint - Первый лист, лицевая сторона
-    * @li fileToPrint - Последующие листы, лицевая сторона
+    * @li fileToPrint - Лицевая сторона
     * @li 222         - Требование перевернуть листы
     * @li fileToPrint - Обратная сторона документа
     * @li fileToPrint - Фонарик
@@ -798,49 +761,42 @@ void serverGears::do_docReady4print (const QString &client_uuid)
                 QString filename = files.at( j );
                 QRegExp rx("/(.+)/(.+)/(.)-copy/(.+_out).pdf");
                 if(rx.indexIn( filename ) != -1){
+                    QString copy_num   = rx.cap(3);
                     QString page_type  = rx.cap(4);
-                    if ( page_type.compare("firstpage_out",Qt::CaseInsensitive) == 0){
+                    if ( page_type.compare("face_pages_out",Qt::CaseInsensitive) == 0){
                         orderList.insert(1,filename);
                     }
-                    if ( page_type.compare("otherpage_out",Qt::CaseInsensitive) == 0) {
-                        // Лицевая сторона второго и последующих листов
-                        orderList.insert(2,filename);
-                    }
+
                     if ( page_type.compare("oversidepage_out",Qt::CaseInsensitive) == 0){
-                        orderList.insert(3,QString("222"));
-                        orderList.insert(4,filename);
+                        orderList.insert(2,QString("222"));
+                        orderList.insert(3,filename);
                     }
                     if ( page_type.compare("lastpage_out",Qt::CaseInsensitive) == 0){
-                        orderList.insert(5,QString("333"));
-                        orderList.insert(6,filename);
+                        orderList.insert(4,QString("333"));
+                        orderList.insert(5,filename);
                     }
+                    orderList.insert(6,QString("444"));
+                    orderList.insert(7,QObject::trUtf8("Печатаемый экземпляр №%1").arg(copy_num));
                 }
             }
             // Проверка особого случая есть 1 стр, есть фонарик,
             // но нет последующих страниц документа
             if (!orderList.value(1).isEmpty() &&
                 orderList.value(3).isEmpty() &&
-                orderList.value(4).isEmpty() &&
-                !orderList.value(6).isEmpty()
+                !orderList.value(5).isEmpty()
                 ){
-                orderList.insert(3,QString("OTHER_SIDE"));
+                orderList.insert(4,QString("333"));
             }
-            orderList.insert(7,QString("444"));
             qDebug() << "--------- Begin order list";
-
-            for (int l=0; i< orderList.count();l++){
-                if ( l == 4){
+            for (int l=0; l< orderList.count();l++){
+                if ( l == 3){
                     pTask->addFileToPrintQueue(orderList.value(l),
-                                               pTask->getPagesInDocCount()
+                                               pTask->getPageCount()
                                                );
-                    qDebug() << "value: " << orderList.value(l)
-                             << "pages: " << pTask->getPageCount();
                 }else{
-                   pTask->addFileToPrintQueue(orderList.value(i),1);
-                   qDebug() << "value: " << orderList.value(l) << "pages: 1" ;
+                    pTask->addFileToPrintQueue(orderList.value(l),1);
                 }
             }
-
             qDebug() << "--------- End order list";
         }
     }
@@ -880,15 +836,14 @@ void serverGears::createFormatedDoc(const QString &client_uuid,
     in >> doc_copyes;
     in >> t_fileName;
     // читаем значения
-    in >> m_tagValue;
-
+    in >> m_tagValue;    
 
     PrintTask *pTask = findpTack(client_uuid);
 
+    pTask->setMB( m_tagValue.value( VPrn::cards_MB_NUMBER ) );
     pTask->setDocName( m_tagValue.value( VPrn::cards_DOC_NAME ) );
     pTask->setDocCopies( doc_copyes);
-    pTask->setPageCount (m_tagValue.value(VPrn::cards_PAGE_COUNT).toInt());   
-
+    pTask->setPageCount (m_tagValue.value(VPrn::cards_PAGE_COUNT).toInt() );
 
     // Формируем страницы шаблона в pdf
     bool Ok = true;
@@ -910,6 +865,7 @@ void serverGears::createFormatedDoc(const QString &client_uuid,
     }
 
 }
+
 
 
 qint64 serverGears::getCompresedFile(const QString &fileName,
@@ -948,31 +904,211 @@ PrintTask *serverGears::findpTack(const QString &c_uuid)
     return pTask;
 }
 
-//-------------------------- grabage -------------------------
-void serverGears::createPrintTask(const QString &client_uuid,
-                                  const QString &printer_queue,
-                                  const QString &first_page,
-                                  const QString &other_page,
-                                  const QString &over_page,
-                                  const QString &last_page)
+void serverGears::init()
 {
-}
-void serverGears::markDocInBaseAsFault(const QString &client_uuid,
-                                       const QString &data_str)
-{
+    bool state =  ( !m_serverName.isEmpty() &&
+                    !u_login.isEmpty() &&
+                    tmpl_plugin &&
+                    gs_plugin &&
+                    net_plugin && m_server );
 
+    if (state) {
+        m_server->setMaxPendingConnections(30);
+    }
 }
 
-void serverGears::splitListToFile(const QStringList fList,
-                                  QString &first_page,
-                                  QString &other_page,
-                                  QString &over_page,
-                                  QString &last_page )
+bool serverGears::isReadyToWork(const QString &c_uuid)
 {
+    bool Ok = true;
+    {
+        if (!net_plugin){
+            emit error(VPrn::InternalAppError,
+                       QObject::trUtf8("Ошибка приложения, плагин работы с LAN не загружен\n%1")
+                       .arg(QString(Q_FUNC_INFO))
+                       );
+            Ok &= false;
+        }
+
+        if (!gs_plugin){
+            emit error(VPrn::InternalAppError,
+                       QObject::trUtf8("Ошибка приложения, плагин работы с GhostScript не загружен\n%1")
+                       .arg(QString(Q_FUNC_INFO))
+                       );
+            Ok &= false;
+        }
+        if (!tmpl_plugin){
+            emit error(VPrn::InternalAppError,
+                       QObject::trUtf8("Ошибка приложения, плагин работы с Шаблонами не загружен\n%1")
+                       .arg(QString(Q_FUNC_INFO))
+                       );
+            Ok &= false;
+        }
+
+
+        // ------------ Конец всех трагических случайностей ------------------------
+
+    }
+    return Ok;
 }
 
-void serverGears::printCurrentFormatedDoc(const QString &client_uuid,
-                                          QString printer_queue)
+void serverGears::debugDirectPrint(const QString &c_uuid)
 {
+    PrintTask *pTask = findpTack(c_uuid);
+    if (!pTask){
+        emit error(VPrn::InternalAppError,
+                   QObject::trUtf8("Ошибка приложения, задание на печать не существует\n%1")
+                   .arg(QString(Q_FUNC_INFO))
+                   );
+        return;
+    }
+    // Проверка есть ли файл в очереди печати
+    if ( pTask->isNextFileToPrint() ){
+        QString fileName = pTask->getFileToPrint();
+        qDebug() << "direct print fileName " << fileName;
 
+        // Просто файл для печати отправим на принтер, туда ему и дорога
+        gs_plugin->directPrint(c_uuid,fileName,
+                               pTask->getPrinterQueue(),
+                               pTask->getPagesInDocCount() ) ;
+
+    }
+}
+
+void serverGears::sendFileToDemon(const QString &c_uuid)
+{
+    PrintTask *pTask = findpTack(c_uuid);
+    if (!pTask){
+        emit error(VPrn::InternalAppError,
+                   QObject::trUtf8("Ошибка приложения, задание на печать не существует\n%1")
+                   .arg(QString(Q_FUNC_INFO))
+                   );
+        return;
+    }
+    // Проверка есть ли файл в очереди печати
+    if ( pTask->isNextFileToPrint() ){
+        // Формируем сообщение
+        QString fileName = pTask->getFileToPrint();
+        QByteArray msg_body;
+        QByteArray file_data;
+        qint64     file_size = getCompresedFile(fileName,file_data);
+        //Формируем файл для печати сжатый
+        Message net_msg(this);
+        net_msg.setType(VPrn::Que_PrintThisFile);
+        /**
+                  * @short Que_PrintThisFile Печать файла на выбранный пользователем принтер
+                  * @param (QString) JobID (уникально для каждого экз. документа)
+                  * @param (QString) Имя принтера (очереди печати на CUPS)
+                  * @param (qint8)   copy_number  число копий 1-100
+                  * @param (QString) user_name    имя пользователя
+                  * @param (QString) job_title    имя задания
+                  * @param (qint64) array_size   размер не сжатого буфера
+                  * @param (QByteArray) файл для печати в формате QByteArray (сжатый)
+                  */
+        QDataStream out(&msg_body, QIODevice::WriteOnly );
+        out.setVersion(QDataStream::Qt_3_0);
+        //Уникальный номер представляет собой МБ
+        out     << c_uuid
+                << pTask->getMB() /// @todo Проверить нужен ли МБ
+                << pTask->getPrinterQueue()
+                << pTask->getPagesInDocCount()
+                << u_login
+                << QString("%1 from %2").arg(pTask->getDocName(),fileName)
+                << file_size
+                << file_data;
+        net_msg.setMessageData(msg_body);
+        //Запись в сетевой канал
+        net_plugin->sendMessage(net_msg);
+    }
+}
+
+void serverGears::checkFreeSpaceInDemon(const QString &c_uuid,qint64 fsize)
+{
+    PrintTask *pTask = findpTack(c_uuid);
+    if (!pTask){
+        emit error(VPrn::InternalAppError,
+                   QObject::trUtf8("Ошибка приложения, задание на печать не существует\n%1")
+                   .arg(QString(Q_FUNC_INFO))
+                   );
+        return;
+    }
+    QByteArray msg_body;
+    //Формируем файл для печати сжатый
+    Message net_msg(this);
+    net_msg.setType(VPrn::Que_CheckFileSize);
+    net_msg.setMessageData(
+            QString("[%1];:;%2").arg( c_uuid).arg(fsize,0,10)
+            .toUtf8() );
+    //Запись в сетевой канал
+    net_plugin->sendMessage(net_msg);
+    debugDirectPrint(c_uuid);
+}
+
+void serverGears::checkCurrentFile(const QString &c_uuid)
+{
+    PrintTask *pTask = findpTack(c_uuid);
+    QLocalSocket *client(0);
+    QString  fileName;
+
+    if (!pTask){
+        emit error(VPrn::InternalAppError,
+                   QObject::trUtf8("Ошибка приложения, задание на печать не существует\n%1")
+                   .arg(QString(Q_FUNC_INFO))
+                   );
+        return;
+    }
+
+    client = findClient(c_uuid); // По UUID определим какому клиенту надо было это сообщение
+
+    if (!client){
+        emit error(VPrn::InternalAppError,
+                   QObject::trUtf8("Ошибка приложения, клиент защищенного принтера отключен\n%1")
+                   .arg(QString(Q_FUNC_INFO))
+                   );
+        return;
+    }
+
+    if (pTask->isNextFileToPrint()){
+        qint64 fsize = pTask->getCurrentFileSizes();
+        // Проверим это файл имеющий размер > 0 байтов или маркер
+        if (fsize ==0 ){ // Маркер, обработаем ситуацию,т.е отправим юзеру сообщение
+            fileName = pTask->getFileToPrint();
+            qDebug() << "fileName to print " <<  fileName;
+            // Определим действие с ним опробуем преобразовать в Int
+            bool Ok;
+            int marker = fileName.toInt(&Ok,10);
+            if (Ok){// Нашли маркер
+                // уберем из очереди числа копий строчку
+                pTask->getPagesInDocCount();
+                Message loc_msg(this);
+                QString str;
+                switch (marker){
+                case 111:
+                    loc_msg.setType(VPrn::Que_BeginPrintCopies);
+                    str = QString("%1").arg(pTask->getDocName());
+                    loc_msg.setMessageData(  str.toUtf8() );
+                    break;
+                case 222:
+                    loc_msg.setType(VPrn::Que_UserNeedFlipPages);
+                    break;
+                case 333:
+                    loc_msg.setType(VPrn::Que_UserNeedCheckLastPage);
+                    break;
+                case 444:
+                    loc_msg.setType(VPrn::Que_UserNeedMarkCopies);
+                    str = QString("%1;:;%2;:;%3;:;%4;:;%5")
+                          .arg(pTask->getDocName())
+                          .arg(pTask->getPrinterQueue())
+                          .arg(pTask->getMB())
+                          .arg(pTask->getFileToPrint())
+                          .arg(pTask->getPageCount(),0,10 );
+
+                    loc_msg.setMessageData(  str.toUtf8() );
+                    break;
+                }
+                sendMessage(loc_msg,client);// Запись в локальный слот клиенту
+            }
+        }else{
+            checkFreeSpaceInDemon(c_uuid,fsize);
+        }
+    }
 }

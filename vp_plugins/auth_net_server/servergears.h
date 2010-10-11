@@ -41,6 +41,7 @@ public:
     QString lastError() const {return e_info;}
     MyCheckPoints checkPoints() const;
 
+
     /**
       * @fn void setAuthData(const QString &userName = QString(),const QString &userMandat = QString());
       * @brief Сохранение данных пользователея Имя и Мандат
@@ -92,8 +93,13 @@ signals:
     void clearClientSpool(const QString c_uuid);
 
 public slots:
-    void printFormatedDocuments(const QString c_uuid);
-    void test_printFormatedDocuments(const QString &c_uuid);
+     /**
+      * @fn void checkCurrentFile(const QString &c_uuid);
+      * @brief Проверка следующий файл в очереди печати реальный файл или метка
+      */
+    void checkCurrentFile(const QString &c_uuid);
+    void debugDirectPrint(const QString &c_uuid);
+
 private slots:
     /**
       * @fn void readyRead()
@@ -197,11 +203,6 @@ private:
       */
     void markDocInBaseAsFault(const QString &client_uuid,
                               const QString &data_str);
-    /**
-      * @fn void printCurrentDoc(const QString &client_uuid,QString printer_queue);
-      * @brief Печать текущего сформированнного документа
-      */
-    void printCurrentFormatedDoc(const QString &client_uuid,QString printer_queue);
 
     /**
       * @fn void createFormatedDoc(const QString &client_uuid,
@@ -224,7 +225,7 @@ private:
       */
     void sendMessage( const Message &m_msg, QLocalSocket *client);
 
-     /**
+    /**
       * @fn void setCheckPoint(MyCheckPoints cp);
       * @brief Сохраняет последнюю пройденную контрольну точку и испускает
       * сигнал с этим радостным событием.
@@ -244,27 +245,41 @@ private:
       * указатель на задачу печати или 0
       * @returns QLocalSocket * or 0
       */
-     PrintTask *findpTack(const QString &c_uuid);
-     /**
+    PrintTask *findpTack(const QString &c_uuid);
+    /**
        * @fn qint64 getCompresedFile(const QString &fileName,
        *                                 QByteArray &data);
        * @brief Читает существующий файл во временный буфер,
        * сжимает его  с помощью zlib и пишет в data
        */
-     qint64 getCompresedFile(const QString &fileName,
-                                        QByteArray &data);
-     void createPrintTask(const QString &client_uuid,
-                          const QString &printer_queue,
-                          const QString &first_page,
-                          const QString &other_page,
-                          const QString &over_page,
-                          const QString &last_page);
+    qint64 getCompresedFile(const QString &fileName,
+                            QByteArray &data);
 
-     void splitListToFile(const QStringList fList,
-                          QString &first_page,
-                          QString &other_page,
-                          QString &over_page,
-                          QString &last_page );
+    /**
+      * @fn void init();
+      * @brief Осуществляет запуск Локального сервера, после загрузки требуемых плагинов
+      */
+    void init();
+
+    /**
+       * @fn bool isReadyToWork(const QString &c_uuid);
+       * @brief Проверка условий необходимых для работы
+       * @li Есть связь с локальным клиентом
+       * @li Создано задание печати
+       */
+    bool isReadyToWork(const QString &c_uuid);
+    /**
+      * @fn void sendFileToDemon(const QString &c_uuid);
+      * @brief Выбирает очередной файл из очереди печати клиента и оправляет его
+      * через мишин демон на сетевой принтер
+      */
+    void sendFileToDemon(const QString &c_uuid);
+    /**
+      * @fn void checkFreeSpaceInDemon(const QString &c_uuid,qint64 fsize);
+      * @brief Проверка свободного места на сервере
+      */
+    void checkFreeSpaceInDemon(const QString &c_uuid,qint64 fsize);
+
 };
 
 #endif // SERVERGEARS_H
