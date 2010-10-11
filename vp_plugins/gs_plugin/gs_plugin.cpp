@@ -109,7 +109,9 @@ void GS_plugin::convertPs2Pdf(const QString &client_uuid,const QString &input_fn
 
     }else {
         emit error(VPrn::FileIOError,
-                   QObject::trUtf8("ERROR : Файл %1 не найден\n%2").arg(input_fn).arg(QString(Q_FUNC_INFO)));
+                   QObject::trUtf8("ERROR : Файл %1 не найден\n%2")
+					.arg(input_fn)
+					.arg(QString(Q_FUNC_INFO)));
     }
 }
 
@@ -118,35 +120,97 @@ void GS_plugin::directPrint(const QString &client_uuid,const QString &file_name,
 {
     // Поиск данных для клиента
     QStringList args;
-    QString prn_bin;
-    /// @todo Проверить число копий если в документе больше 100 страниц,
-    /// то как их распечатает lpr и gsprint
-    if (gsprintBin.isEmpty()){
-        emit error(VPrn::FileNotFound,
-                   QObject::trUtf8("Файл %1 не найден или отсутсвуют права доступа\n %2")
-                   .arg(gsprintBin).arg(QString(Q_FUNC_INFO))
-                   );
-    }else{
-        prn_bin = gsprintBin;
+    QProcess proc;
+
 #if defined(Q_OS_UNIX)                
-        args.append(QString("-P %1").arg(printer_name));
-        args.append(tr("-#%1").arg(copies,0,10));
-        args.append(QString("\"%1\"").arg(file_name).toLatin1());
-        start_proc(client_uuid,prn_bin,args,VPrn::job_PrintFile);
-#elif defined(Q_OS_WIN)        
-        //-color -noquery -all -printer %1 -copies %2 %3
-        args.append("-color");
-        args.append("-noquery");
-        args.append("-all");
-        args.append(QString("-printer \"%1\"").arg(printer_name).toLatin1());
-        args.append(QString("-copies %1").arg(copies,0,10));
-        args.append(file_name);
-        start_proc(client_uuid,prn_bin,args,VPrn::job_PrintFile);
+    args.append(QString("-P %1").arg(printer_name));
+    args.append(tr("-#%1").arg(copies,0,10));
+    args.append(QString("\"%1\"").arg(file_name).toLatin1());
+
+    proc.start( gsprintBin, args );
+#elif defined(Q_OS_WIN) //-color -noquery -all -printer %1 -copies %2 %3
+    args.append("-color");
+    args.append("-noquery");
+    args.append("-all");
+    args.append(QString("-printer \"%1\"").arg(printer_name).toLatin1());
+    args.append(QString("-copies %1").arg(copies,0,10));
+    args.append(file_name);
+
+    /// Запуск под окошками требует извращений
+    QFile t_file;
+    QString tmp_cmd;
+    {
+        // Генерация уникального имени файла
+        QTemporaryFile tmp_file;// Создадим временный файл
+        tmp_file.setFileTemplate("XXXXXXXX.bat");
+        if (tmp_file.open()){
+            QFileInfo f_info(tmp_file);
+            tmp_cmd = f_info.absoluteFilePath();
+            tmp_file.close();
+            t_file.setFileName(tmp_cmd);
+        }else{
+          emit error(VPrn::FileIOError,
+                           QObject::trUtf8("Ошибка создания временного файла %1\n%2")
+                           .arg( tmp_cmd )
+                           .arg(QString(Q_FUNC_INFO))
+                           );
+            return;
+        }
+    }
+
+    QTextStream out(&t_file);
+    if (t_file.open(QIODevice::WriteOnly)){
+        out << QObject::tr("@echo off\n");
+        if (gsprintBin.contains(" ") ){
+            out << QObject::tr("\"%1\" ").arg(gsprintBin);
+        }else{
+            out << QObject::tr("%1 ").arg(gsprintBin);
+        }
+        for (int i=0;i<args.size();i++){
+            out << args.at(i) << " ";
+        }
+        t_file.close();
+        proc.start( tmp_cmd );
+    }else{
+        emit error(VPrn::FileIOError,
+                       QObject::trUtf8("Ошибка записи данных во временный файл %1\n%2")
+                       .arg( tmp_cmd )
+                       .arg(QString(Q_FUNC_INFO))
+                       );
+        return;
+    }
+#endif
+    // Дождемся развязки славного запуска
+
+    if (!proc.waitForStarted(5000)){
+        emit error (VPrn::InternalAppError,
+                    QObject::trUtf8("Ошибка gsprint (Процесс не стартовал) при печати файла %1!\n%2")
+                    .arg(file_name)
+                    .arg(QString(Q_FUNC_INFO))
+                    );
+        return;
+    }
+    proc.waitForFinished(-1);
+    proc.closeWriteChannel();
+    qDebug() << "Direct print output: " << proc.readAll();//.trimmed();
+    emit filePrinted(client_uuid);
+#if defined(Q_OS_WIN)
+    t_file.remove();
 #endif
 
-        //start_proc(client_uuid,QString("\"%1\" -printer \"Apple\" -copies 1 c:/var/tmp/spool/e053b690-419a-4545-aab1-496f79a26f16/1-copy/lastpage_out.pdf").arg(prn_bin).toLatin1(),args,VPrn::job_PrintFile);
+}
 
-    }
+void GS_plugin::catPdf(const QString &client_uuid,const QString &file_nameA,
+                       const QString &file_nameB, const QString &output_name)
+{
+
+    QStringList args;
+    args.append(QString("A=%1").arg(file_nameA));
+    args.append(QString("B=%1").arg(file_nameB));
+    args.append("cat A B output ");
+    args.append(output_name);
+
+    start_proc(client_uuid,pdftkBin,args,VPrn::job_CatPages);
 }
 
 void GS_plugin::mergeWithTemplate(const QString &client_uuid,
@@ -377,6 +441,11 @@ void GS_plugin::threadFinish(const QString &jobKey,int code,
             emit docReady4preview( m_client_uuid );
         }
         break;
+    case VPrn::job_CatPages:
+        if (c_data->isFinishedCat() ){
+            emit docReady4print( m_client_uuid );
+        }
+        break;
     case VPrn::job_MergePdf:
         if (c_data->isFinishedMerge() ){
             // Все варианты документа объеденнены с шаблоном отправим сигнал
@@ -384,7 +453,7 @@ void GS_plugin::threadFinish(const QString &jobKey,int code,
                                                    << "*_out.pdf"
                                                    );
             convertPdfToPng(m_client_uuid,out_list);
-            emit docReady4print( m_client_uuid );
+            catFirstPages( m_client_uuid );
         }
         break;
     case VPrn::job_PrintFile:
@@ -539,6 +608,60 @@ void GS_plugin::mergePdf(const QString &client_uuid,const QString &in_pdf,
     start_proc(client_uuid,pdftkBin,args,VPrn::job_MergePdf);
 }
 
+void GS_plugin::catFirstPages(const QString &client_uuid )
+{    
+    // Поиск данных для клиента
+    ClientData *c_data = findClientData(client_uuid);
+    if (c_data){
+
+        // Запуск процесса объединения
+        for (int i=1;i<6;i++){
+            //Список файлов i экземпляра
+            QStringList out_list = findFiles4Copy(client_uuid,i,
+                                                  QStringList()<<"firstpage_out.pdf"
+                                                  <<"otherpage_out.pdf"
+                                                  );
+            QString fileA;
+            QString fileB;
+            QString outFile = QString("%1/%2/%3-copy/face_pages_out.pdf")
+                              .arg(spoolDir,client_uuid).arg(i,0,10);
+
+            for (int j=0;j<out_list.size();j++){
+                QString line = out_list.at(j);
+                QRegExp rx("/(.+)/(.+)/(.-copy)/(.+)_out.pdf");
+                if (rx.indexIn(line) != -1){
+                    // Наш файлик можно обрабатывать
+                    QString copy_num = rx.cap(3);
+                    QString page_type  = rx.cap(4);
+                    if (page_type.compare("firstpage",Qt::CaseInsensitive) == 0){
+                        fileA = line;
+                    }
+                    if (page_type.compare("otherpage",Qt::CaseInsensitive) == 0){
+                        fileB = line;
+                    }
+                }
+            }
+            if ( c_data->getPageCount() >1  && !fileA.isEmpty() && !fileB.isEmpty()){
+                //Объединим файлы
+                c_data->startCat( i );
+                catPdf(client_uuid,fileA,fileB,outFile);
+            }else{
+                // Переименуем
+                if (!fileA.isEmpty()){
+                    QFile::rename(fileA,outFile);
+                }
+            }
+        }
+        if ( c_data->getPageCount() == 1){
+            emit docReady4print( client_uuid );
+        }
+    }else{
+        emit error(VPrn::InternalAppError,
+                   QObject::trUtf8("Ошибка поиска данных клиента!\n%1")
+                   .arg(QString(Q_FUNC_INFO)));
+    }
+}
+
 ClientData * GS_plugin::findClientData(const QString &client_uuid)
 {
     ClientData *c_d(0);
@@ -640,8 +763,10 @@ void GS_plugin::createRCPfile(const QString &tmp_dir)
                    .arg(gs_rcp)
                    .arg(new_file.errorString())
                    .arg(QString(Q_FUNC_INFO)));
-        void pluginNotReady();
+        emit pluginNotReady();
     }
 }
+
+
 
 Q_EXPORT_PLUGIN2(Igs_plugin, GS_plugin);

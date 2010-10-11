@@ -30,12 +30,20 @@ public:
 
     void final_clear();
     /**
-      * @fn void directPrint(const QString &client_uuid,const QString &file_name,
+      * @fn bool directPrint(const QString &client_uuid,const QString &file_name,
       *                      const QString &printer_name,int copies);
       * @brief прямая печать на "локальный" прописанный в системе принтер
       */
     void directPrint(const QString &client_uuid,const QString &file_name,
                      const QString &printer_name,int copies);
+    /**
+      * @fn void catPdf(const QString &client_uuid,const QString &file_nameA,
+      *                 const QString &file_nameB, const QString &output_name);
+      * @brief Объединяет pdf файлы в один используя pdfTk
+      */
+    void catPdf(const QString &client_uuid,const QString &file_nameA,
+                const QString &file_nameB, const QString &output_name);
+
     /**
       * @fn  QString getUuid() const
       * @brief служебная функция генерирует ключ
@@ -185,6 +193,11 @@ private:
       * иначе создает и возвращает ссылку
       */
     ClientData * findClientData(const QString &client_uuid);
+    /**
+      * @fn void catFirstPages( const QString &client_uuid );
+      * @brief Объединяет первые страницы в один файл.
+      */
+    void catFirstPages( const QString &client_uuid );
     /**
       * @fn QString formatFileName(const QString &client_uuid,
       *                            const QString &fName,
