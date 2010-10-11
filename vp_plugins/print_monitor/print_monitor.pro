@@ -38,6 +38,7 @@ include(../qt_single_apps/qtsingleapplication.pri)
 HEADERS += mainwindow.h \
     ../global/mytypes.h \
     ../global/message.h \
+../global/config.h \
     ../global/mysocketclient.h \
     intropage.h \
     checkdatapage.h \
