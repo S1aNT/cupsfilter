@@ -18,6 +18,8 @@ void ClientData::clear()
     other_page.clear();
     page_count = 0;
     metaJob_merge.clear();
+    metaJob_cat.clear();
+    metaJob_pdf2png.clear();
 }
 
 void ClientData::setConvertMode(bool b)
@@ -80,6 +82,17 @@ bool ClientData::isFinishedMerge()
 {
     metaJob_merge.pop();
     return metaJob_merge.isEmpty();
+}
+
+void ClientData::startCat(int number)
+{
+    metaJob_cat.push(number);
+}
+
+bool ClientData::isFinishedCat()
+{
+    metaJob_cat.pop();
+    return metaJob_cat.isEmpty();
 }
 
 void  ClientData::startConverPdf2Png(int number)

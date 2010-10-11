@@ -32,6 +32,9 @@ public:
     void startMerge(int number);
     bool isFinishedMerge();
 
+    void startCat(int number);
+    bool isFinishedCat();
+
     void startConverPdf2Png(int number);
     bool isFinishedConvertPdf2Png();
 
@@ -50,7 +53,7 @@ private:
       * наложения шаблона на документ
       */
     QStack <int> metaJob_merge;
-
+    QStack <int> metaJob_cat;
     QStack <int> metaJob_pdf2png;
 };
 
