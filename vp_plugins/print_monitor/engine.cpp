@@ -208,8 +208,25 @@ void Engine::do_printCurrentDoc()
 {
     Message msg(this);
     msg.setType( VPrn::Que_PrintCurrentFormatedDoc );
-    msg.setMessageData ( findPrinterInModel().toUtf8() );
+    //msg.setMessageData ( findPrinterInModel().toUtf8() );
     sendMessage2LocalSrv( msg );
+}
+
+void Engine::markCurrentDocBrack()
+{
+    Message msg(this);
+    msg.setType( VPrn::Ans_UserNeedMarkCopies );
+    msg.setMessageData ( QString("BRAK").toUtf8() );
+    sendMessage2LocalSrv( msg );
+
+}
+void Engine::markCurrentDocClear()
+{
+    Message msg(this);
+    msg.setType( VPrn::Ans_UserNeedMarkCopies );
+    msg.setMessageData ( QString("CLEAR").toUtf8() );
+    sendMessage2LocalSrv( msg );
+
 }
 
 //-------------------------------- PRIVATE SLOTS -------------------------------
@@ -231,7 +248,6 @@ void Engine::do_checkPointChanged(MyCheckPoints r_cpoint)
             // Попытка номер 2
             stopLaunch = true;
         }else{
-
             emit error(VPrn::appNotStarted,QString("%1\n%2").arg(proc.errorString()).arg(QString(Q_FUNC_INFO)) );
         }
         QTimer::singleShot(3000,this,SLOT(launchAndConnect()));
@@ -246,6 +262,36 @@ void Engine::parseMessage(const Message &r_msg)
 
     MessageType mType = r_msg.type();
     switch (mType){
+    case VPrn::Que_BeginPrintCopies:{	
+            str = QObject::trUtf8("Начата печать документа: ");
+            str.append(r_msg.messageData());
+
+            emit showInfoMsg(str);
+            qDebug() << "Recive msg: VPrn::Que_BeginPrintCopies";
+            // продолжим печать
+            do_printCurrentDoc();
+        }
+        break;
+    case VPrn::Que_UserNeedFlipPages:{
+            qDebug() << "Recive msg: VPrn::Que_UserNeedFlipPages";
+            str = QObject::trUtf8("Окончена печать лицевых сторон, необходимо перевернуть листы!");
+            emit showInfoMsg(str);
+            emit UserNeedFlipPages();
+        }
+        break;
+    case VPrn::Que_UserNeedCheckLastPage:{
+            qDebug() << "Recive msg: VPrn::Que_UserNeedCheckLastPage";
+            str = QObject::trUtf8("Окончена печать обратных сторон, необходимо проверить последний лист для печати фонарика!");
+            emit showInfoMsg(str);
+            emit UserNeedCheckLastPage();
+        }
+        break;
+    case VPrn::Que_UserNeedMarkCopies:{
+            str = QObject::trUtf8("Окончена печать, необходимо утвердить документ!");
+            emit showInfoMsg(str);
+            emit UserNeedMarkCopies( r_msg.messageData() );
+        }
+        break;
     case VPrn::Ans_Register: {
             // Клиент зарегистрирован сохраним полученный от GateKeeper уникальный номер
             client_uuid.clear();
@@ -272,7 +318,7 @@ void Engine::parseMessage(const Message &r_msg)
             //rx.setMinimal(true);
             if(rx.indexIn(str) != -1){
                 currentUserName   = rx.cap(1);
-                currentUserMandat = rx.cap(2);                
+                currentUserMandat = rx.cap(2);
                 //Запрос уровней секретности для мандата
                 setAuthData(currentUserName,currentUserMandat );
                 afterConnectSteps();
@@ -296,7 +342,7 @@ void Engine::parseMessage(const Message &r_msg)
             emit needAuthUser(str);
             afterConnectSteps();
         }
-        break;        
+        break;
     case VPrn::Ans_TemplateNotFound:{
             str.append( r_msg.messageData() );
             emit MergeDocWithTemplates( false, str);
@@ -354,58 +400,55 @@ void Engine::parseMessage(const Message &r_msg)
     case VPrn::Ans_MB_LIST:{
         }
         break;
-    case VPrn::Ans_PRINT_ALLOWED:{
-            str.append(r_msg.messageData());
-            emit authToDevice( true,str );
-        }
-        break;
-    case VPrn::Ans_PRINT_DENIED:{
-            str.append(r_msg.messageData());
-            emit authToDevice( false,str );
-        }
-        break;
-    case VPrn::Ans_PRINTER_NOT_FOUND:{
-            str.append(r_msg.messageData());
-            emit authToDevice( false,str );
-        }
-        break;
-    case VPrn::Ans_Convert2PdfFinish:{
-            emit doc_converted();
-        }
-        break;
-    case VPrn::Ans_PageCounting:{
-            str.append(r_msg.messageData()); // Число страниц в str
-            int pCnt = str.toInt();
-            setPageCountInModel(pCnt);
-        }
-        break;
-    case VPrn::Ans_PRINTER_LIST:{
-            str.append(r_msg.messageData());
-            savePrintersListToModel( str );
-            emit RecivePrintersList();
-        }
-        break;
-    case VPrn::Ans_STAMP_LIST:{
-            // Получили названия уровней секретности, сохраним в модель
-            str.append(r_msg.messageData());
-            setSecLevelList(QStringList() << str.split(";:;") );
-            emit ReciveSecLevelList();
-            //Запрос списка принтеров доступных пользоваетелю
-            msg.setType(VPrn::Que_GET_PRINTER_LIST);
-            sendMessage2LocalSrv(msg);
-        }
-        break;
-    case VPrn::Que_UserNeedMarkCopies:{
+                case VPrn::Ans_PRINT_ALLOWED:{
+                        str.append(r_msg.messageData());
+                        emit authToDevice( true,str );
+                    }
+                    break;
+                case VPrn::Ans_PRINT_DENIED:{
+                        str.append(r_msg.messageData());
+                        emit authToDevice( false,str );
+                    }
+                    break;
+                case VPrn::Ans_PRINTER_NOT_FOUND:{
+                        str.append(r_msg.messageData());
+                        emit authToDevice( false,str );
+                    }
+                    break;
+                case VPrn::Ans_Convert2PdfFinish:{
+                        emit doc_converted();
+                    }
+                    break;
+                case VPrn::Ans_PageCounting:{
+                        str.append(r_msg.messageData()); // Число страниц в str
+                        int pCnt = str.toInt();
+                        setPageCountInModel(pCnt);
+                    }
+                    break;
+                case VPrn::Ans_PRINTER_LIST:{
+                        str.append(r_msg.messageData());
+                        savePrintersListToModel( str );
+                        emit RecivePrintersList();
+                    }
+                    break;
+                case VPrn::Ans_STAMP_LIST:{
+                        // Получили названия уровней секретности, сохраним в модель
+                        str.append(r_msg.messageData());
+                        setSecLevelList(QStringList() << str.split(";:;") );
+                        emit ReciveSecLevelList();
+                        //Запрос списка принтеров доступных пользоваетелю
+                        msg.setType(VPrn::Que_GET_PRINTER_LIST);
+                        sendMessage2LocalSrv(msg);
+                    }
+                    break;
 
-        }
-        break;
-    case VPrn::Err_Message:{
-            // Получили сообщение об ошибке Формат: КОД~~описание
-        }
-        break;
-    default:
-        break;
-    }
+                case VPrn::Err_Message:{
+                        // Получили сообщение об ошибке Формат: КОД~~описание
+                    }
+                    break;
+                default:
+                    break;
+                }
 }
 
 //-------------------------------------- PRIVATE ----------------------------------------
@@ -514,7 +557,7 @@ QByteArray Engine::getAllFieldData()
         indx = m_DC_model->index(0,j);
         QVariant cell_data = m_DC_model->data(indx,Qt::DisplayRole);
         QString tmp_item = cell_data.toString();
-        qDebug() <<Q_FUNC_INFO << "\ncell_data: " << tmp_item;
+        //qDebug() <<Q_FUNC_INFO << "\ncell_data: " << tmp_item;
         if (!cell_data.isNull()){
             switch (j){
             case VPrn::cards_DOC_NAME:
@@ -597,6 +640,7 @@ QByteArray Engine::getAllFieldData()
 
     return fields_data;
 }
+
 
 QString Engine::findTemplatesFilePathInModel ( int id )
 {

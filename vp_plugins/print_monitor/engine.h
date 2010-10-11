@@ -47,6 +47,8 @@ public:
       */
     void prepareFileToPrint(const QString & file_name);
 
+    void markCurrentDocBrack();
+    void markCurrentDocClear();
 signals:
     void error(VPrn::AppErrorType eCode,const QString eMsg);
     // Результат наложения шаблона на документ
@@ -80,7 +82,11 @@ signals:
     // Документ успешно конвертирован в pdf
     void doc_converted();
 
-
+   void showInfoMsg(const QString &info_txt);
+   void UserNeedFlipPages();
+   void UserNeedCheckLastPage();
+   void UserNeedMarkCopies(const QString &detail_txt);
+   
 public slots:
     void do_printCurrentDoc();
     /**
