@@ -14,12 +14,12 @@
 #include "net_plugin.h"
 
 net_plugin::net_plugin(QObject *parent)
-    : QObject(parent)
-    , HostName(QString())
-    , Port (0)
-    , client(0)
-    , packetSize(-1)
-    , e_info(QString())
+        : QObject(parent)
+        , HostName(QString())
+        , Port (0)
+        , client(0)
+        , packetSize(-1)
+        , e_info(QString())
 {
 
 }
@@ -43,9 +43,9 @@ void net_plugin::init(const QString &host, int port)
     Message message( this );
     message.setType(Ans_RegisterGlobal);
     QString str = QObject::trUtf8("[%1];:;")
-                                    .arg(QUuid::createUuid().toString()
-                                                .replace("{","")
-                                                .replace("}","")
+                  .arg(QUuid::createUuid().toString()
+                       .replace("{","")
+                       .replace("}","")
                        );
     message.setMessageData(  str.toUtf8() );
     emit messageReady(message);
@@ -66,8 +66,16 @@ void net_plugin::sendMessage(const Message &s_msg)
 
     qsrand(QDateTime::currentDateTime().toTime_t());
     int r = 0;//(int) (3.0*(qrand()/(RAND_MAX + 1.0)));
-
     Message loc_msg( this );
+    if (s_msg.type() == VPrn::Que_PrintThisFile) {
+
+            loc_msg.setType( VPrn::Ans_PrintThisFileSuccess );
+            //str = QObject::trUtf8("[%1];:;").arg(m_uuid);
+            //loc_msg.setMessageData(  str.toUtf8() );
+        emit messageReady(loc_msg);
+        return;
+    }
+
     // Разберем тело ответа на части [кому возвращать данные];:;что_передали
     str.append(s_msg.messageData());
 
@@ -81,6 +89,11 @@ void net_plugin::sendMessage(const Message &s_msg)
         str.clear();
         //формируем ответное сообщение на запрос вроде как пришедшее от Мишиного демона
         switch (s_msg.type()){
+        case VPrn::Que_CheckFileSize:
+            // Проверка свободного места на диске для приема файла
+            loc_msg.setType( VPrn::Ans_CheckFileSizeSuccess );
+            str = QObject::trUtf8("[%1];:;").arg(m_uuid);
+            break;
 
         case VPrn::Que_RegisterDocInBase:
             loc_msg.setType( VPrn::Ans_RegisterDocInBase );
@@ -105,17 +118,6 @@ void net_plugin::sendMessage(const Message &s_msg)
             doc_list.append(QObject::trUtf8("123456789;:;МБ-12/14;:;5;:;Приказ по кадрам 2;:;52;:;БРАК###"));
             str = QObject::trUtf8("[%1];:;%2").arg(m_uuid,doc_list);
             break;
-            /*
-        case VPrn::Que_CHECK_DOC_ATR:
-            if (r == 0){
-                loc_msg.setType( VPrn::Ans_CHECK_DOC_ATR_EQU );
-            }
-            if (r == 1){
-                loc_msg.setType( VPrn::Ans_CHECK_DOC_ATR_NEQ );
-            }
-            str = QObject::trUtf8("[%1];:;empty").arg(m_uuid);
-            break;
-            */
         case VPrn::Que_IS_MB_EXIST:
             if (r == 0){
                 loc_msg.setType( VPrn::Ans_MB_NOT_EXIST );
@@ -156,8 +158,7 @@ void net_plugin::sendMessage(const Message &s_msg)
             //m_body содержит мандат
             // Формируем ответное сообщение
             loc_msg.setType(VPrn::Ans_STAMP_LIST);
-            str = QObject::trUtf8("[%1];:;Сов.Секретно;:;Секретно;:;Не Секретно;:;ДСП").arg(m_uuid);
-
+            str = QObject::trUtf8("[%1];:;Сов.Секретно;:;Секретно;:;Не Секретно;:;ДСП").arg(m_uuid);            
             break;
         case VPrn::Que_GET_PRINTER_LIST:
             //m_body содержит мандат
@@ -167,26 +168,12 @@ void net_plugin::sendMessage(const Message &s_msg)
             if (r == 0){
                 loc_msg.setType(VPrn::Ans_PRINTER_LIST);
                 str = QObject::trUtf8("[%1];:;Тестовый;:;192.168.112.2;:;test_prn###").arg(m_uuid);
-/*
-                QList<QPrinterInfo> prn_list = QPrinterInfo::availablePrinters();
-                qDebug() << prn_list.size();
-                for (int i = 0; i< prn_list.size();i++){
-                    qDebug() << "Prn name: "<< prn_list.at(i).printerName() << "\n";
-                    QString tmp =  prn_list.at(i).printerName();
-                    //tmp.replace("\\\\","");
-                    str.append( tr("SL9PRT.%1").arg( tmp ) );
-                    str.append(tr(";:;%1###").arg(prn_list.at(i).printerName()));
-                    if (i+1 < prn_list.size()){
-                        str.append(";:;");
-                    }
-                }
-*/
             }else{
                 loc_msg.setType(VPrn::Ans_PRINTER_LIST_EMPTY);
                 str = QObject::trUtf8("[%1];:;empty").arg(m_uuid);
             }
             break;
-            default:
+        default:
             break;
         }
 
@@ -268,9 +255,9 @@ void net_plugin::onConnected()
     message.setType(VPrn::Que_RegisterGlobal);
     /// @todo k МИШЕ Нужен ли этот SID ? для работы
     QString str = QObject::trUtf8("[%1];:;").arg(QUuid::createUuid().toString()
-                                                .replace("{","")
-                                                .replace("}","")
-                                                );
+                                                 .replace("{","")
+                                                 .replace("}","")
+                                                 );
     message.setMessageData( str.toUtf8() ); // Пробразуем в QByteArray
     sendMessage(message);
 }
