@@ -256,8 +256,8 @@ PrintDataPage::PrintDataPage(QWidget *parent)
     centralgridLayout->addWidget( commonGroupBox              ,1,0,1,1);
     centralgridLayout->addWidget( lastPageGroupBoxChecked     ,1,1,1,1 );
     centralgridLayout->addWidget( reciversListGroupBoxChecked ,2,0,1,3 );
-
-
+/// @todo Расставить по порядку
+    //QWidget::setTabOrder(docNamePE, stampLE);
     setLayout(centralgridLayout);
     connector();
 }
@@ -333,7 +333,8 @@ bool PrintDataPage::enableNext()
 {
     QMessageBox msgbox;
     bool Ok = true;
-    {
+    {   
+        Ok &= docConverted_checkBox->isChecked();
         Ok &= !docName_lineEd->text().isEmpty();
         Ok &= !executor_lineEd->text().isEmpty();
 
@@ -466,79 +467,6 @@ QString PrintDataPage::getSQL_mb_register() const
     return query;
 }
 
-QByteArray PrintDataPage::getAllFieldData()
-{
-    /**
-      * @warning Если меняешь названия тут, не забудь поменять их
-      * в @fn void Tmpl_sql_plugin::init(const QString & spool,const QString & sid)
-      * @file tmp_sql_plugin.cpp
-      */
-    /*
-    int cur_copyes;
-    int all_copyes;
-    if (total_copyes->isChecked()){// стоит отметка все экз. пишем 0!!!
-        cur_copyes = 0;
-        all_copyes = 5;
-    }else{
-        cur_copyes = e_currentSBox->value();
-        all_copyes = e_totalSBox->value();
-    }
-
-
-    QHash <QString, QString> m_tagValue;
-    //формируем хеш значений
-    m_tagValue.insert( QObject::trUtf8("Название док-та"),docName_lineEd->text());
-    m_tagValue.insert( QObject::trUtf8("Гриф"), select_stamp );
-    m_tagValue.insert( QObject::trUtf8("МБ"),mbNumberLineEd->text() );
-    m_tagValue.insert( QObject::trUtf8("Пункт перечня"),punktLineEd->text() );
-    m_tagValue.insert( QObject::trUtf8("Кол-во листов"), tr("%1").arg(doc_pages_count,0,10) );
-    m_tagValue.insert( QObject::trUtf8("Номер экз."), tr("%1").arg(cur_copyes,0,10) );
-    m_tagValue.insert( QObject::trUtf8("Кол-во экз."), tr("%1").arg(all_copyes,0,10) );
-    m_tagValue.insert( QObject::trUtf8("Исполнитель"), executor_lineEd->text());
-    m_tagValue.insert( QObject::trUtf8("Отпечатал"), pressman_lineEd->text());
-    m_tagValue.insert( QObject::trUtf8("Телефон"),  telephone_lineEd->text());
-    m_tagValue.insert( QObject::trUtf8("Инв. N"), invNumber_lineEd->text());
-    m_tagValue.insert( QObject::trUtf8("Дата распечатки"),dateField_dateEd->date().toString());
-
-    if (!reciver_lineEd_1->text().isEmpty()){
-        m_tagValue.insert(QObject::trUtf8("Получатель N1"), reciver_lineEd_1->text());
-    }
-    if (!reciver_lineEd_2->text().isEmpty()){
-        m_tagValue.insert(QObject::trUtf8("Получатель N2"), reciver_lineEd_2->text());
-    }
-    if (!reciver_lineEd_3->text().isEmpty()){
-        m_tagValue.insert(QObject::trUtf8("Получатель N3"), reciver_lineEd_3->text());
-    }
-    if (!reciver_lineEd_4->text().isEmpty()){
-        m_tagValue.insert(QObject::trUtf8("Получатель N4"), reciver_lineEd_4->text());
-    }
-    if (!reciver_lineEd_5->text().isEmpty()){
-        m_tagValue.insert(QObject::trUtf8("Получатель N5"), reciver_lineEd_5->text());
-    }
-
-
-    //Очистим массивчик
-    fields_data.clear();
-
-    // Заполним его в формате ключ-значение
-    QDataStream out(&fields_data, QIODevice::WriteOnly );
-    out.setVersion(QDataStream::Qt_3_0);
-    //Запишем пару выбранный пользователем экземпляр,всего экземпляров
-    out << qMakePair(cur_copyes,all_copyes);
-
-    // Запишем выбранный пользователем шаблон
-    if (t_fileName.isEmpty()){
-        // Грязный хак. Причина: Комбобокс всегда выбирает первый элемент
-        // и не высылает сигнал его снеы, так нечего менять (если шаблон всего один)
-        findTemplatesFilePathInModel ( templatesCBox->currentIndex());
-    }
-    out << t_fileName;
-    // save hash
-    out << m_tagValue;
-
-    return fields_data;
-    */
-}
 
 void PrintDataPage::setDocConverted()
 {
