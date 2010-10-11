@@ -23,7 +23,7 @@ public:
                           const QString &back_pdf,
                           const QString &out_pdf) = 0;
 
-    virtual  void directPrint(const QString &client_uuid,const QString &file_name,
+    virtual void directPrint(const QString &client_uuid,const QString &file_name,
                               const QString &printer_name,int copies) = 0;
     virtual void mergeWithTemplate(const QString &client_uuid,
                                    const QStringList &t_files,
@@ -38,6 +38,9 @@ public:
                                ) = 0;
     virtual QString getUuid() const = 0;    
     virtual void calcPageCount(const QString &client_uuid,const QString &input_fn = QString() )= 0;
+    virtual void catPdf(const QString &client_uuid,const QString &file_nameA,
+                       const QString &file_nameB, const QString &output_name) =0;
+
 };
 
 
