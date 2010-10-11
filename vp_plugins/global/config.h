@@ -66,7 +66,8 @@ void installLog(const QString &app_name,const QString &app_company )
     logStream.setDevice(&logFile);
 
 #ifdef Q_WS_WIN
-    logStream.setCodec("Windows-1251");
+    //logStream.setCodec("Windows-1251");
+    logStream.setCodec("utf-8");
 #else // Под остальными ОС - utf8
     logStream.setCodec("utf-8");
 #endif
