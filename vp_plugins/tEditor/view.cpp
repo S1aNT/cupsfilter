@@ -1,5 +1,5 @@
+#define _USE_MATH_DEFINES
 #include "view.h"
-
 #include <QtGui>
 #include <qmath.h>
 #include <QUndoStack>
