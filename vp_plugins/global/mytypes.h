@@ -19,7 +19,8 @@ namespace VPrn{
 #define DM_TO_POINT(dm) ((dm)*283.465058)
 #define INCH_TO_POINT(inch) ((inch)*72.0)
 
-
+    typedef qint64 PACKET_SIZE ; // Максимальный размер пакета
+#define MESSAGE_SIZE (PACKET_SIZE - qint64 ); // Максимальный размер сообщения
 
     typedef QMap <int,QPixmap> PixmapList;
     typedef QMap <int,QString> PixmapDescList;
@@ -39,7 +40,39 @@ namespace VPrn{
 
     typedef QList<Printers> PrinterList;
 
+    enum EventLogMessageId{
+        //ErrorMessages
+        eId_EmptyMessage      = 0,
+        eId_AppsError         = 10,    // Внутрення ошибка приложения
+        eId_FileNotFound      = 1000,
+        eId_RecivedPacketSize = 2000,
+        eId_SocketErrorDesc   = 2001,
+        eId_CanNotBindPort    = 2003,
+        eId_CanNotReadConfig  = 2004,
+        eId_BrokenConfigFile  = 2005,
+        eId_ServiceNotStarted = 2006,
+        eId_NetworkError      = 2007,
+        eId_SQL_CoreNotInited = 2008,
+        //Information Messages        
+        eId_ServiceStarted    = 4000,
+        eId_ServiceStoped     = 4001,
+        eId_ServicePaused     = 4002,
+        eId_ServiceResume     = 4003,
+        eId_SQL_CoreInited    = 4004,
+        // DebugMessages
+        eId_DebugInfo = 7000
+                    };
 
+    enum EventLogType{
+        Success = 0, Error, Warning, Information
+              };
+
+    enum EventLogCategory{
+        eCatId_Empty       = 0x0,
+        eCatId_Error       = 0x1,
+        eCatId_Information = 0x2,
+        eCatId_DebugInfo   = 0x3
+                         };
     enum pSizeColumnOrder{
         pSize_id     = 0, /// ID
         pSize_page   = 1, /// размер листа
@@ -148,7 +181,7 @@ namespace VPrn{
         SocketError,
         ConfigError,
         notDefainedMode,
-	appNotStarted,
+        appNotStarted,
         TemplateNotLoad
     };
 
@@ -414,7 +447,7 @@ namespace VPrn{
         pre_FullMode       = 0,
         pre_PartMode       = 1,
         pre_ClearPrintMode = 2
-    };
+                         };
 
 
 }
