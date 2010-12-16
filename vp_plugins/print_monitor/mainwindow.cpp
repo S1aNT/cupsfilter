@@ -406,6 +406,11 @@ void MainWindow::createConnection()
     connect(printDataPage, SIGNAL ( field_checked() ),
             engine,        SLOT   ( authUserToPrinter() )
             );
+
+    connect(engine, 	   SIGNAL ( doc_converted() ),
+            printDataPage, SLOT   ( setDocConverted() )
+           );
+
     connect(printDataPage, SIGNAL ( field_checked() ),
             engine,        SLOT   ( checkMB() )
             );
