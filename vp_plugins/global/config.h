@@ -8,7 +8,7 @@
 //using std::cout;
 //using std::endl;
   
-// Типы сообщений
+// РўРёРїС‹ СЃРѕРѕР±С‰РµРЅРёР№
 static const char* msgType[] =
 {
     "(II) ", // Info
@@ -17,16 +17,16 @@ static const char* msgType[] =
     "(FF) " // Fatal error
 };
 
-// Вывод логов в файл
+// Р’С‹РІРѕРґ Р»РѕРіРѕРІ РІ С„Р°Р№Р»
 void customMessageHandler(QtMsgType type, const char* msg);
-// Создание файла для логов
+// РЎРѕР·РґР°РЅРёРµ С„Р°Р№Р»Р° РґР»СЏ Р»РѕРіРѕРІ
 void installLog();
 
-// Информация об ОС
+// РРЅС„РѕСЂРјР°С†РёСЏ РѕР± РћРЎ
 QString getOSInfo();
 
 
-// Вывод логов в файл
+// Р’С‹РІРѕРґ Р»РѕРіРѕРІ РІ С„Р°Р№Р»
 void customMessageHandler(QtMsgType type, const char* msg)
 {
     QFile logFile(QString ("%1.log").arg( qApp->arguments().at(0) ) );
@@ -42,7 +42,7 @@ void customMessageHandler(QtMsgType type, const char* msg)
 
 #ifdef Q_WS_WIN
     logStream.setCodec("Windows-1251");
-#else // Под остальными ОС - utf8
+#else // РџРѕРґ РѕСЃС‚Р°Р»СЊРЅС‹РјРё РћРЎ - utf8
     logStream.setCodec("utf-8");
 #endif
     logStream << msgType[type] << msg << endl;
@@ -51,7 +51,7 @@ void customMessageHandler(QtMsgType type, const char* msg)
     logFile.close();    
 }
 
-// Создание файла для логов
+// РЎРѕР·РґР°РЅРёРµ С„Р°Р№Р»Р° РґР»СЏ Р»РѕРіРѕРІ
 void installLog(const QString &app_name,const QString &app_company )
 {
     QFile logFile(QString ("%1.log").arg( qApp->arguments().at(0) ) );
@@ -68,11 +68,11 @@ void installLog(const QString &app_name,const QString &app_company )
 #ifdef Q_WS_WIN
     //logStream.setCodec("Windows-1251");
     logStream.setCodec("utf-8");
-#else // Под остальными ОС - utf8
+#else // РџРѕРґ РѕСЃС‚Р°Р»СЊРЅС‹РјРё РћРЎ - utf8
     logStream.setCodec("utf-8");
 #endif
 
-    // Запись заголовка с информацией о запуске
+    // Р—Р°РїРёСЃСЊ Р·Р°РіРѕР»РѕРІРєР° СЃ РёРЅС„РѕСЂРјР°С†РёРµР№ Рѕ Р·Р°РїСѓСЃРєРµ
     QString TextDescription = QObject::tr(
             "Appplication:%1  from %2\n"
             "Built on " __DATE__ " at " __TIME__ ".\n"
@@ -92,7 +92,7 @@ void installLog(const QString &app_name,const QString &app_company )
 }
 
 
-// Информация об ОС
+// РРЅС„РѕСЂРјР°С†РёСЏ РѕР± РћРЎ
 QString getOSInfo()
 {
     QString infoStr("Current Operating System: %1");
