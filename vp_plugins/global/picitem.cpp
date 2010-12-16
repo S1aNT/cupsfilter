@@ -1,3 +1,4 @@
+#define _USE_MATH_DEFINES
 #include <QDebug>
 #include <QMenu>
 #include <QAction>
@@ -5,7 +6,8 @@
 #include <QGraphicsSceneContextMenuEvent>
 
 #include "picitem.h"
-#include <math.h>
+#include <qmath.h>
+
 
 PicItem::PicItem(QGraphicsItem * parent)
     :QGraphicsPixmapItem(parent)
