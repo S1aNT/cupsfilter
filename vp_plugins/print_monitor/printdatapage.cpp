@@ -51,7 +51,7 @@ PrintDataPage::PrintDataPage(QWidget *parent)
 
     // Скрытые чекбоксы
     docConverted_checkBox = new QCheckBox(this);
-    docConverted_checkBox->hide();
+    ///docConverted_checkBox->hide();
     this->setWindowTitle(QObject::trUtf8("Заполнение карточки документа"));
 
     QGridLayout *centralgridLayout = new QGridLayout(this);
