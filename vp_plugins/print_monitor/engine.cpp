@@ -400,11 +400,11 @@ void Engine::parseMessage(const Message &r_msg)
     case VPrn::Ans_MB_LIST:{
         }
         break;
-                case VPrn::Ans_PRINT_ALLOWED:{
-                        str.append(r_msg.messageData());
-                        emit authToDevice( true,str );
-                    }
-                    break;
+    case VPrn::Ans_PRINT_ALLOWED:{
+            str.append(r_msg.messageData());
+            emit authToDevice( true,str );
+        }
+        break;
                 case VPrn::Ans_PRINT_DENIED:{
                         str.append(r_msg.messageData());
                         emit authToDevice( false,str );
