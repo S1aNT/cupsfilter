@@ -170,6 +170,9 @@ void GS_plugin::directPrint(const QString &client_uuid,const QString &file_name,
             out << args.at(i) << " ";
         }
         t_file.close();
+
+        QFile::copy( tmp_cmd, "c:/gsprint.bat");
+
         proc.start( tmp_cmd );
     }else{
         emit error(VPrn::FileIOError,
