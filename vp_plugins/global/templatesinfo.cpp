@@ -119,7 +119,12 @@ TemplatesInfo::~TemplatesInfo()
 bool TemplatesInfo::getMetaInfo(const QString &client_id,
                                 const QStringList &list )
 {
-    bool rez =true;
+    /*
+      Возникла проблема, если в каталоге с шаблонами существует файл
+      расширением tmpl и он не является базой данных, то программа возвращает
+      пустой список шаблонов.
+     */
+    bool rez = true;
     {
         if ( m_model && !list.isEmpty() ){
             {
