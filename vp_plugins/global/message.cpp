@@ -79,7 +79,7 @@ QByteArray Message::createPacket() const
     out << packet_size;
 
     //Вставим Тип сообщения и само сообщение в пакет
-    out << ( int ) this->type();
+    out << ( qint32 ) this->type();
     out << this->msgData;
     // возврат на начало блока
     out.device()->seek(0);
