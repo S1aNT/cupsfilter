@@ -314,7 +314,8 @@ void serverGears::reciveNetworkMessage(const Message &r_msg)
                 case VPrn::Ans_MANDAT_LIST:
                     loc_msg.clear();
                     loc_msg.setType(VPrn::Ans_SrvStatusPartReady);
-                    str = QObject::trUtf8("[%1];:;%2").arg(this->u_login,m_body);
+                    //str = QObject::trUtf8("[%1];:;%2").arg(this->u_login,m_body);
+                    str = QObject::trUtf8("[%1];:;%2").arg(this->u_login,"CC;:;NS;:;DSP");
                     loc_msg.setMessageData(  str.toUtf8() );
                     break;
                 case VPrn::Ans_MANDAT_LIST_EMPTY:
@@ -479,7 +480,7 @@ void serverGears::parseMessage( const Message &m_msg, const QString &c_uuid)
             // Просто перешлем в сеть
             message.setType   ( VPrn::Que_GET_MB_LISTS );
             message.setMessageData(
-                    QString("[%1];:;%2;:;%3").arg( c_uuid, str, u_login )
+                    QString("[%1];:;%2;:;%3;:;").arg( c_uuid, str, u_login )
                     .toUtf8() );
             //Запись в сетевой канал
             if (net_plugin){
@@ -488,10 +489,11 @@ void serverGears::parseMessage( const Message &m_msg, const QString &c_uuid)
             break;
         case VPrn::Que_IS_MB_EXIST:
             str.append(m_msg.messageData()); /// В теле сообщения query_sql;
+            str.append("select * from record");
             // Просто перешлем в сеть
             message.setType   ( VPrn::Que_IS_MB_EXIST );
             message.setMessageData(
-                    QString("[%1];:;%2;:;%3").arg( c_uuid, str, u_login )
+                    QString("[%1];:;%2;:;%3;:;").arg( c_uuid, str, u_login )
                     .toUtf8() );
             //Запись в сетевой канал
             if (net_plugin){
@@ -512,7 +514,7 @@ void serverGears::parseMessage( const Message &m_msg, const QString &c_uuid)
 
                     message.setType(VPrn::Que_AUTHOR_USER);
                     message.setMessageData(
-                            QString("[%1];:;%2;:;%3;:;%4").arg( c_uuid, str, u_mandat,u_login )
+                            QString("[%1];:;%2;:;%3;:;%4;:;").arg( c_uuid, str, u_mandat,u_login )
                             .toUtf8() );
                     if (net_plugin){
                         net_plugin->sendMessage(message);
@@ -567,7 +569,7 @@ void serverGears::parseMessage( const Message &m_msg, const QString &c_uuid)
                         //запрос списка мандатов к которым допущен пользователь
                         /// @todo  Показать Мише как разбирать!!!!!!
                         message.setType(VPrn::Que_MANDAT_LIST);
-                        str = QObject::trUtf8("[%1];:;%2").arg( c_uuid,u_login );
+                        str = QObject::trUtf8("[%1];:;%2;:;").arg( c_uuid,u_login );
                         message.setMessageData( str.toUtf8() );
                         //Запись в сетевой канал
                         if (net_plugin){
@@ -575,7 +577,7 @@ void serverGears::parseMessage( const Message &m_msg, const QString &c_uuid)
                         }
 
                     }else{
-                        str = QObject::trUtf8("%1;:;%2").arg(u_login,u_mandat);
+                        str = QObject::trUtf8("%1;:;%2;:;").arg(u_login,u_mandat);
                         message.setType(VPrn::Ans_SrvStatusFullReady);
                         message.setMessageData(  str.toUtf8() );
                         // Запись в локальный слот клиенту
@@ -606,7 +608,7 @@ void serverGears::parseMessage( const Message &m_msg, const QString &c_uuid)
                 if (u_mandat.isEmpty()){
                     u_mandat.append(m_msg.messageData());
                 }
-                str = QObject::trUtf8("[%1];:;%2").arg(c_uuid,u_mandat);
+                str = QObject::trUtf8("[%1];:;%2;:;").arg(c_uuid,u_mandat);
                 message.setMessageData( str.toUtf8() );
                 //Запись в сетевой канал
                 if (net_plugin){
@@ -624,7 +626,7 @@ void serverGears::parseMessage( const Message &m_msg, const QString &c_uuid)
                 sendMessage(message,client);
             }else{
                 message.setType(VPrn::Que_GET_PRINTER_LIST);
-                str = QObject::trUtf8("[%1];:;%2;:;%3").arg(c_uuid,u_login,u_mandat);
+                str = QObject::trUtf8("[%1];:;%2;:;%3;:;").arg(c_uuid,u_login,u_mandat);
                 message.setMessageData( str.toUtf8() );
                 //Запись в сетевой канал
                 if (net_plugin){
