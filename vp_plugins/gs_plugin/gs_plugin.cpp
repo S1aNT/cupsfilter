@@ -441,6 +441,8 @@ void GS_plugin::threadFinish(const QString &jobKey,int code,
     switch (m_job){
     case VPrn::job_ConvertToPng:
         if ( c_data->isFinishedConvertPdf2Png() ){
+			//Исходные файлы преобразовались в png оъединим лицевые страницы
+			catFirstPages( m_client_uuid );
             emit docReady4preview( m_client_uuid );
         }
         break;
@@ -455,8 +457,7 @@ void GS_plugin::threadFinish(const QString &jobKey,int code,
             QStringList out_list = this->findFiles(m_client_uuid, QStringList()
                                                    << "*_out.pdf"
                                                    );
-            convertPdfToPng(m_client_uuid,out_list);
-            catFirstPages( m_client_uuid );
+            convertPdfToPng(m_client_uuid,out_list);            
         }
         break;
     case VPrn::job_PrintFile:
