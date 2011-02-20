@@ -65,10 +65,11 @@ private:
       */
     void setError(const QString &info);
     /**
-      * @fn void setState(socketState state);
-      * @brief Меняет состояние и испускает соответсвующий сигнал
+      * @fn void debugParseMsg(const Message &s_msg);
+      * @brief Отладочный  режим работы
       */
-    //void setState(socketState state);
+    void debugParseMsg(const Message &s_msg);
+
 };
 
 

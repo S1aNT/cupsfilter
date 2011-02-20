@@ -1,16 +1,12 @@
-#define DEBUG_MODE
+#define DEBUG_MODE_OFF
 
 #include <QDebug>
-
-#ifdef DEBUG_MODE
-
 #include <QtCore/QRegExp>
 #include <stdlib.h>
 #include <QtCore/QDateTime>
 #include <QList>
-
-#endif
 #include <QtCore/QUuid>
+#include <QAbstractSocket>
 #include "net_plugin.h"
 
 net_plugin::net_plugin(QObject *parent)
@@ -39,6 +35,7 @@ void net_plugin::init(const QString &host, int port)
             this, SLOT(selectError(QAbstractSocket::SocketError)));
 
     client->connectToHost(HostName, Port);
+
 #ifdef DEBUG_MODE
     Message message( this );
     message.setType(Ans_RegisterGlobal);
@@ -55,23 +52,132 @@ void net_plugin::init(const QString &host, int port)
 
 void net_plugin::sendMessage(const Message &s_msg)
 {
-
 #ifdef DEBUG_MODE
+    debugParseMsg( s_msg );
+#endif
+    qDebug() << "Send TO NETWORK: cmd " << s_msg.type() << " data " << s_msg.messageData();
+    if (client->state() == QAbstractSocket::ConnectedState){
+        //Сформируем пакет И пошлем его ветром гонимого
+        client->write(s_msg.createPacket());
+        client->flush();
+    }else{
+        QString e_msg;
+        e_msg.append("\n").append(QString(Q_FUNC_INFO));
+        emit error(VPrn::NetworkError,e_msg);
+    }
+}
+
+
+//---------------------------- PRIVATE -----------------------------------------
+void net_plugin::setError(const QString &info)
+{
+    e_info = info;
+}
+
+//---------------------------- PRIVATE SLOTS -----------------------------------
+void net_plugin::readyRead()
+{
+    //Свяжем поток и сокет
+    QDataStream in ( client );
+    in.setVersion(QDataStream::Qt_3_0);
+
+    while (client->bytesAvailable() > 0){
+        if (packetSize == -1) {
+            //Определим количество байт доступных для чтения;
+            //на этом шаге необходимо получить больше 4-х байт
+            if( (qint32) client->bytesAvailable() < (qint32) sizeof(packetSize) ){
+                return;
+            }
+            //Читаем размер пакета
+            in >> packetSize;
+            qDebug() << Q_FUNC_INFO << " packet size "  << packetSize << "\n";
+        }
+        //Проверим что в сокет пришел весь пакет а не его огрызки
+        if (client->bytesAvailable() < packetSize){
+            return;
+        }
+        //Сбросим размер пакета, для обработки следующего
+        packetSize = -1;
+
+        // Прочтем тип сообщения
+        qint32 m_Type;
+        in >> m_Type;
+
+        //Прочтем само сообщение
+        QByteArray msg;
+        in >> msg;
+        Message message( this );
+        message.setType((MessageType) m_Type); //Проверить как конвертирует
+        message.setMessageData( msg );
+        qDebug() << "m_Type " << m_Type <<" Msg body :" << msg << " in " << Q_FUNC_INFO ;
+        // Отправка сообщения
+        emit messageReady(message);
+    }
+}
+
+void net_plugin::onConnected()
+{
+    //QString m_body =QString("/me;:;%1;:;%2").arg().arg(REGISTER_CMD,0,10);
+
+    Message message( this );
+    message.setType(VPrn::Que_RegisterGlobal);
+
+    QString str = QObject::trUtf8("[%1];:;").arg(QUuid::createUuid().toString()
+                                                 .replace("{","")
+                                                 .replace("}","")
+                                                 );
+    message.setMessageData( str.toUtf8() ); // Пробразуем в QByteArray
+    qDebug() << "Size QByteArray " << message.messageData().size();
+    sendMessage(message);
+}
+
+void net_plugin::selectError(QAbstractSocket::SocketError err)
+{
+    QString e_msg;
+    switch(err)
+    {
+    case QAbstractSocket::ConnectionRefusedError :
+        e_msg =QObject::trUtf8("Соединение отклоненно удаленным сервером [%1]")
+               .arg(HostName);
+        break;
+    case QAbstractSocket::HostNotFoundError :
+        e_msg =QObject::trUtf8("Удаленный сервер не найден!")
+               .arg(HostName);
+        break;
+    case QAbstractSocket::SocketTimeoutError :
+        e_msg =QObject::trUtf8("Превышено время ожидания ответа от сервера")
+               .arg(HostName);
+        break;
+    default:
+        e_msg = QObject::trUtf8("Код ошибки %1").arg(err,0,10);
+    }
+    e_msg.append("\n").append(QString(Q_FUNC_INFO));
+    emit error(VPrn::NetworkError,e_msg);
+    //setState(VPrn::InternalError);
+}
+
+void net_plugin::debugParseMsg(const Message &s_msg)
+{
+
     // При отладке я просто эмулирую ответы Мишиного демона
     QString m_uuid;
     QString m_body;
     QString doc_list;
     QString str;
+
+
     // Генерируем случайное число  1 или 0 или 2
 
     qsrand(QDateTime::currentDateTime().toTime_t());
     int r = 0;//(int) (3.0*(qrand()/(RAND_MAX + 1.0)));
+
     Message loc_msg( this );
+
     if (s_msg.type() == VPrn::Que_PrintThisFile) {
 
-            loc_msg.setType( VPrn::Ans_PrintThisFileSuccess );
-            //str = QObject::trUtf8("[%1];:;").arg(m_uuid);
-            //loc_msg.setMessageData(  str.toUtf8() );
+        loc_msg.setType( VPrn::Ans_PrintThisFileSuccess );
+        //str = QObject::trUtf8("[%1];:;").arg(m_uuid);
+        //loc_msg.setMessageData(  str.toUtf8() );
         emit messageReady(loc_msg);
         return;
     }
@@ -158,7 +264,7 @@ void net_plugin::sendMessage(const Message &s_msg)
             //m_body содержит мандат
             // Формируем ответное сообщение
             loc_msg.setType(VPrn::Ans_STAMP_LIST);
-            str = QObject::trUtf8("[%1];:;Сов.Секретно;:;Секретно;:;Не Секретно;:;ДСП").arg(m_uuid);            
+            str = QObject::trUtf8("[%1];:;Сов.Секретно;:;Секретно;:;Не Секретно;:;ДСП").arg(m_uuid);
             break;
         case VPrn::Que_GET_PRINTER_LIST:
             //m_body содержит мандат
@@ -182,110 +288,9 @@ void net_plugin::sendMessage(const Message &s_msg)
     }else{
         setError(QObject::trUtf8("Полученно сообщение неверного формата!"));
     }
-#else
-    //Сформируем пакет И пошлем его ветром гонимого
-    client->write(m_msg.createPacket());
-    client->flush();
-#endif
+
 }
 
-//socketState net_plugin::state() const
-//{
-//    return m_state;
-//}
-
-//---------------------------- PRIVATE -----------------------------------------
-void net_plugin::setError(const QString &info)
-{
-    e_info = info;
-}
-
-// void net_plugin::setState(socketState state)
-// {
-//     m_state = state;
-//     emit stateChanged(m_state);
-// }
-
-//---------------------------- PRIVATE SLOTS -----------------------------------
-void net_plugin::readyRead()
-{
-    //Свяжем поток и сокет
-    QDataStream in ( client );
-    in.setVersion(QDataStream::Qt_3_0);
-
-    while (client->bytesAvailable() > 0){
-        if (packetSize == -1) {
-            //Определим количество байт доступных для чтения;
-            //на этом шаге необходимо получить больше 4-х байт
-            if( (qint32) client->bytesAvailable() < (qint32) sizeof(packetSize) ){
-                return;
-            }
-            //Читаем размер пакета
-            in >> packetSize;
-            qDebug() << Q_FUNC_INFO << " packet size "  << packetSize << "\n";
-        }
-        //Проверим что в сокет пришел весь пакет а не его огрызки
-        if (client->bytesAvailable() < packetSize){
-            return;
-        }
-        //Сбросим размер пакета, для обработки следующего
-        packetSize = -1;
-
-        // Прочтем тип сообщения
-        int m_Type;
-        in >> m_Type;
-
-        //Прочтем само сообщение
-        QByteArray msg;
-        in >> msg;
-        Message message( this );
-        message.setType((MessageType) m_Type); //Проверить как конвертирует
-        message.setMessageData( msg );
-
-        // Отправка сообщения
-        emit messageReady(message);
-    }
-}
-
-void net_plugin::onConnected()
-{
-    //QString m_body =QString("/me;:;%1;:;%2").arg().arg(REGISTER_CMD,0,10);
-
-    Message message( this );
-    message.setType(VPrn::Que_RegisterGlobal);
-    /// @todo k МИШЕ Нужен ли этот SID ? для работы
-    QString str = QObject::trUtf8("[%1];:;").arg(QUuid::createUuid().toString()
-                                                 .replace("{","")
-                                                 .replace("}","")
-                                                 );
-    message.setMessageData( str.toUtf8() ); // Пробразуем в QByteArray
-    sendMessage(message);
-}
-
-void net_plugin::selectError(QAbstractSocket::SocketError err)
-{
-    QString e_msg;
-    switch(err)
-    {
-    case QAbstractSocket::ConnectionRefusedError :
-        e_msg =QObject::trUtf8("Соединение отклоненно удаленным сервером [%1]")
-               .arg(HostName);
-        break;
-    case QAbstractSocket::HostNotFoundError :
-        e_msg =QObject::trUtf8("Удаленный сервер не найден!")
-               .arg(HostName);
-        break;
-    case QAbstractSocket::SocketTimeoutError :
-        e_msg =QObject::trUtf8("Превышено время ожидания ответа от сервера")
-               .arg(HostName);
-        break;
-    default:
-        e_msg = QObject::trUtf8("Код ошибки %1").arg(err,0,10);
-    }
-    e_msg.append("\n").append(QString(Q_FUNC_INFO));
-    emit error(VPrn::NetworkError,e_msg);
-    //setState(VPrn::InternalError);
-}
 
 Q_EXPORT_PLUGIN2(Inet_plugin, net_plugin);
 
