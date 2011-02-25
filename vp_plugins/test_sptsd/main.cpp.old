@@ -1,0 +1,81 @@
+#include <qapplication.h>
+#include <qglobal.h>
+#include <qstring.h>
+#include <qcstring.h>
+#include <qdatastream.h>
+#include <qsocket.h>
+#include <qfile.h>
+#include <qdir.h>
+#include <qdatetime.h>
+
+void sptsdMsgHandler( QtMsgType type, const char *msg );
+//QString readSettings(QString key);
+
+			    															
+int main(int argc, char *argv[])
+{
+    bool useGUI = false;
+    QString host = "127.0.0.1"
+    Q_UINT16 port = 4243;
+    int conn = 100;
+
+    socket = new QSocket( this );
+    connect( socket, SIGNAL(connected()), SLOT(socketConnected()) );
+    connect( socket, SIGNAL(connectionClosed()), SLOT(socketConnectionClosed()) );
+
+    qDebug("Connecting to " + host + ":" + QString("%1").arg(port));
+    // connect to the server
+    socket->connectToHost( host, port );
+    
+//    qDebug("Installing message handler");
+    
+    qInstallMsgHandler(sptsdMsgHandler);
+    QApplication qApp(argc, argv, useGUI);
+//    qDebug ("\n*****************************************************************************************");
+    qDebug ("\n");
+    qDebug ("Starting daemon ...");
+
+
+    return qApp.exec();
+}
+
+
+
+void sptsdMsgHandler( QtMsgType type, const char *msg )
+{
+
+ QDir	logDir("/var/log/cups/");
+ QFile	logFile(logDir.path() + "/test.log");
+
+// fprintf(stdout, "Opening log file: " + logFile.name() + "\n");
+// fprintf(stdout, "Writing: %s \n", msg);
+ 
+ if (!logDir.exists(logDir.path())) {
+    fprintf(stdout,  "Creating new log directory " + logDir.path() + "\n");
+    if (!logDir.mkdir(logDir.path(), true)) {
+        fprintf(stderr,  "Can't create log directory" + logDir.path() + "\n" + "Try to create it manually.\n");
+	qApp->exit();
+    }
+ }
+
+ if (!logFile.open(IO_WriteOnly | IO_Append)) 
+    fprintf(stderr, "Can't write to log file: " + logFile.name());
+ else
+ {
+    QTextStream log(&logFile);
+    switch ( type ) {
+        case QtDebugMsg:
+    	    log << "Debug: " << QDateTime::currentDateTime().toString("yyyy/MM/dd hh:mm:ss.zzz   ") << msg << endl;
+    	    break;
+	case QtWarningMsg:
+    	    log << "Warning: " << QDateTime::currentDateTime().toString("yyyy/MM/dd hh:mm:ss.zzz   ") << msg << endl;
+    	    break;
+	case QtFatalMsg:
+    	    log << "Fatal: " << QDateTime::currentDateTime().toString("yyyy/MM/dd hh:mm:ss.zzz   ") << msg << endl;
+    	    abort();                  
+   }  
+ }
+ logFile.flush();
+ logFile.close();
+}
+
