@@ -1,0 +1,101 @@
+#! /bin/sh
+# Copyright (c) 1996-2002 SuSE GmbH Nuernberg, Germany.  All rights reserved.
+#
+# Author: Michail Tumashenko <mtumashenko@techoserv.ru>, Vladimir Skomorokhov <sva@technoserv.ru>
+#
+# /etc/init.d/sptsd
+#
+### BEGIN INIT INFO
+# Provides:            technoserv
+# Required-Start:      $network
+# Required-Stop:
+# Default-Start:         3 5
+# Default-Stop:        0 1 6
+# Description:         start sptsd
+### END INIT INFO
+
+SPTSD=/sbin/sptsd
+#SPTSD=/usr/local/src/daemon-2010-03-12/sptsd
+SPTSDIR=/usr/local/src/daemon-2010-03-12/
+SPTSDCONF=$SPTSDIR/sptsd.conf
+
+test -x $SPTSD || exit 5
+
+# Shell functions sourced from /etc/rc.status:
+#      rc_check         check and set local and overall rc status
+#      rc_status        check and set local and overall rc status
+#      rc_status -v     ditto but be verbose in local rc status
+#      rc_status -v -r  ditto and clear the local rc status
+#      rc_failed        set local and overall rc status to failed
+#      rc_failed <num>  set local and overall rc status to <num><num>
+#      rc_reset         clear local rc status (overall remains)
+#      rc_exit          exit appropriate to overall rc status
+. /etc/rc.status
+
+# First reset status of this service
+rc_reset
+
+# Return values acc. to LSB for all commands but status:
+# 0 - success
+# 1 - generic or unspecified error
+# 2 - invalid or excess argument(s)
+# 3 - unimplemented feature (e.g. "reload")
+# 4 - insufficient privilege
+# 5 - program is not installed
+# 6 - program is not configured
+# 7 - program is not running
+# 
+# Note that starting an already running service, stopping
+# or restarting a not-running service as well as the restart
+# with force-reload (in case signalling is not supported) are
+# considered a success.
+
+# check whether to enable agentx support and get list of installed
+# agents
+
+case "$1" in
+    start)
+	echo -n "Starting sptsd"
+        startproc $SPTSD  
+#        startproc $SPTSD -c $SPTSDCONF 
+	rc_status -v
+	rc_reset
+
+	;;
+    stop)
+	echo -n "Shutting down sptsd:"
+	killproc -TERM $SPTSD
+	rc_status -v ; rc_reset
+	;;
+    try-restart)
+	$0 status >/dev/null &&  $0 restart
+	rc_status
+	;;
+    restart)
+	$0 stop
+	$0 start
+	rc_status
+	;;
+    force-reload)
+	echo -n "Reload service sptsd:"
+	killproc -HUP $SPTSD
+	rc_status -v
+	;;
+    reload)
+	echo -n "Reload service sptsd:"
+	killproc -HUP $SPTSD
+	rc_status -v
+	;;
+    status)
+	echo -n "Checking for service sptsd:"
+	checkproc $SPTSD
+	rc_status -v
+	rc_reset
+	;;
+    *)
+	echo "Usage: $0 {start|stop|try-restart|restart|force-reload|reload|status}"
+	exit 1
+	;;
+esac
+rc_exit
+
