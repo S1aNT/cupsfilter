@@ -19,20 +19,21 @@ public:
 
 public slots:
     /**
-      * @fn void convertModelToMsg (const QString &cuuid );
-      * @brief Преобразует карточку документа, сохранненую в модели @sa sqlManager::m_model
-      * в сообщение типа @sa Message
+      * @fn void convertModelToMsg ( int rec_number);
+      * @brief РџСЂРµРѕР±СЂР°Р·СѓРµС‚ РєР°СЂС‚РѕС‡РєСѓ РґРѕРєСѓРјРµРЅС‚Р°, СЃРѕС…СЂР°РЅРЅРµРЅСѓСЋ РІ РјРѕРґРµР»Рё
+      * @sa sqlManager::m_model РІ СЃРѕРѕР±С‰РµРЅРёРµ С‚РёРїР° @sa Message
+      * @param int rec_number РќРѕРјРµСЂ Р·Р°РїРёСЃРё РІ РјРѕРґРµР»Рё СЃРѕРґРµСЂР¶Р°С‰РµР№ РєР°СЂС‚РѕС‡РєРё РґРѕРєСѓРјРµРЅС‚РѕРІ
       */
-    void convertModelToMsg();
+    void convertModelToMsg(int rec_number);
     /**
       * @fn void findDocCardInBase(const QString &mb, const QString &copy_number);
-      * @brief Поиск в БД учета докумета с атрибутами
-      * @param QString mb          Номер мб
-      * @param QString copy_number Номер экземпляра
-      * @param int     find_type   Режим поиска (имеющие метку)
-      * 0 - Отпечатан и Чистовик
-      * 1 - Отпечатан и брак
-      * 2 - Учтен
+      * @brief РџРѕРёСЃРє РІ Р‘Р” СѓС‡РµС‚Р° РґРѕРєСѓРјРµС‚Р° СЃ Р°С‚СЂРёР±СѓС‚Р°РјРё
+      * @param QString mb          РќРѕРјРµСЂ РјР±
+      * @param QString copy_number РќРѕРјРµСЂ СЌРєР·РµРјРїР»СЏСЂР°
+      * @param int     find_type   Р РµР¶РёРј РїРѕРёСЃРєР° (РёРјРµСЋС‰РёРµ РјРµС‚РєСѓ)
+      * 0 - РћС‚РїРµС‡Р°С‚Р°РЅ Рё Р§РёСЃС‚РѕРІРёРє
+      * 1 - РћС‚РїРµС‡Р°С‚Р°РЅ Рё Р±СЂР°Рє
+      * 2 - РЈС‡С‚РµРЅ
       */
     void findDocCardInBase(const QString &mb, const QString &copy_number,int find_type);
 
@@ -40,7 +41,7 @@ signals:
     void error(VPrn::AppErrorType errCode,const QString &error_message);
     /**
       * @fn void sendMessageToDemon( const Message &msg );
-      * @brief Стандизированное сообщение для отправки локальному демону
+      * @brief РЎС‚Р°РЅРґРёР·РёСЂРѕРІР°РЅРЅРѕРµ СЃРѕРѕР±С‰РµРЅРёРµ РґР»СЏ РѕС‚РїСЂР°РІРєРё Р»РѕРєР°Р»СЊРЅРѕРјСѓ РґРµРјРѕРЅСѓ
       */
     void sendMessageToDemon( const Message &msg );
 

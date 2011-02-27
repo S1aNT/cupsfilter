@@ -18,20 +18,24 @@ sqlManager::~sqlManager()
 }
 
 //--------------------------------- Public slots ---------------------------------------------
-void sqlManager::convertModelToMsg ()
+void sqlManager::convertModelToMsg (int rec_number)
 {
     if (m_model == 0){
         emit error(VPrn::InternalAppError,
-                   QObject::trUtf8("Ìîäåëü êàðòî÷êè äîêóìåíòà íå ñóùåñòâóåò!\n%1")
-                   .arg(QString(Q_FUNC_INFO))
+                   QObject::trUtf8("ÐœÐ¾Ð´ÐµÐ»ÑŒ ÐºÐ°Ñ€Ñ‚Ð¾Ñ‡ÐºÐ¸ Ð´Ð¾ÐºÑƒÐ¼ÐµÐ½Ñ‚Ð° Ð½Ðµ ÑÑƒÑ‰ÐµÑÑ‚Ð²ÑƒÐµÑ‚!\n%1:%2")
+                   .arg( __FILE__ )
+                   .arg( __LINE__ )
                    );
         return;
     }
 
-    if ( m_model->rowCount() == 0  || m_model->columnCount() == 0 ){
+    if ( m_model->rowCount() == 0   ||
+         m_model->rowCount() < rec_number ||
+         m_model->columnCount() == 0 ){
         emit error(VPrn::InternalAppError,
-                   QObject::trUtf8("Ìîäåëü êàðòî÷êè äîêóìåíòà íå çàïîëíåíà!\n%1")
-                   .arg(QString(Q_FUNC_INFO))
+                   QObject::trUtf8("ÐœÐ¾Ð´ÐµÐ»ÑŒ ÐºÐ°Ñ€Ñ‚Ð¾Ñ‡ÐºÐ¸ Ð´Ð¾ÐºÑƒÐ¼ÐµÐ½Ñ‚Ð° Ð¾ÑˆÐ¸Ð±Ð¾Ñ‡Ð½Ð°!\n%1:%2")
+                   .arg( __FILE__ )
+                   .arg( __LINE__ )
                    );
         return;
     }
@@ -47,65 +51,65 @@ void sqlManager::convertModelToMsg ()
             QVariant cellData = m_model->data(cellIndex,Qt::EditRole);
             out << qint8 (i);            
             switch (i){
-            case 1/*Èìÿ äîêóìåíòà*/:
+            case 1/*Ð˜Ð¼Ñ Ð´Ð¾ÐºÑƒÐ¼ÐµÐ½Ñ‚Ð°*/:
                 out << cellData.toString();
                 break;
-            case 2 /*Ãðèô*/:
+            case 2 /*Ð“Ñ€Ð¸Ñ„*/:
                 out << cellData.toString();
                 break;
-            case 3 /*Íîìåð ÌÁ*/:
+            case 3 /*ÐÐ¾Ð¼ÐµÑ€ ÐœÐ‘*/:
                 out << cellData.toString();
                 break;
-            case 4 /*Ïóíêò ïåðå÷íÿ*/:
+            case 4 /*ÐŸÑƒÐ½ÐºÑ‚ Ð¿ÐµÑ€ÐµÑ‡Ð½Ñ*/:
                 out << cellData.toString();
                 break;
-            case 5 /*×èñëî ñòðàíèö*/:
+            case 5 /*Ð§Ð¸ÑÐ»Ð¾ ÑÑ‚Ñ€Ð°Ð½Ð¸Ñ†*/:
                 out << cellData.toInt();
                 break;
-            case 6 /*Âñåãî ýêç*/:
+            case 6 /*Ð’ÑÐµÐ³Ð¾ ÑÐºÐ·*/:
                 out << cellData.toInt();
                 break;
-            case 7 /*Òåêóùèé ýêç*/:
+            case 7 /*Ð¢ÐµÐºÑƒÑ‰Ð¸Ð¹ ÑÐºÐ·*/:
                 out << cellData.toInt();
                 break;
-            case 8 /*Èìÿ øàáëîíà*/: /// @todo Ðàçðàáîòàòü ìåõàíèçì èäåíòèôèêàöèè øàáëîíà
+            case 8 /*Ð˜Ð¼Ñ ÑˆÐ°Ð±Ð»Ð¾Ð½Ð°*/: /// @todo Ð Ð°Ð·Ñ€Ð°Ð±Ð¾Ñ‚Ð°Ñ‚ÑŒ Ð¼ÐµÑ…Ð°Ð½Ð¸Ð·Ð¼ Ð¸Ð´ÐµÐ½Ñ‚Ð¸Ñ„Ð¸ÐºÐ°Ñ†Ð¸Ð¸ ÑˆÐ°Ð±Ð»Ð¾Ð½Ð°
                 out << cellData.toString();
                 break;
-            case 9 /*Èñïîëíèòåëü*/:
+            case 9 /*Ð˜ÑÐ¿Ð¾Ð»Ð½Ð¸Ñ‚ÐµÐ»ÑŒ*/:
                 out << cellData.toString();
                 break;
-            case 10 /*Îòïå÷àòàë*/:
+            case 10 /*ÐžÑ‚Ð¿ÐµÑ‡Ð°Ñ‚Ð°Ð»*/:
                 out << cellData.toString();
                 break;
-            case 11 /*Òåëåôîí*/:
+            case 11 /*Ð¢ÐµÐ»ÐµÑ„Ð¾Ð½*/:
                 out << cellData.toString();
                 break;
-            case 12 /*Èíâ.íîìåð*/:
+            case 12 /*Ð˜Ð½Ð².Ð½Ð¾Ð¼ÐµÑ€*/:
                 out << cellData.toString();
                 break;
-            case 13 /*Äàòà ïå÷àòè*/:
+            case 13 /*Ð”Ð°Ñ‚Ð° Ð¿ÐµÑ‡Ð°Ñ‚Ð¸*/:
                 out << cellData.toUInt(); //QDateTime::fromTime_t();
                 break;
-            case 14 /*Ïîëó÷àòåëü_1*/:
+            case 14 /*ÐŸÐ¾Ð»ÑƒÑ‡Ð°Ñ‚ÐµÐ»ÑŒ_1*/:
                 out << cellData.toString();
                 break;
-            case 15 /*Ïîëó÷àòåëü_2*/:
+            case 15 /*ÐŸÐ¾Ð»ÑƒÑ‡Ð°Ñ‚ÐµÐ»ÑŒ_2*/:
                 out << cellData.toString();
                 break;
-            case 16 /*Ïîëó÷àòåëü_3*/:
+            case 16 /*ÐŸÐ¾Ð»ÑƒÑ‡Ð°Ñ‚ÐµÐ»ÑŒ_3*/:
                 out << cellData.toString();
                 break;
-            case 17 /*Ïîëó÷àòåëü_4*/:
+            case 17 /*ÐŸÐ¾Ð»ÑƒÑ‡Ð°Ñ‚ÐµÐ»ÑŒ_4*/:
                 out << cellData.toString();
                 break;
-            case 18 /*Ïîëó÷àòåëü_5*/:
+            case 18 /*ÐŸÐ¾Ð»ÑƒÑ‡Ð°Ñ‚ÐµÐ»ÑŒ_5*/:
                 out << cellData.toString();
                 break;
             }
         }
     }
 
-    // Ôîðìèðóåì ñîîáùåíèå Msg
+    // Ð¤Ð¾Ñ€Ð¼Ð¸Ñ€ÑƒÐµÐ¼ ÑÐ¾Ð¾Ð±Ñ‰ÐµÐ½Ð¸Ðµ Msg
     Message message;
     message.setType(VPrn::Que_SaveDocCardToBase);
     message.setMessageData (m_data);
@@ -116,22 +120,24 @@ void sqlManager::findDocCardInBase(const QString &mb, const QString &copy_number
 {
     if ( mb.isEmpty()  || copy_number.isEmpty() ){
         emit error(VPrn::InternalAppError,
-                   QObject::trUtf8("Íå çàäàíû ïàðåìåòðû ïîèñêà äîêóìåòà â ÁÄ ó÷åòà!\n%1")
-                   .arg(QString(Q_FUNC_INFO))
+                   QObject::trUtf8("ÐÐµ Ð·Ð°Ð´Ð°Ð½Ñ‹ Ð¿Ð°Ñ€ÐµÐ¼ÐµÑ‚Ñ€Ñ‹ Ð¿Ð¾Ð¸ÑÐºÐ° Ð´Ð¾ÐºÑƒÐ¼ÐµÑ‚Ð° Ð² Ð‘Ð” ÑƒÑ‡ÐµÑ‚Ð°!\n%1:%2")
+                   .arg( __FILE__ )
+                   .arg( __LINE__ )
                    );
         return;
     }
-    // Ôîðìèðóåì ïîèñêîâîå ñîîáùåíèå
+    // Ð¤Ð¾Ñ€Ð¼Ð¸Ñ€ÑƒÐµÐ¼ Ð¿Ð¾Ð¸ÑÐºÐ¾Ð²Ð¾Ðµ ÑÐ¾Ð¾Ð±Ñ‰ÐµÐ½Ð¸Ðµ
     QByteArray m_data;
     QDataStream out(&m_data, QIODevice::WriteOnly );
     out.setVersion(QDataStream::Qt_3_0);
     out << mb;
     out << copy_number;
     out << find_type;
-    // Ôîðìèðóåì ñîîáùåíèå Msg
+    // Ð¤Ð¾Ñ€Ð¼Ð¸Ñ€ÑƒÐµÐ¼ ÑÐ¾Ð¾Ð±Ñ‰ÐµÐ½Ð¸Ðµ Msg
+
     Message message;
     message.setType(VPrn::Que_IS_MB_EXIST);
-    message.setMessageData (m_data);
+    message.setMessageData ( m_data );
     emit sendMessageToDemon( message );
 }
 // ------------------------------ Private ------------------------------------------------------------
@@ -179,7 +185,7 @@ void sqlManager::DumpError (const QSqlError & lastError)
     qDebug() << e_str << Q_FUNC_INFO;
 
     emit error(VPrn::SQLQueryError,
-               QObject::trUtf8("Îøèáêà âûïîëíåíèÿ sql çàïðîñà %1!\n%2")
+               QObject::trUtf8("ÐžÑˆÐ¸Ð±ÐºÐ° Ð²Ñ‹Ð¿Ð¾Ð»Ð½ÐµÐ½Ð¸Ñ sql Ð·Ð°Ð¿Ñ€Ð¾ÑÐ° %1!\n%2")
                .arg(e_str)
                .arg(QString(Q_FUNC_INFO))
                );
