@@ -19,8 +19,9 @@ void fileTransmitter::convertFileToMsg(const QString &unicFileId,const QString &
 {
     if ( unicFileId.isEmpty ()){
         emit error(VPrn::InternalAppError,
-                   QObject::trUtf8("Отсутствует индетификатор файла.\n%1")
-                   .arg(QString(Q_FUNC_INFO))
+                   QObject::trUtf8("Отсутствует индетификатор файла.\n%1:%2")
+                   .arg( __FILE__ )
+                   .arg( __LINE__ )
                    );
         return;
     }
@@ -33,9 +34,10 @@ void fileTransmitter::convertFileToMsg(const QString &unicFileId,const QString &
 
     if (!file_in.open(QIODevice::ReadOnly) ){
         emit error(VPrn::FileIOError,
-                   QObject::trUtf8("Не могу открыть запрошенный файл: %1.\n%2")
+                   QObject::trUtf8("Не могу открыть запрошенный файл: %1.\n%2:%3")
                    .arg(fileName)
-                   .arg(QString(Q_FUNC_INFO))
+                   .arg( __FILE__ )
+                   .arg( __LINE__ )
                    );
         return ;
     }
@@ -45,10 +47,11 @@ void fileTransmitter::convertFileToMsg(const QString &unicFileId,const QString &
 
     if (fSize64 > m_MaxInt32 - sizeof(qint32) ){
         emit error(VPrn::FileIOError,
-                   QObject::trUtf8("Файл %1 имеет слишком большой размер: %2 байт.\n%3")
+                   QObject::trUtf8("Файл %1 имеет слишком большой размер:[%2 байт].\n%3:%4")
                    .arg(fileName)
                    .arg(fSize64,0,10)
-                   .arg(QString(Q_FUNC_INFO))
+                   .arg( __FILE__ )
+                   .arg( __LINE__ )
                    );
         return ;
     }
@@ -59,9 +62,10 @@ void fileTransmitter::convertFileToMsg(const QString &unicFileId,const QString &
 
     if (data.isEmpty()){
         emit error(VPrn::FileIOError,
-                   QObject::trUtf8("Файл %1 не содержит данных или ошибка чтения.\n%2")
+                   QObject::trUtf8("Файл %1 не содержит данных или ошибка чтения.\n%2:%3")
                    .arg(fileName)
-                   .arg(QString(Q_FUNC_INFO))
+                   .arg( __FILE__ )
+                   .arg( __LINE__ )
                    );
         return ;
     }
