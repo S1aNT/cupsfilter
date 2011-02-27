@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/">
+        <file alias="anim.mng">../images/anim.mng</file>
+    </qresource>
+</RCC>
