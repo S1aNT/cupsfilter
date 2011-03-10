@@ -1,3 +1,4 @@
+#include  <QDebug>
 #include "message.h"
 #include <QtCore/QDebug>
 #include <QtCore/QMetaType>
@@ -7,23 +8,20 @@ Message::Message(QObject *parent)
     : QObject(parent)
     , messageType( VPrn::NoMsgType )
     , msgData()
-    , ready( false )
-
+    , m_valid(false)
 {
+   clear();
 
 }
 
-bool Message::isMessageReady()
-{
-    return ready;
-}
+
 
 void Message::setType( MessageType tp )
 {
     messageType =  tp ;
 }
 
-MessageType Message::type() const
+MessageType Message::getType() const
 {
     return messageType;
 }
@@ -42,13 +40,13 @@ void Message::setMessageData( QStringList &m_list )
     }
 }
 
-QByteArray Message::messageData() const
+QByteArray Message::getMessageData() const
 {
     return msgData;
 }
 
 
-QStringList Message::messageDataList() const
+QStringList Message::getMessageDataList() const
 {
     QStringList list;
     QDataStream in( msgData );
@@ -61,32 +59,36 @@ void Message::clear()
 {
     setType(VPrn::NoMsgType);
     msgData.clear();
-
+    m_valid = true;
 }
+
 
 QByteArray Message::createPacket() const
 {
-//    qDebug() << "createPacket(): before creating: \n"
-//             << "messageData() "  << this->msgData
-//             << "type() "         << this->type();
-
     QByteArray packet;
     qint32 packet_size(0);
     QDataStream out(&packet, QIODevice::WriteOnly );
 
+    qDebug() << "\n ----------------- Create packet ---------------------\n";
     out.setVersion(QDataStream::Qt_3_0);
     // Вставим размер пакета равный нулю, но отведем под него 8 байт
+    
     out << packet_size;
 
     //Вставим Тип сообщения и само сообщение в пакет
-    out << ( qint32 ) this->type();
+    qDebug()  << "\n (qint32) packet type  " << ( qint32 ) this->getType();
+    out << ( qint32 ) this->getType();
+    qDebug()  << "\n message data_size  " << this->msgData.size();
     out << this->msgData;
     // возврат на начало блока
     out.device()->seek(0);
     // Вычислим размер блока данных и запишем их на свое место
     packet_size =(qint32)(packet.size() - sizeof(qint32));
     out << ( qint32 )  packet_size;
-    qDebug() << Q_FUNC_INFO << " packet_size "  << packet_size << "\n";
+    qDebug()  << "\nall packet size " << packet_size;
+    //qDebug() << Q_FUNC_INFO << " packet_size "  << packet_size << "\n";
+    qDebug() << "\n ------------- end create packet -----------------------\n";
     return packet;
 }
+
 

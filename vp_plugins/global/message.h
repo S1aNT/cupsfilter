@@ -19,34 +19,18 @@ class Message : public QObject
 {
     Q_OBJECT
     Q_ENUMS   ( VPrn::MessageType )
+/// @todo Перечисление типов сообщений внести в класс
 public:
-    explicit Message(QObject *parent = 0);
+            explicit Message(QObject *parent = 0);
     /**
       * @fn void clear();
       * @brief Очистка сообщения
       */
     void clear();
-    /**
-      * @brief Создает и возвращает пакет данных готовый для передачи
-      * @param msg Сообщение включаемое в пакет
-      * @param type Тип сообщения в пакете
-      * @return QByteArray
-      */
-     QByteArray createPacket() const;
 
-    /**
-      * @fn bool isMessageReady();
-      * @brief Возвращает TRUE Если сообщение готов для отправки иначе FALSE
-      * @return bool
-      */
-    bool isMessageReady();
 
-    /**
-      * @fn void prepareMessage();
-      * @brief Подготовка сообщения перед  отправкой
-      * @internal
-     */
-    void prepareMessage();
+
+
     /**
       * @fn void setMessage( const QByteArray &msg );
       * @param msg const QByteArray &
@@ -60,14 +44,14 @@ public:
      * @brief Возвращает данные подготовленные для пересылки
      * @return QByteArray
      */
-    QByteArray messageData() const;
+    QByteArray getMessageData() const;
 
-    QStringList messageDataList() const;
+    QStringList getMessageDataList() const;
     /**
      * @brief type property: Getter
      * @return MessageType
      */
-    MessageType type() const;
+    MessageType getType() const;
 
     /**
      * @brief type property: Setter
@@ -75,10 +59,11 @@ public:
      */
     void setType( MessageType tp );
 
+    QByteArray createPacket() const;
 private:
     MessageType messageType;
     QByteArray msgData;
-    bool ready;
+    bool m_valid;
 
 };
 
