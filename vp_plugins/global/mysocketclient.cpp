@@ -43,7 +43,7 @@ void mySocketClient::readyRead()
         //Сбросим размер пакета, для обработки следующего
         packetSize = -1;
         // Прочтем тип сообщения
-        int m_Type;
+        qint32 m_Type;
         in >> m_Type;
 
         //Прочтем само сообщение
