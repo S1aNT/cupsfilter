@@ -392,7 +392,18 @@ namespace VPrn{
         */
         Que_PrintThisFile            = 6000,
         Ans_PrintThisFileSuccess     = 6010,
-        Ans_PrintThisFileFailure     = 6050,
+        Ans_PrintThisFileFailure     = 6020,
+
+        /*
+         * @short Que_ReciveFile отправка файла демону для дальнейшей печати
+         * @param QString      Уникальный индетификатор отправляемого файла
+         * @param qint32       Размер не сжатого файла (max qint32) byte
+         * @param QByteArray   Файл для печати в формате QByteArray (сжатый)
+         */
+        Que_ReciveFile               = 6030,
+        Ans_ReciveFileSuccess        = 6031,
+        Ans_ReciveFileFailure        = 6032,
+
 
         /**
           * @short Que_CheckFileSize Запрос у мишиного демона, может ли он принять файл
@@ -413,6 +424,7 @@ namespace VPrn{
          */
         Que_UserNeedMarkCopies       = 6100,
         Ans_UserNeedMarkCopies       = 6110,
+        SaveToBaseCopiesMarker       = 6120,
         /// Запрос пользователю на переворот страниц
         Que_UserNeedFlipPages        = 6150,
         /// Запрос пользователю проверь что лежит последняя страница документа
