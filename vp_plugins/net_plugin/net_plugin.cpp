@@ -2,7 +2,7 @@
 
 #include <QDebug>
 #include <QtCore/QRegExp>
-#include <stdlib.h>
+//#include <stdlib.h>
 #include <QtCore/QDateTime>
 #include <QList>
 #include <QtCore/QUuid>
@@ -55,10 +55,17 @@ void net_plugin::sendMessage(const Message &s_msg)
 #ifdef DEBUG_MODE
     debugParseMsg( s_msg );
 #endif
-    qDebug() << "Send TO NETWORK: cmd " << s_msg.type() << " data " << s_msg.messageData();
+    QByteArray d = s_msg.createPacket();
+    
+    
+    qDebug() << "Send TO NETWORK: cmd " 
+             << s_msg.getType() 
+             << " data.size " << s_msg.getMessageData().size()
+             << "\n packet size " << d.size(); 
     if (client->state() == QAbstractSocket::ConnectedState){
         //Сформируем пакет И пошлем его ветром гонимого
-        client->write(s_msg.createPacket());
+//        client->write(s_msg.createPacket());
+        client->write( d );
         client->flush();
     }else{
         QString e_msg;
@@ -109,7 +116,7 @@ void net_plugin::readyRead()
         Message message( this );
         message.setType((MessageType) m_Type); //Проверить как конвертирует
         message.setMessageData( msg );
-        qDebug() << "m_Type " << m_Type <<" Msg body :" << msg << " in " << Q_FUNC_INFO ;
+        qDebug() << "\nResive from network:\nm_Type " << m_Type <<" Msg body :" << msg << " in " << Q_FUNC_INFO ;
         // Отправка сообщения
         emit messageReady(message);
     }
@@ -127,7 +134,7 @@ void net_plugin::onConnected()
                                                  .replace("}","")
                                                  );
     message.setMessageData( str.toUtf8() ); // Пробразуем в QByteArray
-    qDebug() << "Size QByteArray " << message.messageData().size();
+    qDebug() << "Size QByteArray " << message.getMessageData().size();
     sendMessage(message);
 }
 
@@ -173,7 +180,7 @@ void net_plugin::debugParseMsg(const Message &s_msg)
 
     Message loc_msg( this );
 
-    if (s_msg.type() == VPrn::Que_PrintThisFile) {
+    if (s_msg.getType() == VPrn::Que_PrintThisFile) {
 
         loc_msg.setType( VPrn::Ans_PrintThisFileSuccess );
         //str = QObject::trUtf8("[%1];:;").arg(m_uuid);
@@ -183,7 +190,7 @@ void net_plugin::debugParseMsg(const Message &s_msg)
     }
 
     // Разберем тело ответа на части [кому возвращать данные];:;что_передали
-    str.append(s_msg.messageData());
+    str.append(s_msg.getMessageData());
 
     QRegExp rx("\\[(.+)\\];:;(.+)");
     //rx.setMinimal(true);
@@ -194,7 +201,7 @@ void net_plugin::debugParseMsg(const Message &s_msg)
         loc_msg.clear();
         str.clear();
         //формируем ответное сообщение на запрос вроде как пришедшее от Мишиного демона
-        switch (s_msg.type()){
+        switch (s_msg.getType()){
         case VPrn::Que_CheckFileSize:
             // Проверка свободного места на диске для приема файла
             loc_msg.setType( VPrn::Ans_CheckFileSizeSuccess );
@@ -273,7 +280,7 @@ void net_plugin::debugParseMsg(const Message &s_msg)
             str.clear();
             if (r == 0){
                 loc_msg.setType(VPrn::Ans_PRINTER_LIST);
-                str = QObject::trUtf8("[%1];:;Тестовый;:;192.168.112.2;:;test_prn###").arg(m_uuid);
+                str = QObject::trUtf8("[%1];:;Тестовый;:;192.168.112.2;:;test_prn").arg(m_uuid);
             }else{
                 loc_msg.setType(VPrn::Ans_PRINTER_LIST_EMPTY);
                 str = QObject::trUtf8("[%1];:;empty").arg(m_uuid);
