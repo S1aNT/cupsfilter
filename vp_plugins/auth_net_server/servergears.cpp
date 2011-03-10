@@ -223,14 +223,14 @@ void serverGears::reciveNetworkMessage(const Message &r_msg)
     QString m_body;
 
     // Проверим это сообщение о регистрации ?
-    if (r_msg.type() == VPrn::Ans_RegisterGlobal){
+    if (r_msg.getType() == VPrn::Ans_RegisterGlobal){
         //Успешная регистрация у мишиного демона
         setCheckPoint(VPrn::net_Connected);
         netDemonReady = true;
     }else{
-        str.append(r_msg.messageData());
+        str.append(r_msg.getMessageData());
         // Разберем тело ответа на части [кому];:;что_передали
-        QRegExp rx("\\[(.+)\\];:;(.+)");
+        QRegExp rx("\\[(.+)\\];:;(.*)");
         //rx.setMinimal(true);
 
         if(rx.indexIn(str) != -1){
@@ -241,7 +241,7 @@ void serverGears::reciveNetworkMessage(const Message &r_msg)
             loc_msg.clear();
 
             if (client){
-                switch (r_msg.type()){
+                switch (r_msg.getType()){
 
                 case VPrn::Ans_RegisterDocInBase:
                     // Получили ответ о регистрации документа , отдадим его клиенту
@@ -269,7 +269,7 @@ void serverGears::reciveNetworkMessage(const Message &r_msg)
                 case VPrn::Ans_MB_LIST:
                     // Получили затребованный список документов, отдами его клиенту
                     loc_msg.setType( VPrn::Ans_MB_LIST );
-                    loc_msg.setMessageData( r_msg.messageData() );
+                    loc_msg.setMessageData( r_msg.getMessageData() );
                     break;
                 case VPrn::Ans_PRINT_ALLOWED:
                     str = QObject::trUtf8("Вам разрешена печать на выбранный принтер!");
@@ -289,17 +289,17 @@ void serverGears::reciveNetworkMessage(const Message &r_msg)
                 case VPrn::Ans_PRINTER_LIST:
                     loc_msg.setType(VPrn::Ans_PRINTER_LIST);
                     str.append( m_body );
-#ifdef DEBUG_MODE
+#ifdef DEBUG_MODE_OFF
                     /**
                       * @todo Сделал только для показ работы на локальном компе
                       * Список принтеров взят из ini файла и записан в виде
-                      * Выводимое имя;:;ip сервера;:;имя очереди печати(принтера)###
+                      * Выводимое имя;:;ip сервера;:;имя очереди печати(принтера)
                     */
                     str.clear();
                     for (int i=0; i< prn_list.size();i++){
                         str.append(prn_list.at(i).name).append(";:;")
                                 .append(prn_list.at(i).ip).append(";:;")
-                                .append(prn_list.at(i).p_qqueue).append("###");
+                                .append(prn_list.at(i).p_qqueue);
                     }
 
                     qDebug() << Q_FUNC_INFO << str << "\n";
@@ -329,8 +329,8 @@ void serverGears::reciveNetworkMessage(const Message &r_msg)
                     loc_msg.setMessageData(  m_body.toUtf8() );
                     break;
                 case VPrn::Ans_CheckFileSizeSuccess:
-                    //sendFileToDemon(m_uuid); // Место есть можно отправлять демону файл
-                    debugDirectPrint(m_uuid);
+                    sendFileToDemon(m_uuid); // Место есть можно отправлять демону файл
+                    //debugDirectPrint(m_uuid);
                     break;
                 case VPrn::Ans_CheckFileSizeFailure:
                     str = QObject::trUtf8("Недостаточно места на сервере печати!");
@@ -350,7 +350,7 @@ void serverGears::reciveNetworkMessage(const Message &r_msg)
                     /* do nothing */
                     break;
                 }
-                if (loc_msg.type() != VPrn::NoMsgType ){
+                if (loc_msg.getType() != VPrn::NoMsgType ){
                     // Запись в локальный слот клиенту
                     sendMessage(loc_msg,client);
                 }
@@ -437,9 +437,21 @@ void serverGears::parseMessage( const Message &m_msg, const QString &c_uuid)
     // По UUID определим какому клиенту надо было это сообщение
     client = findClient(c_uuid);
     if (client){
-        switch (m_msg.type()){
+        switch (m_msg.getType()){
+        case VPrn::Ans_UserNeedMarkCopies:
+            str.append(m_msg.getMessageData()); /// В теле сообщения параметры
+            // Просто перешлем в сеть
+            message.setType   ( VPrn::SaveToBaseCopiesMarker );
+            message.setMessageData(
+                    QString("[%1];:;%2").arg( c_uuid, str ).toUtf8()
+                    );
+            //Запись в сетевой канал
+            if (net_plugin){
+                net_plugin->sendMessage(message);
+            }
+            break;
         case VPrn::Que_UserDemands2Restart:
-            str.append(m_msg.messageData()); /// В теле сообщения параметры
+            str.append(m_msg.getMessageData()); /// В теле сообщения параметры
             //markDocInBaseAsFault(c_uuid,str);// Пометка документа в базе как бракованный
 
             //Сформируем набор сообщений и отправим клиенту
@@ -464,7 +476,7 @@ void serverGears::parseMessage( const Message &m_msg, const QString &c_uuid)
             }
             break;
         case VPrn::Que_RegisterDocInBase:
-            str.append(m_msg.messageData()); /// В теле сообщения query_sql;
+            str.append(m_msg.getMessageData()); /// В теле сообщения query_sql;
             // Просто перешлем в сеть
             message.setType   ( VPrn::Que_RegisterDocInBase );
             message.setMessageData(
@@ -476,7 +488,7 @@ void serverGears::parseMessage( const Message &m_msg, const QString &c_uuid)
             }
             break;
         case VPrn::Que_GET_MB_LISTS:
-            str.append(m_msg.messageData()); /// В теле сообщения query_sql;
+            str.append(m_msg.getMessageData()); /// В теле сообщения query_sql;
             // Просто перешлем в сеть
             message.setType   ( VPrn::Que_GET_MB_LISTS );
             message.setMessageData(
@@ -488,7 +500,7 @@ void serverGears::parseMessage( const Message &m_msg, const QString &c_uuid)
             }
             break;
         case VPrn::Que_IS_MB_EXIST:
-            str.append(m_msg.messageData()); /// В теле сообщения query_sql;
+            str.append(m_msg.getMessageData()); /// В теле сообщения query_sql;
             str.append("select * from record");
             // Просто перешлем в сеть
             message.setType   ( VPrn::Que_IS_MB_EXIST );
@@ -506,11 +518,12 @@ void serverGears::parseMessage( const Message &m_msg, const QString &c_uuid)
                 // Сохраним в очереди печати текущий выбранный принтер
                 PrintTask *pTask = findpTack(c_uuid);
                 if (pTask){
-                    QString str = m_msg.messageData();
+                    QString str = m_msg.getMessageData();
                     /// В теле сообщения device_uri;
                     pTask->setPrinterQueue(str);
                     // Просто перешлем в сеть
-                    str.append(str.replace(";:;",".")); /// В теле сообщения device_uri;
+
+                    //str.append(str.replace(";:;",".")); /// В теле сообщения device_uri;
 
                     message.setType(VPrn::Que_AUTHOR_USER);
                     message.setMessageData(
@@ -524,7 +537,7 @@ void serverGears::parseMessage( const Message &m_msg, const QString &c_uuid)
             break;
         case VPrn::Que_Convert2Pdf:
             /// Клиент потребовал преобразовать ps файл в pdf
-            str.append(m_msg.messageData()); /// В теле сообщения полный путь к файлу
+            str.append(m_msg.getMessageData()); /// В теле сообщения полный путь к файлу
             if (gs_plugin){
                 gs_plugin->convertPs2Pdf( c_uuid,str );
             }
@@ -532,17 +545,17 @@ void serverGears::parseMessage( const Message &m_msg, const QString &c_uuid)
         case VPrn::Que_CreateFormatedFullDoc:
             // Запрос формирование полного документа, как для печати,
             // нужно вернуть список png страничек сделанного документа
-            createFormatedDoc(c_uuid,VPrn::pre_FullMode,m_msg.messageData());
+            createFormatedDoc(c_uuid,VPrn::pre_FullMode,m_msg.getMessageData());
             break;
         case VPrn::Que_CreateFormatedPartDoc:
             // Запрос формирование частичного документа, как для печати,
             // нужно вернуть список png страничек сделанного документа
-            createFormatedDoc(c_uuid,VPrn::pre_PartMode,m_msg.messageData());
+            createFormatedDoc(c_uuid,VPrn::pre_PartMode,m_msg.getMessageData());
             break;
         case VPrn::Que_CreateFormatedFullDocAndPrint:
             // Запрос формирование полного документа, для печати,
             //  и распечатка его
-            createFormatedDoc(c_uuid,VPrn::pre_ClearPrintMode,m_msg.messageData());
+            createFormatedDoc(c_uuid,VPrn::pre_ClearPrintMode,m_msg.getMessageData());
             break;
         case VPrn::Que_PrintCurrentFormatedDoc:
             // запуск печати
@@ -606,7 +619,7 @@ void serverGears::parseMessage( const Message &m_msg, const QString &c_uuid)
             }else{
                 message.setType(VPrn::Que_SEC_LEVEL);
                 if (u_mandat.isEmpty()){
-                    u_mandat.append(m_msg.messageData());
+                    u_mandat.append(m_msg.getMessageData());
                 }
                 str = QObject::trUtf8("[%1];:;%2;:;").arg(c_uuid,u_mandat);
                 message.setMessageData( str.toUtf8() );
@@ -645,8 +658,10 @@ void serverGears::sendMessage( const Message &m_msg, QLocalSocket *client)
 {
     QString clientName = clients_uuid.value(client);
 
-    qDebug() << "Send Message type " << m_msg.type()
-            << "to Client "  << clientName;
+    qDebug()<< "\nSend Message:"
+            << "\nType " << m_msg.getType()
+            << "\nData " << m_msg.getMessageData()
+            << "\nto Client\n-----------------------------\n"  << clientName;
 
     //Сформируем пакет И пошлем его ветром гонимого клиенту
     client->write(m_msg.createPacket());
@@ -992,7 +1007,7 @@ void serverGears::sendFileToDemon(const QString &c_uuid)
         QString fileName = pTask->getFileToPrint();
         QByteArray msg_body;
         QByteArray file_data;
-        qint64     file_size = getCompresedFile(fileName,file_data);
+        qint32     file_size = getCompresedFile(fileName,file_data);
         //Формируем файл для печати сжатый
         Message net_msg(this);
         net_msg.setType(VPrn::Que_PrintThisFile);
@@ -1000,10 +1015,10 @@ void serverGears::sendFileToDemon(const QString &c_uuid)
                   * @short Que_PrintThisFile Печать файла на выбранный пользователем принтер
                   * @param (QString) JobID (уникально для каждого экз. документа)
                   * @param (QString) Имя принтера (очереди печати на CUPS)
-                  * @param (qint8)   copy_number  число копий 1-100
+                  * @param (qint32)   copy_number  число копий 1-100
                   * @param (QString) user_name    имя пользователя
                   * @param (QString) job_title    имя задания
-                  * @param (qint64) array_size   размер не сжатого буфера
+                  * @param (qint32) array_size   размер не сжатого буфера
                   * @param (QByteArray) файл для печати в формате QByteArray (сжатый)
                   */
         QDataStream out(&msg_body, QIODevice::WriteOnly );
@@ -1033,7 +1048,7 @@ void serverGears::checkFreeSpaceInDemon(const QString &c_uuid,qint64 fsize)
                    );
         return;
     }
-    QByteArray msg_body;
+    //QByteArray msg_body;
     //Формируем файл для печати сжатый
     Message net_msg(this);
     net_msg.setType(VPrn::Que_CheckFileSize);
@@ -1042,7 +1057,7 @@ void serverGears::checkFreeSpaceInDemon(const QString &c_uuid,qint64 fsize)
             .toUtf8() );
     //Запись в сетевой канал
     net_plugin->sendMessage(net_msg);
-    debugDirectPrint(c_uuid);
+    //debugDirectPrint(c_uuid);
 }
 
 void serverGears::checkCurrentFile(const QString &c_uuid)
