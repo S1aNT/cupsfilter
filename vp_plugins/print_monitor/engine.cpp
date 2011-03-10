@@ -260,11 +260,11 @@ void Engine::parseMessage(const Message &r_msg)
     msg.clear();
     QString str;
 
-    MessageType mType = r_msg.type();
+    MessageType mType = r_msg.getType();
     switch (mType){
     case VPrn::Que_BeginPrintCopies:{	
             str = QObject::trUtf8("Начата печать документа: ");
-            str.append(r_msg.messageData());
+            str.append(r_msg.getMessageData());
 
             emit showInfoMsg(str);
             qDebug() << "Recive msg: VPrn::Que_BeginPrintCopies";
@@ -289,13 +289,13 @@ void Engine::parseMessage(const Message &r_msg)
     case VPrn::Que_UserNeedMarkCopies:{
             str = QObject::trUtf8("Окончена печать, необходимо утвердить документ!");
             emit showInfoMsg(str);
-            emit UserNeedMarkCopies( r_msg.messageData() );
+            emit UserNeedMarkCopies( r_msg.getMessageData() );
         }
         break;
     case VPrn::Ans_Register: {
             // Клиент зарегистрирован сохраним полученный от GateKeeper уникальный номер
             client_uuid.clear();
-            client_uuid.append(r_msg.messageData());
+            client_uuid.append(r_msg.getMessageData());
             if (m_DC_model){
                 m_DC_model->setItem(0,VPrn::cards_ID,
                                     new QStandardItem(client_uuid)
@@ -312,7 +312,7 @@ void Engine::parseMessage(const Message &r_msg)
         break;
     case VPrn::Ans_SrvStatusFullReady:
         {
-            str.append(r_msg.messageData());
+            str.append(r_msg.getMessageData());
             // Разберем ответ сервера, в формате : имя;:;мандат
             QRegExp rx("(.+);:;(.+)");
             //rx.setMinimal(true);
@@ -331,31 +331,31 @@ void Engine::parseMessage(const Message &r_msg)
         }
         break;
     case VPrn::Ans_SrvStatusNotReady:{
-            str.append(r_msg.messageData());
+            str.append(r_msg.getMessageData());
             emit gk_notReady(QObject::trUtf8("GateKeeper не готов к работе по причине [%1]")
                              .arg(str)
                              );
         }
         break;
     case VPrn::Ans_SrvStatusPartReady:{
-            str.append(r_msg.messageData());
+            str.append(r_msg.getMessageData());
             emit needAuthUser(str);
             afterConnectSteps();
         }
         break;
     case VPrn::Ans_TemplateNotFound:{
-            str.append( r_msg.messageData() );
+            str.append( r_msg.getMessageData() );
             emit MergeDocWithTemplates( false, str);
         }
         break;
     case VPrn::Ans_GiveMeTemplatesList:{
             // Получили данные запишем в модель
-            saveTemplatesListToModel( r_msg.messageData() );
+            saveTemplatesListToModel( r_msg.getMessageData() );
         }
         break;
     case Ans_SourceDocNotFound:{
             // Исходный документ не найден или не верного формата, в теле сообщения подробности
-            str.append( r_msg.messageData() );
+            str.append( r_msg.getMessageData() );
             emit MergeDocWithTemplates( false, str);
         }
         break;
@@ -365,11 +365,11 @@ void Engine::parseMessage(const Message &r_msg)
         }
         break;
     case VPrn::Ans_ConvertFormatedDocToPng:{
-            emit PicturesList( r_msg.messageDataList() );
+            emit PicturesList( r_msg.getMessageDataList() );
         }
         break;
     case VPrn::GoodBay:{
-            str.append(r_msg.messageData());
+            str.append(r_msg.getMessageData());
             emit reciveGoodBayMsg(str);
         }
         break;
@@ -381,19 +381,19 @@ void Engine::parseMessage(const Message &r_msg)
         break;
     case VPrn::Ans_MB_EXIST_AND_BRAK:{
             //Документ зарегистрирован в БД УЧЕТА
-            str.append(r_msg.messageData());
+            str.append(r_msg.getMessageData());
             emit RegisterDocInBase( true, str);
         }
         break;
     case VPrn::Ans_MB_EXIST_AND_NOT_BRAK:{
             //Документ зарегистрирован в БД УЧЕТА
-            str.append(r_msg.messageData());
+            str.append(r_msg.getMessageData());
             emit RegisterDocInBase( false, str);
         }
         break;
     case VPrn::Ans_RegisterDocInBase:{
             //Документ зарегистрирован в БД УЧЕТА
-            str.append(r_msg.messageData());
+            str.append(r_msg.getMessageData());
             emit RegisterDocInBase( true, str);
         }
         break;
@@ -401,17 +401,17 @@ void Engine::parseMessage(const Message &r_msg)
         }
         break;
     case VPrn::Ans_PRINT_ALLOWED:{
-            str.append(r_msg.messageData());
+            str.append(r_msg.getMessageData());
             emit authToDevice( true,str );
         }
         break;
                 case VPrn::Ans_PRINT_DENIED:{
-                        str.append(r_msg.messageData());
+                        str.append(r_msg.getMessageData());
                         emit authToDevice( false,str );
                     }
                     break;
                 case VPrn::Ans_PRINTER_NOT_FOUND:{
-                        str.append(r_msg.messageData());
+                        str.append(r_msg.getMessageData());
                         emit authToDevice( false,str );
                     }
                     break;
@@ -420,20 +420,20 @@ void Engine::parseMessage(const Message &r_msg)
                     }
                     break;
                 case VPrn::Ans_PageCounting:{
-                        str.append(r_msg.messageData()); // Число страниц в str
+                        str.append(r_msg.getMessageData()); // Число страниц в str
                         int pCnt = str.toInt();
                         setPageCountInModel(pCnt);
                     }
                     break;
                 case VPrn::Ans_PRINTER_LIST:{
-                        str.append(r_msg.messageData());
+                        str.append(r_msg.getMessageData());
                         savePrintersListToModel( str );
                         emit RecivePrintersList();
                     }
                     break;
                 case VPrn::Ans_STAMP_LIST:{
                         // Получили названия уровней секретности, сохраним в модель
-                        str.append(r_msg.messageData());
+                        str.append(r_msg.getMessageData());
                         setSecLevelList(QStringList() << str.split(";:;") );
                         emit ReciveSecLevelList();
                         //Запрос списка принтеров доступных пользоваетелю
@@ -470,25 +470,11 @@ void Engine::afterConnectSteps()
 
 void Engine::savePrintersListToModel(const QString &prn_list)
 {
-    // Разберем ответ сервера, в формате: Название принтера;:;ip;;:имя очереди###
-    QRegExp rx("(.+);:;(.+);:;(.+)");
-    //rx.setMinimal(true);
-    QString p_name;
-    QString p_ip;
-    QString p_qqueue;
-
-    QStringList printers_item;
-    printers_item = prn_list.split("###");
+    // Разберем ответ сервера, в формате: Название принтера;:;Название принтера2;;:Название принтера_
+    
+    QStringList printers_item = prn_list.split(";:;");
     for (int i = 0; i < printers_item.size(); i++) {
-        if(rx.indexIn( printers_item.at(i) ) != -1){
-            p_name   = rx.cap(1);
-            p_ip     = rx.cap(2);
-            p_qqueue = rx.cap(3);
-
-            m_Prn_model->setItem(i, 0, new QStandardItem(p_name));
-            m_Prn_model->setItem(i, 1, new QStandardItem(p_ip));
-            m_Prn_model->setItem(i, 2, new QStandardItem(p_qqueue));
-        }
+	m_Prn_model->setItem(i, 0, new QStandardItem(printers_item.at(i)));
     }
 }
 
@@ -534,12 +520,12 @@ QString Engine::findPrinterInModel()
         QModelIndex index = m_Prn_model->index(i,3);
         bool sel_flag = m_Prn_model->data(index,Qt::DisplayRole).toBool();
         if (sel_flag){
-            QModelIndex index_ip = m_Prn_model->index(i, 1);
-            QModelIndex index_qqueue = m_Prn_model->index(i, 2);
-            device_profile = QString("%1;:;%2")
-                             .arg(m_Prn_model->data(index_ip, Qt::DisplayRole).toString())
-                             .arg(m_Prn_model->data(index_qqueue, Qt::DisplayRole).toString());
+            QModelIndex index_name = m_Prn_model->index(i, 0);
+            //QModelIndex index_qqueue = m_Prn_model->index(i, 2);
+
+            device_profile = m_Prn_model->data(index_name, Qt::DisplayRole).toString();
             break;
+
         }
     }
     return device_profile;
