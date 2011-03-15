@@ -35,7 +35,7 @@ public:
     int     getPagesInDocCount();
     int     getPageCount() {return m_pageCount;}
 
-    qint64  getCurrentFileSizes();
+    qint32  getCurrentFileSizes();
     QString getFileToPrint();
     QList <int> getDocCopies()      { return m_doc_copyes;}
     void clearQueue();
@@ -46,11 +46,11 @@ private:
     QString m_printerQueue; // Имя принтера (имя очереди для CUPS сервера)    
     int     m_pageCount;    // Кол-во стр в документе
     QQueue <int>     m_PrintDocCopies;// Кол-во печатемых копий для каждого файла входящего в состав документа
-    QQueue <qint64> m_FileSizes;    // Размеры в байтах для каждого файла входящего в состав документа
+    QQueue <qint32> m_FileSizes;    // Размеры в байтах для каждого файла входящего в состав документа
     QQueue <QString> m_queueFiles2Print; // Очередь файлов для печати
     QList <int>      m_doc_copyes; // Копии документа (1-5 получатели)
     //-------------------------------------------------------------------------
-    qint64 getFileRealSize(const QString &fileName);
+    qint32 getFileRealSize(const QString &fileName);
 };
 
 

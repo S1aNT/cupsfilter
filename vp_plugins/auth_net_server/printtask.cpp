@@ -3,6 +3,7 @@
 #include <QtCore/QRegExp>
 #include <QtCore/QStringList>
 #include <QtCore/QFile>
+#include <QVariant>
 
 PrintTask::PrintTask(QObject *parent)
         : QObject(parent)
@@ -80,16 +81,16 @@ QString PrintTask::getFileToPrint()
 
 int PrintTask::getPagesInDocCount()
 {
-   int p(1);
+    int p(1);
     if (!m_PrintDocCopies.isEmpty()){
         p= m_PrintDocCopies.dequeue();
     }
     return p;
 }
 
-qint64 PrintTask::getCurrentFileSizes()
+qint32 PrintTask::getCurrentFileSizes()
 {
-   qint64 p(0);
+    qint32 p(0);
     if (!m_FileSizes.isEmpty()){
         p= m_FileSizes.dequeue();
     }
@@ -106,12 +107,20 @@ void PrintTask::clearQueue()
     m_queueFiles2Print.clear();
 }
 
-qint64 PrintTask::getFileRealSize(const QString &fileName)
+qint32 PrintTask::getFileRealSize(const QString &fileName)
 {
+    QVariant max_fsize(0);
+
     QFile file_in(fileName);
     if (!file_in.open(QIODevice::ReadOnly) ){
         return 0;
     }
     file_in.close();
-    return file_in.size();
+    max_fsize = file_in.size();
+    bool ok;
+    qint32 fsize = max_fsize.toInt(&ok);
+    if (ok){
+        return fsize;
+    }
+    return 0;
 }
