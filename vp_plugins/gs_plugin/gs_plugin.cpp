@@ -110,8 +110,8 @@ void GS_plugin::convertPs2Pdf(const QString &client_uuid,const QString &input_fn
     }else {
         emit error(VPrn::FileIOError,
                    QObject::trUtf8("ERROR : Файл %1 не найден\n%2")
-					.arg(input_fn)
-					.arg(QString(Q_FUNC_INFO)));
+                   .arg(input_fn)
+                   .arg(QString(Q_FUNC_INFO)));
     }
 }
 
@@ -149,11 +149,11 @@ void GS_plugin::directPrint(const QString &client_uuid,const QString &file_name,
             tmp_file.close();
             t_file.setFileName(tmp_cmd);
         }else{
-          emit error(VPrn::FileIOError,
-                           QObject::trUtf8("Ошибка создания временного файла %1\n%2")
-                           .arg( tmp_cmd )
-                           .arg(QString(Q_FUNC_INFO))
-                           );
+            emit error(VPrn::FileIOError,
+                       QObject::trUtf8("Ошибка создания временного файла %1\n%2")
+                       .arg( tmp_cmd )
+                       .arg(QString(Q_FUNC_INFO))
+                       );
             return;
         }
     }
@@ -176,10 +176,10 @@ void GS_plugin::directPrint(const QString &client_uuid,const QString &file_name,
         proc.start( tmp_cmd );
     }else{
         emit error(VPrn::FileIOError,
-                       QObject::trUtf8("Ошибка записи данных во временный файл %1\n%2")
-                       .arg( tmp_cmd )
-                       .arg(QString(Q_FUNC_INFO))
-                       );
+                   QObject::trUtf8("Ошибка записи данных во временный файл %1\n%2")
+                   .arg( tmp_cmd )
+                   .arg(QString(Q_FUNC_INFO))
+                   );
         return;
     }
 #endif
@@ -206,14 +206,28 @@ void GS_plugin::directPrint(const QString &client_uuid,const QString &file_name,
 void GS_plugin::catPdf(const QString &client_uuid,const QString &file_nameA,
                        const QString &file_nameB, const QString &output_name)
 {
+    // Проверим что есть что объединять
+    if (!QFile::exists(file_nameA)){
+        //Ошибка начальный файл обязн существовать
+        emit error (VPrn::FileNotFound,
+                    QObject::trUtf8("Ошибка файл %1 не существует!\n%2")
+                    .arg(file_nameA)
+                    .arg(QString(Q_FUNC_INFO))
+                    );
+        return;
+    }
+    if (QFile::exists(file_nameB)){
+        QStringList args;
+        args.append(QString("A=%1").arg(file_nameA));
+        args.append(QString("B=%1").arg(file_nameB));
+        args.append("cat A B output ");
+        args.append(output_name);
 
-    QStringList args;
-    args.append(QString("A=%1").arg(file_nameA));
-    args.append(QString("B=%1").arg(file_nameB));
-    args.append("cat A B output ");
-    args.append(output_name);
+        start_proc(client_uuid,pdftkBin,args,VPrn::job_CatPages);
 
-    start_proc(client_uuid,pdftkBin,args,VPrn::job_CatPages);
+    }else{
+        QFile::rename(file_nameA,output_name);
+    }
 }
 
 void GS_plugin::mergeWithTemplate(const QString &client_uuid,
@@ -285,6 +299,52 @@ void GS_plugin::mergeWithTemplate(const QString &client_uuid,
     }    
 }
 
+void GS_plugin::convertPdf2Ps(const QString &client_uuid)
+{
+    //gs -dNOPAUSE -dBATCH -sDEVICE=pswrite -sOutputFile=out.ps in.pdf
+    // Поиск данных для клиента
+    ClientData *c_data = findClientData(client_uuid);
+
+    if (c_data ){
+        // Запуск процесса объединения
+        for (int i=1;i<6;i++){
+            //Список файлов i экземпляра
+            QStringList out_list = findFiles4Copy(client_uuid,i,QStringList()
+                                                  <<"face_pages_out.pdf"
+                                                  <<"lastpage_out.pdf"
+                                                  <<"oversidepage_out.pdf"
+                                                  );
+            //Разбор файлов копии
+            for (int j=0; j<out_list.count();j++){
+                QRegExp rx("/(.+)/(.+)/(.-copy)/(.+)_out.pdf");
+                if (rx.indexIn(out_list.at(j)) != -1){
+
+                    c_data->startConvertPdf2Ps( j );
+
+                    // Наш файлик можно обрабатывать
+                    QString copy_num = rx.cap(3);
+                    QString page_type  = rx.cap(4);
+                    QStringList args;
+                    args.append("-q");
+                    args.append("-dQUIET");
+                    args.append("-dNOPAUSE");
+                    args.append("-dBATCH");
+                    args.append("-dPARANOIDSAFER");
+                    args.append("-sDEVICE=pswrite");
+                    args.append(QString("-sOutputFile=%1/%2/%3/%4_prn.ps")
+                                .arg(spoolDir,client_uuid,copy_num,page_type));
+                    args.append(out_list.at(j));
+                    start_proc(client_uuid,gsBin,args,VPrn::job_ConvertPdf2Ps);
+
+                }
+            }
+        }
+
+
+
+    }
+}
+
 void GS_plugin::convertPdfToPng(const QString &client_uuid,
                                 const QStringList &files)
 {
@@ -310,7 +370,7 @@ void GS_plugin::convertPdfToPng(const QString &client_uuid,
                 QString copy_num = rx.cap(3);
                 QString page_type  = rx.cap(4);
 
-                c_data->startConverPdf2Png( i );
+                c_data->startConvertPdf2Png( i );
                 QStringList args;
                 args.append("-q");
                 args.append("-dQUIET");
@@ -354,7 +414,9 @@ void GS_plugin::setConvertToPngMode(const QString &client_uuid, bool full_doc )
 
 QString GS_plugin::getUuid() const
 {
-    return QUuid::createUuid().toString().replace("{","").replace("}","");
+    QString uuid = QUuid::createUuid().toString().replace("{","").replace("}","");
+    qDebug() << uuid;
+    return uuid;
 }
 
 void GS_plugin::createClientData(const QString &client_uuid)
@@ -439,16 +501,21 @@ void GS_plugin::threadFinish(const QString &jobKey,int code,
     // Посмотрим чем же таким важным был занят клиент
     QRegExp rx;
     switch (m_job){
+    case VPrn::job_ConvertPdf2Ps:
+        if (c_data->isFinishedConvertPdf2Ps() ){
+            emit docReady4print( m_client_uuid );
+        }
+        break;
     case VPrn::job_ConvertToPng:
         if ( c_data->isFinishedConvertPdf2Png() ){
-			//Исходные файлы преобразовались в png оъединим лицевые страницы
-			catFirstPages( m_client_uuid );
+            //Исходные файлы преобразовались в png оъединим лицевые страницы
+            catFirstPages( m_client_uuid );
             emit docReady4preview( m_client_uuid );
         }
         break;
     case VPrn::job_CatPages:
         if (c_data->isFinishedCat() ){
-            emit docReady4print( m_client_uuid );
+            this->convertPdf2Ps(m_client_uuid);
         }
         break;
     case VPrn::job_MergePdf:
@@ -558,7 +625,6 @@ void GS_plugin::calcPageCount(const QString &client_uuid,const QString &input_fn
 }
 
 
-
 void GS_plugin::splitPdf(const QString &client_uuid,const QString &main_pdf,
                          const QString &first_page, const QString &other_pages)
 {
@@ -617,7 +683,6 @@ void GS_plugin::catFirstPages(const QString &client_uuid )
     // Поиск данных для клиента
     ClientData *c_data = findClientData(client_uuid);
     if (c_data){
-
         // Запуск процесса объединения
         for (int i=1;i<6;i++){
             //Список файлов i экземпляра
@@ -645,19 +710,14 @@ void GS_plugin::catFirstPages(const QString &client_uuid )
                     }
                 }
             }
-            if ( c_data->getPageCount() >1  && !fileA.isEmpty() && !fileB.isEmpty()){
-                //Объединим файлы
-                c_data->startCat( i );
-                catPdf(client_uuid,fileA,fileB,outFile);
-            }else{
-                // Переименуем
-                if (!fileA.isEmpty()){
-                    QFile::rename(fileA,outFile);
-                }
-            }
+
+            //Объединим файлы
+            c_data->startCat( i );
+            catPdf(client_uuid,fileA,fileB,outFile);
         }
         if ( c_data->getPageCount() == 1){
-            emit docReady4print( client_uuid );
+            // Просто конвертируем файлы в ps
+            convertPdf2Ps(client_uuid);
         }
     }else{
         emit error(VPrn::InternalAppError,

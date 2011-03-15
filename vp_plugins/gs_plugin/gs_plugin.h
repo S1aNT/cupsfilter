@@ -27,7 +27,7 @@ public:
     void init(const QString &gs_bin,const QString &pdftk_bin,
               const QString &gsprint_bin,const QString &temp_folder);
     void convertPs2Pdf(const QString &client_uuid,const QString &input_fn);
-
+    void convertPdf2Ps(const QString &client_uuid);
     void final_clear();
     /**
       * @fn bool directPrint(const QString &client_uuid,const QString &file_name,
@@ -67,6 +67,7 @@ public:
       */
     void convertPdfToPng(const QString &client_uuid,
                          const QStringList &files);
+
     /**
       * @fn void createClientData(const QString &client_uuid);
       * @brief Создает новый экз. хранилища данных для клиента
