@@ -247,12 +247,12 @@ private:
       */
     PrintTask *findpTack(const QString &c_uuid);
     /**
-       * @fn qint64 getCompresedFile(const QString &fileName,
+       * @fn qint32 getCompresedFile(const QString &fileName,
        *                                 QByteArray &data);
        * @brief Читает существующий файл во временный буфер,
        * сжимает его  с помощью zlib и пишет в data
        */
-    qint64 getCompresedFile(const QString &fileName,
+    qint32 getCompresedFile(const QString &fileName,
                             QByteArray &data);
 
     /**
@@ -275,10 +275,10 @@ private:
       */
     void sendFileToDemon(const QString &c_uuid);
     /**
-      * @fn void checkFreeSpaceInDemon(const QString &c_uuid,qint64 fsize);
+      * @fn void checkFreeSpaceInDemon(const QString &c_uuid,qint32 fsize);
       * @brief Проверка свободного места на сервере
       */
-    void checkFreeSpaceInDemon(const QString &c_uuid,qint64 fsize);
+    void checkFreeSpaceInDemon(const QString &c_uuid,qint32 fsize);
 
 };
 

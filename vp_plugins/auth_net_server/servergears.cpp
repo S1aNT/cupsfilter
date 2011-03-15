@@ -289,21 +289,7 @@ void serverGears::reciveNetworkMessage(const Message &r_msg)
                 case VPrn::Ans_PRINTER_LIST:
                     loc_msg.setType(VPrn::Ans_PRINTER_LIST);
                     str.append( m_body );
-#ifdef DEBUG_MODE_OFF
-                    /**
-                      * @todo Сделал только для показ работы на локальном компе
-                      * Список принтеров взят из ini файла и записан в виде
-                      * Выводимое имя;:;ip сервера;:;имя очереди печати(принтера)
-                    */
-                    str.clear();
-                    for (int i=0; i< prn_list.size();i++){
-                        str.append(prn_list.at(i).name).append(";:;")
-                                .append(prn_list.at(i).ip).append(";:;")
-                                .append(prn_list.at(i).p_qqueue);
-                    }
-
-                    qDebug() << Q_FUNC_INFO << str << "\n";
-#endif
+                    qDebug() << "\nPrinter List " << str << "\n";
                     loc_msg.setMessageData( str.toUtf8() );
                     break;
                 case VPrn::Ans_PRINTER_LIST_EMPTY:
@@ -768,7 +754,7 @@ void serverGears::do_docReady4print (const QString &client_uuid)
     QList <int> doc_copies = pTask->getDocCopies();
     for (int i=1; i<= doc_copies.size();i++){
         QStringList files = gs_plugin->findFiles4Copy(client_uuid,i,
-                                                      QStringList() << "*out.pdf");
+                                                      QStringList() << "*prn.ps");
         if (files.count() !=-1){
             QMap <int,QString> orderList;
             // Формируем задание для данного экземпляра
@@ -776,19 +762,19 @@ void serverGears::do_docReady4print (const QString &client_uuid)
 
             for (int j=0;j<files.size();j++){
                 QString filename = files.at( j );
-                QRegExp rx("/(.+)/(.+)/(.)-copy/(.+_out).pdf");
+                QRegExp rx("/(.+)/(.+)/(.)-copy/(.+_prn).ps");
                 if(rx.indexIn( filename ) != -1){
                     QString copy_num   = rx.cap(3);
                     QString page_type  = rx.cap(4);
-                    if ( page_type.compare("face_pages_out",Qt::CaseInsensitive) == 0){
+                    if ( page_type.compare("face_pages_prn",Qt::CaseInsensitive) == 0){
                         orderList.insert(1,filename);
                     }
 
-                    if ( page_type.compare("oversidepage_out",Qt::CaseInsensitive) == 0){
+                    if ( page_type.compare("oversidepage_prn",Qt::CaseInsensitive) == 0){
                         orderList.insert(2,QString("222"));
                         orderList.insert(3,filename);
                     }
-                    if ( page_type.compare("lastpage_out",Qt::CaseInsensitive) == 0){
+                    if ( page_type.compare("lastpage_prn",Qt::CaseInsensitive) == 0){
                         orderList.insert(4,QString("333"));
                         orderList.insert(5,filename);
                     }
@@ -885,7 +871,7 @@ void serverGears::createFormatedDoc(const QString &client_uuid,
 
 
 
-qint64 serverGears::getCompresedFile(const QString &fileName,
+qint32 serverGears::getCompresedFile(const QString &fileName,
                                      QByteArray &data)
 {
     data.clear();
@@ -1038,7 +1024,7 @@ void serverGears::sendFileToDemon(const QString &c_uuid)
     }
 }
 
-void serverGears::checkFreeSpaceInDemon(const QString &c_uuid,qint64 fsize)
+void serverGears::checkFreeSpaceInDemon(const QString &c_uuid,qint32 fsize)
 {
     PrintTask *pTask = findpTack(c_uuid);
     if (!pTask){
@@ -1085,7 +1071,7 @@ void serverGears::checkCurrentFile(const QString &c_uuid)
     }
 
     if (pTask->isNextFileToPrint()){
-        qint64 fsize = pTask->getCurrentFileSizes();
+        qint32 fsize = pTask->getCurrentFileSizes();
         // Проверим это файл имеющий размер > 0 байтов или маркер
         if (fsize ==0 ){ // Маркер, обработаем ситуацию,т.е отправим юзеру сообщение
             fileName = pTask->getFileToPrint();
