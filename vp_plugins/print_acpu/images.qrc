@@ -1,5 +1,6 @@
 <RCC>
     <qresource prefix="/">
         <file alias="anim.mng">../images/anim.mng</file>
+        <file alias="splash.png">../images/splash.png</file>        
     </qresource>
 </RCC>
