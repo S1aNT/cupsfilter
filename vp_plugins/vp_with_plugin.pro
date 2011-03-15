@@ -3,11 +3,12 @@
 ######################################################################
 
 TEMPLATE = subdirs
-SUBDIRS	 = print_monitor \
-           tEditor \
+SUBDIRS	 = print_monitor \           
            auth_net_server \
            net_plugin \
            gs_plugin \
            auth_plugin \
-           tmpl_sql_plugin
+           tmpl_sql_plugin \
+           tEditor
+
 
