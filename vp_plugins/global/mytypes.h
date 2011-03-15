@@ -19,8 +19,10 @@ namespace VPrn{
 #define DM_TO_POINT(dm) ((dm)*283.465058)
 #define INCH_TO_POINT(inch) ((inch)*72.0)
 
-    typedef qint64 PACKET_SIZE ; // Максимальный размер пакета
-#define MESSAGE_SIZE (PACKET_SIZE - qint64 ); // Максимальный размер сообщения
+    /// @todo  Хардкодим по маленьку
+    static const qint32 m_MaxInt32= 2147483647;
+
+    typedef qint32 PACKET_SIZE ; // Максимальный размер пакета
 
     typedef QMap <int,QPixmap> PixmapList;
     typedef QMap <int,QString> PixmapDescList;
@@ -236,6 +238,7 @@ namespace VPrn{
 
     enum Jobs{ /// Задания (работы)
         job_ConvertPs2Pdf,        /// Задача конвертирования ps в pdf
+        job_ConvertPdf2Ps,        /// Задача конвертирования pdf в ps
         job_CalcPageCount,        /// Задача подсчета страниц в pdf файле
         job_SplitPageFirst,       /// Разбиение документа на первую стр.
         job_SplitPageOther,       /// Разбиение документа на последующие стр.
