@@ -52,17 +52,16 @@ void net_plugin::init(const QString &host, int port)
 
 void net_plugin::sendMessage(const Message &s_msg)
 {
-#ifdef DEBUG_MODE
-    debugParseMsg( s_msg );
-#endif
+
     QByteArray d = s_msg.createPacket();
     
-    
+
     qDebug() << "Send TO NETWORK: cmd " 
              << s_msg.getType() 
              << " data.size " << s_msg.getMessageData().size()
              << "\n packet size " << d.size(); 
-    if (client->state() == QAbstractSocket::ConnectedState){
+
+  if (client->state() == QAbstractSocket::ConnectedState){
         //Сформируем пакет И пошлем его ветром гонимого
 //        client->write(s_msg.createPacket());
         client->write( d );
@@ -165,7 +164,7 @@ void net_plugin::selectError(QAbstractSocket::SocketError err)
 
 void net_plugin::debugParseMsg(const Message &s_msg)
 {
-
+/*
     // При отладке я просто эмулирую ответы Мишиного демона
     QString m_uuid;
     QString m_body;
@@ -214,10 +213,10 @@ void net_plugin::debugParseMsg(const Message &s_msg)
             break;
         case VPrn::Que_GET_MB_LISTS:
             loc_msg.setType( VPrn::Ans_MB_LIST );
-            /**
-              * @short  Демон вернул список, в формате
-              * ДАТА;:;МБ;:;номер_экз.;:;Название_документа;:;число страниц;:;статус
-              */
+
+             /// @short  Демон вернул список, в формате
+             ///ДАТА;:;МБ;:;номер_экз.;:;Название_документа;:;число страниц;:;статус
+
             // Формируем список документов
             doc_list.append(QObject::trUtf8("123456789;:;МБ-12/12;:;1;:;Приказ по кадрам;:;52;:;РАСПЕЧАТАН###"));
             doc_list.append(QObject::trUtf8("123456789;:;МБ-12/12;:;2;:;Приказ по кадрам;:;52;:;РАСПЕЧАТАН###"));
@@ -295,7 +294,7 @@ void net_plugin::debugParseMsg(const Message &s_msg)
     }else{
         setError(QObject::trUtf8("Полученно сообщение неверного формата!"));
     }
-
+*/
 }
 
 
