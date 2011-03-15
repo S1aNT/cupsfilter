@@ -1,4 +1,5 @@
 #include "clientdata.h"
+#include <QMutableHashIterator>
 
 ClientData::ClientData(QObject *parent)
     : QObject(parent)
@@ -20,6 +21,48 @@ void ClientData::clear()
     metaJob_merge.clear();
     metaJob_cat.clear();
     metaJob_pdf2png.clear();
+    metaJob_pdf2ps.clear();
+}
+
+void ClientData::incJobsCount(const QString &job_id)
+{
+    if ( !hash.contains(job_id) ){
+        hash.insert(job_id,0);
+    }else{
+        QMutableHashIterator<QString, int> i(hash);
+        while (i.hasNext()) {
+            i.next();
+            if (i.key().compare(job_id,Qt::CaseInsensitive)){
+                int job_count = i.value();
+                i.setValue(job_count++);
+            }
+            qDebug() << i.key() << ": " << i.value();
+        }
+    }
+}
+
+bool ClientData::isJobFinished(const QString &job_id)
+{
+    if ( hash.contains(job_id) ){
+        QMutableHashIterator<QString, int> i(hash);
+        while (i.hasNext()) {
+            i.next();
+            qDebug() <<"isJobFinished " << i.key() << ": " << i.value();
+
+            if (i.key().compare(job_id,Qt::CaseInsensitive)){
+                int job_count = i.value();
+                if (job_count == 0){
+                    i.remove();
+                    return true;
+                }else{
+                    i.setValue(job_count--);
+                    return false;
+                }
+            }
+
+        }
+    }
+    return false;
 }
 
 void ClientData::setConvertMode(bool b)
@@ -95,7 +138,7 @@ bool ClientData::isFinishedCat()
     return metaJob_cat.isEmpty();
 }
 
-void  ClientData::startConverPdf2Png(int number)
+void  ClientData::startConvertPdf2Png(int number)
 {
     metaJob_pdf2png.push(number);
 }
@@ -104,4 +147,15 @@ bool ClientData::isFinishedConvertPdf2Png()
 {
     metaJob_pdf2png.pop();
     return metaJob_pdf2png.isEmpty();
+}
+
+void ClientData::startConvertPdf2Ps(int number)
+{
+    metaJob_pdf2ps.push(number);
+}
+
+bool ClientData::isFinishedConvertPdf2Ps()
+{
+    metaJob_pdf2ps.pop();
+    return metaJob_pdf2ps.isEmpty();
 }
