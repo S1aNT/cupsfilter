@@ -15,6 +15,7 @@ public:
                       const QString &gsprint_bin,const QString &temp_folder)=0;
     virtual void convertPs2Pdf(const QString &client_uuid,
                                const QString &input_fn) = 0;
+    virtual void convertPdf2Ps(const QString &client_uuid) =0;
     virtual void convertPdfToPng(const QString &client_uuid,
                                      const QStringList &files) = 0;
     virtual void final_clear() = 0;
