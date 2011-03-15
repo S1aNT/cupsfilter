@@ -40,12 +40,13 @@ HEADERS += server.h \
     ../global/mytypes.h \
     ../global/message.h \
     ../global/templatesinfo.h \
-    printtask.h 
+    printtask.h
 SOURCES += server.cpp \
     main.cpp \
     servergears.cpp \
     ../global/message.cpp \
     ../global/templatesinfo.cpp \
-    printtask.cpp 
+    printtask.cpp
+
 RESOURCES = images.qrc
 TRANSLATIONS = auth_net_server_ru.ts
